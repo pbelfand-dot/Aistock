@@ -20,6 +20,13 @@ export default {
           'green-dark': '#00a87f',
           'green-light': '#4fffcd',
         },
+        crux: {
+          black: '#111111',
+          stone: '#c4b89a',
+          sand: '#c9a97a',
+          forest: '#4a5c3a',
+          charcoal: '#3d3d3d',
+        },
       },
       fontFamily: {
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
