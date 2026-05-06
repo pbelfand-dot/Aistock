@@ -7,37 +7,63 @@ export default {
   theme: {
     extend: {
       colors: {
-        dark: {
-          900: '#0a0e1a',
-          800: '#0d1224',
-          700: '#111827',
-          600: '#1a2234',
-          500: '#1e2a40',
-          400: '#243049',
+        ivory: '#F5F0E8',
+        cream: '#EDE8DC',
+        sand: '#D4C5A9',
+        linen: '#F2EBE0',
+        parchment: '#E8DFD0',
+        navy: {
+          DEFAULT: '#1B2A4A',
+          light: '#2C3E60',
+          dark: '#111C33',
         },
-        brand: {
-          green: '#00d4a1',
-          'green-dark': '#00a87f',
-          'green-light': '#4fffcd',
+        forest: {
+          DEFAULT: '#2C3E2D',
+          light: '#3D5C3E',
+          dark: '#1A2A1B',
         },
+        gold: {
+          DEFAULT: '#C9A84C',
+          light: '#D4B86A',
+          dark: '#A8882E',
+          pale: '#E8D9A8',
+        },
+        tan: {
+          DEFAULT: '#8B7355',
+          light: '#A08B6B',
+          dark: '#6E5B40',
+        },
+        charcoal: '#2A2A2A',
+        muted: '#6B6B5A',
       },
       fontFamily: {
-        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+        serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+        display: ['Playfair Display SC', 'Georgia', 'serif'],
+        sans: ['Jost', 'system-ui', 'sans-serif'],
       },
       animation: {
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-up': 'slideUp 0.4s ease-out',
+        'fade-in': 'fadeIn 0.8s ease-in-out',
+        'fade-up': 'fadeUp 0.9s ease-out',
+        'fade-up-slow': 'fadeUp 1.2s ease-out',
+        'shimmer': 'shimmer 3s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
-        slideUp: {
-          '0%': { transform: 'translateY(20px)', opacity: '0' },
+        fadeUp: {
+          '0%': { transform: 'translateY(30px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
+        shimmer: {
+          '0%, 100%': { opacity: '0.6' },
+          '50%': { opacity: '1' },
+        },
+      },
+      letterSpacing: {
+        widest2: '0.3em',
+        widest3: '0.4em',
       },
     },
   },
