@@ -1,14 +1,14 @@
 import React from 'react'
 
 const items = [
-  'Linen · Portugal',
-  'Hand-Stitched',
-  'Sea Island Cotton',
-  'Resort Luxury',
-  'Long Island Heritage',
-  'Timeless Design',
-  'Limited Edition',
-  'Coastal Refinement',
+  'Jones Beach · Long Island',
+  'Drop 01 · Summer 2024',
+  'Portuguese Linen',
+  'Custom Toile Print',
+  'Full-Grain Leather',
+  'Heavyweight Cotton',
+  'Woven Label',
+  '40.583° N · 73.576° W',
 ]
 
 const Marquee: React.FC = () => {
