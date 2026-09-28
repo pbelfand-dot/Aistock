@@ -79,6 +79,7 @@ def test_full_journey(cfg, tmp_path, monkeypatch):
         assert store.get("paper-day_ledger")["positions"] == {}, "day desk held a position overnight"
     assert len(store.equity_curve("paper-day")) == 5
     assert len(store.equity_curve("paper-swing")) == 5
+    assert len(store.fills("paper-day")) > 0                         # every fill saved as it happened
 
     # 5) PROMOTE: 5 days isn't enough, so it must refuse
     monkeypatch.setattr("builtins.input", lambda prompt: "REAL MONEY")

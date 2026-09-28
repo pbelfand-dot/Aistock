@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS fills (
     qty INTEGER, price REAL, realized_pnl REAL, reason TEXT, order_id TEXT
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS one_row_per_order ON fills (mode, order_id);
+
 CREATE TABLE IF NOT EXISTS equity (
     mode TEXT, date TEXT, equity REAL, cash REAL,
     PRIMARY KEY (mode, date)
@@ -99,7 +101,7 @@ class Store:
     def record_fill(self, mode: str, fill):
         with self.db:
             self.db.execute(
-                "INSERT INTO fills (mode, date, ticker, side, qty, price, realized_pnl, reason, order_id) "
+                "INSERT OR IGNORE INTO fills (mode, date, ticker, side, qty, price, realized_pnl, reason, order_id) "
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (mode, fill.date, fill.ticker, fill.side, fill.qty, fill.price,
                  fill.realized_pnl, fill.reason, fill.order_id))

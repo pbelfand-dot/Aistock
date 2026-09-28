@@ -86,14 +86,29 @@ def load_desk(cfg, store, data, desk, keep=(), live=False):
     return {t: df for t, df in bars.items() if t not in too_pricey}, market
 
 
+def fill_recorder(store, mode, dry_run=False):
+    """Saves each fill to the database and journal the moment it happens."""
+    def record(f):
+        pnl = f" (P&L ${f.realized_pnl:+.2f})" if f.side == "SELL" else ""
+        line = f"[{mode}] {f.side} {f.qty} {f.ticker} @ ${f.price:.2f}{pnl}: {f.reason}"
+        if dry_run:
+            print(f"[DRY RUN] {line}")
+            return
+        store.record_fill(mode, f)
+        store.log(line)
+    return record
+
+
 def open_broker(cfg, store, desk, phase, dry_run=False, emergency=False):
     mode = mode_of(phase, desk)
     saved = store.get(f"{mode}_ledger")
     cash_account = cfg["live"]["account_type"] == "cash"
     if phase != Phase.LIVE:
         ledger = Ledger.from_dict(saved) if saved else Ledger(desk_capital(cfg, desk, live=False))
-        return PaperBroker(ledger, cfg["paper"]["slippage_pct"], cfg["paper"]["commission_per_trade"],
-                           mode=mode, cash_account=cash_account)
+        broker = PaperBroker(ledger, cfg["paper"]["slippage_pct"], cfg["paper"]["commission_per_trade"],
+                             mode=mode, cash_account=cash_account)
+        broker.on_fill = fill_recorder(store, mode, dry_run)
+        return broker
 
     # LIVE: real money. Several locks must all be open (except for an emergency sell-off).
     if not emergency:
@@ -112,13 +127,10 @@ def open_broker(cfg, store, desk, phase, dry_run=False, emergency=False):
         cash_account=cash_account, dry_run=dry_run,
         stop_loss_pct=RiskManager.for_desk(cfg, desk).stop_loss_pct if live["resting_stops"] else None,
         stop_good_till_cancel=(desk == "swing"),
-        save=lambda: store.set(f"{mode}_ledger", ledger.to_dict()), log=store.log)
-    problems, fills = broker.reconcile(now_ny().strftime("%Y-%m-%d"))
-    for problem in problems:
+        save=lambda: store.set(f"{mode}_ledger", ledger.to_dict()), log=store.log,
+        on_fill=fill_recorder(store, mode, dry_run), poll_seconds=live.get("poll_seconds", 2))
+    for problem in broker.reconcile(now_ny().strftime("%Y-%m-%d")):
         store.log(f"[{mode}] CHECK: {problem}")
-    for f in ([] if dry_run else fills):
-        store.record_fill(mode, f)
-        store.log(f"[{mode}] {f.side} {f.qty} {f.ticker} @ ${f.price:.2f} (P&L ${f.realized_pnl:+.2f}): {f.reason}")
     return broker
 
 
@@ -134,23 +146,52 @@ def reset_paper(store, desk):
 
 
 def emergency_stop(cfg, store, desk, broker, prices, today, reason):
-    """Cancel the bot's orders, sell every position it opened, halt the desk."""
+    """Cancel the bot's orders, sell every position it opened (market orders), halt the desk."""
     store.log(f"!!! EMERGENCY STOP ({broker.mode}): {reason}")
-    broker.cancel_all()
+    store.set(f"halted:{desk}", True)
+    broker.cancel_all(today)
+    sell_everything(broker, prices, today, f"EMERGENCY STOP: {reason}", store)
+    save_broker(store, broker)
+    finish_if_flat(store, desk, broker, reason)
+
+
+def sell_everything(broker, prices, today, reason, store):
     for ticker, pos in broker.positions().items():
         price = prices.get(ticker)
         price = pos.avg_cost if price is None or pd.isna(price) else float(price)
-        fill = broker.submit(Order(ticker, "SELL", pos.qty, price, f"EMERGENCY STOP: {reason}"), today)
-        if fill:
-            store.record_fill(broker.mode, fill)
-            store.log(f"[{broker.mode}] SOLD {fill.qty} {ticker} @ ${fill.price:.2f}")
-        else:
-            store.log(f"!!! COULD NOT SELL {ticker}. CHECK YOUR SCHWAB ACCOUNT BY HAND.")
+        broker.submit(Order(ticker, "SELL", pos.qty, price, reason, urgent=True), today)
+        order_working = any(p["ticker"] == ticker for p in broker.ledger.pending)
+        if ticker in broker.positions() and not order_working:
+            store.log(f"!!! {ticker} is not sold yet; the bot keeps trying every 5 minutes. You can also sell it in Schwab.")
+
+
+def finish_if_flat(store, desk, broker, reason):
+    """A LIVE desk drops back to PAPER only once it owns nothing and has no open orders.
+    Until then it stays LIVE + HALTED, so the bot keeps watching and selling those shares."""
+    if current_phase(store, desk) != Phase.LIVE:
+        return
+    if broker.ledger.positions or broker.ledger.pending:
+        store.log(f"[{broker.mode}] still getting out: {len(broker.ledger.positions)} position(s), "
+                  f"{len(broker.ledger.pending)} open order(s). Staying LIVE + HALTED until flat.")
+        return
+    set_phase(store, desk, Phase.PAPER, f"demoted: {reason}")
+    reset_paper(store, desk)
+
+
+def live_not_flat(store, desk) -> bool:
+    saved = store.get(f"live-{desk}_ledger")
+    return bool(saved and (saved["positions"] or saved.get("pending")))
+
+
+def continue_exit(cfg, store, data, desk, now) -> str:
+    """A halted LIVE desk that still owns shares: keep selling until it's flat."""
+    broker = open_broker(cfg, store, desk, Phase.LIVE, emergency=True)      # reconcile books any fills
+    bars, _ = data.load(desk, extra=broker.positions())
+    prices = pd.Series({t: df["close"].iloc[-1] for t, df in bars.items()})
+    sell_everything(broker, prices, now.strftime("%Y-%m-%d"), "EMERGENCY STOP: still getting out", store)
     save_broker(store, broker)
-    store.set(f"halted:{desk}", True)
-    if current_phase(store, desk) == Phase.LIVE:
-        set_phase(store, desk, Phase.PAPER, f"demoted: {reason}")
-        reset_paper(store, desk)
+    finish_if_flat(store, desk, broker, "emergency exit finished")
+    return f"{desk}: getting out, {len(broker.ledger.positions)} position(s) left"
 
 
 def trade_desk(cfg, store, data, desk, now, stops_only=False, dry_run=False, anyway=False) -> str:
@@ -158,14 +199,14 @@ def trade_desk(cfg, store, data, desk, now, stops_only=False, dry_run=False, any
     phase = current_phase(store, desk)
     if phase not in TRADING:
         return f"{desk}: not trading yet (phase {phase.value})"
-    if store.get(f"halted:{desk}"):
-        return f"{desk}: HALTED. Review the journal, then: python run.py resume"
     anyway = anyway and phase == Phase.PAPER                 # never for real money
     if not anyway and not in_session(now):
         return f"{desk}: market closed"
     with trading_lock(cfg):
-        if store.get(f"halted:{desk}"):                      # a kill may have happened while we waited
-            return f"{desk}: HALTED"
+        if store.get(f"halted:{desk}"):                      # (a kill may have happened while we waited)
+            if phase == Phase.LIVE and live_not_flat(store, desk) and not dry_run:
+                return continue_exit(cfg, store, data, desk, now)
+            return f"{desk}: HALTED. Review the journal, then: python run.py resume"
         return _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
 
 
@@ -281,7 +322,8 @@ def cmd_autopilot(cfg, store, args):
         week_ago = (now - timedelta(days=7)).strftime("%Y-%m-%d")
         store.set("autopilot_done", sorted(k for k in done if k.split(":")[1] >= week_ago))
         store.set("autopilot_heartbeat", now.isoformat(timespec="seconds"))
-        time.sleep(300 - (now.minute % 5) * 60 - now.second + 5)   # wake just after the next 5-minute mark
+        after = now_ny()                                     # the work may have taken minutes
+        time.sleep(300 - (after.minute % 5) * 60 - after.second + 5)   # wake just after the next 5-minute mark
 
 
 # ================================================================ commands
@@ -413,6 +455,9 @@ def cmd_promote(cfg, store, args):
     for desk in pick_desks(cfg, args):
         if current_phase(store, desk) != Phase.PAPER:
             print(f"{desk}: promotion to LIVE only happens from PAPER.")
+            continue
+        if live_not_flat(store, desk):
+            print(f"{desk}: the bot still has real positions or orders from before. Sort those out first.")
             continue
         curve = store.equity_curve(f"paper-{desk}")
         if len(curve) < 2:

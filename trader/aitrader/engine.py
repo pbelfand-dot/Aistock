@@ -42,7 +42,8 @@ def decide_orders(scores: pd.Series, prices: pd.Series, positions: dict, buying_
         score = scores.get(ticker, float("nan"))
         if risk.stop_loss_hit(pos.avg_cost, price):
             drop = (1 - price / pos.avg_cost) * 100
-            orders.append(Order(ticker, "SELL", pos.qty, price, f"stop-loss: down {drop:.1f}% from our buy price"))
+            orders.append(Order(ticker, "SELL", pos.qty, price, f"stop-loss: down {drop:.1f}% from our buy price",
+                                urgent=True))
         elif not stops_only and not math.isnan(score) and score < strategy.sell_below:
             orders.append(Order(ticker, "SELL", pos.qty, price,
                                 f"{strategy.name} says exit (score {score:.2f} < {strategy.sell_below})"))
@@ -74,7 +75,7 @@ def sell_all(positions: dict, prices: pd.Series, reason: str, tickers=None) -> l
     for ticker, pos in positions.items():
         price = prices.get(ticker)
         if (tickers is None or ticker in tickers) and price is not None and not math.isnan(price):
-            orders.append(Order(ticker, "SELL", pos.qty, price, reason))
+            orders.append(Order(ticker, "SELL", pos.qty, price, reason, urgent=True))
     return orders
 
 
@@ -196,11 +197,7 @@ def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd
             store.log(f"[{mode}] no new buys today: {why_not}")
 
     orders = desk_orders(strategy, now, scores, prices, broker, risk, yesterday_equity, desk_cfg, stops_only)
-    fills = execute(orders, broker, today)
-    for f in fills:
-        store.record_fill(mode, f)
-        pnl = f" (P&L ${f.realized_pnl:+.2f})" if f.side == "SELL" else ""
-        store.log(f"[{mode}] {f.side} {f.qty} {f.ticker} @ ${f.price:.2f}{pnl}: {f.reason}")
+    fills = execute(orders, broker, today)       # each fill is saved the moment it happens (broker.on_fill)
     if not orders and not stops_only and strategy.style == "swing":
         store.log(f"[{mode}] no trades today")
 

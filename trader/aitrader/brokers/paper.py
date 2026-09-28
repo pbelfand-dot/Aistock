@@ -7,6 +7,7 @@ the quoted price (slippage). Real orders rarely fill at the exact price you saw.
 The backtester uses this same class, so tests and paper play by the same rules.
 """
 import math
+import uuid
 
 from .base import Broker, Fill, Ledger, Order
 
@@ -34,5 +35,5 @@ class PaperBroker(Broker):
 
         self.ledger.cash -= self.commission
         fill = Fill(date=date, ticker=order.ticker, side=order.side, qty=qty,
-                    price=round(price, 4), reason=order.reason, order_id=f"{self.mode}-{date}-{order.ticker}")
-        return self.ledger.apply(fill)
+                    price=round(price, 4), reason=order.reason, order_id=f"{self.mode}-{uuid.uuid4().hex[:12]}")
+        return self._book(fill)

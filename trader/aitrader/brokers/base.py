@@ -20,6 +20,7 @@ class Order:
     qty: int
     price: float       # the price we saw when we decided
     reason: str
+    urgent: bool = False   # must get out NOW (stop-loss, end of day, emergency): live uses a market order
 
 
 @dataclass
@@ -108,6 +109,7 @@ class Broker(ABC):
 
     def __init__(self, ledger: Ledger):
         self.ledger = ledger
+        self.on_fill = lambda fill: None      # called the moment any fill is booked (saves it to the database)
 
     def cash(self) -> float:
         return self.ledger.cash
@@ -125,5 +127,13 @@ class Broker(ABC):
     def submit(self, order: Order, date: str):
         """Try to execute the order. Returns a Fill, or None if nothing happened."""
 
-    def cancel_all(self):
-        """Cancel any orders still waiting at the broker."""
+    def cancel_all(self, date: str = None):
+        """Cancel the bot's orders still waiting at the broker."""
+
+    def _book(self, fill: Fill):
+        """Write a fill into the checkbook AND the database, in the same moment."""
+        if fill.side == "SELL" and fill.ticker not in self.ledger.positions:
+            return None
+        fill = self.ledger.apply(fill)
+        self.on_fill(fill)
+        return fill

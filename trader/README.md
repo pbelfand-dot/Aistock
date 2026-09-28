@@ -129,11 +129,19 @@ The bot trades inside **your normal Schwab account**, alongside your own investi
    ticker could sell *your* shares and mess up your taxes. So don't buy the bot's stocks yourself.
 3. **Only its own orders:** `kill` and cleanup only cancel orders the bot placed, never yours.
 4. **Resting stop-loss at Schwab** for every live position, in case the laptop sleeps or crashes.
-5. **Cash-account safe:** it never re-spends same-day sale money, which avoids Schwab
+   If a sell doesn't fill, the stop goes right back on. The bot never sells shares while an
+   old stop for them might still be live, so it can't sell the same shares twice.
+5. **Never loses track of an order:** it only forgets an order once Schwab confirms it's
+   finished. Every fill is saved the moment it happens, and after a crash or sleep it
+   checks what happened before doing anything else.
+6. **Urgent exits** (stop-loss, the day desk's end-of-day sell, emergency) use market orders.
+   After a kill or kill switch, a live desk stays **LIVE + HALTED** and keeps selling until it
+   truly owns nothing, and only then drops back to PAPER.
+7. **Cash-account safe:** it never re-spends same-day sale money, which avoids Schwab
    "good faith violations". In practice each dollar can be used for one day trade per day.
-6. Real money only after every paper rule passes, you type `REAL MONEY`, `.env` says
+8. Real money only after every paper rule passes, you type `REAL MONEY`, `.env` says
    `LIVE_TRADING_ENABLED=true`, and prices come from Schwab.
-7. Stop-loss per position (swing 7%, day 2%), daily loss limit, and a **kill switch** (desk
+9. Stop-loss per position (swing 7%, day 2%), daily loss limit, and a **kill switch** (desk
    down 15% from peak → sell everything, back to PAPER, halt).
 
 **Whole shares only** (Schwab's API can't buy fractions). With $500 per desk, one position
