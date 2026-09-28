@@ -62,7 +62,11 @@ class SchwabBroker(Broker):
 
     def real_cash(self) -> float:
         """Cash Schwab says the account can trade with right now (never margin)."""
-        bal = self._account().get("currentBalances", {})
+        try:
+            bal = self._account().get("currentBalances", {})
+        except Exception as e:
+            self.log(f"Could not read your Schwab balance ({e!r}); no buying this cycle")
+            return 0.0
         if "cashAvailableForTrading" in bal:                        # cash accounts
             return max(0.0, float(bal["cashAvailableForTrading"]))
         if "cashBalance" in bal and "availableFunds" in bal:        # margin accounts: no borrowing
@@ -82,6 +86,14 @@ class SchwabBroker(Broker):
 
     # ---- orders -----------------------------------------------------------------
     def submit(self, order: Order, date: str):
+        """Never raises: if Schwab errors, this order waits for the next cycle and the others go ahead."""
+        try:
+            return self._submit(order, date)
+        except Exception as e:
+            self.log(f"!!! {order.side} {order.ticker}: Schwab error {e!r}; will retry next cycle")
+            return None
+
+    def _submit(self, order: Order, date: str):
         from schwab.orders.equities import equity_buy_limit, equity_sell_limit, equity_sell_market
 
         if self._busy(order.ticker):
@@ -89,7 +101,7 @@ class SchwabBroker(Broker):
             return None
         pos = self.ledger.positions.get(order.ticker)
         if order.side == "BUY":
-            if order.ticker in self.blocked:
+            if order.ticker in self.blocked or "*" in self.blocked:
                 return None
             limit = round(order.price * (1 + self.buffer), 2)
             qty = min(order.qty, math.floor(self.buying_power(date) / limit))
@@ -217,15 +229,34 @@ class SchwabBroker(Broker):
         self.save()
         self.log(f"[{self.mode}] resting stop-loss for {pos.qty} {pos.ticker} at ${stop}")
 
+    def _find_stop(self, pos) -> str:
+        """Look up this position's working stop order at Schwab (when its id was lost, or you
+        edited the stop by hand). Returns its id, "" if there is none, or UNKNOWN_ID if unclear.
+        (The bot never trades stocks you own, so a sell-stop on its stock is the bot's.)"""
+        resp = self.client.get_orders_for_account(self.account_hash)
+        resp.raise_for_status()
+        matches = [o for o in resp.json()
+                   if o.get("orderType") in ("STOP", "STOP_LIMIT") and o.get("status") not in FINISHED
+                   and any(leg.get("instrument", {}).get("symbol") == pos.ticker and leg.get("instruction") == "SELL"
+                           for leg in o.get("orderLegCollection", []))]
+        if len(matches) == 1:
+            return str(matches[0]["orderId"])
+        return UNKNOWN_ID if matches else ""
+
     def _retire_stop(self, pos, date: str):
         """Take down a position's resting stop. Returns (done, fill).
         done=False: the stop might still be live at Schwab, so selling now could sell twice."""
         if not pos or not pos.stop_order_id:
             return True, None
         if pos.stop_order_id == UNKNOWN_ID:
-            self.log(f"!!! {pos.ticker}: its stop order id is unknown, so the bot won't sell it automatically. "
-                     "CHECK SCHWAB BY HAND.")
-            return False, None
+            pos.stop_order_id = self._find_stop(pos)
+            self.save()
+            if not pos.stop_order_id:
+                return True, None                     # there is no stop to take down
+            if pos.stop_order_id == UNKNOWN_ID:
+                self.log(f"!!! {pos.ticker}: can't tell which stop order at Schwab is the bot's, so it won't "
+                         "sell automatically. CHECK SCHWAB BY HAND.")
+                return False, None
         data = self._order(pos.stop_order_id)
         if data.get("status") not in FINISHED:
             data = self._cancel_and_confirm(pos.stop_order_id)
@@ -259,44 +290,75 @@ class SchwabBroker(Broker):
         (Fills found here are saved immediately through on_fill.)"""
         problems = []
 
+        # Each item is checked on its own: if Schwab errors on one, the rest still get checked.
+        def attempt(what, step):
+            try:
+                step()
+            except Exception as e:
+                problems.append(f"couldn't check {what} ({e!r}); will retry next cycle")
+
         # 1) Orders still open from before (crash, sleep, slow fills). Urgent market
         #    orders are left working; anything else is cancelled.
-        for p in list(self.ledger.pending):
+        def check_order(p):
             data = self._order(p["id"])
             if data.get("status") not in FINISHED and not p.get("urgent") and not self.dry_run:
                 data = self._cancel_and_confirm(p["id"])
             if data.get("status") in FINISHED and self._filled(data)[0]:
                 problems.append(f"order {p['id']} {p['side']} {p['ticker']} filled while the bot wasn't watching")
             self._settle(p["id"], data, date)
+        for p in list(self.ledger.pending):
+            attempt(f"order {p['id']}", lambda p=p: check_order(p))
 
-        # 2) Resting stops that fired (or died) while the bot wasn't watching
-        for pos in list(self.ledger.positions.values()):
-            if not pos.stop_order_id or pos.stop_order_id == UNKNOWN_ID:
-                continue
+        # 2) Resting stops that fired, died or were edited by you while the bot wasn't watching
+        def check_stop(pos):
+            if pos.stop_order_id == UNKNOWN_ID:
+                pos.stop_order_id = self._find_stop(pos)
+                return
             data = self._order(pos.stop_order_id)
-            if data.get("status") in FINISHED:
-                if data.get("status") != "FILLED":
-                    problems.append(f"{pos.ticker}: resting stop was {data.get('status')}; placing a new one")
-                order_id, pos.stop_order_id = pos.stop_order_id, ""
-                qty, price = self._filled(data)
-                if qty >= 1:
-                    self._book(Fill(date, pos.ticker, "SELL", min(qty, pos.qty), price,
-                                    "stop-loss order filled at Schwab", order_id=order_id))
+            status = data.get("status")
+            if status not in FINISHED:
+                return
+            order_id, pos.stop_order_id = pos.stop_order_id, ""
+            qty, price = self._filled(data)
+            if qty >= 1:
+                self._book(Fill(date, pos.ticker, "SELL", min(qty, pos.qty), price,
+                                "stop-loss order filled at Schwab", order_id=order_id))
+            elif status == "REPLACED":                  # you edited it in Schwab: keep yours, don't add another
+                pos.stop_order_id = self._find_stop(pos)
+                problems.append(f"{pos.ticker}: you changed its stop order in Schwab; the bot is using yours")
+            else:
+                problems.append(f"{pos.ticker}: resting stop was {status}; placing a new one")
+        for pos in list(self.ledger.positions.values()):
+            if pos.stop_order_id:
+                attempt(f"{pos.ticker}'s stop", lambda pos=pos: check_stop(pos))
 
         # 3) Compare with what Schwab says the account really owns
-        actual = {}
-        for p in self._account(positions=True).get("positions", []):
-            actual[p["instrument"]["symbol"]] = int(p.get("longQuantity", 0))
+        try:
+            holdings = self._account(positions=True).get("positions", [])
+        except Exception as e:
+            problems.append(f"couldn't read your Schwab positions ({e!r}); no buying until it works")
+            self.blocked = frozenset(self.ledger.positions) | {"*"}
+            self.save()
+            return problems
+        actual = {p["instrument"]["symbol"]: int(p.get("longQuantity", 0)) for p in holdings}
         for ticker, pos in list(self.ledger.positions.items()):
             real = actual.get(ticker, 0)
             if real >= pos.qty or self._busy(ticker):
                 continue
             problems.append(f"{ticker}: bot's checkbook has {pos.qty}, Schwab has {real}. Did you sell them by "
                             "hand? Fixing the checkbook.")
-            done, _ = (True, None) if self.dry_run else self._retire_stop(pos, date)   # its stop covers missing shares
-            if not done:
+            done = True
+            if not self.dry_run:                        # its stop covers shares that aren't there anymore
+                try:
+                    done, _ = self._retire_stop(pos, date)
+                except Exception:
+                    done = False
+            if not done and real > 0:
                 problems.append(f"!!! {ticker}: couldn't confirm its stop order is cancelled. CHECK SCHWAB BY HAND.")
                 continue
+            if not done:
+                problems.append(f"!!! {ticker}: the shares are gone but its stop order may still be at Schwab. "
+                                "CHECK SCHWAB BY HAND and cancel any leftover stop on it.")
             if ticker in self.ledger.positions:
                 if real == 0:
                     del self.ledger.positions[ticker]
@@ -307,7 +369,7 @@ class SchwabBroker(Broker):
         if self.stop_loss_pct and not self.dry_run:
             for pos in list(self.ledger.positions.values()):
                 if not pos.stop_order_id and not self._busy(pos.ticker):
-                    self._place_stop(pos)
+                    attempt(f"a new stop for {pos.ticker}", lambda pos=pos: self._place_stop(pos))
 
         # 5) Never buy stocks you own yourself
         mine = {t: p.qty for t, p in self.ledger.positions.items()}

@@ -233,6 +233,15 @@ def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
     return f"{desk} [{broker.mode}]: value ${result['equity']:,.2f}"
 
 
+def protect_live(cfg, store, desk):
+    """After the close: one more check that every live position has its stop resting at Schwab."""
+    try:
+        with trading_lock(cfg):
+            open_broker(cfg, store, desk, Phase.LIVE, emergency=True)     # reconcile places missing stops
+    except Exception as e:
+        store.log(f"!!! {desk}: evening stop check failed ({e!r}). Check Schwab that its positions have stops.")
+
+
 def run_study(cfg, store, data) -> list:
     """Study every desk. Returns the desks that failed (e.g. no internet)."""
     failed = []
@@ -268,9 +277,8 @@ def due_jobs(now: datetime, done: set) -> list:
         jobs.append("morning")
     if in_session(now):
         jobs.append("day")                                   # day desk: every 5 minutes
-        if minutes_to_close(now) <= 15:
-            if f"swing:{today}" not in done:
-                jobs.append("swing")                         # swing desk: the daily decision
+        if minutes_to_close(now) <= 15 and f"swing:{today}" not in done:
+            jobs.append("swing")                             # swing desk: the daily decision
         else:
             jobs.append("swing-stops")                       # swing desk: just watch the stop-losses
     after_close = datetime.combine(now.date(), session_close(now.date())) + timedelta(minutes=10)
@@ -297,6 +305,9 @@ def run_job(job, cfg, store, data, now, done) -> str:
     if job == "study":
         if "swing" in active_desks(cfg) and current_phase(store, "swing") in TRADING and f"swing:{today}" not in done:
             store.log("WARNING: the swing desk missed today's decision (was the laptop asleep at 3:45pm?)")
+        for desk in active_desks(cfg):
+            if current_phase(store, desk) == Phase.LIVE:
+                protect_live(cfg, store, desk)
         if run_study(cfg, store, data):
             raise RuntimeError("study incomplete")      # not marked done, so it retries in 5 minutes
         return "study done for today"

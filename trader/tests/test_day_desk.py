@@ -87,7 +87,7 @@ def test_autopilot_schedule():
     assert due_jobs(at(12, 0), done) == ["day", "swing-stops"]
     assert due_jobs(at(15, 45), done) == ["day", "swing"]
     done.add("swing:2026-09-28")
-    assert due_jobs(at(15, 50), done) == ["day"]
+    assert due_jobs(at(15, 50), done) == ["day", "swing-stops"]      # keeps protecting after deciding
     assert due_jobs(at(16, 5), done) == []
     assert due_jobs(at(16, 10), done) == ["study"]
     assert due_jobs(datetime(2026, 9, 26, 12, 0), set()) == []          # Saturday

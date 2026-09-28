@@ -35,8 +35,6 @@ CREATE TABLE IF NOT EXISTS fills (
     qty INTEGER, price REAL, realized_pnl REAL, reason TEXT, order_id TEXT
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS one_row_per_order ON fills (mode, order_id);
-
 CREATE TABLE IF NOT EXISTS equity (
     mode TEXT, date TEXT, equity REAL, cash REAL,
     PRIMARY KEY (mode, date)
@@ -51,6 +49,11 @@ class Store:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(str(path))
         self.db.executescript(SCHEMA)
+        with self.db:
+            # Older versions could reuse a paper order id; make them unique before the index.
+            self.db.execute("UPDATE fills SET order_id = order_id || '-' || id WHERE id NOT IN "
+                            "(SELECT MIN(id) FROM fills GROUP BY mode, order_id)")
+            self.db.execute("CREATE UNIQUE INDEX IF NOT EXISTS one_row_per_order ON fills (mode, order_id)")
 
     # ---- simple key/value memory ----------------------------------------
     def get(self, key, default=None):

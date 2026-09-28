@@ -89,3 +89,17 @@ def test_stops_only_mode_only_sells_on_stop_loss():
 def test_max_share_price_for_a_1000_dollar_account():
     # $1,000 split 50/50 -> swing desk $500; 34% per position, 1% cash buffer
     assert RiskManager(max_position_pct=34, cash_buffer_pct=1).max_share_price(500) == pytest.approx(168.3)
+
+
+def test_old_databases_with_repeated_order_ids_still_open(tmp_path):
+    import sqlite3
+    from aitrader.storage import SCHEMA, Store
+    path = tmp_path / "old.sqlite"
+    old = sqlite3.connect(path)
+    old.executescript(SCHEMA)
+    for side in ("BUY", "SELL"):                     # the old paper broker reused ids like this
+        old.execute("INSERT INTO fills (mode, date, ticker, side, qty, price, realized_pnl, reason, order_id) "
+                    "VALUES ('paper-day', '2026-09-01', 'SOFI', ?, 1, 10, 0, 'x', 'paper-day-2026-09-01-SOFI')", (side,))
+    old.commit()
+    old.close()
+    assert len(Store(path).fills("paper-day")) == 2

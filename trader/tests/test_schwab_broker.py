@@ -45,7 +45,7 @@ class FakeSchwab:
         self.orders, self.next_id, self.cancelled = {}, 100, []
         self.cash, self.held, self.fill = cash, held or {}, fill
         self.market_fills, self.market_price = market_fills, market_price
-        self.cancel_works, self.get_order_fails = True, False
+        self.cancel_works, self.get_order_fails, self.failing_ids = True, False, set()
 
     def place_order(self, account_hash, spec):
         body = spec.build() if hasattr(spec, "build") else spec
@@ -58,8 +58,11 @@ class FakeSchwab:
             o["status"], o["legs"] = "FILLED", [(qty, self.market_price)]
         return FakeResp(201, headers={"Location": f"https://api.schwabapi.com/trader/v1/accounts/{account_hash}/orders/{oid}"})
 
+    def get_orders_for_account(self, account_hash):
+        return FakeResp(200, [{"orderId": oid, "status": o["status"], **o["body"]} for oid, o in self.orders.items()])
+
     def get_order(self, order_id, account_hash):
-        if self.get_order_fails:
+        if self.get_order_fails or int(order_id) in self.failing_ids:
             return FakeResp(429, {"message": "too many requests"})
         o = self.orders[int(order_id)]
         legs = [{"quantity": q, "price": p} for q, p in o["legs"]]
@@ -172,9 +175,52 @@ def test_an_error_from_schwab_is_never_mistaken_for_finished():
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")
     client.get_order_fails = True                                    # e.g. HTTP 429 "too many requests"
-    with pytest.raises(RuntimeError):
-        broker.submit(Order("KO", "SELL", 2, 11.0, "test"), "2026-10-02")
+    assert broker.submit(Order("KO", "SELL", 2, 11.0, "test"), "2026-10-02") is None
     assert len(client.of_type("LIMIT")) == 1 and broker.positions()["KO"].stop_order_id == "101"
+
+
+def test_one_schwab_error_does_not_stop_everything_else():
+    client = FakeSchwab(held={"KO": 2, "BAC": 2})
+    broker = broker_for(client)
+    broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")    # stop 101
+    broker.submit(Order("BAC", "BUY", 2, 10.0, "test"), "2026-10-01")   # stop 103
+    client.failing_ids = {101}                                           # KO's stop can't be looked up
+    problems = broker.reconcile("2026-10-02")                            # doesn't blow up...
+    assert any("KO" in p for p in problems)
+    fills = [broker.submit(Order(t, "SELL", 2, 11.0, "kill", urgent=True), "2026-10-02") for t in ("KO", "BAC")]
+    assert fills[0] is None and fills[1].ticker == "BAC"                 # ...and BAC still gets sold
+
+
+def test_a_stop_whose_id_was_lost_is_found_again():
+    from aitrader.brokers.schwab_broker import UNKNOWN_ID
+    client = FakeSchwab(held={"KO": 2})
+    broker = broker_for(client)
+    broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")    # stop 101
+    broker.positions()["KO"].stop_order_id = UNKNOWN_ID                 # Schwab never told us its id
+    broker.reconcile("2026-10-02")
+    assert broker.positions()["KO"].stop_order_id == "101" and len(client.of_type("STOP")) == 1
+
+
+def test_shares_gone_with_an_unknown_stop_does_not_get_stuck():
+    from aitrader.brokers.schwab_broker import UNKNOWN_ID
+    client = FakeSchwab(held={"KO": 2})
+    broker = broker_for(client)
+    broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")
+    client.orders[101]["status"] = "CANCELED"                            # you cancelled it and sold by hand
+    broker.positions()["KO"].stop_order_id = UNKNOWN_ID
+    client.held = {}
+    broker.reconcile("2026-10-02")
+    assert broker.is_flat()
+
+
+def test_if_you_edit_the_bots_stop_in_schwab_it_uses_yours():
+    client = FakeSchwab(held={"KO": 2})
+    broker = broker_for(client)
+    broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")    # stop 101
+    client.orders[101]["status"] = "REPLACED"                            # you moved the stop price...
+    client.place_order(HASH, broker_stop("KO", 2, 9.0))                 # ...which made order 102
+    broker.reconcile("2026-10-02")
+    assert broker.positions()["KO"].stop_order_id == "102" and len(client.of_type("STOP")) == 2
 
 
 # ---------------------------------------------------------------- never left unprotected
@@ -288,6 +334,12 @@ def test_emergency_exit_keeps_going_until_the_live_desk_is_really_flat(cfg, tmp_
     assert "getting out" in message
     assert current_phase(store, "swing") == Phase.PAPER               # now it's flat: back to paper
     assert store.fills("live-swing")["side"].tolist() == ["SELL"]
+
+
+def broker_stop(ticker, qty, stop):
+    from schwab.orders.common import OrderType
+    from schwab.orders.equities import equity_sell_market
+    return equity_sell_market(ticker, qty).set_order_type(OrderType.STOP).set_stop_price(stop)
 
 
 def _limit_buy(ticker, qty, price):
