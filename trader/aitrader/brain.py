@@ -4,14 +4,14 @@ brain.py: the local AI.
 A machine-learning model (gradient-boosted decision trees, from scikit-learn)
 that runs 100% on your own computer. No internet or paid API is needed to think.
 
-The one question it answers, for every stock, every day:
-    "Given how this stock and the market have been acting,
-     what's the chance the price is HIGHER in N trading days?"
+The question it answers, for every stock, at every bar:
+    swing desk: "What's the chance the price is HIGHER in 5 trading days?"
+    day desk:   "What's the chance it's HIGHER in 1 hour (before today's close)?"
 
 It learns "walk-forward", like a person living through history. On each
-retrain day it studies only the past (answers it could actually know by then),
-then makes predictions for the next few weeks. So its backtest score is
-honest: it never saw the future it's being graded on.
+retrain point it studies only the past (answers it could actually know by
+then), then makes predictions until the next retrain. So its backtest score
+is honest: it never saw the future it's being graded on.
 
 Why not have a chatbot (LLM) pick the trades? An LLM has read the news about
 the very years we'd test it on, so a backtest of it is secretly cheating. Its
@@ -22,14 +22,16 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import HistGradientBoostingClassifier
 
-from .features import FEATURE_COLUMNS, make_features, make_label
+from .features import FEATURE_COLUMNS, INTRADAY_COLUMNS, label_known_at, make_features, make_label
 
 
 class Brain:
-    def __init__(self, horizon_days=5, retrain_every_days=21, min_train_days=500):
-        self.horizon_days = horizon_days
-        self.retrain_every_days = retrain_every_days
-        self.min_train_days = min_train_days
+    def __init__(self, horizon=5, retrain_every=21, min_train=500, intraday=False):
+        self.horizon = horizon                  # all counted in bars (days, or 5-minute bars)
+        self.retrain_every = retrain_every
+        self.min_train = min_train
+        self.intraday = intraday
+        self.columns = INTRADAY_COLUMNS if intraday else FEATURE_COLUMNS
 
     def _new_model(self):
         # Small and heavily "regularized" on purpose: stock data is mostly noise,
@@ -39,37 +41,41 @@ class Brain:
             min_samples_leaf=50, l2_regularization=1.0, random_state=42)
 
     def build_dataset(self, bars: dict, market: pd.DataFrame) -> pd.DataFrame:
-        """One long table: a row per (day, ticker) with features + the answer."""
+        """One long table: a row per (time, ticker) with features + the answer."""
         frames = []
         for ticker, df in bars.items():
-            f = make_features(df, market)
-            f["label"] = make_label(df, self.horizon_days)
+            f = make_features(df, market, self.intraday)
+            f["label"] = make_label(df, self.horizon, same_day=self.intraday)
+            f["known_at"] = label_known_at(df, self.horizon, same_day=self.intraday)
             f["ticker"] = ticker
             frames.append(f)
         data = pd.concat(frames)
         data.index.name = "date"
-        return data.reset_index().dropna(subset=FEATURE_COLUMNS)
+        return data.reset_index().dropna(subset=self.columns)
 
-    def walk_forward_scores(self, bars: dict, market: pd.DataFrame) -> pd.DataFrame:
-        """Probability (0-1) of 'price higher in N days' for every day and ticker.
-        Days before the AI has enough history stay blank (= no trades)."""
+    def walk_forward_scores(self, bars: dict, market: pd.DataFrame, since=None) -> pd.DataFrame:
+        """Probability (0-1) of 'price higher later' for every bar and ticker.
+        Bars before the AI has enough history stay blank (= no trades).
+        since: only fill in scores from this time on (much faster for live use)."""
         data = self.build_dataset(bars, market)
         dates = sorted(data["date"].unique())
         scores = pd.DataFrame(np.nan, index=pd.DatetimeIndex(dates), columns=list(bars))
+        since = pd.Timestamp(since) if since is not None else None
 
-        for start in range(self.min_train_days, len(dates), self.retrain_every_days):
-            # On dates[start] we only know answers for days at least N trading days old.
-            last_known = dates[start - self.horizon_days]
-            train = data[(data["date"] <= last_known) & data["label"].notna()]
+        for start in range(self.min_train, len(dates), self.retrain_every):
+            end = dates[min(start + self.retrain_every, len(dates)) - 1]
+            if since is not None and end < since:
+                continue
+            # Train only on answers that were already known at dates[start].
+            train = data[(data["known_at"] <= dates[start]) & data["label"].notna()]
             if len(train) < 200 or train["label"].nunique() < 2:
                 continue
-            model = self._new_model().fit(train[FEATURE_COLUMNS], train["label"].astype(int))
+            model = self._new_model().fit(train[self.columns], train["label"].astype(int))
 
-            end = dates[min(start + self.retrain_every_days, len(dates)) - 1]
             block = data[(data["date"] >= dates[start]) & (data["date"] <= end)]
             if block.empty:
                 continue
-            prob_up = model.predict_proba(block[FEATURE_COLUMNS])[:, 1]
+            prob_up = model.predict_proba(block[self.columns])[:, 1]
             for (date, ticker), p in zip(zip(block["date"], block["ticker"]), prob_up):
                 scores.at[date, ticker] = p
         return scores

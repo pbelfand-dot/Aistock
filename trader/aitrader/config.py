@@ -11,7 +11,8 @@ import yaml
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent.parent   # the trader/ folder
-DATA_DIR = ROOT / "data"                        # database, price cache, plan, Schwab token
+DATA_DIR = ROOT / "data"                        # database, price cache, plans, Schwab token
+DESKS = ("swing", "day")
 
 
 def load_config(path=None) -> dict:
@@ -28,11 +29,34 @@ def load_config(path=None) -> dict:
     }
     cfg["live_trading_enabled"] = os.environ.get("LIVE_TRADING_ENABLED", "").strip().lower() == "true"
     cfg.setdefault("data_dir", str(DATA_DIR))
+    check_config(cfg)
     return cfg
+
+
+def check_config(cfg: dict):
+    """Catch setting mistakes early, with a plain-English message."""
+    seen = {}
+    for desk in DESKS:
+        for ticker in cfg["desks"][desk]["watchlist"]:
+            if ticker in seen:
+                raise ValueError(f"{ticker} is on both the {seen[ticker]} and {desk} watchlists; pick one.")
+            seen[ticker] = desk
+    if sum(cfg["desks"][d]["budget_pct"] for d in DESKS) > 100:
+        raise ValueError("desks budget_pct add up to more than 100%.")
+
+
+def active_desks(cfg: dict) -> list:
+    return [d for d in DESKS if cfg["desks"][d].get("enabled", True)]
+
+
+def desk_capital(cfg: dict, desk: str, live: bool) -> float:
+    """How much money this desk gets (paper or live)."""
+    total = cfg["live"]["max_capital"] if live else cfg["paper"]["starting_cash"]
+    return total * cfg["desks"][desk]["budget_pct"] / 100
 
 
 def data_path(cfg: dict, name: str) -> Path:
     """Path to a file inside the data/ folder (created if missing)."""
-    folder = Path(cfg["data_dir"])
-    folder.mkdir(parents=True, exist_ok=True)
-    return folder / name
+    path = Path(cfg["data_dir"]) / name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path

@@ -74,3 +74,18 @@ def test_no_new_buys_when_blocked():
     prices = pd.Series({"A": 10.0})
     orders = decide_orders(pd.Series({"A": 0.9}), prices, {}, 1000, 1000, Fixed(), RiskManager(), allow_new_buys=False)
     assert orders == []
+
+
+def test_stops_only_mode_only_sells_on_stop_loss():
+    ledger = Ledger(1000)
+    ledger.apply(Fill("2026-01-01", "WEAK", "BUY", 2, 100.0, "seed"))
+    ledger.apply(Fill("2026-01-01", "DIP", "BUY", 2, 100.0, "seed"))
+    prices = pd.Series({"WEAK": 99.0, "DIP": 90.0, "NEW": 10.0})
+    scores = pd.Series({"WEAK": 0.1, "DIP": 0.9, "NEW": 0.99})
+    orders = decide_orders(scores, prices, ledger.positions, ledger.cash, 1000, Fixed(), RiskManager(), stops_only=True)
+    assert [(o.side, o.ticker) for o in orders] == [("SELL", "DIP")]   # no strategy exits, no buys
+
+
+def test_max_share_price_for_a_1000_dollar_account():
+    # $1,000 split 50/50 -> swing desk $500; 34% per position, 1% cash buffer
+    assert RiskManager(max_position_pct=34, cash_buffer_pct=1).max_share_price(500) == pytest.approx(168.3)

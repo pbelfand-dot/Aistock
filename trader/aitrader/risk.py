@@ -2,7 +2,7 @@
 risk.py: the rules that keep one bad idea from wiping out the account.
 
 These rules apply in backtests, paper AND live, exactly the same way.
-The numbers come from the `risk:` section of config.yaml.
+Each desk has its own numbers: `desks: <desk>: risk:` in config.yaml.
 """
 import math
 from dataclasses import dataclass, fields
@@ -18,9 +18,13 @@ class RiskManager:
     cash_buffer_pct: float = 1.0       # always keep a little cash
 
     @classmethod
-    def from_config(cls, cfg: dict) -> "RiskManager":
+    def for_desk(cls, cfg: dict, desk: str) -> "RiskManager":
         known = {f.name for f in fields(cls)}
-        return cls(**{k: v for k, v in cfg["risk"].items() if k in known})
+        return cls(**{k: v for k, v in cfg["desks"][desk]["risk"].items() if k in known})
+
+    def max_share_price(self, desk_capital: float) -> float:
+        """The most one share can cost and still fit in one position."""
+        return desk_capital * self.max_position_pct / 100 * (1 - self.cash_buffer_pct / 100)
 
     def position_size(self, equity: float, buying_power: float, price: float) -> int:
         """How many WHOLE shares to buy (Schwab's API can't do fractional shares)."""

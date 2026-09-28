@@ -40,6 +40,7 @@ class Position:
     qty: int
     avg_cost: float
     opened_on: str
+    stop_order_id: str = ""   # live only: the stop-loss order resting at Schwab
 
 
 class Ledger:
@@ -50,10 +51,11 @@ class Ledger:
     (T+1). Spending it early risks a Schwab "good faith violation", so the ledger
     keeps same-day sale money off-limits for buying until the next trading day."""
 
-    def __init__(self, cash: float, positions: dict = None, unsettled: dict = None):
+    def __init__(self, cash: float, positions: dict = None, unsettled: dict = None, pending: list = None):
         self.cash = float(cash)
         self.positions = positions or {}      # ticker -> Position
         self.unsettled = unsettled or {}      # date -> sale proceeds received that day
+        self.pending = pending or []          # live only: orders sent but not finished yet
 
     def buying_power(self, today: str, cash_account: bool) -> float:
         if not cash_account:
@@ -90,18 +92,19 @@ class Ledger:
         return value
 
     def to_dict(self) -> dict:
-        return {"cash": self.cash, "unsettled": self.unsettled,
+        return {"cash": self.cash, "unsettled": self.unsettled, "pending": self.pending,
                 "positions": {t: asdict(p) for t, p in self.positions.items()}}
 
     @classmethod
     def from_dict(cls, d: dict) -> "Ledger":
         positions = {t: Position(**p) for t, p in d.get("positions", {}).items()}
-        return cls(d["cash"], positions, d.get("unsettled", {}))
+        return cls(d["cash"], positions, d.get("unsettled", {}), d.get("pending", []))
 
 
 class Broker(ABC):
-    mode = "base"             # "paper", "live" or "backtest"
+    mode = "base"             # e.g. "paper-swing", "live-day", "backtest"
     cash_account = False
+    blocked = frozenset()     # tickers the bot must not buy (e.g. you own them yourself)
 
     def __init__(self, ledger: Ledger):
         self.ledger = ledger

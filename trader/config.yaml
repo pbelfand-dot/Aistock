@@ -4,53 +4,100 @@
 #  never in this file.
 # =====================================================================
 
-# ---- What the bot watches and trades --------------------------------
-# Keep this list SHORT while learning. Whole shares only (Schwab's API
-# can't buy fractional shares), so very expensive stocks may be skipped
-# on a small account.
-watchlist: [SPY, QQQ, IWM, XLF, XLE, XLK, AAPL, MSFT, AMD, JPM, KO, BAC]
-
-# The yardstick. If the bot can't beat simply holding this, it's not
-# worth running.
+# The yardstick (never traded). If a desk can't beat simply holding
+# this, it doesn't earn real money.
 benchmark: SPY
 
-# ---- Market data -----------------------------------------------------
-data:
-  # "yfinance" = free Yahoo data, works today with no account.
-  # "schwab"   = Schwab's own data (use once your developer app is approved).
-  source: yfinance
-  history_years: 8         # how much history the AI learns from
-  cache_minutes: 30        # re-use downloaded prices for this long
+# ---- Money -------------------------------------------------------------
+paper:
+  starting_cash: 1000      # keep EQUAL to live.max_capital so paper results are realistic
+  slippage_pct: 0.05       # assume we fill a bit worse than the quoted price
+  commission_per_trade: 0.0
 
-# ---- Phase 1: STUDY (watch & learn, no trades) ----------------------
+live:
+  max_capital: 1000        # the bot NEVER uses more than this, whatever else is in your account
+  account_type: cash       # "cash" or "margin". Either way the bot never borrows and never
+                           # re-spends same-day sale money (avoids Schwab "good faith violations")
+  limit_buffer_pct: 0.2    # limit orders at quote +/- 0.2%: they fill, but never at crazy prices
+  fill_timeout_seconds: 60 # cancel an order if it isn't filled in time
+  resting_stops: true      # ALSO leave a stop-loss order sitting at Schwab, so a sleeping or
+                           # crashed laptop can't stop a falling position from being sold
+
+# ---- Two desks share the money -----------------------------------------
+# Each desk is studied, planned, paper traded and promoted SEPARATELY, so a
+# losing desk can never hide behind a winning one.
+#   * A ticker can be on only ONE desk.
+#   * DON'T list stocks you own yourself. In your shared account the bot skips
+#     them anyway, to keep your shares and tax lots separate from its own.
+#   * Whole shares only (Schwab's API can't do fractional shares). Stocks where
+#     1 share costs more than one position's budget are skipped automatically.
+desks:
+  swing:                   # holds days to weeks; decides once a day, 15 min before the close
+    enabled: true
+    budget_pct: 50         # $500 of the $1,000
+    watchlist: [XLF, XLE, XLU, XLP, KRE, SCHD, KO, BAC, WFC, PFE, CSCO, VZ]
+    risk:
+      max_open_positions: 3
+      max_position_pct: 34     # % of this desk's money in any one stock
+      stop_loss_pct: 7         # sell if a position falls 7% below what we paid
+      daily_loss_limit_pct: 3  # desk down 3% today -> no new buys today
+      max_drawdown_pct: 15     # desk down 15% from its best day -> KILL SWITCH
+      cash_buffer_pct: 1
+
+  day:                     # in and out the SAME day; decides every 5 minutes; never holds overnight
+    enabled: true
+    budget_pct: 50
+    watchlist: [SOFI, F, INTC, AAL, SNAP, RIVN, NIO, T]
+    last_entry_minutes_before_close: 30    # no new trades in the last 30 minutes
+    flatten_minutes_before_close: 10       # sell everything 10 minutes before the close
+    risk:
+      max_open_positions: 2
+      max_position_pct: 50
+      stop_loss_pct: 2         # day trades get a much tighter stop
+      daily_loss_limit_pct: 3
+      max_drawdown_pct: 15
+      cash_buffer_pct: 1
+
+# ---- Market data ---------------------------------------------------------
+data:
+  # "yfinance" = free Yahoo data, works today with no account (paper only).
+  # "schwab"   = Schwab's real-time data. REQUIRED for real money.
+  source: yfinance
+  history_years: 8         # daily prices for the swing desk
+  intraday_days: 60        # 5-minute prices for the day desk (Yahoo gives ~60 days,
+                           # Schwab ~9 months). The bot saves them, so its history grows.
+
+# ---- Phase 1: STUDY (watch & learn, no trades) ----------------------------
 study:
   min_calendar_days: 30    # "a month of analyzing"
-  min_study_days: 20       # ...and at least this many trading days recorded
-  horizon_days: 5          # each opinion is graded 5 trading days later
+  min_study_days: 20       # ...and at least this many trading days studied
+  horizon_days: 5          # swing opinions are graded 5 trading days later
 
-# ---- The local AI model ---------------------------------------------
+# ---- The local AI model (one per desk) -------------------------------------
 ai:
-  buy_above: 0.56          # AI must be >= 56% sure the price rises to buy
-  sell_below: 0.48         # ...and sells when it drops below 48%
-  retrain_every_days: 21   # re-learn about once a month
-  min_train_days: 500      # don't trust the AI until it has ~2 years to learn from
+  swing:                   # counted in DAYS
+    buy_above: 0.56        # AI must be >= 56% sure the price rises to buy
+    sell_below: 0.48       # ...and sells when it drops below 48%
+    retrain_every: 21      # re-learn about once a month
+    min_train: 500         # don't trust it until it has ~2 years to learn from
+  day:                     # counted in 5-MINUTE BARS (78 bars = 1 trading day)
+    buy_above: 0.55
+    sell_below: 0.48
+    horizon: 12            # predicts: higher in 1 hour (and never past today's close)?
+    retrain_every: 390     # re-learn about once a week
+    min_train: 1560        # needs ~20 trading days of 5-minute history first
 
-# ---- How a trading plan gets picked after the study month ------------
+# ---- How a trading plan gets picked after the study month -------------------
 plan:
   min_sharpe: 0.5          # risk-adjusted return in the backtest
   min_profit_factor: 1.15  # $ won / $ lost on closed trades
   max_drawdown_pct: 25     # worst peak-to-bottom drop allowed in the backtest
   min_trades: 30           # need enough trades for the numbers to mean anything
-  min_forward_signals: 10  # need this many graded "buy" opinions from the study month
+  min_forward_signals: 10  # swing: graded "buy" opinions in the study month
+  min_forward_trades: 10   # day: shadow trades in the study month
 
-# ---- Phase 3: PAPER (fake money, real prices) ------------------------
-paper:
-  starting_cash: 2000      # keep EQUAL to live.max_capital so paper results are realistic
-  slippage_pct: 0.05       # assume we fill a bit worse than the quoted price
-  commission_per_trade: 0.0
-
-# ---- Rules to go from PAPER -> LIVE ("once you're profitable") -------
-# ALL must pass, and you must still confirm by hand.
+# ---- Rules to go from PAPER -> LIVE ("once you're profitable") -------------
+# Checked per desk. ALL must pass, and you must still confirm by hand.
 promotion:
   min_trading_days: 30
   min_closed_trades: 20
@@ -59,26 +106,10 @@ promotion:
   max_drawdown_pct: 10
   must_beat_benchmark: true
 
-# ---- Risk rules (used in backtest, paper AND live) -------------------
-risk:
-  max_open_positions: 5
-  max_position_pct: 20       # no single stock > 20% of the account
-  stop_loss_pct: 7           # sell if a position falls 7% below what we paid
-  daily_loss_limit_pct: 3    # down 3% today -> no new buys today
-  max_drawdown_pct: 15       # down 15% from the best day -> KILL SWITCH
-  cash_buffer_pct: 1         # always leave a little cash
-
-# ---- Phase 4: LIVE (real money through Schwab) ----------------------
-live:
-  max_capital: 2000          # the bot will NEVER use more than this, even if the account has more
-  account_type: cash         # "cash" or "margin" (cash = can't spend unsettled sale money)
-  limit_buffer_pct: 0.2      # limit orders at quote +/- 0.2% so they fill but never at crazy prices
-  fill_timeout_seconds: 60   # cancel an order if it isn't filled in time
-
-# ---- Optional local LLM (Ollama) for plain-English write-ups ---------
-# It WRITES the plan and journal. It does NOT decide trades.
+# ---- Optional local LLM (Ollama) for plain-English write-ups ----------------
+# It WRITES the plan. It does NOT decide trades.
 llm:
   enabled: true
   url: http://localhost:11434
-  model: qwen3:4b            # small enough for a normal laptop (~2.5 GB)
+  model: qwen3:4b          # small enough for a normal laptop (~2.5 GB)
   timeout_seconds: 180

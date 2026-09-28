@@ -1,37 +1,49 @@
 """
-study.py: phase 1, "study the market".
+study.py: phase 1, "study the market". Runs every trading day after the close.
 
-Every trading day, each strategy (including the AI) writes down its opinion
-on every stock: its score and the price. N trading days later
-(study.horizon_days) the bot grades each opinion against what REALLY happened.
+Swing desk: every strategy (including the AI) writes down its opinion on
+every stock, with the price. 5 trading days later the bot grades each
+opinion against what REALLY happened.
 
-After a month you have a real, out-of-sample report card: opinions made
-before the outcome was known, graded on the actual outcome. It's the most
-honest evidence the bot can collect without risking money.
+Day desk: every day strategy is "shadow traded" on the day's real 5-minute
+prices with fake money, using exactly the same rules as paper trading.
+
+After a month you have an honest, out-of-sample report card: decisions made
+before the outcome was known, graded on the actual outcome. It's the best
+evidence the bot can collect without risking money.
 """
 import pandas as pd
 
-from .engine import closes_table
-from .strategies import all_strategies
+from .engine import closes_table, run_backtest
+from .strategies import all_strategies, current_scores
 
 
-def study_step(cfg: dict, store, bars: dict, market: pd.DataFrame) -> str:
-    """Record today's opinions, then grade old ones. Returns the day that was studied."""
-    closes = closes_table(bars)
-    today = closes.index[-1].strftime("%Y-%m-%d")
-    horizon = cfg["study"]["horizon_days"]
+def start_study_clock(store):
     if not store.get("study_started_on"):
         store.set("study_started_on", pd.Timestamp.today().strftime("%Y-%m-%d"))
 
-    for strategy in all_strategies(cfg):
-        scores = strategy.scores(bars, market).reindex(closes.index).iloc[-1]
-        for ticker, score in scores.dropna().items():
+
+def record_study_day(store, day: str):
+    store.set("study_days", sorted(set(store.get("study_days", [])) | {day}))
+
+
+# ---------------------------------------------------------------- swing desk
+def study_swing(cfg: dict, store, bars: dict, market: pd.DataFrame) -> str:
+    """Record today's opinions, then grade old ones. Returns the day that was studied."""
+    start_study_clock(store)
+    closes = closes_table(bars)
+    today = closes.index[-1].strftime("%Y-%m-%d")
+    horizon = cfg["study"]["horizon_days"]
+
+    for strategy in all_strategies(cfg, "swing"):
+        for ticker, score in current_scores(strategy, bars, market).dropna().items():
             price = closes[ticker].iloc[-1]
             if not pd.isna(price):
                 store.add_prediction(today, ticker, strategy.name, score, price, horizon)
 
     graded = grade_predictions(store, closes)
-    store.log(f"[study] recorded opinions for {today}; graded {graded} older opinions")
+    record_study_day(store, today)
+    store.log(f"[study] swing: recorded opinions for {today}; graded {graded} older opinions")
     return today
 
 
@@ -52,17 +64,17 @@ def grade_predictions(store, closes: pd.DataFrame) -> int:
 
 
 def forward_report(store, cfg: dict) -> pd.DataFrame:
-    """The study-month report card, one row per strategy.
+    """Swing desk report card, one row per strategy.
 
     signals      how many graded 'buy' opinions it made
     hit_rate     % of those where the price actually went up
-    avg_return   average N-day return after a 'buy' opinion
+    avg_return   average 5-day return after a 'buy' opinion
     edge         avg_return minus the average of ALL opinions (just buying everything).
                  Positive edge = its picks beat picking at random."""
     preds = store.predictions()
     preds = preds[preds["actual_return"].notna()]
     rows = []
-    for strategy in all_strategies(cfg):
+    for strategy in all_strategies(cfg, "swing"):
         mine = preds[preds["strategy"] == strategy.name]
         buys = mine[mine["score"] >= strategy.buy_above]
         baseline = mine["actual_return"].mean() if len(mine) else float("nan")
@@ -75,3 +87,29 @@ def forward_report(store, cfg: dict) -> pd.DataFrame:
             "edge_pct": round((avg - baseline) * 100, 3) if len(buys) else None,
         })
     return pd.DataFrame(rows).set_index("strategy")
+
+
+# ---------------------------------------------------------------- day desk
+def study_day(cfg: dict, store, bars: dict, market: pd.DataFrame) -> dict:
+    """Shadow-trade every day strategy from the start of the study month until now."""
+    start_study_clock(store)
+    since = store.get("study_started_on")
+    today = closes_table(bars).index[-1].strftime("%Y-%m-%d")
+    results = {}
+    for strategy in all_strategies(cfg, "day"):
+        scores = strategy.scores(bars, market, since=since)
+        r = run_backtest(strategy, bars, market, cfg, "day", scores=scores, start=since)
+        results[strategy.name] = {k: r[k] for k in ("trading_days", "total_return_pct", "num_closed_trades",
+                                                     "win_rate_pct", "profit_factor", "max_drawdown_pct")}
+    report = {"as_of": today, "since": since, "results": results}
+    store.set("day_shadow_report", report)
+    record_study_day(store, today)
+    store.log(f"[study] day: shadow-traded {len(results)} strategies since {since}")
+    return report
+
+
+def day_forward_report(store) -> pd.DataFrame:
+    report = store.get("day_shadow_report")
+    if not report:
+        return pd.DataFrame()
+    return pd.DataFrame(report["results"]).T

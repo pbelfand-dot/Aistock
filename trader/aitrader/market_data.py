@@ -1,13 +1,22 @@
 """
-market_data.py: gets daily prices.
+market_data.py: gets prices.
+
+  daily bars     (one per day)      for the swing desk
+  5-minute bars  (78 per day)       for the day desk
 
 Two sources, same output:
-  yfinance  free Yahoo data, needs no account (start studying TODAY)
-  schwab    Schwab's own data, once your developer app is approved
+  yfinance  free Yahoo data, no account needed (fine for study and paper)
+  schwab    Schwab's real-time data (required for real money)
 
-Output: {ticker: DataFrame[open, high, low, close, volume]} indexed by date.
-During market hours the last row is TODAY, and its "close" is the current price.
+The bot keeps its own copy of every price it downloads (data/cache/), and
+after the first download of the day it only fetches the newest bars. That's
+faster, kinder to the data source, and it lets the 5-minute history grow
+beyond what Yahoo/Schwab keep.
+
+Output: ({ticker: DataFrame[open, high, low, close, volume]}, benchmark DataFrame).
+During market hours the last row is the bar in progress: its close = the current price.
 """
+import json
 import time
 from datetime import datetime, timedelta
 
@@ -22,44 +31,79 @@ class MarketData:
     def __init__(self, cfg: dict):
         self.cfg = cfg
         self.source = cfg["data"]["source"]
-        self.years = cfg["data"]["history_years"]
-        self.cache_minutes = cfg["data"]["cache_minutes"]
         self._schwab = None
+        self._memo = {}                          # avoid downloading the same thing twice in a minute
 
-    def load(self):
-        """Returns (bars for the watchlist, bars for the benchmark)."""
-        tickers = list(dict.fromkeys(self.cfg["watchlist"] + [self.cfg["benchmark"]]))
+    # ---- public ---------------------------------------------------------------
+    def load(self, desk: str, extra=()):
+        """Prices for one desk's watchlist (+ `extra` tickers, e.g. ones the bot still owns) + the benchmark."""
+        interval = "5m" if desk == "day" else "1d"
+        wanted = list(dict.fromkeys(self.cfg["desks"][desk]["watchlist"] + list(extra)))
+        tickers = list(dict.fromkeys(wanted + [self.cfg["benchmark"]]))
         bars = {}
         for t in tickers:
             try:
-                bars[t] = self.history(t)
-            except Exception as e:           # one bad ticker shouldn't stop the day
-                print(f"  ! could not load {t}: {e}")
+                bars[t] = self.history(t, interval)
+            except Exception as e:               # one bad ticker shouldn't stop the day
+                print(f"  ! could not load {t} ({interval}): {e}")
         if self.cfg["benchmark"] not in bars:
             raise RuntimeError("Could not load the benchmark; check your internet/data source.")
-        if self.source == "schwab":
+        if self.source == "schwab" and interval == "1d":
             self._add_todays_bar(bars)
         market = bars[self.cfg["benchmark"]]
-        watch = {t: bars[t] for t in self.cfg["watchlist"] if t in bars}
-        return watch, market
+        return {t: bars[t] for t in wanted if t in bars}, market
 
-    def history(self, ticker: str) -> pd.DataFrame:
-        cache = data_path(self.cfg, f"cache/{ticker}.csv")
-        cache.parent.mkdir(parents=True, exist_ok=True)
-        if cache.exists() and time.time() - cache.stat().st_mtime < self.cache_minutes * 60:
-            return pd.read_csv(cache, index_col=0, parse_dates=True)
+    def history(self, ticker: str, interval: str) -> pd.DataFrame:
+        key = (ticker, interval)
+        if key in self._memo and time.time() - self._memo[key][0] < 60:
+            return self._memo[key][1]
 
-        df = self._from_schwab(ticker) if self.source == "schwab" else self._from_yahoo(ticker)
+        path = data_path(self.cfg, f"cache/{interval}/{ticker}.csv")
+        cached = pd.read_csv(path, index_col=0, parse_dates=True) if path.exists() else None
+        if cached is None or not self._refreshed_today(key):
+            df = self._download(ticker, interval, recent=False)   # first time today: full history
+            if interval == "5m" and cached is not None:
+                df = _merge(cached, df)                         # keep older 5-min bars we saved
+            self._mark_refreshed(key)
+        else:
+            df = _merge(cached, self._download(ticker, interval, recent=True))
+
         df = df[COLUMNS].dropna(subset=["close"]).sort_index()
-        df.to_csv(cache)
+        df.to_csv(path)
+        self._memo[key] = (time.time(), df)
         return df
 
-    def _from_yahoo(self, ticker: str) -> pd.DataFrame:
+    # ---- cache bookkeeping -------------------------------------------------------
+    def _refreshed_today(self, key) -> bool:
+        log = data_path(self.cfg, "cache/refreshed.json")
+        done = json.loads(log.read_text()) if log.exists() else {}
+        return done.get(f"{key[1]}:{key[0]}") == datetime.now().strftime("%Y-%m-%d")
+
+    def _mark_refreshed(self, key):
+        log = data_path(self.cfg, "cache/refreshed.json")
+        done = json.loads(log.read_text()) if log.exists() else {}
+        done[f"{key[1]}:{key[0]}"] = datetime.now().strftime("%Y-%m-%d")
+        log.write_text(json.dumps(done))
+
+    # ---- sources -----------------------------------------------------------
+    def _download(self, ticker, interval, recent) -> pd.DataFrame:
+        if self.source == "schwab":
+            return self._from_schwab(ticker, interval, recent)
+        return self._from_yahoo(ticker, interval, recent)
+
+    def _from_yahoo(self, ticker, interval, recent) -> pd.DataFrame:
         import yfinance as yf
-        df = yf.Ticker(ticker).history(period=f"{self.years}y", auto_adjust=True)
+        if interval == "1d":
+            period = "5d" if recent else f"{self.cfg['data']['history_years']}y"
+        else:
+            # Yahoo keeps only ~60 days of 5-minute bars; ask for 59 to stay inside the limit.
+            period = "2d" if recent else f"{min(self.cfg['data']['intraday_days'], 59)}d"
+        df = yf.Ticker(ticker).history(period=period, interval=interval, auto_adjust=True)
         if df.empty:
             raise RuntimeError("no data returned")
-        df.index = df.index.tz_localize(None).normalize()
+        df.index = pd.DatetimeIndex(df.index.tz_convert("America/New_York").tz_localize(None))
+        if interval == "1d":
+            df.index = df.index.normalize()
         return df.rename(columns=str.lower)
 
     def _client(self):
@@ -68,18 +112,24 @@ class MarketData:
             self._schwab = get_client(self.cfg)
         return self._schwab
 
-    def _from_schwab(self, ticker: str) -> pd.DataFrame:
-        resp = self._client().get_price_history_every_day(
-            ticker, start_datetime=datetime.now() - timedelta(days=365 * self.years),
-            end_datetime=datetime.now())
+    def _from_schwab(self, ticker, interval, recent) -> pd.DataFrame:
+        if interval == "1d":
+            days = 5 if recent else 365 * self.cfg["data"]["history_years"]
+            fetch = self._client().get_price_history_every_day
+        else:
+            days = 2 if recent else self.cfg["data"]["intraday_days"]
+            fetch = self._client().get_price_history_every_five_minutes
+        resp = fetch(ticker, start_datetime=datetime.now() - timedelta(days=days), end_datetime=datetime.now(),
+                     need_extended_hours_data=False)
         resp.raise_for_status()
         candles = resp.json().get("candles", [])
         if not candles:
             raise RuntimeError("no data returned")
         df = pd.DataFrame(candles)
-        # Schwab timestamps are milliseconds; convert to New York calendar dates.
-        dates = pd.to_datetime(df["datetime"], unit="ms", utc=True).dt.tz_convert("America/New_York")
-        df.index = pd.DatetimeIndex(dates.dt.tz_localize(None).dt.normalize())
+        # Schwab timestamps are milliseconds; convert to New York time.
+        stamps = pd.to_datetime(df["datetime"], unit="ms", utc=True).dt.tz_convert("America/New_York")
+        stamps = stamps.dt.tz_localize(None)
+        df.index = pd.DatetimeIndex(stamps.dt.normalize() if interval == "1d" else stamps)
         return df
 
     def _add_todays_bar(self, bars: dict):
@@ -100,3 +150,9 @@ class MarketData:
                                     "low": q.get("lowPrice"), "close": q["lastPrice"],
                                     "volume": q.get("totalVolume")}, index=[today])
                 bars[ticker] = pd.concat([df, row])
+
+
+def _merge(old: pd.DataFrame, new: pd.DataFrame) -> pd.DataFrame:
+    """Old bars + new bars; where both have the same time, the new one wins."""
+    both = pd.concat([old[COLUMNS], new[COLUMNS]])
+    return both[~both.index.duplicated(keep="last")].sort_index()

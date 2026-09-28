@@ -1,10 +1,12 @@
 """
 phases.py: the rules for moving from one phase to the next.
 
+Each desk (swing, day) moves through the phases ON ITS OWN:
+
     STUDY --(30 days + a plan that passes)--> PLAN_REVIEW
     PLAN_REVIEW --(you approve the plan)--> PAPER
     PAPER --(promotion rules pass + you confirm)--> LIVE
-    LIVE --(kill switch or `kill` command)--> PAPER (the plan must earn LIVE again)
+    LIVE --(kill switch or `kill` command)--> PAPER (the desk must earn LIVE again)
 
 No shortcuts to LIVE. Every step up needs numbers AND a human "yes".
 """
@@ -22,15 +24,20 @@ class Phase(str, Enum):
 STEP_NUMBER = {Phase.STUDY: 1, Phase.PLAN_REVIEW: 2, Phase.PAPER: 3, Phase.LIVE: 4}
 
 
-def current_phase(store) -> Phase:
-    return Phase(store.get("phase", Phase.STUDY.value))
+def current_phase(store, desk: str) -> Phase:
+    return Phase(store.get(f"phase:{desk}", Phase.STUDY.value))
 
 
-def set_phase(store, phase: Phase, reason: str):
-    old = current_phase(store)
-    store.set("phase", phase.value)
-    store.set(f"{phase.value.lower()}_started_on", date.today().isoformat())
-    store.log(f"PHASE CHANGE: {old.value} -> {phase.value} ({reason})")
+def set_phase(store, desk: str, phase: Phase, reason: str):
+    old = current_phase(store, desk)
+    store.set(f"phase:{desk}", phase.value)
+    store.set(f"{desk}_{phase.value.lower()}_started_on", date.today().isoformat())
+    store.log(f"PHASE CHANGE ({desk} desk): {old.value} -> {phase.value} ({reason})")
+
+
+def mode_of(phase: Phase, desk: str) -> str:
+    """The name the bot files trades under, e.g. 'paper-swing' or 'live-day'."""
+    return f"{'live' if phase == Phase.LIVE else 'paper'}-{desk}"
 
 
 def study_progress(store, cfg: dict, today: date = None) -> dict:
@@ -38,7 +45,7 @@ def study_progress(store, cfg: dict, today: date = None) -> dict:
     today = today or date.today()
     started = store.get("study_started_on")
     days = (today - date.fromisoformat(started)).days if started else 0
-    study_days = len(store.study_dates())
+    study_days = len(store.get("study_days", []))
     need_days, need_study = cfg["study"]["min_calendar_days"], cfg["study"]["min_study_days"]
     missing = []
     if days < need_days:

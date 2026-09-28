@@ -1,7 +1,11 @@
 """
 aitrader: a small, readable auto-trading bot for Charles Schwab.
 
-The bot moves through four phases, one at a time:
+It has two "desks" that share the money but earn trust separately:
+    swing  holds days to weeks, decides once a day at 3:45pm
+    day    in and out the same day, decides every 5 minutes
+
+Each desk moves through four phases, one at a time:
 
     1. STUDY        watch the market for a month, make predictions, grade them
     2. PLAN_REVIEW  write a trading plan and wait for YOU to approve it
@@ -11,6 +15,7 @@ The bot moves through four phases, one at a time:
 Where things live:
 
     config.py        loads config.yaml + .env
+    market_hours.py  when the market is open (incl. early-close days)
     storage.py       the bot's memory (one SQLite file)
     market_data.py   downloads prices (Yahoo now, Schwab later)
     features.py      turns prices into numbers the AI can learn from
