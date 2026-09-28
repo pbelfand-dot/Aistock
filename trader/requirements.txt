@@ -1,0 +1,8 @@
+pandas>=2.2
+numpy>=1.26
+scikit-learn>=1.5
+yfinance>=0.2.54
+PyYAML>=6.0
+python-dotenv>=1.0
+schwab-py>=1.5.1
+pytest>=8

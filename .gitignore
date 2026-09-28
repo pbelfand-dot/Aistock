@@ -13,3 +13,7 @@ frontend/dist/
 # Misc
 .DS_Store
 *.log
+
+# AI trader: local data (database, price cache, Schwab login token, plan)
+trader/data/
+.pytest_cache/
