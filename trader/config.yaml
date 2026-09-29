@@ -117,6 +117,10 @@ promotion:
   max_drawdown_pct: 10
   must_beat_benchmark: true
 
+# ---- The dashboard (a brokerage-style page in your browser, on this Mac only) --
+dashboard:
+  port: 8765               # http://127.0.0.1:8765 (the background autopilot keeps it running)
+
 # ---- Optional local LLM (Ollama) for plain-English write-ups ----------------
 # It WRITES the plan. It does NOT decide trades.
 llm:

@@ -254,13 +254,14 @@ def test_emergency_exit_keeps_going_until_the_live_desk_is_really_flat(kind, cfg
     broker = run.open_broker(cfg, store, "swing", Phase.LIVE, emergency=True)   # places a stop (100)
     run.emergency_stop(cfg, store, "swing", broker, pd.Series({"KO": 9.0}), "2026-09-28", "test")
     assert current_phase(store, "swing") == Phase.LIVE and store.get("halted:swing")   # NOT dropped yet
-    assert run.live_not_flat(store, "swing")
+    assert run.live_not_flat(store, "swing") and store.get("exiting:swing")
 
     client.fire(101, 9.05)                                           # the market sell fills at the open
     client.held = {}
     message = run.trade_desk(cfg, store, Prices(), "swing", datetime(2026, 9, 28, 11, 0))
     assert "getting out" in message
     assert current_phase(store, "swing") == Phase.PAPER               # now it's flat: back to paper
+    assert store.get("halted:swing") and not store.get("exiting:swing")   # stays paused until you resume
     assert store.fills("live-swing")["side"].tolist() == ["SELL"]
 
 

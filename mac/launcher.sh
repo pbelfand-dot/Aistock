@@ -21,6 +21,7 @@ if [ "$NEW" != "$OLD" ]; then
   cp "$RES/trader/config.yaml" "$APP_HOME/config.yaml"
   [ -f "$APP_HOME/.env" ] || cp "$RES/trader/.env.example" "$APP_HOME/.env"
   echo "$NEW" > "$APP_HOME/VERSION"
+  touch "$APP_HOME/.restart_autopilot"      # the menu restarts a running background autopilot on the new code
 fi
 
 cp "$RES/AI Trader Menu.command" "$APP_HOME/AI Trader Menu.command"
