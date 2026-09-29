@@ -1,30 +1,16 @@
 """
-dashboard.py: the bot's own web page, a brokerage-style view of your accounts.
+dashboard.py: what the AI Trader app's window shows, a brokerage-style view of your accounts.
 
-Open it from the menu ("Open the dashboard"). It runs on YOUR Mac only:
-  http://127.0.0.1:8765
-
-What it shows: account value vs. the S&P 500, positions, activity, each desk's
-phase, study report card and plan, the watchlist, and the bot's journal.
-What you can do from it: PAUSE trading, or EMERGENCY STOP (sells everything the
-bot owns). Everything else (approving plans, going live, resuming) stays in the
-menu, where it asks you to type a confirmation.
+snapshot() gathers it all in one go: account value vs. the S&P 500, positions,
+activity, each desk's phase, study report card and plan, the watchlist, and the
+bot's journal. The app gets it through app_api.py (no web server, no network).
 
 It only reads the bot's own files (its database and saved prices). It never
 talks to your broker, so it needs no keys.
-
-Safety: the server only listens on this computer (127.0.0.1), rejects requests
-addressed to any other host name, and every data or action request must carry a
-secret key that only the page opened from the menu knows. Other websites can't
-read your data or press the buttons.
 """
 import json
 import math
-import os
-import secrets
-import threading
 from datetime import datetime
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import pandas as pd
@@ -33,11 +19,9 @@ from .config import active_desks, data_path, data_source, desk_capital
 from .market_hours import now_ny
 from .performance import summarize
 from .phases import STEP_NUMBER, current_phase, study_progress
-from .storage import Store
 from .study import day_forward_report, forward_report
 
-WEB = Path(__file__).resolve().parent / "web" / "dashboard.html"
-KILL_PHRASE = "SELL EVERYTHING"
+WEB = Path(__file__).resolve().parent / "web" / "dashboard.html"    # the page the app shows
 
 
 # ================================================================ the data
@@ -142,7 +126,8 @@ def _account(cfg, store, kind: str) -> dict:
     before_today = total[total.index < pd.Timestamp(now_ny().date())] if len(total) else total
     prev = float(before_today.iloc[-1]) if len(before_today) else None      # the last close before today
     start = float(total.iloc[0]) if len(total) else None
-    cash = sum((store.get(f"{kind}-{d}_ledger") or {}).get("cash", 0.0) for d in desks)
+    cash = sum((store.get(f"{kind}-{d}_ledger") or {}).get("cash", info["capital"])     # not started = all cash
+               for d, info in desks.items())
     closed = [a["realized_pnl"] for a in activity if a["side"] == "SELL" and a["realized_pnl"] is not None]
     stats = summarize(total) if len(total) else None
     activity.sort(key=lambda a: (a["date"], a["id"]), reverse=True)
@@ -216,107 +201,3 @@ def snapshot(cfg, store) -> dict:
         "watchlist": [{"desk": d, **quote(cfg, t)} for d in active_desks(cfg) for t in cfg["desks"][d]["watchlist"]],
         "journal": [{"ts": ts, "message": m} for ts, m in store.journal(60)][::-1],
     }
-
-
-# ================================================================ the web server
-def token(cfg) -> str:
-    """The dashboard's secret key (kept in data/, readable only by you)."""
-    path = data_path(cfg, "dashboard_token")
-    if not path.exists():
-        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)     # private from the start
-        with os.fdopen(fd, "w") as f:
-            f.write(secrets.token_hex(16))
-    return path.read_text().strip()
-
-
-def make_handler(cfg, actions: dict, port: int):
-    allowed_hosts = {f"127.0.0.1:{port}", f"localhost:{port}"}
-    key = token(cfg)
-
-    class Handler(BaseHTTPRequestHandler):
-        def log_message(self, *args):                      # keep the menu/terminal quiet
-            pass
-
-        def _send(self, status, body, content_type="application/json"):
-            data = body if isinstance(body, bytes) else json.dumps(body, default=str).encode()
-            self.send_response(status)
-            self.send_header("Content-Type", content_type)
-            self.send_header("Cache-Control", "no-store")
-            self.send_header("X-Content-Type-Options", "nosniff")
-            self.send_header("Referrer-Policy", "no-referrer")
-            self.end_headers()
-            self.wfile.write(data)
-
-        def _host_ok(self):
-            return self.headers.get("Host", "") in allowed_hosts
-
-        def _key_ok(self):
-            return secrets.compare_digest(self.headers.get("X-Token", ""), key)
-
-        def do_GET(self):
-            if not self._host_ok():
-                return self._send(403, {"error": "wrong host"})
-            if self.path.split("?")[0] in ("/", "/index.html"):
-                return self._send(200, WEB.read_bytes(), "text/html; charset=utf-8")
-            if self.path == "/api/ping":
-                return self._send(200, {"app": "ai-trader"})
-            if self.path == "/api/snapshot":
-                if not self._key_ok():
-                    return self._send(401, {"error": "open the dashboard from the AI Trader menu"})
-                store = Store(data_path(cfg, "aitrader.sqlite"))       # one connection per request
-                try:
-                    return self._send(200, snapshot(cfg, store))
-                except Exception as e:
-                    return self._send(500, {"error": f"couldn't read the bot's data: {e}"})
-                finally:
-                    store.db.close()
-            return self._send(404, {"error": "not found"})
-
-        def do_POST(self):
-            if not self._host_ok() or not self._key_ok():
-                return self._send(403, {"error": "not allowed"})
-            try:
-                length = max(0, min(int(self.headers.get("Content-Length") or 0), 10_000))
-                body = json.loads(self.rfile.read(length) or b"{}")
-            except ValueError:
-                body = {}
-            if not isinstance(body, dict):
-                body = {}
-            name = self.path.removeprefix("/api/")
-            if name not in actions:
-                return self._send(404, {"error": "not found"})
-            if name == "kill" and body.get("confirm") != KILL_PHRASE:
-                return self._send(400, {"error": f'type "{KILL_PHRASE}" to confirm'})
-            try:
-                return self._send(200, {"message": actions[name]()})
-            except Exception as e:
-                return self._send(500, {"error": str(e)})
-
-    return Handler
-
-
-def start(cfg, actions: dict, port: int = None):
-    """Start the dashboard in the background. Returns the server, or None if the port is busy
-    (usually because the background autopilot is already serving it)."""
-    port = port or cfg.get("dashboard", {}).get("port", 8765)
-    try:
-        server = ThreadingHTTPServer(("127.0.0.1", port), make_handler(cfg, actions, port))
-    except OSError:
-        return None
-    threading.Thread(target=server.serve_forever, daemon=True).start()
-    return server
-
-
-def url(cfg, port: int = None) -> str:
-    port = port or cfg.get("dashboard", {}).get("port", 8765)
-    return f"http://127.0.0.1:{port}/#t={token(cfg)}"
-
-
-def is_running(cfg, port: int = None) -> bool:
-    import urllib.request
-    port = port or cfg.get("dashboard", {}).get("port", 8765)
-    try:
-        with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/ping", timeout=2) as r:
-            return json.loads(r.read()).get("app") == "ai-trader"
-    except Exception:
-        return False

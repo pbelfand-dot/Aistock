@@ -76,7 +76,9 @@ def test_background_autopilot_service(tmp_path, monkeypatch):
 
 
 def test_the_mac_app_builds(tmp_path):
-    out = subprocess.run(["bash", str(REPO / "mac" / "build_app.sh"), "9.9.9"], capture_output=True, text=True)
+    # Compiling the app itself needs a Mac (GitHub does it there); this checks everything around it.
+    out = subprocess.run(["bash", str(REPO / "mac" / "build_app.sh"), "9.9.9"], capture_output=True, text=True,
+                         env={**os.environ, "AITRADER_NO_COMPILE": "1"})
     assert out.returncode == 0, out.stderr
     archive = REPO / "dist" / "AITrader-mac.zip"
     try:
@@ -87,8 +89,11 @@ def test_the_mac_app_builds(tmp_path):
             plist = plistlib.loads(z.read("AI Trader.app/Contents/Info.plist"))
         assert plist["CFBundleExecutable"] == "AITrader" and plist["CFBundleShortVersionString"] == "9.9.9"
         assert plist["LSRequiresNativeExecution"] is True                    # no Rosetta prompt
+        assert plist["CFBundleIconFile"] == "AppIcon" and plist["CFBundleIdentifier"] == "com.aitrader.app"
+        for f in ("install.sh", "AI Trader Menu.command", "AppIcon.icns", "VERSION"):
+            assert f"AI Trader.app/Contents/Resources/{f}" in names
         for f in ("run.py", "mcp_server.py", "config.yaml", "requirements.txt", ".env.example",
-                  "aitrader/web/dashboard.html"):
+                  "aitrader/web/dashboard.html", "aitrader/app_api.py"):
             assert f"AI Trader.app/Contents/Resources/trader/{f}" in names
         assert not any("/.env" == n[-5:] for n in names), "never ship anyone's keys"
     finally:

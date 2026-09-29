@@ -1,7 +1,8 @@
-# Tests the bot on every push. On the repo's main (default) branch it also builds
-# "AI Trader.app" and publishes it as the download on the GitHub page:
+# Tests the bot on every push, then builds "AI Trader.app" on a real Mac and checks it works
+# (it opens its window, talks to the bot and shows the demo). On the repo's main (default)
+# branch it also publishes the app as the download on the GitHub page:
 #   https://github.com/pbelfand-dot/Aistock/releases/latest/download/AITrader-mac.zip
-# The tests run first, so a broken version is never published.
+# Nothing is published unless every check passes.
 name: Mac app
 
 on:
@@ -17,23 +18,57 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Test the bot first
+      - name: Test the bot
         working-directory: trader
         run: |
           pip install -r requirements.txt
           python -m pytest -q
 
+  build:
+    needs: test
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Build "AI Trader.app"
         run: bash mac/build_app.sh "1.0.${{ github.run_number }}"
+
+      - name: Check the app is a proper Mac app
+        run: |
+          APP="dist/AI Trader.app"
+          archs="$(lipo -archs "$APP/Contents/MacOS/AITrader")"
+          echo "architectures: $archs"
+          [[ "$archs" == *arm64* && "$archs" == *x86_64* ]]      # Apple Silicon and Intel
+          codesign --verify --strict --verbose=2 "$APP"
+          plutil -lint "$APP/Contents/Info.plist"
+          test -f "$APP/Contents/Resources/AppIcon.icns"
+
+      - name: Self-test (opens the window, talks to the bot, shows the demo)
+        timeout-minutes: 10
+        run: |
+          pip install -r trader/requirements.txt
+          AITRADER_HOME="$PWD/trader" AITRADER_PYTHON="$(command -v python)" \
+          AITRADER_SCREENSHOT="$PWD/dist/app-screenshot.png" \
+            "dist/AI Trader.app/Contents/MacOS/AITrader" --self-test
+
+      - name: Keep the self-test screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-screenshot
+          path: dist/app-screenshot.png
+          if-no-files-found: ignore
 
       - name: Publish the download (main branch only)
         if: github.ref_name == github.event.repository.default_branch

@@ -3,12 +3,13 @@ demo.py: DEMO data, so you can see the dashboard before the bot has traded.
 
 It makes up prices (a random walk) for the watchlist, then runs them through the
 bot's REAL code: the study month, the plans and a few weeks of paper trading.
-Everything goes into a throwaway folder; your real data is never touched, and the
-dashboard shows a DEMO banner the whole time.
+Everything goes into its own folder (data/demo); your real data is never touched,
+and the app shows a DEMO banner the whole time.
 """
 import copy
 import os
-import tempfile
+import shutil
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -35,17 +36,25 @@ def _bars(index, start_price, market_returns, rng, beta, noise, drift):
                          "volume": rng.integers(200_000, 900_000, len(index)).astype(float)}, index=index)
 
 
-def build(cfg: dict, seed: int = 7) -> dict:
-    """Returns a config pointing at a fresh folder full of demo data."""
-    rng = np.random.default_rng(seed)
+def demo_config(cfg: dict) -> dict:
+    """Your settings, pointed at the demo folder (made-up prices, no keys, no internet)."""
     cfg = copy.deepcopy(cfg)
-    cfg["data_dir"] = tempfile.mkdtemp(prefix="aitrader-demo-")
+    cfg["data_dir"] = str(Path(cfg["data_dir"]) / "demo")
     cfg["data"]["source"] = "demo"
     cfg["llm"]["enabled"] = False
     cfg["secrets"] = {k: "" for k in cfg["secrets"]}
     cfg["ai"]["swing"]["min_train"] = cfg["ai"]["day"]["min_train"] = 10 ** 9     # skip the slow AI in the demo
     cfg["plan"].update(min_sharpe=-99, min_profit_factor=0, max_drawdown_pct=100, min_trades=0,
                        min_forward_signals=0, min_forward_trades=0)
+    return cfg
+
+
+def build(cfg: dict, seed: int = 7) -> dict:
+    """Makes fresh demo data. Returns the demo config (see demo_config)."""
+    rng = np.random.default_rng(seed)
+    cfg = demo_config(cfg)
+    shutil.rmtree(cfg["data_dir"], ignore_errors=True)       # only ever the demo folder
+    os.makedirs(cfg["data_dir"])
     store = Store(f"{cfg['data_dir']}/aitrader.sqlite")
     store.set("demo", True)
 

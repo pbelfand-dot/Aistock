@@ -1,8 +1,9 @@
 #!/bin/bash
-# "AI Trader.app" itself. Double-clicking the app runs this.
-#  1. Copies the bot into ~/AITrader (keeping your keys, data, and a backup of your settings).
-#  2. Opens the AI Trader menu in a Terminal window (first time: installs Python there).
-RES="$(cd "$(dirname "$0")/../Resources" && pwd)"
+# Run by "AI Trader.app" each time it opens (quick): copies this version of the bot into ~/AITrader.
+# Your keys (.env), data (data/) and a backup of your settings are kept.
+# Installing Python and the libraries happens in the Setup menu (AI Trader Menu.command), which the
+# app opens in Terminal only when needed.
+RES="$(cd "$(dirname "$0")" && pwd)"
 APP_HOME="$HOME/AITrader"
 NEW="$(cat "$RES/VERSION")"
 OLD="$(cat "$APP_HOME/VERSION" 2>/dev/null)"
@@ -21,11 +22,20 @@ if [ "$NEW" != "$OLD" ]; then
   cp "$RES/trader/config.yaml" "$APP_HOME/config.yaml"
   [ -f "$APP_HOME/.env" ] || cp "$RES/trader/.env.example" "$APP_HOME/.env"
   echo "$NEW" > "$APP_HOME/VERSION"
-  touch "$APP_HOME/.restart_autopilot"      # the menu restarts a running background autopilot on the new code
+  touch "$APP_HOME/.restart_autopilot"      # a running background autopilot must switch to the new code
 fi
 
 cp "$RES/AI Trader Menu.command" "$APP_HOME/AI Trader Menu.command"
 chmod +x "$APP_HOME/AI Trader Menu.command"
 # These are the bot's own files: clear the "downloaded from the internet" flag so they can run.
 xattr -dr com.apple.quarantine "$APP_HOME" 2>/dev/null
-open -a Terminal "$APP_HOME/AI Trader Menu.command"
+
+# Libraries unchanged? Then restart the background autopilot right away. (If they changed, the
+# Setup menu installs them first and restarts it afterwards.)
+if [ -f "$APP_HOME/.restart_autopilot" ] && cmp -s "$APP_HOME/requirements.txt" "$APP_HOME/.venv/.installed-requirements"; then
+  rm -f "$APP_HOME/.restart_autopilot"
+  if [ -f "$HOME/Library/LaunchAgents/com.aitrader.autopilot.plist" ]; then
+    launchctl kickstart -k "gui/$(id -u)/com.aitrader.autopilot" >/dev/null 2>&1
+  fi
+fi
+exit 0
