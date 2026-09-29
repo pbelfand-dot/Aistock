@@ -22,6 +22,10 @@ def load_config(path=None) -> dict:
         cfg = yaml.safe_load(f)
 
     cfg["secrets"] = {
+        "alpaca_paper_key": os.environ.get("ALPACA_PAPER_API_KEY", ""),
+        "alpaca_paper_secret": os.environ.get("ALPACA_PAPER_SECRET_KEY", ""),
+        "alpaca_live_key": os.environ.get("ALPACA_LIVE_API_KEY", ""),
+        "alpaca_live_secret": os.environ.get("ALPACA_LIVE_SECRET_KEY", ""),
         "app_key": os.environ.get("SCHWAB_APP_KEY", ""),
         "app_secret": os.environ.get("SCHWAB_APP_SECRET", ""),
         "callback_url": os.environ.get("SCHWAB_CALLBACK_URL", "https://127.0.0.1:8182"),
@@ -29,8 +33,26 @@ def load_config(path=None) -> dict:
     }
     cfg["live_trading_enabled"] = os.environ.get("LIVE_TRADING_ENABLED", "").strip().lower() == "true"
     cfg.setdefault("data_dir", str(DATA_DIR))
+    cfg.setdefault("broker", "alpaca")
     check_config(cfg)
     return cfg
+
+
+def data_source(cfg: dict) -> str:
+    """Where prices come from. "auto" = Alpaca if its keys are set, otherwise free Yahoo data."""
+    source = cfg["data"]["source"]
+    if source != "auto":
+        return source
+    s = cfg["secrets"]
+    has_alpaca = (s["alpaca_paper_key"] and s["alpaca_paper_secret"]) or (s["alpaca_live_key"] and s["alpaca_live_secret"])
+    return "alpaca" if has_alpaca else "yfinance"
+
+
+def uses_broker_paper(cfg: dict) -> bool:
+    """Paper trade inside Alpaca's paper account (real order handling) instead of simulating it here."""
+    s = cfg["secrets"]
+    return (cfg["broker"] == "alpaca" and cfg["paper"].get("use_broker_paper", True)
+            and bool(s["alpaca_paper_key"] and s["alpaca_paper_secret"]))
 
 
 def check_config(cfg: dict):
@@ -43,6 +65,8 @@ def check_config(cfg: dict):
             seen[ticker] = desk
     if sum(cfg["desks"][d]["budget_pct"] for d in DESKS) > 100:
         raise ValueError("desks budget_pct add up to more than 100%.")
+    if cfg.get("broker", "alpaca") not in ("alpaca", "schwab"):
+        raise ValueError("broker must be alpaca or schwab.")
 
 
 def active_desks(cfg: dict) -> list:

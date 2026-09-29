@@ -1,139 +1,66 @@
-"""The real-money broker, tested against a FAKE Schwab (nothing is ever sent anywhere).
+"""The real-money broker rules, tested against FAKE Schwab AND FAKE Alpaca (nothing is ever sent anywhere).
 
 Each test is a way real money could go wrong. The rule under test throughout:
-the bot stops tracking an order only once Schwab confirms it is finished."""
+the bot stops tracking an order only once the broker confirms it is finished."""
 from datetime import datetime
 
 import pandas as pd
 import pytest
 
 pytest.importorskip("schwab")
+pytest.importorskip("alpaca")
 
-from aitrader.brokers import Ledger, Order
-from aitrader.brokers.schwab_broker import SchwabBroker
-
-HASH = "ABC123"
-
-
-class FakeResp:
-    def __init__(self, status=200, data=None, headers=None):
-        self.status_code, self._data, self.headers, self.text = status, data, headers or {}, ""
-
-    @property
-    def is_error(self):
-        return self.status_code >= 400
-
-    def json(self):
-        return self._data
-
-    def raise_for_status(self):
-        if self.status_code >= 400:
-            raise RuntimeError(f"HTTP {self.status_code}")
+from aitrader.brokers import Order
+from aitrader.brokers.live import UNKNOWN_ID
+from fakes import HASH, FakeResp, FakeSchwab, make_broker, make_client
 
 
-class FakeSchwab:
-    """A tiny pretend Schwab.
-    LIMIT orders fill instantly at their limit (unless fill=False). MARKET orders fill at
-    market_price (unless market_fills=False). STOP orders rest until fire(). cancel_works=False
-    simulates a cancel Schwab never confirms."""
-
-    class Account:
-        class Fields:
-            POSITIONS = "positions"
-
-    def __init__(self, cash=1000.0, held=None, fill=True, market_fills=True, market_price=10.0):
-        self.orders, self.next_id, self.cancelled = {}, 100, []
-        self.cash, self.held, self.fill = cash, held or {}, fill
-        self.market_fills, self.market_price = market_fills, market_price
-        self.cancel_works, self.get_order_fails, self.failing_ids = True, False, set()
-
-    def place_order(self, account_hash, spec):
-        body = spec.build() if hasattr(spec, "build") else spec
-        oid, self.next_id = self.next_id, self.next_id + 1
-        qty = body["orderLegCollection"][0]["quantity"]
-        o = self.orders[oid] = {"body": body, "status": "WORKING", "legs": []}
-        if body["orderType"] == "LIMIT" and self.fill:
-            o["status"], o["legs"] = "FILLED", [(qty, float(body["price"]))]
-        if body["orderType"] == "MARKET" and self.market_fills:
-            o["status"], o["legs"] = "FILLED", [(qty, self.market_price)]
-        return FakeResp(201, headers={"Location": f"https://api.schwabapi.com/trader/v1/accounts/{account_hash}/orders/{oid}"})
-
-    def get_orders_for_account(self, account_hash):
-        return FakeResp(200, [{"orderId": oid, "status": o["status"], **o["body"]} for oid, o in self.orders.items()])
-
-    def get_order(self, order_id, account_hash):
-        if self.get_order_fails or int(order_id) in self.failing_ids:
-            return FakeResp(429, {"message": "too many requests"})
-        o = self.orders[int(order_id)]
-        legs = [{"quantity": q, "price": p} for q, p in o["legs"]]
-        return FakeResp(200, {"status": o["status"], "orderActivityCollection": [{"executionLegs": legs}]})
-
-    def cancel_order(self, order_id, account_hash):
-        self.cancelled.append(int(order_id))
-        if self.cancel_works and self.orders[int(order_id)]["status"] == "WORKING":
-            self.orders[int(order_id)]["status"] = "CANCELED"
-
-    def get_account(self, account_hash, fields=None):
-        return FakeResp(200, {"securitiesAccount": {
-            "currentBalances": {"cashAvailableForTrading": self.cash},
-            "positions": [{"instrument": {"symbol": s}, "longQuantity": float(q)} for s, q in self.held.items()]}})
-
-    def fire(self, order_id, price):
-        """The order fills at Schwab (e.g. a stop triggers while the laptop sleeps)."""
-        o = self.orders[int(order_id)]
-        o["status"], o["legs"] = "FILLED", [(o["body"]["orderLegCollection"][0]["quantity"], price)]
-
-    def of_type(self, order_type):
-        return [o["body"] for o in self.orders.values() if o["body"]["orderType"] == order_type]
+@pytest.fixture(params=["schwab", "alpaca"])
+def kind(request):
+    return request.param
 
 
 def broker_for(client, cash=1000, **kw):
-    kw.setdefault("stop_loss_pct", 7)
-    kw.setdefault("fill_timeout_seconds", 0)
-    recorded = []
-    broker = SchwabBroker(Ledger(cash), client, HASH, cash_account=False, poll_seconds=0,
-                          log=lambda m: None, on_fill=recorded.append, **kw)
-    broker.recorded = recorded
-    return broker
+    return make_broker(client, cash, **kw)
 
 
 # ---------------------------------------------------------------- normal trading
-def test_buy_sends_a_limit_order_then_leaves_a_resting_stop():
-    client = FakeSchwab()
+def test_buy_sends_a_limit_order_then_leaves_a_resting_stop(kind):
+    client = make_client(kind)
     broker = broker_for(client)
     fill = broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")
-    buy = client.of_type("LIMIT")[0]
-    assert float(buy["price"]) == pytest.approx(10.02) and buy["orderLegCollection"][0]["instruction"] == "BUY"
+    buy = client.placed("LIMIT")[0]
+    assert buy["price"] == pytest.approx(10.02) and buy["side"] == "BUY"
     assert fill.qty == 2 and fill.price == pytest.approx(10.02)
     assert broker.recorded == [fill]                                 # saved the moment it happened
-    stop = client.of_type("STOP")[0]
-    assert float(stop["stopPrice"]) == pytest.approx(9.32) and stop["duration"] == "GOOD_TILL_CANCEL"
+    stop = client.placed("STOP")[0]
+    assert stop["stop"] == pytest.approx(9.32) and stop["gtc"] and stop["side"] == "SELL"
     assert broker.positions()["KO"].stop_order_id == "101" and broker.ledger.pending == []
 
 
-def test_never_spends_more_than_schwab_says_is_available():
-    client = FakeSchwab(cash=45.0)                                   # you spent the rest yourself
+def test_never_spends_more_than_schwab_says_is_available(kind):
+    client = make_client(kind, cash=45.0)                                   # you spent the rest yourself
     broker = broker_for(client, cash=500)
     broker.submit(Order("KO", "BUY", 20, 10.0, "test"), "2026-10-01")
-    assert client.of_type("LIMIT")[0]["orderLegCollection"][0]["quantity"] == 4   # $45 / $10.02
+    assert client.placed("LIMIT")[0]["qty"] == 4   # $45 / $10.02
 
 
-def test_dry_run_sends_and_changes_nothing():
-    client = FakeSchwab()
+def test_dry_run_sends_and_changes_nothing(kind):
+    client = make_client(kind)
     broker = broker_for(client, dry_run=True)
     assert broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01") is None
     assert client.orders == {}
 
 
-def test_unfilled_order_is_cancelled_and_forgotten():
-    client = FakeSchwab(fill=False)
+def test_unfilled_order_is_cancelled_and_forgotten(kind):
+    client = make_client(kind, fill=False)
     broker = broker_for(client)
     assert broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01") is None
     assert client.cancelled == [100] and broker.ledger.pending == []
 
 
-def test_selling_takes_down_the_resting_stop_first():
-    client = FakeSchwab()
+def test_selling_takes_down_the_resting_stop_first(kind):
+    client = make_client(kind)
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")
     fill = broker.submit(Order("KO", "SELL", 2, 11.0, "test"), "2026-10-02")
@@ -141,106 +68,104 @@ def test_selling_takes_down_the_resting_stop_first():
     assert fill.side == "SELL" and fill.price == pytest.approx(10.98) and broker.positions() == {}
 
 
-def test_urgent_sells_are_market_orders():
-    client = FakeSchwab(market_price=9.1)
+def test_urgent_sells_are_market_orders(kind):
+    client = make_client(kind, market_price=9.1)
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")
     fill = broker.submit(Order("KO", "SELL", 2, 9.2, "stop-loss", urgent=True), "2026-10-02")
-    assert client.of_type("MARKET") and fill.price == pytest.approx(9.1)
+    assert client.placed("MARKET") and fill.price == pytest.approx(9.1)
 
 
 # ---------------------------------------------------------------- never sell twice
-def test_if_the_stop_already_sold_we_record_it_instead_of_selling_again():
-    client = FakeSchwab()
+def test_if_the_stop_already_sold_we_record_it_instead_of_selling_again(kind):
+    client = make_client(kind)
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")
     client.fire(101, 9.30)
     fill = broker.submit(Order("KO", "SELL", 2, 9.0, "test"), "2026-10-02")
-    assert fill.reason == "stop-loss order filled at Schwab" and fill.price == pytest.approx(9.30)
-    assert len(client.of_type("LIMIT")) == 1                         # no second sell was sent
+    assert fill.reason.startswith("stop-loss order filled at") and fill.price == pytest.approx(9.30)
+    assert len(client.placed("LIMIT")) == 1                         # no second sell was sent
 
 
-def test_if_schwab_wont_confirm_the_stop_is_cancelled_we_dont_sell():
-    client = FakeSchwab()
+def test_if_schwab_wont_confirm_the_stop_is_cancelled_we_dont_sell(kind):
+    client = make_client(kind)
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")
     client.cancel_works = False                                      # cancel never confirmed
     assert broker.submit(Order("KO", "SELL", 2, 11.0, "test"), "2026-10-02") is None
-    assert len(client.of_type("LIMIT")) == 1                         # the sell was NOT sent
+    assert len(client.placed("LIMIT")) == 1                         # the sell was NOT sent
     assert broker.positions()["KO"].stop_order_id == "101"           # still tracking the stop
 
 
-def test_an_error_from_schwab_is_never_mistaken_for_finished():
-    client = FakeSchwab()
+def test_an_error_from_schwab_is_never_mistaken_for_finished(kind):
+    client = make_client(kind)
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")
-    client.get_order_fails = True                                    # e.g. HTTP 429 "too many requests"
+    client.failing_ids = {"101"}                                     # e.g. HTTP 429 "too many requests"
     assert broker.submit(Order("KO", "SELL", 2, 11.0, "test"), "2026-10-02") is None
-    assert len(client.of_type("LIMIT")) == 1 and broker.positions()["KO"].stop_order_id == "101"
+    assert len(client.placed("LIMIT")) == 1 and broker.positions()["KO"].stop_order_id == "101"
 
 
-def test_one_schwab_error_does_not_stop_everything_else():
-    client = FakeSchwab(held={"KO": 2, "BAC": 2})
+def test_one_schwab_error_does_not_stop_everything_else(kind):
+    client = make_client(kind, held={"KO": 2, "BAC": 2})
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")    # stop 101
     broker.submit(Order("BAC", "BUY", 2, 10.0, "test"), "2026-10-01")   # stop 103
-    client.failing_ids = {101}                                           # KO's stop can't be looked up
+    client.failing_ids = {"101"}                                           # KO's stop can't be looked up
     problems = broker.reconcile("2026-10-02")                            # doesn't blow up...
     assert any("KO" in p for p in problems)
     fills = [broker.submit(Order(t, "SELL", 2, 11.0, "kill", urgent=True), "2026-10-02") for t in ("KO", "BAC")]
     assert fills[0] is None and fills[1].ticker == "BAC"                 # ...and BAC still gets sold
 
 
-def test_a_stop_whose_id_was_lost_is_found_again():
-    from aitrader.brokers.schwab_broker import UNKNOWN_ID
-    client = FakeSchwab(held={"KO": 2})
+def test_a_stop_whose_id_was_lost_is_found_again(kind):
+    client = make_client(kind, held={"KO": 2})
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")    # stop 101
     broker.positions()["KO"].stop_order_id = UNKNOWN_ID                 # Schwab never told us its id
     broker.reconcile("2026-10-02")
-    assert broker.positions()["KO"].stop_order_id == "101" and len(client.of_type("STOP")) == 1
+    assert broker.positions()["KO"].stop_order_id == "101" and len(client.placed("STOP")) == 1
 
 
-def test_shares_gone_with_an_unknown_stop_does_not_get_stuck():
-    from aitrader.brokers.schwab_broker import UNKNOWN_ID
-    client = FakeSchwab(held={"KO": 2})
+def test_shares_gone_with_an_unknown_stop_does_not_get_stuck(kind):
+    client = make_client(kind, held={"KO": 2})
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")
-    client.orders[101]["status"] = "CANCELED"                            # you cancelled it and sold by hand
+    client.set_status(101, "CANCELED")                            # you cancelled it and sold by hand
     broker.positions()["KO"].stop_order_id = UNKNOWN_ID
     client.held = {}
     broker.reconcile("2026-10-02")
     assert broker.is_flat()
 
 
-def test_if_you_edit_the_bots_stop_in_schwab_it_uses_yours():
-    client = FakeSchwab(held={"KO": 2})
+def test_if_you_edit_the_bots_stop_in_schwab_it_uses_yours(kind):
+    client = make_client(kind, held={"KO": 2})
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")    # stop 101
-    client.orders[101]["status"] = "REPLACED"                            # you moved the stop price...
-    client.place_order(HASH, broker_stop("KO", 2, 9.0))                 # ...which made order 102
+    client.set_status(101, "REPLACED")                            # you moved the stop price...
+    client.add_your_own_order("STOP", "SELL", "KO", 2, stop=9.0)          # ...which made order 102
     broker.reconcile("2026-10-02")
-    assert broker.positions()["KO"].stop_order_id == "102" and len(client.of_type("STOP")) == 2
+    assert broker.positions()["KO"].stop_order_id == "102" and len(client.placed("STOP")) == 2
 
 
 # ---------------------------------------------------------------- never left unprotected
-def test_a_sell_that_does_not_fill_gets_its_stop_back():
-    client = FakeSchwab()
+def test_a_sell_that_does_not_fill_gets_its_stop_back(kind):
+    client = make_client(kind)
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")
     client.fill = False
     assert broker.submit(Order("KO", "SELL", 2, 11.0, "test"), "2026-10-02") is None
-    assert len(client.of_type("STOP")) == 2                          # old one cancelled, new one placed
+    assert len(client.placed("STOP")) == 2                          # old one cancelled, new one placed
     assert broker.positions()["KO"].stop_order_id == "103"
 
 
-def test_an_urgent_sell_that_waits_for_the_open_stays_tracked():
-    client = FakeSchwab(market_fills=False)                          # e.g. kill command at night
+def test_an_urgent_sell_that_waits_for_the_open_stays_tracked(kind):
+    client = make_client(kind, market_fills=False)                          # e.g. kill command at night
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")
     assert broker.submit(Order("KO", "SELL", 2, 9.0, "kill", urgent=True), "2026-10-01") is None
     assert [p["id"] for p in broker.ledger.pending] == ["102"]       # still tracked, NOT cancelled
-    assert 102 not in client.cancelled and len(client.of_type("STOP")) == 1   # no new stop (sell is working)
+    assert 102 not in client.cancelled and len(client.placed("STOP")) == 1   # no new stop (sell is working)
     client.held = {"KO": 2}
     broker.reconcile("2026-10-02")                                   # still working: left alone
     assert [p["id"] for p in broker.ledger.pending] == ["102"]
@@ -251,8 +176,8 @@ def test_an_urgent_sell_that_waits_for_the_open_stays_tracked():
 
 
 # ---------------------------------------------------------------- catching up after sleep/crash
-def test_reconcile_catches_up_after_the_laptop_was_asleep():
-    client = FakeSchwab(held={"KO": 2, "BAC": 3, "PFE": 10})
+def test_reconcile_catches_up_after_the_laptop_was_asleep(kind):
+    client = make_client(kind, held={"KO": 2, "BAC": 3, "PFE": 10})
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")    # stop id 101
     broker.submit(Order("BAC", "BUY", 3, 10.0, "test"), "2026-10-01")   # stop id 103
@@ -265,8 +190,8 @@ def test_reconcile_catches_up_after_the_laptop_was_asleep():
     assert broker.submit(Order("PFE", "BUY", 1, 10.0, "test"), "2026-10-02") is None
 
 
-def test_if_you_sell_the_bots_shares_by_hand_its_stop_is_cleaned_up():
-    client = FakeSchwab(held={"KO": 5, "BAC": 5})
+def test_if_you_sell_the_bots_shares_by_hand_its_stop_is_cleaned_up(kind):
+    client = make_client(kind, held={"KO": 5, "BAC": 5})
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 5, 10.0, "test"), "2026-10-01")    # stop 101
     broker.submit(Order("BAC", "BUY", 5, 10.0, "test"), "2026-10-01")   # stop 103
@@ -274,12 +199,12 @@ def test_if_you_sell_the_bots_shares_by_hand_its_stop_is_cleaned_up():
     broker.reconcile("2026-10-02")
     assert "KO" not in broker.positions() and 101 in client.cancelled   # no orphan stop left behind
     assert 103 in client.cancelled and broker.positions()["BAC"].qty == 2
-    new_stop = client.orders[int(broker.positions()["BAC"].stop_order_id)]["body"]
-    assert new_stop["orderLegCollection"][0]["quantity"] == 2           # resized to what's really there
+    new_stop = client.orders[broker.positions()["BAC"].stop_order_id]["n"]
+    assert new_stop["qty"] == 2                                          # resized to what's really there
 
 
-def test_a_late_fill_after_an_unconfirmed_cancel_is_not_lost():
-    client = FakeSchwab(fill=False)
+def test_a_late_fill_after_an_unconfirmed_cancel_is_not_lost(kind):
+    client = make_client(kind, fill=False)
     broker = broker_for(client)
     client.cancel_works = False
     assert broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01") is None
@@ -292,26 +217,29 @@ def test_a_late_fill_after_an_unconfirmed_cancel_is_not_lost():
     assert broker.positions()["KO"].stop_order_id                       # and it's protected
 
 
-def test_cancel_all_only_touches_the_bots_own_orders():
-    client = FakeSchwab(fill=False)
-    client.place_order(HASH, _limit_buy("AAPL", 1, 100.0))              # id 100: YOUR order
+def test_cancel_all_only_touches_the_bots_own_orders(kind):
+    client = make_client(kind, fill=False)
+    client.add_your_own_order("LIMIT", "BUY", "AAPL", 1, price=100.0)   # id 100: YOUR order
     broker = broker_for(client)
-    client.place_order(HASH, _limit_buy("KO", 1, 10.0))                 # id 101: the bot's, in flight
+    client.add_your_own_order("LIMIT", "BUY", "KO", 1, price=10.0)      # id 101: the bot's, in flight
     broker.ledger.pending.append({"id": "101", "ticker": "KO", "side": "BUY", "reason": "test"})
     broker.cancel_all("2026-10-02")
     assert client.cancelled == [101] and broker.ledger.pending == []
 
 
 # ---------------------------------------------------------------- the emergency exit, end to end
-def test_emergency_exit_keeps_going_until_the_live_desk_is_really_flat(cfg, tmp_path, monkeypatch):
+def test_emergency_exit_keeps_going_until_the_live_desk_is_really_flat(kind, cfg, tmp_path, monkeypatch):
+    import aitrader.alpaca_api as alpaca_api
     import aitrader.schwab_api as schwab_api
     import run
     from aitrader.phases import Phase, current_phase, set_phase
     from aitrader.storage import Store
 
-    client = FakeSchwab(held={"KO": 2}, market_fills=False)
+    client = make_client(kind, held={"KO": 2}, market_fills=False)
     monkeypatch.setattr(schwab_api, "get_client", lambda cfg: client)
     monkeypatch.setattr(schwab_api, "account_hash", lambda client, number: HASH)
+    monkeypatch.setattr(alpaca_api, "trading_client", lambda cfg, paper: client)
+    cfg["broker"] = kind
     cfg["live"].update(fill_timeout_seconds=0, poll_seconds=0)
     store = Store(tmp_path / "t.sqlite")
     set_phase(store, "swing", Phase.LIVE, "test")
@@ -336,17 +264,6 @@ def test_emergency_exit_keeps_going_until_the_live_desk_is_really_flat(cfg, tmp_
     assert store.fills("live-swing")["side"].tolist() == ["SELL"]
 
 
-def broker_stop(ticker, qty, stop):
-    from schwab.orders.common import OrderType
-    from schwab.orders.equities import equity_sell_market
-    return equity_sell_market(ticker, qty).set_order_type(OrderType.STOP).set_stop_price(stop)
-
-
-def _limit_buy(ticker, qty, price):
-    from schwab.orders.equities import equity_buy_limit
-    return equity_buy_limit(ticker, qty, price)
-
-
 def test_schwab_data_adds_todays_live_bar(cfg):
     from aitrader.market_data import MarketData
 
@@ -365,3 +282,54 @@ def test_schwab_data_adds_todays_live_bar(cfg):
                                 "volume": [900.0]}, index=[yesterday])}
     md._add_todays_bar(bars)
     assert len(bars["KO"]) == 2 and bars["KO"]["close"].iloc[-1] == 71.5
+
+
+# ---------------------------------------------------------------- Alpaca only: its own order tags
+def test_alpaca_orders_carry_the_bots_tag():
+    client = make_client("alpaca")
+    broker_for(client).submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")
+    assert all(o["client_id"].startswith("aitrader-") for o in client.orders_n())
+
+
+def test_alpaca_order_that_arrived_but_the_reply_was_lost_is_found():
+    client = make_client("alpaca")
+    client.drop_response_after_send = True
+    broker = broker_for(client)
+    fill = broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")
+    assert fill and fill.qty == 2 and len(client.placed("LIMIT")) == 1     # found by its tag, not re-sent
+
+
+def test_alpaca_order_that_never_arrived_is_forgotten_safely():
+    client = make_client("alpaca", held={})
+    client.drop_before_send = True
+    broker = broker_for(client)
+    assert broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01") is None
+    assert len(broker.ledger.pending) == 1                                  # unsure: remembered by its tag
+    assert broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01") is None   # no double buy meanwhile
+    broker.reconcile("2026-10-01")
+    assert broker.ledger.pending == [] and client.orders == {}             # Alpaca never got it: forgotten
+
+
+def test_alpaca_rejection_leaves_nothing_behind():
+    client = make_client("alpaca")
+    client.reject_next = (403, "insufficient buying power")
+    broker = broker_for(client)
+    assert broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01") is None
+    assert broker.ledger.pending == [] and broker.positions() == {}
+
+
+def test_paper_phase_trades_inside_the_alpaca_paper_account(cfg, tmp_path, monkeypatch):
+    import aitrader.alpaca_api as alpaca_api
+    import run
+    from aitrader.brokers.alpaca_broker import AlpacaBroker
+    from aitrader.phases import Phase
+    from aitrader.storage import Store
+
+    used = {}
+    monkeypatch.setattr(alpaca_api, "trading_client", lambda cfg, paper: used.setdefault("paper", paper) and make_client("alpaca"))
+    cfg["secrets"].update(alpaca_paper_key="k", alpaca_paper_secret="s")
+    broker = run.open_broker(cfg, Store(tmp_path / "t.sqlite"), "swing", Phase.PAPER)
+    assert isinstance(broker, AlpacaBroker) and used["paper"] is True
+    assert broker.ledger.cash == 5000                                       # swing desk's half of the paper money
+    cfg["paper"]["use_broker_paper"] = False
+    assert not isinstance(run.open_broker(cfg, Store(tmp_path / "u.sqlite"), "swing", Phase.PAPER), AlpacaBroker)

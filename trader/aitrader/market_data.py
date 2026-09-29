@@ -4,9 +4,10 @@ market_data.py: gets prices.
   daily bars     (one per day)      for the swing desk
   5-minute bars  (78 per day)       for the day desk
 
-Two sources, same output:
+Sources, same output (config.yaml -> data.source):
+  alpaca    Alpaca data: free real-time "iex" feed, years of 5-minute history
   yfinance  free Yahoo data, no account needed (fine for study and paper)
-  schwab    Schwab's real-time data (required for real money)
+  schwab    Schwab's real-time data
 
 The bot keeps its own copy of every price it downloads (data/cache/), and
 after the first download of the day it only fetches the newest bars. That's
@@ -18,11 +19,11 @@ During market hours the last row is the bar in progress: its close = the current
 """
 import json
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 
-from .config import data_path
+from .config import data_path, data_source
 
 COLUMNS = ["open", "high", "low", "close", "volume"]
 
@@ -30,8 +31,9 @@ COLUMNS = ["open", "high", "low", "close", "volume"]
 class MarketData:
     def __init__(self, cfg: dict):
         self.cfg = cfg
-        self.source = cfg["data"]["source"]
+        self.source = data_source(cfg)
         self._schwab = None
+        self._alpaca = None
         self._memo = {}                          # avoid downloading the same thing twice in a minute
 
     # ---- public ---------------------------------------------------------------
@@ -50,6 +52,8 @@ class MarketData:
             raise RuntimeError("Could not load the benchmark; check your internet/data source.")
         if self.source == "schwab" and interval == "1d":
             self._add_todays_bar(bars)
+        if self.source == "alpaca" and interval == "1d":
+            self._add_todays_bar_alpaca(bars)
         market = bars[self.cfg["benchmark"]]
         return {t: bars[t] for t in wanted if t in bars}, market
 
@@ -89,7 +93,58 @@ class MarketData:
     def _download(self, ticker, interval, recent) -> pd.DataFrame:
         if self.source == "schwab":
             return self._from_schwab(ticker, interval, recent)
+        if self.source == "alpaca":
+            return self._from_alpaca(ticker, interval, recent)
         return self._from_yahoo(ticker, interval, recent)
+
+    def _alpaca_client(self):
+        from .alpaca_api import data_client
+        if self._alpaca is None:
+            self._alpaca = data_client(self.cfg)
+        return self._alpaca
+
+    def _alpaca_feed(self):
+        from alpaca.data.enums import DataFeed
+        return DataFeed(self.cfg["data"].get("alpaca_feed", "iex"))
+
+    def _from_alpaca(self, ticker, interval, recent) -> pd.DataFrame:
+        from alpaca.data.enums import Adjustment
+        from alpaca.data.requests import StockBarsRequest
+        from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
+        if interval == "1d":
+            days, timeframe = (5 if recent else 365 * self.cfg["data"]["history_years"]), TimeFrame.Day
+        else:
+            days, timeframe = (2 if recent else self.cfg["data"]["intraday_days"]), TimeFrame(5, TimeFrameUnit.Minute)
+        request = StockBarsRequest(symbol_or_symbols=ticker, timeframe=timeframe, adjustment=Adjustment.ALL,
+                                   start=datetime.now(timezone.utc) - timedelta(days=days), feed=self._alpaca_feed())
+        df = self._alpaca_client().get_stock_bars(request).df
+        if df.empty:
+            raise RuntimeError("no data returned")
+        df = df.xs(ticker, level="symbol") if "symbol" in df.index.names else df
+        df.index = pd.DatetimeIndex(pd.to_datetime(df.index, utc=True).tz_convert("America/New_York").tz_localize(None))
+        if interval == "1d":
+            df.index = df.index.normalize()
+        else:
+            df = df.between_time("09:30", "15:59")         # regular session only
+        return df
+
+    def _add_todays_bar_alpaca(self, bars: dict):
+        """Make sure today's (unfinished) daily bar is there, with the latest trade as its close."""
+        from alpaca.data.requests import StockSnapshotRequest
+        snaps = self._alpaca_client().get_stock_snapshot(
+            StockSnapshotRequest(symbol_or_symbols=list(bars), feed=self._alpaca_feed()))
+        today = pd.Timestamp.now(tz="America/New_York").normalize().tz_localize(None)
+        for ticker, snap in snaps.items():
+            day, trade = getattr(snap, "daily_bar", None), getattr(snap, "latest_trade", None)
+            if ticker not in bars or day is None or trade is None:
+                continue
+            day_date = pd.Timestamp(day.timestamp).tz_convert("America/New_York").normalize().tz_localize(None)
+            if day_date != today:
+                continue
+            row = pd.DataFrame({"open": day.open, "high": max(day.high, trade.price), "low": min(day.low, trade.price),
+                                "close": trade.price, "volume": day.volume}, index=[today])
+            df = bars[ticker]
+            bars[ticker] = pd.concat([df[df.index < today], row])
 
     def _from_yahoo(self, ticker, interval, recent) -> pd.DataFrame:
         import yfinance as yf

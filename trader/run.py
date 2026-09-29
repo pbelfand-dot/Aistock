@@ -6,6 +6,7 @@ run.py: the ONE file you run.
                                     - swing desk: watches stop-losses, decides at 3:45pm
                                     - studies after the close (grading, shadow trading)
     python run.py status          where is each desk, and what's next?
+    python run.py check           test your Alpaca/Schwab keys and price data
     python run.py backtest        test every strategy on history (any time)
 
     python run.py plan            after the study month: write each desk's trading plan
@@ -28,7 +29,7 @@ from datetime import datetime, time as dtime, timedelta
 import pandas as pd
 
 from aitrader.brokers import Ledger, Order, PaperBroker
-from aitrader.config import active_desks, data_path, desk_capital, load_config
+from aitrader.config import active_desks, data_path, data_source, desk_capital, load_config, uses_broker_paper
 from aitrader.engine import run_backtest, run_cycle
 from aitrader.market_data import MarketData
 from aitrader.market_hours import in_session, minutes_to_close, now_ny, session_close
@@ -99,36 +100,46 @@ def fill_recorder(store, mode, dry_run=False):
     return record
 
 
+def broker_backed(cfg, phase) -> bool:
+    """True when this phase's orders go to a real broker account (Alpaca paper, or live money)."""
+    return phase == Phase.LIVE or (phase == Phase.PAPER and uses_broker_paper(cfg))
+
+
 def open_broker(cfg, store, desk, phase, dry_run=False, emergency=False):
     mode = mode_of(phase, desk)
+    live = phase == Phase.LIVE
     saved = store.get(f"{mode}_ledger")
+    ledger = Ledger.from_dict(saved) if saved else Ledger(desk_capital(cfg, desk, live))
     cash_account = cfg["live"]["account_type"] == "cash"
-    if phase != Phase.LIVE:
-        ledger = Ledger.from_dict(saved) if saved else Ledger(desk_capital(cfg, desk, live=False))
+    if not broker_backed(cfg, phase):                        # paper, simulated on this laptop
         broker = PaperBroker(ledger, cfg["paper"]["slippage_pct"], cfg["paper"]["commission_per_trade"],
                              mode=mode, cash_account=cash_account)
         broker.on_fill = fill_recorder(store, mode, dry_run)
         return broker
 
-    # LIVE: real money. Several locks must all be open (except for an emergency sell-off).
-    if not emergency:
+    # Real money: several locks must all be open (except for an emergency sell-off).
+    if live and not emergency:
         if not cfg["live_trading_enabled"] and not dry_run:
             raise RuntimeError("LIVE_TRADING_ENABLED is not 'true' in .env; refusing to send real orders.")
-        if cfg["data"]["source"] != "schwab":
-            raise RuntimeError("Real money needs Schwab's real-time prices: set data.source: schwab in config.yaml")
-    from aitrader.brokers.schwab_broker import SchwabBroker
-    from aitrader.schwab_api import account_hash, get_client
-    client = get_client(cfg)
-    ledger = Ledger.from_dict(saved) if saved else Ledger(desk_capital(cfg, desk, live=True))
-    live = cfg["live"]
-    broker = SchwabBroker(
-        ledger, client, account_hash(client, cfg["secrets"]["account_number"]), mode=mode,
-        limit_buffer_pct=live["limit_buffer_pct"], fill_timeout_seconds=live["fill_timeout_seconds"],
-        cash_account=cash_account, dry_run=dry_run,
-        stop_loss_pct=RiskManager.for_desk(cfg, desk).stop_loss_pct if live["resting_stops"] else None,
+        if data_source(cfg) not in ("alpaca", "schwab"):
+            raise RuntimeError("Real money needs real-time prices: set data.source to auto/alpaca in config.yaml")
+    settings = cfg["live"]
+    common = dict(
+        mode=mode, limit_buffer_pct=settings["limit_buffer_pct"],
+        fill_timeout_seconds=settings["fill_timeout_seconds"], cash_account=cash_account, dry_run=dry_run,
+        stop_loss_pct=RiskManager.for_desk(cfg, desk).stop_loss_pct if settings["resting_stops"] else None,
         stop_good_till_cancel=(desk == "swing"),
         save=lambda: store.set(f"{mode}_ledger", ledger.to_dict()), log=store.log,
-        on_fill=fill_recorder(store, mode, dry_run), poll_seconds=live.get("poll_seconds", 2))
+        on_fill=fill_recorder(store, mode, dry_run), poll_seconds=settings.get("poll_seconds", 2))
+    if cfg["broker"] == "alpaca":
+        from aitrader.alpaca_api import trading_client
+        from aitrader.brokers.alpaca_broker import AlpacaBroker
+        broker = AlpacaBroker(ledger, trading_client(cfg, paper=not live), **common)
+    else:
+        from aitrader.brokers.schwab_broker import SchwabBroker
+        from aitrader.schwab_api import account_hash, get_client
+        client = get_client(cfg)
+        broker = SchwabBroker(ledger, client, account_hash(client, cfg["secrets"]["account_number"]), **common)
     for problem in broker.reconcile(now_ny().strftime("%Y-%m-%d")):
         store.log(f"[{mode}] CHECK: {problem}")
     return broker
@@ -166,26 +177,30 @@ def sell_everything(broker, prices, today, reason, store):
 
 
 def finish_if_flat(store, desk, broker, reason):
-    """A LIVE desk drops back to PAPER only once it owns nothing and has no open orders.
-    Until then it stays LIVE + HALTED, so the bot keeps watching and selling those shares."""
-    if current_phase(store, desk) != Phase.LIVE:
-        return
+    """After an emergency stop a desk stays HALTED and keeps selling until it owns nothing and has
+    no open orders. Only then does a LIVE desk drop back to PAPER."""
     if broker.ledger.positions or broker.ledger.pending:
         store.log(f"[{broker.mode}] still getting out: {len(broker.ledger.positions)} position(s), "
-                  f"{len(broker.ledger.pending)} open order(s). Staying LIVE + HALTED until flat.")
+                  f"{len(broker.ledger.pending)} open order(s). Staying HALTED and retrying until flat.")
         return
-    set_phase(store, desk, Phase.PAPER, f"demoted: {reason}")
-    reset_paper(store, desk)
+    if current_phase(store, desk) == Phase.LIVE:
+        set_phase(store, desk, Phase.PAPER, f"demoted: {reason}")
+        reset_paper(store, desk)
 
 
-def live_not_flat(store, desk) -> bool:
-    saved = store.get(f"live-{desk}_ledger")
+def not_flat(store, mode) -> bool:
+    saved = store.get(f"{mode}_ledger")
     return bool(saved and (saved["positions"] or saved.get("pending")))
 
 
+def live_not_flat(store, desk) -> bool:
+    return not_flat(store, f"live-{desk}")
+
+
 def continue_exit(cfg, store, data, desk, now) -> str:
-    """A halted LIVE desk that still owns shares: keep selling until it's flat."""
-    broker = open_broker(cfg, store, desk, Phase.LIVE, emergency=True)      # reconcile books any fills
+    """A halted desk that still owns shares at the broker: keep selling until it's flat."""
+    phase = current_phase(store, desk)
+    broker = open_broker(cfg, store, desk, phase, emergency=True)           # reconcile books any fills
     bars, _ = data.load(desk, extra=broker.positions())
     prices = pd.Series({t: df["close"].iloc[-1] for t, df in bars.items()})
     sell_everything(broker, prices, now.strftime("%Y-%m-%d"), "EMERGENCY STOP: still getting out", store)
@@ -204,7 +219,7 @@ def trade_desk(cfg, store, data, desk, now, stops_only=False, dry_run=False, any
         return f"{desk}: market closed"
     with trading_lock(cfg):
         if store.get(f"halted:{desk}"):                      # (a kill may have happened while we waited)
-            if phase == Phase.LIVE and live_not_flat(store, desk) and not dry_run:
+            if broker_backed(cfg, phase) and not_flat(store, mode_of(phase, desk)) and not dry_run:
                 return continue_exit(cfg, store, data, desk, now)
             return f"{desk}: HALTED. Review the journal, then: python run.py resume"
         return _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
@@ -255,7 +270,19 @@ def run_study(cfg, store, data) -> list:
     return failed
 
 
+def prove_live_connection(cfg):
+    """Raises if the real-money account can't be reached with the keys in .env."""
+    if cfg["broker"] == "alpaca":
+        from aitrader.alpaca_api import trading_client
+        trading_client(cfg, paper=False).get_account()
+    else:
+        from aitrader.schwab_api import account_hash, get_client
+        account_hash(get_client(cfg), cfg["secrets"]["account_number"])
+
+
 def schwab_login_warning(cfg):
+    if cfg["broker"] != "schwab":
+        return None
     from aitrader.schwab_api import token_days_left
     left = token_days_left(cfg)
     if left is not None and left < 1.5:
@@ -345,10 +372,14 @@ def cmd_status(cfg, store, args):
           + ("" if p["ready"] else f" (still need: {', '.join(p['missing'])})"))
     beat = store.get("autopilot_heartbeat")
     print(f"  Autopilot last seen: {beat or 'never (start it: python run.py autopilot)'}")
-    from aitrader.schwab_api import token_days_left
-    left = token_days_left(cfg)
-    print("  Schwab login: " + ("not logged in" if left is None else
-                                "EXPIRED: run schwab-login" if left <= 0 else f"expires in {left:.1f} days"))
+    paper_where = ("your Alpaca PAPER account" if uses_broker_paper(cfg)
+                   else "simulated on this laptop (add ALPACA_PAPER keys to use Alpaca's paper account)")
+    print(f"  Broker: {cfg['broker']}  |  prices: {data_source(cfg)}  |  paper trading: {paper_where}")
+    if cfg["broker"] == "schwab":
+        from aitrader.schwab_api import token_days_left
+        left = token_days_left(cfg)
+        print("  Schwab login: " + ("not logged in" if left is None else
+                                    "EXPIRED: run schwab-login" if left <= 0 else f"expires in {left:.1f} days"))
 
     nxt = {Phase.STUDY: "keep the autopilot running; `python run.py plan` when the study month is done",
            Phase.PLAN_REVIEW: "read data/trading_plan_{desk}.md, then `python run.py approve-plan --desk {desk}`",
@@ -377,6 +408,40 @@ def cmd_status(cfg, store, args):
     print("\n  Recent journal:")
     for ts, msg in store.journal(10):
         print(f"    {ts}  {msg}")
+
+
+def cmd_check(cfg, store, args):
+    """Test every connection with the keys in .env, and say what to fix."""
+    print(f"\nPrices ({data_source(cfg)}):")
+    try:
+        bars = MarketData(cfg).history(cfg["benchmark"], "1d")
+        print(f"  OK: {cfg['benchmark']} last close ${bars['close'].iloc[-1]:,.2f} on {bars.index[-1]:%Y-%m-%d}")
+    except Exception as e:
+        print(f"  PROBLEM: {e!r}")
+    if cfg["broker"] == "alpaca":
+        from aitrader.alpaca_api import has_keys, trading_client
+        from aitrader.brokers.alpaca_broker import AlpacaGateway
+        for paper in (True, False):
+            name = "Alpaca PAPER" if paper else "Alpaca LIVE"
+            if not has_keys(cfg, paper):
+                print(f"\n{name}: no keys in .env" + (" (fine until a desk earns real money)" if not paper else ""))
+                continue
+            try:
+                a = AlpacaGateway(trading_client(cfg, paper)).account_summary()
+                print(f"\n{name}: connected. cash ${a['cash']:,.2f}, equity ${a['equity']:,.2f}, "
+                      f"trading blocked: {a['trading_blocked']}")
+                budget = cfg["paper"]["starting_cash"] if paper else cfg["live"]["max_capital"]
+                if paper and abs(a["equity"] - budget) > budget * 0.5:
+                    print(f"  Tip: make a paper account with ${budget:,.0f} (Alpaca dashboard -> paper account menu "
+                          "-> new paper account) so paper feels like your real account. The bot caps itself either way.")
+            except Exception as e:
+                print(f"\n{name}: PROBLEM {e!r}")
+    else:
+        try:
+            prove_live_connection(cfg)
+            print("\nSchwab: connected.")
+        except Exception as e:
+            print(f"\nSchwab: PROBLEM {e!r}")
 
 
 def cmd_study(cfg, store, args):
@@ -485,14 +550,13 @@ def cmd_promote(cfg, store, args):
         if not all(ok for *_, ok in checks):
             print("Not yet. Keep paper trading; this desk hasn't earned real money.")
             continue
-        if cfg["data"]["source"] != "schwab":
-            print("Paper results pass! Real money needs Schwab's real-time prices: set data.source: schwab.")
+        if data_source(cfg) not in ("alpaca", "schwab"):
+            print("Paper results pass! Real money needs real-time prices: set data.source to auto/alpaca.")
             continue
         if not cfg["live_trading_enabled"]:
             print("Paper results pass! To go live, set LIVE_TRADING_ENABLED=true in .env and run this again.")
             continue
-        from aitrader.schwab_api import account_hash, get_client
-        account_hash(get_client(cfg), cfg["secrets"]["account_number"])   # proves the Schwab login works
+        prove_live_connection(cfg)
         print(f"The {desk} desk will trade REAL money, capped at ${desk_capital(cfg, desk, live=True):,.0f}.")
         print("Past results don't guarantee future results. Only use money you can afford to lose.")
         if input("Type REAL MONEY to confirm: ").strip() != "REAL MONEY":
@@ -540,6 +604,7 @@ def main(argv=None):
     desk_help = "only this desk (default: all enabled desks)"
     sub.add_parser("autopilot")
     sub.add_parser("status")
+    sub.add_parser("check")
     sub.add_parser("study")
     t = sub.add_parser("trade")
     t.add_argument("--desk", choices=["swing", "day"], help=desk_help)
@@ -560,7 +625,7 @@ def main(argv=None):
 
     cfg = load_config()
     store = Store(data_path(cfg, "aitrader.sqlite"))
-    commands = {"autopilot": cmd_autopilot, "status": cmd_status, "study": cmd_study, "trade": cmd_trade,
+    commands = {"autopilot": cmd_autopilot, "status": cmd_status, "check": cmd_check, "study": cmd_study, "trade": cmd_trade,
                 "backtest": cmd_backtest, "plan": cmd_plan, "approve-plan": cmd_approve_plan,
                 "promote": cmd_promote, "kill": cmd_kill, "resume": cmd_resume, "schwab-login": cmd_schwab_login}
     try:

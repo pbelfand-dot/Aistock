@@ -4,20 +4,27 @@
 #  never in this file.
 # =====================================================================
 
+# Where orders go: "alpaca" (paper AND real money) or "schwab" (real money only;
+# Schwab has no paper trading). Both use the same safety rules.
+broker: alpaca
+
 # The yardstick (never traded). If a desk can't beat simply holding
 # this, it doesn't earn real money.
 benchmark: SPY
 
 # ---- Money -------------------------------------------------------------
 paper:
+  use_broker_paper: true   # alpaca: paper trade INSIDE your Alpaca paper account (real order
+                           # handling, fake money). false = simulate on this laptop instead.
   starting_cash: 1000      # keep EQUAL to live.max_capital so paper results are realistic
   slippage_pct: 0.05       # assume we fill a bit worse than the quoted price
   commission_per_trade: 0.0
 
 live:
   max_capital: 1000        # the bot NEVER uses more than this, whatever else is in your account
-  account_type: cash       # "cash" or "margin". Either way the bot never borrows and never
-                           # re-spends same-day sale money (avoids Schwab "good faith violations")
+  account_type: margin     # Alpaca accounts are all "margin" type, but under $2,000 they can't
+                           # borrow, and sale money is usable right away. The bot never borrows either
+                           # way. Use "cash" for a Schwab cash account (no re-spending same-day sale money).
   limit_buffer_pct: 0.2    # limit orders at quote +/- 0.2%: they fill, but never at crazy prices
   fill_timeout_seconds: 60 # cancel an order if it isn't filled in time
   resting_stops: true      # ALSO leave a stop-loss order sitting at Schwab, so a sleeping or
@@ -60,12 +67,16 @@ desks:
 
 # ---- Market data ---------------------------------------------------------
 data:
-  # "yfinance" = free Yahoo data, works today with no account (paper only).
-  # "schwab"   = Schwab's real-time data. REQUIRED for real money.
-  source: yfinance
+  # "auto"     = Alpaca if your Alpaca keys are in .env, otherwise Yahoo.
+  # "alpaca"   = Alpaca data (free plan: real-time "iex" feed, years of 5-minute history)
+  # "yfinance" = free Yahoo data, no account needed (study and paper only)
+  # "schwab"   = Schwab's real-time data
+  # Real money requires alpaca or schwab (real-time prices).
+  source: auto
+  alpaca_feed: iex         # free. "sip" (all exchanges) needs Alpaca's paid data plan
   history_years: 8         # daily prices for the swing desk
-  intraday_days: 60        # 5-minute prices for the day desk (Yahoo gives ~60 days,
-                           # Schwab ~9 months). The bot saves them, so its history grows.
+  intraday_days: 180       # 5-minute prices for the day desk (Alpaca: years available;
+                           # Yahoo: only ~60 days). The bot saves them, so its history grows.
 
 # ---- Phase 1: STUDY (watch & learn, no trades) ----------------------------
 study:

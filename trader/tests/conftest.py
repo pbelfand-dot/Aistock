@@ -51,4 +51,5 @@ def cfg(tmp_path):
     c["ai"]["swing"].update(min_train=300, retrain_every=63)   # smaller = faster tests
     c["ai"]["day"].update(min_train=780, retrain_every=390)
     c["live_trading_enabled"] = False
+    c["secrets"] = {k: "" for k in c["secrets"]}      # never use the real keys in .env during tests
     return c
