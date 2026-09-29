@@ -1,0 +1,11 @@
+pandas>=2.2
+numpy>=1.26
+scikit-learn>=1.5
+yfinance>=0.2.54
+PyYAML>=6.0
+python-dotenv>=1.0
+alpaca-py>=0.44
+schwab-py>=1.5.1
+mcp>=2.2,<3          # lets Claude see the bot (mcp_server.py)
+tzdata              # New York time zone data (needed on Windows)
+pytest>=8

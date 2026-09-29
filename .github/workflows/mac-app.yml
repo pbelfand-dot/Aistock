@@ -1,0 +1,50 @@
+# Tests the bot on every push. On the repo's main (default) branch it also builds
+# "AI Trader.app" and publishes it as the download on the GitHub page:
+#   https://github.com/pbelfand-dot/Aistock/releases/latest/download/AITrader-mac.zip
+# The tests run first, so a broken version is never published.
+name: Mac app
+
+on:
+  push:
+    paths: ["trader/**", "mac/**", ".github/workflows/mac-app.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write          # lets this workflow create/update the release
+
+concurrency:
+  group: mac-app-${{ github.ref }}     # a newer push to the same branch replaces an older build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test the bot first
+        working-directory: trader
+        run: |
+          pip install -r requirements.txt
+          python -m pytest -q
+
+      - name: Build "AI Trader.app"
+        run: bash mac/build_app.sh "1.0.${{ github.run_number }}"
+
+      - name: Publish the download (main branch only)
+        if: github.ref_name == github.event.repository.default_branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          notes="Version 1.0.${{ github.run_number }}, built from ${GITHUB_REF_NAME} at ${GITHUB_SHA::7}.
+          Download AITrader-mac.zip, unzip it, drag AI Trader into Applications, then follow the first-open steps in the README."
+          if gh release view mac-app >/dev/null 2>&1; then
+            gh release edit mac-app --title "AI Trader for Mac" --notes "$notes" --latest
+          else
+            gh release create mac-app --target "$GITHUB_SHA" --title "AI Trader for Mac" --notes "$notes" --latest
+          fi
+          gh release upload mac-app dist/AITrader-mac.zip --clobber
