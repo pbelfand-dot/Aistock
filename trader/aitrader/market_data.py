@@ -92,6 +92,9 @@ class MarketData:
 
     # ---- sources -----------------------------------------------------------
     def _download(self, ticker, interval, recent) -> pd.DataFrame:
+        if self.source == "demo":                     # made-up prices (demo.py): never download anything
+            path = data_path(self.cfg, f"cache/demo/{interval}/{ticker}.csv")
+            return pd.read_csv(path, index_col=0, parse_dates=True) if path.exists() else pd.DataFrame(columns=COLUMNS)
         if self.source == "schwab":
             return self._from_schwab(ticker, interval, recent)
         if self.source == "alpaca":

@@ -47,15 +47,16 @@ def build_plan(cfg: dict, store, desk: str, bars: dict, market: pd.DataFrame) ->
 
         if desk == "swing":
             fwd = swing_card.loc[strategy.name].to_dict() if strategy.name in swing_card.index else {}
-            signals, edge = fwd.get("signals") or 0, fwd.get("edge_pct")
-            fwd["summary"] = f"{signals} graded buy opinions, edge {edge}%"
+            signals, edge = int(fwd.get("signals") or 0), fwd.get("edge_pct")
+            edge_text = "n/a" if edge is None or pd.isna(edge) else f"{edge:.2f}%"
+            fwd["summary"] = f"{signals} graded buy opinions, edge {edge_text}"
             if signals < rules["min_forward_signals"]:
                 reasons.append(f"only {signals} graded buy opinions in the study month")
             elif edge is None or pd.isna(edge) or edge <= 0:
-                reasons.append(f"no edge in the study month (edge {edge}%)")
+                reasons.append(f"no edge in the study month (edge {edge_text})")
         else:
             fwd = run_backtest(strategy, bars, market, cfg, desk, scores=scores, start=since)
-            fwd["summary"] = f"{fwd['num_closed_trades']} shadow trades, {fwd['total_return_pct']}% return"
+            fwd["summary"] = f"{fwd['num_closed_trades']} shadow trades, {fwd['total_return_pct']:.2f}% return"
             if fwd["num_closed_trades"] < rules["min_forward_trades"]:
                 reasons.append(f"only {fwd['num_closed_trades']} shadow trades in the study month")
             elif fwd["total_return_pct"] <= 0:

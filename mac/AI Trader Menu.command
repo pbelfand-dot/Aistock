@@ -20,5 +20,12 @@ if ! cmp -s requirements.txt .venv/.installed-requirements; then
   "$UV" pip install --python .venv/bin/python -r requirements.txt || stop "Couldn't install the libraries (see above)."
   cp requirements.txt .venv/.installed-requirements
 fi
+# Just updated? A background autopilot keeps running the old version until it restarts.
+if [ -f .restart_autopilot ]; then
+  rm -f .restart_autopilot
+  if [ -f "$HOME/Library/LaunchAgents/com.aitrader.autopilot.plist" ]; then
+    launchctl kickstart -k "gui/$(id -u)/com.aitrader.autopilot" >/dev/null 2>&1
+  fi
+fi
 clear
 exec .venv/bin/python run.py menu

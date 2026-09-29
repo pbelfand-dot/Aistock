@@ -87,7 +87,8 @@ def test_the_mac_app_builds(tmp_path):
             plist = plistlib.loads(z.read("AI Trader.app/Contents/Info.plist"))
         assert plist["CFBundleExecutable"] == "AITrader" and plist["CFBundleShortVersionString"] == "9.9.9"
         assert plist["LSRequiresNativeExecution"] is True                    # no Rosetta prompt
-        for f in ("run.py", "mcp_server.py", "config.yaml", "requirements.txt", ".env.example"):
+        for f in ("run.py", "mcp_server.py", "config.yaml", "requirements.txt", ".env.example",
+                  "aitrader/web/dashboard.html"):
             assert f"AI Trader.app/Contents/Resources/trader/{f}" in names
         assert not any("/.env" == n[-5:] for n in names), "never ship anyone's keys"
     finally:

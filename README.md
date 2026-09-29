@@ -19,8 +19,20 @@ capped at $1,000. Built and tested automatically by GitHub every time the code c
 5. In the menu: **Edit my keys** (paste your Alpaca paper keys) → **Check** →
    **Keep the autopilot running in the background**.
 
+### The dashboard
+Menu → **Open the DASHBOARD**: a brokerage-style page in your browser with your account value vs.
+the S&P 500, positions, every trade and why, each desk's progress, the watchlist, and **Pause** /
+**Emergency stop** buttons. **See the dashboard with DEMO data** shows it right away with made-up
+prices. It runs only on your Mac (http://127.0.0.1:8765), and the background autopilot keeps it up.
+
+![The AI Trader dashboard (demo data)](docs/dashboard.png)
+
+It's the bot's own design, not Schwab's or Alpaca's website: it never shows or asks for your
+broker login, and it can't buy anything.
+
 Everything lives in the **AITrader** folder in your home folder (your keys, settings, and the
-bot's memory). Updating is the same: download the new zip and open it; your keys and data stay.
+bot's memory). Updating is the same: download the new zip and open it; your keys and data stay, and a
+running background autopilot restarts on the new version.
 
 ### Connect Claude
 Menu → **Connect Claude Code** (or **Connect Claude Desktop**). Claude can then see the bot

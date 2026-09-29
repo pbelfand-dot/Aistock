@@ -6,6 +6,7 @@ run.py: the ONE file you run.
                                     - day desk: decides every 5 minutes, sells out before the close
                                     - swing desk: watches stop-losses, decides at 3:45pm
                                     - studies after the close (grading, shadow trading)
+    python run.py dashboard       a brokerage-style page in your browser (--demo: made-up data)
     python run.py status          where is each desk, and what's next?
     python run.py check           test your Alpaca/Schwab keys and price data
     python run.py backtest        test every strategy on history (any time)
@@ -161,6 +162,7 @@ def emergency_stop(cfg, store, desk, broker, prices, today, reason):
     """Cancel the bot's orders, sell every position it opened (market orders), halt the desk."""
     store.log(f"!!! EMERGENCY STOP ({broker.mode}): {reason}")
     store.set(f"halted:{desk}", True)
+    store.set(f"exiting:{desk}", True)                  # keep selling until flat (a plain pause doesn't)
     broker.cancel_all(today)
     sell_everything(broker, prices, today, f"EMERGENCY STOP: {reason}", store)
     save_broker(store, broker)
@@ -184,6 +186,7 @@ def finish_if_flat(store, desk, broker, reason):
         store.log(f"[{broker.mode}] still getting out: {len(broker.ledger.positions)} position(s), "
                   f"{len(broker.ledger.pending)} open order(s). Staying HALTED and retrying until flat.")
         return
+    store.set(f"exiting:{desk}", False)                 # out: from now on it's simply halted (paused)
     if current_phase(store, desk) == Phase.LIVE:
         set_phase(store, desk, Phase.PAPER, f"demoted: {reason}")
         reset_paper(store, desk)
@@ -199,7 +202,7 @@ def live_not_flat(store, desk) -> bool:
 
 
 def continue_exit(cfg, store, data, desk, now) -> str:
-    """A halted desk that still owns shares at the broker: keep selling until it's flat."""
+    """After an emergency stop, a desk that still owns shares at the broker: keep selling until it's flat."""
     phase = current_phase(store, desk)
     broker = open_broker(cfg, store, desk, phase, emergency=True)           # reconcile books any fills
     bars, _ = data.load(desk, extra=broker.positions())
@@ -220,9 +223,15 @@ def trade_desk(cfg, store, data, desk, now, stops_only=False, dry_run=False, any
         return f"{desk}: market closed"
     with trading_lock(cfg):
         if store.get(f"halted:{desk}"):                      # (a kill may have happened while we waited)
-            if broker_backed(cfg, phase) and not_flat(store, mode_of(phase, desk)) and not dry_run:
+            owns_something = not_flat(store, mode_of(phase, desk))
+            if store.get(f"exiting:{desk}") and broker_backed(cfg, phase) and owns_something and not dry_run:
                 return continue_exit(cfg, store, data, desk, now)
-            return f"{desk}: HALTED. Review the journal, then: python run.py resume"
+            if not owns_something or dry_run:
+                return f"{desk}: HALTED. Review the journal, then: python run.py resume"
+            # PAUSED: no new trades, but keep guarding what it owns: stop-losses, and the day
+            # desk still sells before the close (it never holds overnight).
+            return f"{desk}: HALTED, only guarding what it owns. " + _trade_desk(
+                cfg, store, data, desk, phase, now, True, dry_run, anyway)
         return _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
 
 
@@ -359,6 +368,9 @@ def cmd_autopilot(cfg, store, args):
     if other and other != os.getpid() and process_alive(other):
         raise RuntimeError(f"The autopilot is already running (process {other}). Only one may run at a time.")
     store.set("autopilot_pid", os.getpid())
+    from aitrader import dashboard
+    if dashboard.start(cfg, dashboard_actions(cfg)):
+        store.log(f"Dashboard is up at http://127.0.0.1:{cfg.get('dashboard', {}).get('port', 8765)}")
     data = MarketData(cfg)
     store.log("Autopilot started. Keep the laptop awake and online (Ctrl+C stops it).")
     while True:
@@ -404,7 +416,8 @@ def cmd_status(cfg, store, args):
            Phase.LIVE: "keep the autopilot running; log in to Schwab weekly; watch the journal"}
     for desk in active_desks(cfg):
         phase = current_phase(store, desk)
-        halted = "  ** HALTED **" if store.get(f"halted:{desk}") else ""
+        halted = ("  ** EMERGENCY EXIT: selling what it owns **" if store.get(f"exiting:{desk}")
+                  else "  ** HALTED (paused): no new trades **" if store.get(f"halted:{desk}") else "")
         print(f"\n  --- {desk.upper()} desk: {phase.value} (step {STEP_NUMBER[phase]} of 4), "
               f"${desk_capital(cfg, desk, phase == Phase.LIVE):,.0f}{halted}")
         pricey = store.get(f"too_pricey:{desk}")
@@ -462,6 +475,8 @@ def cmd_check(cfg, store, args):
 
 
 MENU = [
+    ("Open the DASHBOARD (brokerage-style page in your browser)", "dashboard"),
+    ("See the dashboard with DEMO data (made-up prices, not your account)", "dashboard-demo"),
     ("Status: where is each desk, and what's next?", "status"),
     ("Check my Alpaca keys and price data", "check"),
     ("Edit my keys (opens the .env file)", "edit-keys"),
@@ -512,6 +527,8 @@ def cmd_menu(cfg, store, args):
             elif action == "service-off":
                 mac_service.uninstall()
                 print("Background autopilot is OFF.")
+            elif action in ("dashboard", "dashboard-demo"):
+                print(open_dashboard(cfg, demo=action == "dashboard-demo"))
             elif action == "connect-claude-code":
                 from aitrader.claude_setup import connect_claude_code
                 print(connect_claude_code(ROOT))
@@ -524,6 +541,60 @@ def cmd_menu(cfg, store, args):
             print("\n(stopped)")
         except Exception as e:
             print(f"\nPROBLEM: {e}")
+
+
+def dashboard_actions(cfg):
+    """What the dashboard's two buttons do. Each opens its own database connection (they run on
+    the web server's thread)."""
+    def pause():
+        store = Store(data_path(cfg, "aitrader.sqlite"))
+        for desk in active_desks(cfg):
+            store.set(f"halted:{desk}", True)
+        store.log("PAUSED from the dashboard: no new trades. Stop-losses still protect what it owns.")
+        return ("Paused: no new trades. Nothing was sold now; stop-losses still protect what it owns, and the "
+                "day desk still sells before the close. Resume from the AI Trader menu.")
+
+    def kill():
+        cmd_kill(cfg, Store(data_path(cfg, "aitrader.sqlite")), None)
+        return ("Emergency stop: the bot sold (or is selling) everything it owns, and both desks are halted. "
+                "Check the Activity and Journal tabs.")
+    return {"pause": pause, "kill": kill}
+
+
+_demo_cfg = None                                     # the demo is built once per menu session
+
+
+def open_dashboard(cfg, demo=False, block=False) -> str:
+    """Opens the dashboard in your browser, starting it first if needed."""
+    global _demo_cfg
+    import webbrowser
+    from aitrader import dashboard
+    port = cfg.get("dashboard", {}).get("port", 8765) + (1 if demo else 0)
+    if demo:
+        if _demo_cfg is None:
+            from aitrader.demo import build
+            print("Building demo data with the bot's real code (about a minute)...")
+            demo_cfg = build(cfg)
+            if dashboard.start(demo_cfg, dashboard_actions(demo_cfg), port) is None:
+                return f"Port {port} is busy; change dashboard.port in config.yaml."
+            _demo_cfg = demo_cfg
+        cfg = _demo_cfg
+    elif not dashboard.is_running(cfg, port):
+        if dashboard.start(cfg, dashboard_actions(cfg), port) is None:
+            return f"Port {port} is busy; change dashboard.port in config.yaml."
+    link = dashboard.url(cfg, port)
+    webbrowser.open(link)
+    message = f"Dashboard: {link.split('#')[0]}" + (" (DEMO data)" if demo else "")
+    if block:
+        print(message + "\nLeave this window open while you use it. Ctrl+C stops it.")
+        while True:
+            time.sleep(3600)
+    return message + ("\nIt stays open while this menu is open (or all the time with the background autopilot)."
+                      if not demo else "\nThe demo stays open while this menu is open.")
+
+
+def cmd_dashboard(cfg, store, args):
+    open_dashboard(cfg, demo=args.demo, block=True)
 
 
 def cmd_study(cfg, store, args):
@@ -671,6 +742,13 @@ def _kill_all(cfg, store):
 
 def cmd_resume(cfg, store, args):
     for desk in pick_desks(cfg, args):
+        if store.get(f"exiting:{desk}"):
+            phase = current_phase(store, desk)
+            if phase in TRADING and broker_backed(cfg, phase) and not_flat(store, mode_of(phase, desk)):
+                print(f"{desk}: still selling after the emergency stop, so it stays halted. It retries every "
+                      f"5 minutes; if a sale is stuck, sell it yourself at the broker and try again.")
+                continue
+            store.set(f"exiting:{desk}", False)
         store.set(f"halted:{desk}", False)
         store.log(f"{desk} desk resumed by you (phase {current_phase(store, desk).value})")
 
@@ -688,6 +766,7 @@ def main(argv=None, cfg=None, store=None):
     sub.add_parser("menu")
     sub.add_parser("status")
     sub.add_parser("check")
+    sub.add_parser("dashboard").add_argument("--demo", action="store_true", help="made-up data, to see how it looks")
     sub.add_parser("study")
     t = sub.add_parser("trade")
     t.add_argument("--desk", choices=["swing", "day"], help=desk_help)
@@ -708,7 +787,7 @@ def main(argv=None, cfg=None, store=None):
 
     cfg = cfg or load_config()
     store = store or Store(data_path(cfg, "aitrader.sqlite"))
-    commands = {"menu": cmd_menu, "autopilot": cmd_autopilot, "status": cmd_status, "check": cmd_check, "study": cmd_study, "trade": cmd_trade,
+    commands = {"menu": cmd_menu, "dashboard": cmd_dashboard, "autopilot": cmd_autopilot, "status": cmd_status, "check": cmd_check, "study": cmd_study, "trade": cmd_trade,
                 "backtest": cmd_backtest, "plan": cmd_plan, "approve-plan": cmd_approve_plan,
                 "promote": cmd_promote, "kill": cmd_kill, "resume": cmd_resume, "schwab-login": cmd_schwab_login}
     try:

@@ -65,8 +65,38 @@ closed trades, the desk made money, won at least 1.2× what it lost, never dropp
 Your files live in **~/AITrader** (your home folder): `.env` = keys, `config.yaml` = settings,
 `data/` = the bot's memory, plans and logs (`data/autopilot.log`).
 
-**Updating:** download the new zip and open it. Your keys and data stay. If the settings file
+**Updating:** download the new zip and open it. Your keys and data stay, and a running background
+autopilot restarts on the new version. If the settings file
 changed, your old one is saved as `config.yaml.before-<version>` and the menu tells you.
+
+## The dashboard (your account, like a brokerage website)
+
+Menu → **Open the DASHBOARD** (or `python run.py dashboard`) opens a page in your browser:
+
+- **Summary:** account value, today's change, cash, total return, worst drop, win rate; a chart of
+  your account vs. the S&P 500 (same starting amount; hover or use the arrow keys for exact values,
+  or click **Table**); each desk's progress (Study → Plan → Paper → Live); the watchlist.
+- **Positions:** what the bot owns, gain/loss, and each stop-loss (✓ = resting at the broker).
+- **Activity:** every buy and sell with the bot's reason. **Research & plans:** the study report
+  cards and plans. **Journal:** what it did, and why.
+- Switch between the **Paper** and **Live** account at the top. Light and dark mode follow your Mac.
+
+Two buttons, both ask first:
+- **Pause:** no new trades. Nothing is sold now; stop-losses keep protecting what it owns, and the
+  day desk still sells before the close. Resume from the menu.
+- **Emergency stop:** you type `SELL EVERYTHING`; it cancels the bot's orders, sells everything
+  the bot owns (never your own stocks) and halts both desks.
+
+Approving plans, going live and resuming stay in the menu, where you type a confirmation.
+
+**See the dashboard with DEMO data** (or `python run.py dashboard --demo`) runs made-up prices
+through the bot's real code (about a minute), so you can see it before the bot has traded.
+
+Safety: it only listens on your Mac (http://127.0.0.1:8765), only reads the bot's own files (no
+broker keys), and every request needs a secret key that only the page opened from the menu has, so
+other websites can't read it or press its buttons. The background autopilot keeps it up; otherwise
+it runs while the menu is open. Change the port in `config.yaml → dashboard:`.
+It's the bot's own design, not a copy of Schwab's or Alpaca's site: it never asks for a broker login.
 
 ### Keep the Mac awake
 The bot only works while the Mac is **awake, online and plugged in**. The background autopilot
@@ -91,7 +121,7 @@ Then ask things like *"how is my bot doing?"*, *"why did it sell KO?"*, *"show m
 
 | Connection | What Claude can do | What it can't |
 |---|---|---|
-| **ai-trader** (this bot, `mcp_server.py`) | see status, journal, plans, positions, results, your Alpaca account; **pause** trading | buy, sell, resume, approve or go live |
+| **ai-trader** (this bot, `mcp_server.py`) | see status, journal, plans, positions, results, your Alpaca account; **pause** trading (no new trades; stop-losses keep working) | buy, sell, resume, approve or go live |
 | **schwab** ([schwab-mcp](https://github.com/jkoelker/schwab-mcp), community, MIT) | read quotes, accounts, positions, orders | trade (it's set up **read-only**) |
 
 There's no official Schwab MCP server; `schwab-mcp` is the most actively maintained community
@@ -115,6 +145,7 @@ python run.py menu            # or: python run.py check / autopilot / status ...
 
 | Menu item | Command | What it does |
 |---|---|---|
+| Open the dashboard | `dashboard` | the brokerage-style page above (`--demo`: made-up data) |
 | Status | `status` | each desk's phase, report card, results, journal |
 | Check my keys | `check` | tests Alpaca/Schwab keys and price data |
 | Start the autopilot | `autopilot` | runs everything, every trading day |
@@ -126,7 +157,7 @@ python run.py menu            # or: python run.py check / autopilot / status ...
 | Connect Claude Code / Desktop | | adds the MCP connections above |
 | Log in to Schwab | `schwab-login` | only once you use Schwab |
 | EMERGENCY | `kill` | cancels the bot's orders, sells everything it owns, halts |
-| Resume | `resume` | un-halt after you've looked at what happened |
+| Resume | `resume` | un-pause / un-halt (after an emergency stop: once it's sold out) |
 
 `python run.py trade --desk day --anyway` runs one paper cycle for testing;
 `trade --dry-run` shows the exact real orders it *would* send.
@@ -167,6 +198,7 @@ Alpaca dropped the old $25k day-trading rule on June 4, 2026.
 run.py                     the menu and every command, incl. the autopilot schedule
 mcp_server.py              lets Claude see (and pause) the bot
 aitrader/
+  dashboard.py, web/       the dashboard (a local web page); demo.py = its demo data
   strategies.py            trading ideas for both desks (add yours here)
   brain.py / features.py   the local AI (walk-forward; never sees the future)
   engine.py                decide_orders()/desk_orders(): same rules in backtest, paper and live
@@ -179,7 +211,7 @@ aitrader/
   brokers/paper.py         pretend broker for backtests (and paper without Alpaca keys)
   mac_service.py           the background autopilot on a Mac (launchd)
   claude_setup.py          "Connect Claude Desktop"
-tests/                     python -m pytest (75 tests, no internet needed)
+tests/                     python -m pytest (85 tests, no internet needed)
 ```
 **Add a strategy:** copy a class in `strategies.py` (`style = "day"` for day trading), change the
 rules, add it to `all_strategies()`. It's studied, backtested and considered automatically.

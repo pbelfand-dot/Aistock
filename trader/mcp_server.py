@@ -123,13 +123,15 @@ def broker_account() -> str:
 @server.tool()
 @quiet
 def pause_trading(reason: str) -> str:
-    """Pause ALL desks: no new trades until the user resumes in the app menu. Nothing is sold;
-    resting stop-loss orders stay in place. Use only when the user asks."""
+    """Pause ALL desks: no new trades until the user resumes in the app menu. Nothing is sold now;
+    stop-losses keep protecting open positions, and the day desk still sells before the close
+    (it never holds overnight). Use only when the user asks."""
     cfg, store = _open()
     for desk in active_desks(cfg):
         store.set(f"halted:{desk}", True)
     store.log(f"PAUSED by Claude at your request: {reason}")
-    return "All desks paused. Nothing was sold. Resume from the AI Trader menu ('Resume')."
+    return ("All desks paused: no new trades. Nothing was sold now; stop-losses still protect open positions "
+            "and the day desk still sells before the close. Resume from the AI Trader menu ('Resume').")
 
 
 if __name__ == "__main__":
