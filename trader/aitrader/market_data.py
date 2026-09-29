@@ -62,7 +62,8 @@ class MarketData:
         if key in self._memo and time.time() - self._memo[key][0] < 60:
             return self._memo[key][1]
 
-        path = data_path(self.cfg, f"cache/{interval}/{ticker}.csv")
+        # Each source gets its own folder: e.g. Yahoo and Alpaca volumes aren't comparable.
+        path = data_path(self.cfg, f"cache/{self.source}/{interval}/{ticker}.csv")
         cached = pd.read_csv(path, index_col=0, parse_dates=True) if path.exists() else None
         if cached is None or not self._refreshed_today(key):
             df = self._download(ticker, interval, recent=False)   # first time today: full history
@@ -81,12 +82,12 @@ class MarketData:
     def _refreshed_today(self, key) -> bool:
         log = data_path(self.cfg, "cache/refreshed.json")
         done = json.loads(log.read_text()) if log.exists() else {}
-        return done.get(f"{key[1]}:{key[0]}") == datetime.now().strftime("%Y-%m-%d")
+        return done.get(f"{self.source}:{key[1]}:{key[0]}") == datetime.now().strftime("%Y-%m-%d")
 
     def _mark_refreshed(self, key):
         log = data_path(self.cfg, "cache/refreshed.json")
         done = json.loads(log.read_text()) if log.exists() else {}
-        done[f"{key[1]}:{key[0]}"] = datetime.now().strftime("%Y-%m-%d")
+        done[f"{self.source}:{key[1]}:{key[0]}"] = datetime.now().strftime("%Y-%m-%d")
         log.write_text(json.dumps(done))
 
     # ---- sources -----------------------------------------------------------

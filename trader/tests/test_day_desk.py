@@ -103,3 +103,18 @@ def test_only_one_process_trades_at_a_time(cfg):
                 pass
     with trading_lock(cfg, wait_seconds=0):            # released afterwards
         pass
+
+
+def test_price_history_is_kept_separately_per_source(cfg, monkeypatch):
+    from aitrader.market_data import MarketData
+    from conftest import make_bars
+    daily, _ = make_bars(n_days=30, tickers=("AAA",))
+    md = MarketData({**cfg, "data": {**cfg["data"], "source": "yfinance"}})
+    monkeypatch.setattr(md, "_download", lambda t, i, recent: daily["AAA"])
+    md.history("AAA", "1d")
+    md.source = "alpaca"
+    md._memo.clear()
+    md.history("AAA", "1d")
+    from pathlib import Path
+    assert (Path(cfg["data_dir"]) / "cache/yfinance/1d/AAA.csv").exists()
+    assert (Path(cfg["data_dir"]) / "cache/alpaca/1d/AAA.csv").exists()
