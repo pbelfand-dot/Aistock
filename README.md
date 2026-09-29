@@ -23,8 +23,8 @@ Everything lives in the **AITrader** folder in your home folder (your keys, sett
 bot's memory). Updating is the same: download the new zip and open it; your keys and data stay.
 
 ### Connect Claude
-Menu → **Connect Claude Desktop**. Claude can then see the bot (status, trades, plans) and
-pause it, and read your Schwab account once you add Schwab. It can't trade.
+Menu → **Connect Claude Code** (or **Connect Claude Desktop**). Claude can then see the bot
+(status, trades, plans) and pause it, and read your Schwab account once you add Schwab. It can't trade.
 
 ### What's in this repo
 - [`trader/`](trader/): the bot. [Full guide →](trader/README.md)

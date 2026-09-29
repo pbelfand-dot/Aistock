@@ -1,11 +1,11 @@
-# Builds "AI Trader.app" and publishes it as the download on the GitHub page:
+# Tests the bot on every push. On the repo's main (default) branch it also builds
+# "AI Trader.app" and publishes it as the download on the GitHub page:
 #   https://github.com/pbelfand-dot/Aistock/releases/latest/download/AITrader-mac.zip
-# Runs the tests first, so a broken version is never published.
+# The tests run first, so a broken version is never published.
 name: Mac app
 
 on:
   push:
-    branches: [main, master, "claude/relaxed-mayer-bil42x"]
     paths: ["trader/**", "mac/**", ".github/workflows/mac-app.yml"]
   workflow_dispatch:
 
@@ -13,7 +13,7 @@ permissions:
   contents: write          # lets this workflow create/update the release
 
 concurrency:
-  group: mac-app
+  group: mac-app-${{ github.ref }}     # a newer push to the same branch replaces an older build
   cancel-in-progress: true
 
 jobs:
@@ -35,7 +35,8 @@ jobs:
       - name: Build "AI Trader.app"
         run: bash mac/build_app.sh "1.0.${{ github.run_number }}"
 
-      - name: Publish the download
+      - name: Publish the download (main branch only)
+        if: github.ref_name == github.event.repository.default_branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

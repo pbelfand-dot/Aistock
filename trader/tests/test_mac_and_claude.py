@@ -92,3 +92,27 @@ def test_the_mac_app_builds(tmp_path):
         assert not any("/.env" == n[-5:] for n in names), "never ship anyone's keys"
     finally:
         subprocess.run(["rm", "-rf", str(REPO / "dist")])
+
+
+def test_connect_claude_code_adds_both_servers_in_user_scope(config_file, monkeypatch):
+    from aitrader.claude_setup import connect_claude_code
+    monkeypatch.setenv("SCHWAB_APP_KEY", "key")
+    monkeypatch.setenv("SCHWAB_APP_SECRET", "secret")
+    calls = []
+    message = connect_claude_code(Path("/Users/me/AITrader"), run=lambda args, **kw: calls.append(args),
+                                  which=lambda name: "/usr/local/bin/claude", install=lambda: None)
+    adds = [c for c in calls if c[2] == "add"]
+    assert [c for c in calls if c[2] == "remove"] and len(adds) == 2         # removed first, then added
+    trader = next(c for c in adds if "ai-trader" in c)
+    assert trader == ["/usr/local/bin/claude", "mcp", "add", "--scope", "user", "ai-trader", "--",
+                      "/Users/me/AITrader/.venv/bin/python", "/Users/me/AITrader/mcp_server.py"]
+    schwab = next(c for c in adds if "schwab" in c)
+    assert "--env" in schwab and schwab.index("--env") < schwab.index("schwab")   # options before the name
+    assert "--jesus-take-the-wheel" not in schwab and "/mcp" in message
+
+
+def test_connect_claude_code_without_the_cli_prints_commands(config_file, monkeypatch):
+    from aitrader import claude_setup
+    monkeypatch.setattr(claude_setup, "CLAUDE_CLI_PLACES", [])
+    message = claude_setup.connect_claude_code(Path("/Users/me/AITrader"), run=None, which=lambda name: None)
+    assert "claude mcp add --scope user ai-trader --" in message

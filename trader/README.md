@@ -83,8 +83,11 @@ missed swing decision, and every real position has a **stop-loss order resting a
 
 ## Connect Claude (MCP)
 
-Menu → **Connect Claude Desktop**, then quit Claude Desktop (Cmd+Q) and reopen it. You can ask
-things like *"how is my bot doing?"*, *"why did it sell KO?"*, *"show me the day desk's plan"*.
+- **Claude Code:** menu → **Connect Claude Code**, then start a new Claude Code session and type
+  `/mcp` to see the connections. They work in every project.
+- **Claude Desktop:** menu → **Connect Claude Desktop**, then quit Claude Desktop (Cmd+Q) and reopen it.
+
+Then ask things like *"how is my bot doing?"*, *"why did it sell KO?"*, *"show me the day desk's plan"*.
 
 | Connection | What Claude can do | What it can't |
 |---|---|---|
@@ -96,8 +99,8 @@ one. It's only added once your Schwab keys are in `.env`, reuses the bot's Schwa
 refuses logins older than 5 days, so use menu → **Log in to Schwab** about every 5 days.
 Your Schwab key and secret are written into Claude Desktop's settings file on your Mac.
 
-Claude Code instead of Claude Desktop:
-`claude mcp add ai-trader -- ~/AITrader/.venv/bin/python ~/AITrader/mcp_server.py`
+By hand in Terminal (Claude Code):
+`claude mcp add --scope user ai-trader -- ~/AITrader/.venv/bin/python ~/AITrader/mcp_server.py`
 
 ## Setup without the app (any computer, Python 3.11+)
 ```bash
@@ -120,7 +123,7 @@ python run.py menu            # or: python run.py check / autopilot / status ...
 | Write the trading plans | `plan` | after the study month |
 | Approve a plan | `approve-plan` | you say YES → that desk starts paper trading |
 | Promote to real money | `promote` | checks the paper rules → you type REAL MONEY |
-| Connect Claude Desktop | | adds the MCP connections above |
+| Connect Claude Code / Desktop | | adds the MCP connections above |
 | Log in to Schwab | `schwab-login` | only once you use Schwab |
 | EMERGENCY | `kill` | cancels the bot's orders, sells everything it owns, halts |
 | Resume | `resume` | un-halt after you've looked at what happened |

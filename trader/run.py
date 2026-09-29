@@ -472,7 +472,8 @@ MENU = [
     ("Write the trading plans (after the study month)", "plan"),
     ("Approve a plan (starts paper trading)", "approve-plan"),
     ("Promote a desk to REAL money", "promote"),
-    ("Connect Claude Desktop (Claude can see the bot, and your Schwab account read-only)", "connect-claude"),
+    ("Connect Claude Code (Claude can see the bot, and your Schwab account read-only)", "connect-claude-code"),
+    ("Connect Claude Desktop (same, for the Claude Desktop app)", "connect-claude"),
     ("Log in to Schwab (needed about every 5 days once you use Schwab)", "schwab-login"),
     ("EMERGENCY: sell everything the bot owns and stop", "kill"),
     ("Resume after an emergency stop", "resume"),
@@ -511,6 +512,9 @@ def cmd_menu(cfg, store, args):
             elif action == "service-off":
                 mac_service.uninstall()
                 print("Background autopilot is OFF.")
+            elif action == "connect-claude-code":
+                from aitrader.claude_setup import connect_claude_code
+                print(connect_claude_code(ROOT))
             elif action == "connect-claude":
                 from aitrader.claude_setup import connect_claude_desktop
                 print(connect_claude_desktop(ROOT))
