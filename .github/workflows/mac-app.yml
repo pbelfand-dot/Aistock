@@ -82,4 +82,4 @@ jobs:
           else
             gh release create mac-app --target "$GITHUB_SHA" --title "AI Trader for Mac" --notes "$notes" --latest
           fi
-          gh release upload mac-app dist/AITrader-mac.zip --clobber
+          gh release upload mac-app dist/AITrader-mac.zip dist/app-screenshot.png --clobber
