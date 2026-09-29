@@ -5,6 +5,8 @@ The plan: turn TJR's teaching into exact rules the bot can test, then trade them
 ## How a video becomes rules
 1. **Get the words.** Either a transcript (YouTube: *…more → Show transcript*, or a free
    transcript site), or the video file itself:
+   videos sent as split zips (`.z01`, `.z02`, `.zip`) are unpacked and checksum-verified with
+   `python research/tjr/join_parts.py OUT_DIR parts...`, then
    `python research/tjr/ingest_video.py video.mp4` writes a timestamped transcript plus a
    picture of the charts every 20 seconds to `research/tjr/raw/` (not committed: it's TJR's
    content). With `huggingface.co` allowed in the environment's network settings it uses the
