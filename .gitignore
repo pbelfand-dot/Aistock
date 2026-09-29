@@ -17,3 +17,4 @@ frontend/dist/
 # AI trader: local data (database, price cache, Schwab login token, plan)
 trader/data/
 .pytest_cache/
+/dist/

@@ -1,202 +1,195 @@
-# AI Trader for Charles Schwab
+# AI Trader
 
 A small, readable bot that **studies the market for a month, writes a trading plan,
-proves it with fake money, and only then trades real money**, capped at $1,000.
+proves it with paper money, and only then trades real money**, capped at $1,000.
+It trades through **Alpaca** now, and **Charles Schwab** later (switch with one setting).
 
-It trades **two ways** ("desks"), each earning trust on its own:
+It trades **two ways** ("desks"), and each one has to earn trust on its own:
 
 | Desk | Style | When it decides | Money |
 |---|---|---|---|
 | **swing** | holds days to weeks | once a day, 3:45pm New York time | $500 |
 | **day** | in and out the same day, never overnight | every 5 minutes | $500 |
 
-The "AI" is a machine-learning model that runs **on your own laptop** (no paid API).
-An optional local chatbot (Ollama) writes plain-English explanations. It never picks trades.
+The "AI" is a machine-learning model that runs **on your own Mac** (no paid AI service).
+It learns only from the past, and a test proves it can't peek at future prices.
 
-> Not financial advice. Most people who trade actively lose money, and day traders
-> do worst of all. This bot's #1 job is to find out *safely* whether you have an edge,
-> and to say "don't trade" if you don't.
+> Not financial advice. Most people who trade actively lose money, and day traders do worst
+> of all. This bot's #1 job is to find out *safely* whether a strategy has an edge, and to say
+> "don't trade" if it doesn't.
 
 ---
 
 ## The journey (each desk separately; about 3 months before real money, at minimum)
 
 ```
- 1. STUDY  (≥30 days)      Swing: each strategy writes down an opinion on every stock
-                           daily; 5 days later it's graded. Day: each strategy
-                           "shadow trades" every day with fake money. No real trades.
-          │  python run.py plan
+ 1. STUDY  (≥30 days)      Swing: every strategy writes down an opinion on each stock daily,
+                           graded 5 days later. Day: every strategy "shadow trades" each day
+                           with pretend money. No orders at all.
+          │  menu: Write the trading plans
           ▼
- 2. PLAN_REVIEW            Backtests every strategy, combines that with the study month,
+ 2. PLAN_REVIEW            Backtests every strategy on years of history, adds the study month,
                            writes data/trading_plan_<desk>.md. May honestly say "NO_TRADE".
-          │  python run.py approve-plan   (you type YES)
+          │  menu: Approve a plan   (you type YES)
           ▼
- 3. PAPER  (≥30 trading    Trades the plan with fake money and real prices.
-            days)
-          │  python run.py promote        (every rule must pass, then you type REAL MONEY)
+ 3. PAPER  (≥30 trading    Trades the plan in your Alpaca PAPER account: real order handling,
+            days)          fake money.
+          │  menu: Promote a desk to REAL money   (every rule must pass, then you type REAL MONEY)
           ▼
- 4. LIVE                   Real orders through Schwab, capped at the desk's budget.
-                           Kill switch → back to PAPER automatically.
+ 4. LIVE                   Real orders, capped at the desk's budget. Kill switch → back to PAPER.
 ```
 
-"Profitable" is defined in `config.yaml → promotion:`. Over at least 30 trading days and
-20 closed trades, a desk's paper account must: make money, win ≥1.2× what it loses, never
-drop more than 10%, **and beat just holding SPY**. A desk that can't do that stays on paper.
+"Profitable" means (see `config.yaml → promotion:`): over at least 30 trading days and 20
+closed trades, the desk made money, won at least 1.2× what it lost, never dropped more than
+10%, **and beat just holding SPY**. If it can't beat SPY, buying SPY is the better deal.
 
-## Setup (once)
+## Setup on a Mac (the easy way)
 
-**1. Python 3.10+**
+1. **Download the app** from the [GitHub page](https://github.com/pbelfand-dot/Aistock) (big link at
+   the top), unzip it, and drag **AI Trader** into Applications.
+2. **First open:** macOS will block it (it isn't from the App Store). Open **System Settings →
+   Privacy & Security**, scroll down, click **Open Anyway**. (Or in Terminal:
+   `xattr -dr com.apple.quarantine "/Applications/AI Trader.app"`.)
+3. A Terminal window opens and installs Python plus the bot's libraries (about 2 minutes, once).
+   Then you get the **menu**. From then on, opening the app just opens the menu.
+4. **Alpaca keys** (free, about 5 minutes):
+   - Sign up at <https://app.alpaca.markets>. Paper trading needs no money and no approval.
+   - The default paper account holds $100,000. Make a new paper account with **$1,000** so paper
+     behaves like your real account (the bot caps itself at $1,000 either way).
+   - In the paper account: **API Keys → Generate**. Menu → **Edit my keys**, paste them as
+     `ALPACA_PAPER_API_KEY` / `ALPACA_PAPER_SECRET_KEY`, save, close TextEdit.
+   - Menu → **Check my Alpaca keys** should say "connected".
+5. Menu → **Keep the autopilot running in the BACKGROUND**. Done: it studies every trading day,
+   starts when you log in, and restarts itself if it crashes.
+
+Your files live in **~/AITrader** (your home folder): `.env` = keys, `config.yaml` = settings,
+`data/` = the bot's memory, plans and logs (`data/autopilot.log`).
+
+**Updating:** download the new zip and open it. Your keys and data stay. If the settings file
+changed, your old one is saved as `config.yaml.before-<version>` and the menu tells you.
+
+### Keep the Mac awake
+The bot only works while the Mac is **awake, online and plugged in**. The background autopilot
+already stops *idle* sleep, but **closing the lid still puts a MacBook to sleep**. So:
+- keep the lid **open** and the charger in, **or**
+- use clamshell mode (lid closed with an external monitor and power), **or**
+- use the free app **Amphetamine** with its closed-display option.
+
+On a MacBook also check **System Settings → Battery → Options → "Prevent automatic sleeping on
+power adapter when the display is off"**.
+
+If it sleeps anyway, the day desk sells any leftovers the moment it wakes, the journal flags a
+missed swing decision, and every real position has a **stop-loss order resting at the broker**.
+
+## Connect Claude (MCP)
+
+Menu → **Connect Claude Desktop**, then quit Claude Desktop (Cmd+Q) and reopen it. You can ask
+things like *"how is my bot doing?"*, *"why did it sell KO?"*, *"show me the day desk's plan"*.
+
+| Connection | What Claude can do | What it can't |
+|---|---|---|
+| **ai-trader** (this bot, `mcp_server.py`) | see status, journal, plans, positions, results, your Alpaca account; **pause** trading | buy, sell, resume, approve or go live |
+| **schwab** ([schwab-mcp](https://github.com/jkoelker/schwab-mcp), community, MIT) | read quotes, accounts, positions, orders | trade (it's set up **read-only**) |
+
+There's no official Schwab MCP server; `schwab-mcp` is the most actively maintained community
+one. It's only added once your Schwab keys are in `.env`, reuses the bot's Schwab login, and
+refuses logins older than 5 days, so use menu → **Log in to Schwab** about every 5 days.
+Your Schwab key and secret are written into Claude Desktop's settings file on your Mac.
+
+Claude Code instead of Claude Desktop:
+`claude mcp add ai-trader -- ~/AITrader/.venv/bin/python ~/AITrader/mcp_server.py`
+
+## Setup without the app (any computer, Python 3.11+)
 ```bash
 cd trader
-python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env               # Windows: copy .env.example .env
+cp .env.example .env          # then paste your keys into .env
+python run.py menu            # or: python run.py check / autopilot / status ...
 ```
 
-**2. Optional: local LLM for write-ups.** Install [Ollama](https://ollama.com), then
-`ollama pull qwen3:4b` (~2.5 GB). If it's not running, the bot still works.
+## The menu (and the matching commands)
 
-**3. Schwab developer access** (start now; approval takes days, and real money needs it):
-1. Sign up at <https://developer.schwab.com> and request **Trader API – Individual**.
-2. Dashboard → **Create App** → select **Accounts and Trading Production** and
-   **Market Data Production**. Callback URL: `https://127.0.0.1:8182` (exactly; no
-   trailing slash, and not `localhost`).
-3. Wait until the app says **Ready For Use** ("Approved – Pending" doesn't work yet).
-4. Put the App Key and Secret in `.env`, then run `python run.py schwab-login`.
-5. Set `data.source: schwab` in `config.yaml`. Real money requires Schwab's real-time
-   prices. Yahoo is fine for study and paper.
+| Menu item | Command | What it does |
+|---|---|---|
+| Status | `status` | each desk's phase, report card, results, journal |
+| Check my keys | `check` | tests Alpaca/Schwab keys and price data |
+| Start the autopilot | `autopilot` | runs everything, every trading day |
+| Background autopilot on/off | | same, as a Mac service (starts at login) |
+| Backtest | `backtest` | every strategy vs. buy-and-hold, on history |
+| Write the trading plans | `plan` | after the study month |
+| Approve a plan | `approve-plan` | you say YES → that desk starts paper trading |
+| Promote to real money | `promote` | checks the paper rules → you type REAL MONEY |
+| Connect Claude Desktop | | adds the MCP connections above |
+| Log in to Schwab | `schwab-login` | only once you use Schwab |
+| EMERGENCY | `kill` | cancels the bot's orders, sells everything it owns, halts |
+| Resume | `resume` | un-halt after you've looked at what happened |
 
-⚠️ **Schwab logins expire every 7 days, and there's no way around it.** Run
-`python run.py schwab-login` weekly. `status` shows the days left, and the autopilot warns you.
+`python run.py trade --desk day --anyway` runs one paper cycle for testing;
+`trade --dry-run` shows the exact real orders it *would* send.
 
-## Run it: one command, leave it running
+## Safety rules (built in, tested)
 
-```bash
-python run.py autopilot
-```
-Every trading day it:
-- **9:30am to 3:50pm:** runs the day desk every 5 minutes and watches the swing desk's stop-losses
-- **3:45pm:** makes the swing desk's daily decision
-- **3:50pm:** the day desk sells everything (it never holds overnight)
-- **4:10pm:** studies (grades opinions, shadow trades) and gets smarter
+1. **Budget cap:** each desk has its own checkbook ($500). It never spends more, and never more
+   than the cash the broker says is available. **It never borrows.**
+2. **Hands off your stuff:** it only sells shares **it** bought, never buys a stock you already
+   own in that account, and only cancels its **own** orders. With Alpaca every bot order carries
+   an `aitrader-` tag.
+3. **Never loses track of an order:** it only forgets an order once the broker confirms it's
+   finished. Every fill is saved the moment it happens. With Alpaca the order is written down
+   *before* it's sent, so even a dropped connection can't create a mystery order.
+4. **Resting stop-loss at the broker** for every live/paper-broker position (swing 7%, day 2%).
+   If a sell fails, the stop goes back on. It never sells while an old stop might still be live.
+5. **Urgent exits** (stop-loss, the day desk's end-of-day sell, emergency) use market orders.
+   After a kill or kill switch the desk keeps selling until it truly owns nothing.
+6. **Real money only** after every paper rule passes, you type `REAL MONEY`, `.env` says
+   `LIVE_TRADING_ENABLED=true`, and prices are real-time (Alpaca or Schwab data).
+7. Daily loss limit (3%) and a **kill switch** (desk down 15% from its best day).
+8. **Whole shares only**, so with $500 per desk, pricey stocks are skipped automatically
+   (`status` lists which).
 
-It handles early-close days (1pm), weekends and holidays, and it never crashes on an
-error: it logs it and tries again in 5 minutes.
-
-### Keep the laptop awake (important!)
-The bot can only work while the laptop is **awake, plugged in and online**.
-
-**Mac.** Closing the lid puts a MacBook to sleep, even with `caffeinate`. Pick one:
-- Keep the lid **open**, plugged in, and start the bot with
-  `caffeinate -i python run.py autopilot` (stops idle sleep while the bot runs), **or**
-- Clamshell mode: lid closed, with an **external monitor + power** connected, **or**
-- The free app **Amphetamine** (Mac App Store), with its "closed display" option.
-
-**Windows.** Settings → System → Power: when plugged in, **Sleep = Never**. Then Control
-Panel → Power Options → "Choose what closing the lid does": **Plugged in = Do nothing**.
-
-If the laptop sleeps anyway: the day desk sells leftovers the moment it wakes, the journal
-flags a missed swing decision, and in LIVE the **resting stop-loss orders at Schwab** keep
-protecting your positions.
-
-## Commands
-
-| Command | What it does |
-|---|---|
-| `autopilot` | **The main one.** Runs everything, every trading day |
-| `status` | Each desk's phase, report card, paper/live results, Schwab login days left, journal |
-| `backtest` | Tests every strategy on history vs. buy-and-hold (safe, any time) |
-| `plan` | After the study month: writes each desk's plan |
-| `approve-plan` | You approve a desk's plan → it starts paper trading |
-| `promote` | Checks a desk's paper results against the rules → you confirm → LIVE |
-| `kill` | **Emergency:** cancel the bot's orders, sell everything it owns, halt |
-| `resume` | Un-halt after a kill (after you've looked at what happened) |
-| `schwab-login` | Weekly Schwab login (`--manual` if no browser opens) |
-| `trade --desk day --anyway` | Testing: one paper cycle even if the market is closed |
-| `trade --dry-run` | LIVE: shows exact orders it *would* send, sends nothing |
-
-Add `--desk swing` or `--desk day` to act on one desk only.
-
-## Your money and your shared Schwab account
-
-The bot trades inside **your normal Schwab account**, alongside your own investing. So:
-
-1. **Budget cap:** each desk has its own checkbook ($500 each). The bot never spends more,
-   and never more than the cash Schwab says is actually available. **It never borrows.**
-2. **Hands off your stuff:** it only sells shares **it** bought, and it **won't buy a stock
-   you already own**. Schwab sells a stock's oldest shares first by default, so sharing a
-   ticker could sell *your* shares and mess up your taxes. So don't buy the bot's stocks yourself.
-3. **Only its own orders:** `kill` and cleanup only cancel orders the bot placed, never yours.
-4. **Resting stop-loss at Schwab** for every live position, in case the laptop sleeps or crashes.
-   If a sell doesn't fill, the stop goes right back on. The bot never sells shares while an
-   old stop for them might still be live, so it can't sell the same shares twice.
-5. **Never loses track of an order:** it only forgets an order once Schwab confirms it's
-   finished. Every fill is saved the moment it happens, and after a crash or sleep it
-   checks what happened before doing anything else.
-6. **Urgent exits** (stop-loss, the day desk's end-of-day sell, emergency) use market orders.
-   After a kill or kill switch, a live desk stays **LIVE + HALTED** and keeps selling until it
-   truly owns nothing, and only then drops back to PAPER.
-7. **Cash-account safe:** it never re-spends same-day sale money, which avoids Schwab
-   "good faith violations". In practice each dollar can be used for one day trade per day.
-8. Real money only after every paper rule passes, you type `REAL MONEY`, `.env` says
-   `LIVE_TRADING_ENABLED=true`, and prices come from Schwab.
-9. Stop-loss per position (swing 7%, day 2%), daily loss limit, and a **kill switch** (desk
-   down 15% from peak → sell everything, back to PAPER, halt).
-
-**Whole shares only** (Schwab's API can't buy fractions). With $500 per desk, one position
-is about $170 (swing) or $250 (day), so pricier stocks are skipped automatically.
-`status` lists which ones.
+**Alpaca notes:** every Alpaca account is a "margin" type (there are no cash accounts), but
+under $2,000 it can't borrow, and sale money is usable right away (no good-faith violations).
+Alpaca dropped the old $25k day-trading rule on June 4, 2026.
 
 ## Where to look
-
-- `data/trading_plan_swing.md` / `data/trading_plan_day.md`: the plans and their scorecards
-- `data/aitrader.sqlite`: everything (opinions, trades, daily values, journal). Open it
-  with [DB Browser for SQLite](https://sqlitebrowser.org).
+- `data/trading_plan_swing.md` / `data/trading_plan_day.md`: the plans and scorecards
+- `data/aitrader.sqlite`: everything (opinions, trades, daily values, journal). Open it with
+  [DB Browser for SQLite](https://sqlitebrowser.org).
+- `data/autopilot.log`: what the background autopilot printed
 - `config.yaml`: every knob, with comments
 
 ## Code map
-
 ```
-run.py                 the commands above, including the autopilot schedule
+run.py                     the menu and every command, incl. the autopilot schedule
+mcp_server.py              lets Claude see (and pause) the bot
 aitrader/
-  strategies.py        trading ideas for both desks (add yours here)
-  brain.py             the local AI (walk-forward; never sees the future)
-  features.py          indicators the AI learns from
-  engine.py            decide_orders()/desk_orders(), used by backtest, paper AND live
-  study.py             swing opinion grading + day shadow trading
-  planner.py           picks each desk's strategy, writes the plan
-  phases.py            rules for moving between phases (per desk)
-  risk.py              sizing, stop-loss, limits, kill switch
-  market_hours.py      open/close times incl. early-close days
-  market_data.py       Yahoo or Schwab prices (daily + 5-minute), saved locally
-  brokers/paper.py     fake-money broker (also used by backtests)
-  brokers/schwab_broker.py  real orders via schwab-py, with shared-account protections
-  schwab_api.py        Schwab login/connection
-  storage.py           SQLite memory
-  llm.py               optional Ollama write-ups
-tests/                 run with: python -m pytest
+  strategies.py            trading ideas for both desks (add yours here)
+  brain.py / features.py   the local AI (walk-forward; never sees the future)
+  engine.py                decide_orders()/desk_orders(): same rules in backtest, paper and live
+  study.py / planner.py    the study month and the plans
+  phases.py / risk.py      phase rules; sizing, stops, limits, kill switch
+  market_data.py           Alpaca / Yahoo / Schwab prices (daily + 5-minute), saved locally
+  market_hours.py          open/close times incl. early-close days
+  brokers/live.py          the safety rules for real broker accounts (shared)
+  brokers/alpaca_broker.py, brokers/schwab_broker.py   thin translators for each broker
+  brokers/paper.py         pretend broker for backtests (and paper without Alpaca keys)
+  mac_service.py           the background autopilot on a Mac (launchd)
+  claude_setup.py          "Connect Claude Desktop"
+tests/                     python -m pytest (75 tests, no internet needed)
 ```
+**Add a strategy:** copy a class in `strategies.py` (`style = "day"` for day trading), change the
+rules, add it to `all_strategies()`. It's studied, backtested and considered automatically.
 
-**Add a strategy:** copy a class in `strategies.py` (set `style = "day"` for day trading),
-change the rules, and add it to `all_strategies()`. It's studied, backtested and considered
-for the plan automatically.
-
-## Honest limitations (read these)
-
-- **Day trading history is short.** Yahoo keeps only ~60 days of 5-minute prices (Schwab
-  about 9 months). The bot saves every bar it downloads, so its history grows over time,
-  but early day-desk backtests rest on thin evidence.
-- **Swing stops in paper are checked every 5 minutes**; in LIVE a real stop order rests at
-  Schwab. A big overnight gap can still blow through any stop.
-- **Early closes are rule-based** (day after Thanksgiving, July 3, Christmas Eve). Check
-  NYSE's calendar each year.
-- **Yahoo data is unofficial** and can break. That's why real money requires Schwab data.
-- **`schwab-py`'s last release was mid-2025.** If Schwab changes its API, swap in
-  `schwabdev` (only `schwab_api.py` and `brokers/schwab_broker.py` need changing).
-- **The stop-order and cash-balance code is tested against a fake Schwab**, not a real
-  account. Before real money, run `python run.py trade --dry-run` and read the journal.
+## Honest limitations
+- **Free Alpaca data is the "IEX" feed**: real-time, but only one exchange's trades (about 2–3%
+  of volume). Prices track the market closely; volumes are smaller. History starts mid-2020.
+  Alpaca's paid plan (`alpaca_feed: sip`) sees every exchange.
+- **Alpaca paper fills are simplified** (no market impact or slippage), so paper looks a bit
+  better than reality. That's why real money starts small.
+- **Early closes are rule-based** (day after Thanksgiving, July 3, Christmas Eve).
+- **The app isn't signed by Apple** (that costs $99/year), hence the "Open Anyway" step.
 - **30 paper days is a small sample.** Passing is evidence, not proof.
-- **Taxes:** gains on positions held a year or less are taxed as ordinary income, and the
-  wash-sale rule can disallow losses when the bot re-buys within 30 days. Day trading
-  triggers it a lot. Keep Schwab's 1099 and consider a tax pro.
+- **Taxes:** short-term gains are taxed as ordinary income, and the wash-sale rule can disallow
+  losses when the bot re-buys within 30 days (day trading triggers it a lot). Keep the broker's
+  1099 and consider a tax pro.

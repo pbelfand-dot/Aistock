@@ -1,5 +1,5 @@
 """
-aitrader: a small, readable auto-trading bot for Charles Schwab.
+aitrader: a small, readable auto-trading bot for Alpaca (now) and Charles Schwab (later).
 
 It has two "desks" that share the money but earn trust separately:
     swing  holds days to weeks, decides once a day at 3:45pm
@@ -29,5 +29,8 @@ Where things live:
     performance.py   scorekeeping: return, drawdown, win rate...
     llm.py           optional local LLM (Ollama) for plain-English write-ups
     schwab_api.py    Schwab login + connection
-    brokers/         paper (simulated) and Schwab (real) order execution
+    brokers/         paper (simulated), Alpaca and Schwab order execution
+    alpaca_api.py    Alpaca connection
+    mac_service.py   background autopilot on a Mac
+    claude_setup.py  connects Claude Desktop (MCP)
 """

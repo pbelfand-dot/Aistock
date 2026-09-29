@@ -1,6 +1,7 @@
 """
 run.py: the ONE file you run.
 
+    python run.py menu            a simple numbered menu for everything below (the Mac app opens this)
     python run.py autopilot       START THIS AND LEAVE IT RUNNING. Every trading day it:
                                     - day desk: decides every 5 minutes, sells out before the close
                                     - swing desk: watches stop-losses, decides at 3:45pm
@@ -341,9 +342,25 @@ def run_job(job, cfg, store, data, now, done) -> str:
     return ""
 
 
+def process_alive(pid) -> bool:
+    if not pid or os.name == "nt":
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
 def cmd_autopilot(cfg, store, args):
+    other = store.get("autopilot_pid")
+    if other and other != os.getpid() and process_alive(other):
+        raise RuntimeError(f"The autopilot is already running (process {other}). Only one may run at a time.")
+    store.set("autopilot_pid", os.getpid())
     data = MarketData(cfg)
-    store.log("Autopilot started. Keep this window open and the laptop awake (Ctrl+C stops it).")
+    store.log("Autopilot started. Keep the laptop awake and online (Ctrl+C stops it).")
     while True:
         now = now_ny()
         today = now.strftime("%Y-%m-%d")
@@ -442,6 +459,67 @@ def cmd_check(cfg, store, args):
             print("\nSchwab: connected.")
         except Exception as e:
             print(f"\nSchwab: PROBLEM {e!r}")
+
+
+MENU = [
+    ("Status: where is each desk, and what's next?", "status"),
+    ("Check my Alpaca keys and price data", "check"),
+    ("Edit my keys (opens the .env file)", "edit-keys"),
+    ("Start the autopilot in THIS window (close the window to stop it)", "autopilot"),
+    ("Keep the autopilot running in the BACKGROUND (starts at login, restarts itself)", "service-on"),
+    ("Stop the background autopilot", "service-off"),
+    ("Backtest: how would each strategy have done?", "backtest"),
+    ("Write the trading plans (after the study month)", "plan"),
+    ("Approve a plan (starts paper trading)", "approve-plan"),
+    ("Promote a desk to REAL money", "promote"),
+    ("Connect Claude Desktop (Claude can see the bot, and your Schwab account read-only)", "connect-claude"),
+    ("Log in to Schwab (needed about every 5 days once you use Schwab)", "schwab-login"),
+    ("EMERGENCY: sell everything the bot owns and stop", "kill"),
+    ("Resume after an emergency stop", "resume"),
+]
+
+
+def cmd_menu(cfg, store, args):
+    """A simple numbered menu, so you never have to remember commands."""
+    from aitrader import mac_service
+    from aitrader.config import ROOT
+    note = ROOT / ".config_note"
+    if note.exists():                                  # left by the app after an update
+        print("\n" + note.read_text())
+        note.unlink()
+    while True:
+        running = " (background autopilot: RUNNING)" if mac_service.is_running() else ""
+        print(f"\n==== AI TRADER{running} ====")
+        for i, (label, _) in enumerate(MENU, 1):
+            print(f"  {i:>2}) {label}")
+        print("   q) Quit this menu (a background autopilot keeps running)")
+        choice = input("\nPick a number: ").strip().lower()
+        if choice in ("q", "quit", "exit"):
+            return
+        if not choice.isdigit() or not 1 <= int(choice) <= len(MENU):
+            continue
+        action = MENU[int(choice) - 1][1]
+        try:
+            if action == "edit-keys":
+                import subprocess
+                subprocess.run(["open", "-e", str(ROOT / ".env")])
+                print("Save the file in TextEdit, then pick 'Check my Alpaca keys'.")
+            elif action == "service-on":
+                mac_service.install(ROOT)
+                print("Background autopilot is ON. It starts at login and restarts itself if it crashes.")
+                print(f"Its log: {ROOT / 'data' / 'autopilot.log'}. Keep the lid open and the charger in.")
+            elif action == "service-off":
+                mac_service.uninstall()
+                print("Background autopilot is OFF.")
+            elif action == "connect-claude":
+                from aitrader.claude_setup import connect_claude_desktop
+                print(connect_claude_desktop(ROOT))
+            else:
+                main([action], cfg=cfg, store=store)
+        except KeyboardInterrupt:
+            print("\n(stopped)")
+        except Exception as e:
+            print(f"\nPROBLEM: {e}")
 
 
 def cmd_study(cfg, store, args):
@@ -598,11 +676,12 @@ def cmd_schwab_login(cfg, store, args):
     login(cfg, manual=args.manual)
 
 
-def main(argv=None):
-    parser = argparse.ArgumentParser(description="AI trader for Charles Schwab")
+def main(argv=None, cfg=None, store=None):
+    parser = argparse.ArgumentParser(description="AI trader for Alpaca and Charles Schwab")
     sub = parser.add_subparsers(dest="command", required=True)
     desk_help = "only this desk (default: all enabled desks)"
     sub.add_parser("autopilot")
+    sub.add_parser("menu")
     sub.add_parser("status")
     sub.add_parser("check")
     sub.add_parser("study")
@@ -623,16 +702,17 @@ def main(argv=None):
                                                 help="print a login link instead of opening a browser")
     args = parser.parse_args(argv)
 
-    cfg = load_config()
-    store = Store(data_path(cfg, "aitrader.sqlite"))
-    commands = {"autopilot": cmd_autopilot, "status": cmd_status, "check": cmd_check, "study": cmd_study, "trade": cmd_trade,
+    cfg = cfg or load_config()
+    store = store or Store(data_path(cfg, "aitrader.sqlite"))
+    commands = {"menu": cmd_menu, "autopilot": cmd_autopilot, "status": cmd_status, "check": cmd_check, "study": cmd_study, "trade": cmd_trade,
                 "backtest": cmd_backtest, "plan": cmd_plan, "approve-plan": cmd_approve_plan,
                 "promote": cmd_promote, "kill": cmd_kill, "resume": cmd_resume, "schwab-login": cmd_schwab_login}
     try:
         commands[args.command](cfg, store, args)
     except RuntimeError as e:
         store.log(f"STOPPED: {e}")
-        sys.exit(1)
+        if args.command != "menu" and argv is None:
+            sys.exit(1)
     except KeyboardInterrupt:
         store.log("Stopped by you (Ctrl+C)")
 
