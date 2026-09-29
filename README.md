@@ -14,21 +14,22 @@ capped at $1,000. Built and tested automatically by GitHub every time the code c
      **Open Anyway** next to "AI Trader" (you may need your Mac password).
    - Or paste this in Terminal instead:
      `xattr -dr com.apple.quarantine "/Applications/AI Trader.app"`
-4. A Terminal window opens. The first time it installs Python and the bot's libraries
-   (about 2 minutes), then shows a numbered menu.
-5. In the menu: **Edit my keys** (paste your Alpaca paper keys) → **Check** →
+4. The first time, the app also opens the **Setup menu** in a Terminal window to install Python
+   and the bot's libraries (about 2 minutes). The app's window opens your dashboard when it's done.
+5. In the Setup menu: **Edit my keys** (paste your Alpaca paper keys) → **Check** →
    **Keep the autopilot running in the background**.
 
-### The dashboard
-Menu → **Open the DASHBOARD**: a brokerage-style page in your browser with your account value vs.
-the S&P 500, positions, every trade and why, each desk's progress, the watchlist, and **Pause** /
-**Emergency stop** buttons. **See the dashboard with DEMO data** shows it right away with made-up
-prices. It runs only on your Mac (http://127.0.0.1:8765), and the background autopilot keeps it up.
+### The app
+**AI Trader** is a normal Mac app: its own window, Dock icon and menus (no browser, no web
+server). Its window is a brokerage-style dashboard: your account value vs. the S&P 500,
+positions, every trade and why, each desk's progress, the watchlist, and **Pause** /
+**Emergency stop** buttons. **View → Show Demo Data** shows it with made-up prices right away.
+**AI Trader → Setup Menu** (⌘,) opens the Setup menu again for keys, plans and the autopilot.
 
-![The AI Trader dashboard (demo data)](docs/dashboard.png)
+![The AI Trader app (demo data)](docs/dashboard.png)
 
-It's the bot's own design, not Schwab's or Alpaca's website: it never shows or asks for your
-broker login, and it can't buy anything.
+It's the bot's own design, not Schwab's or Alpaca's: it never shows or asks for your broker
+login, and it can't buy anything. Closing the app doesn't stop the background autopilot.
 
 Everything lives in the **AITrader** folder in your home folder (your keys, settings, and the
 bot's memory). Updating is the same: download the new zip and open it; your keys and data stay, and a
@@ -40,7 +41,7 @@ Menu → **Connect Claude Code** (or **Connect Claude Desktop**). Claude can the
 
 ### What's in this repo
 - [`trader/`](trader/): the bot. [Full guide →](trader/README.md)
-- [`mac/`](mac/): how the Mac app is built
+- [`mac/`](mac/): the Mac app (a Swift window, `mac/app/main.swift`) and how it is built
 - `backend/`, `frontend/`: the earlier stock-suggestion web app
 
 > Not financial advice. Most people who trade actively lose money. The bot's first job is to

@@ -50,17 +50,19 @@ closed trades, the desk made money, won at least 1.2× what it lost, never dropp
 2. **First open:** macOS will block it (it isn't from the App Store). Open **System Settings →
    Privacy & Security**, scroll down, click **Open Anyway**. (Or in Terminal:
    `xattr -dr com.apple.quarantine "/Applications/AI Trader.app"`.)
-3. A Terminal window opens and installs Python plus the bot's libraries (about 2 minutes, once).
-   Then you get the **menu**. From then on, opening the app just opens the menu.
+3. The app's window opens. The first time, it also opens the **Setup menu** in Terminal, which
+   installs Python plus the bot's libraries (about 2 minutes, once); then the window shows your
+   dashboard. From then on, opening the app just opens its window. The Setup menu is always at
+   **AI Trader → Setup Menu** (⌘,) or the **Setup** button.
 4. **Alpaca keys** (free, about 5 minutes):
    - Sign up at <https://app.alpaca.markets>. Paper trading needs no money and no approval.
    - The default paper account holds $100,000. Make a new paper account with **$1,000** so paper
      behaves like your real account (the bot caps itself at $1,000 either way).
-   - In the paper account: **API Keys → Generate**. Menu → **Edit my keys**, paste them as
+   - In the paper account: **API Keys → Generate**. Setup menu → **Edit my keys**, paste them as
      `ALPACA_PAPER_API_KEY` / `ALPACA_PAPER_SECRET_KEY`, save, close TextEdit.
-   - Menu → **Check my Alpaca keys** should say "connected".
-5. Menu → **Keep the autopilot running in the BACKGROUND**. Done: it studies every trading day,
-   starts when you log in, and restarts itself if it crashes.
+   - Setup menu → **Check my Alpaca keys** should say "connected".
+5. Setup menu → **Keep the autopilot running in the BACKGROUND**. Done: it studies every trading
+   day, starts when you log in, and restarts itself if it crashes (closing the app doesn't stop it).
 
 Your files live in **~/AITrader** (your home folder): `.env` = keys, `config.yaml` = settings,
 `data/` = the bot's memory, plans and logs (`data/autopilot.log`).
@@ -69,9 +71,12 @@ Your files live in **~/AITrader** (your home folder): `.env` = keys, `config.yam
 autopilot restarts on the new version. If the settings file
 changed, your old one is saved as `config.yaml.before-<version>` and the menu tells you.
 
-## The dashboard (your account, like a brokerage website)
+## The app (your account, like a brokerage)
 
-Menu → **Open the DASHBOARD** (or `python run.py dashboard`) opens a page in your browser:
+**AI Trader** is a normal Mac app: its own window, Dock icon and menus. It's written in Swift and
+shows the dashboard with Apple's WebKit (the engine inside Safari), so there's no browser and no
+web server: when the window needs numbers, the app asks the bot directly
+(`python -m aitrader.app_api`, see `aitrader/app_api.py`).
 
 - **Summary:** account value, today's change, cash, total return, worst drop, win rate; a chart of
   your account vs. the S&P 500 (same starting amount; hover or use the arrow keys for exact values,
@@ -80,23 +85,19 @@ Menu → **Open the DASHBOARD** (or `python run.py dashboard`) opens a page in y
 - **Activity:** every buy and sell with the bot's reason. **Research & plans:** the study report
   cards and plans. **Journal:** what it did, and why.
 - Switch between the **Paper** and **Live** account at the top. Light and dark mode follow your Mac.
+- Menus: **View → Refresh** (⌘R), **View → Show Demo Data** (⌘D: made-up prices run through the
+  bot's real code, so you can see everything before it has traded), **AI Trader → Setup Menu** (⌘,).
 
 Two buttons, both ask first:
 - **Pause:** no new trades. Nothing is sold now; stop-losses keep protecting what it owns, and the
-  day desk still sells before the close. Resume from the menu.
+  day desk still sells before the close. Resume from the Setup menu.
 - **Emergency stop:** you type `SELL EVERYTHING`; it cancels the bot's orders, sells everything
   the bot owns (never your own stocks) and halts both desks.
 
-Approving plans, going live and resuming stay in the menu, where you type a confirmation.
-
-**See the dashboard with DEMO data** (or `python run.py dashboard --demo`) runs made-up prices
-through the bot's real code (about a minute), so you can see it before the bot has traded.
-
-Safety: it only listens on your Mac (http://127.0.0.1:8765), only reads the bot's own files (no
-broker keys), and every request needs a secret key that only the page opened from the menu has, so
-other websites can't read it or press its buttons. The background autopilot keeps it up; otherwise
-it runs while the menu is open. Change the port in `config.yaml → dashboard:`.
-It's the bot's own design, not a copy of Schwab's or Alpaca's site: it never asks for a broker login.
+Approving plans, going live and resuming stay in the Setup menu, where you type a confirmation.
+The app only reads the bot's own files (no broker keys). It's the bot's own design, not a copy of
+Schwab's or Alpaca's: it never asks for a broker login. If something goes wrong, the bot's
+messages are in `data/app.log`.
 
 ### Keep the Mac awake
 The bot only works while the Mac is **awake, online and plugged in**. The background autopilot
@@ -145,7 +146,7 @@ python run.py menu            # or: python run.py check / autopilot / status ...
 
 | Menu item | Command | What it does |
 |---|---|---|
-| Open the dashboard | `dashboard` | the brokerage-style page above (`--demo`: made-up data) |
+| Open the AI Trader app | `dashboard` | opens the app window above |
 | Status | `status` | each desk's phase, report card, results, journal |
 | Check my keys | `check` | tests Alpaca/Schwab keys and price data |
 | Start the autopilot | `autopilot` | runs everything, every trading day |
@@ -198,7 +199,8 @@ Alpaca dropped the old $25k day-trading rule on June 4, 2026.
 run.py                     the menu and every command, incl. the autopilot schedule
 mcp_server.py              lets Claude see (and pause) the bot
 aitrader/
-  dashboard.py, web/       the dashboard (a local web page); demo.py = its demo data
+  dashboard.py, web/       what the app's window shows; app_api.py = how the app asks the bot;
+                           demo.py = the demo data
   strategies.py            trading ideas for both desks (add yours here)
   brain.py / features.py   the local AI (walk-forward; never sees the future)
   engine.py                decide_orders()/desk_orders(): same rules in backtest, paper and live
@@ -210,8 +212,8 @@ aitrader/
   brokers/alpaca_broker.py, brokers/schwab_broker.py   thin translators for each broker
   brokers/paper.py         pretend broker for backtests (and paper without Alpaca keys)
   mac_service.py           the background autopilot on a Mac (launchd)
-  claude_setup.py          "Connect Claude Desktop"
-tests/                     python -m pytest (85 tests, no internet needed)
+  claude_setup.py          "Connect Claude Code / Desktop"
+tests/                     python -m pytest (84 tests, no internet needed)
 ```
 **Add a strategy:** copy a class in `strategies.py` (`style = "day"` for day trading), change the
 rules, add it to `all_strategies()`. It's studied, backtested and considered automatically.
