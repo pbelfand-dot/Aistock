@@ -39,8 +39,10 @@ def audio_pcm(video: Path) -> bytes:
 
 def save_frames(video: Path, folder: Path):
     folder.mkdir(parents=True, exist_ok=True)
-    subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-i", str(video),
-                    "-vf", f"fps=1/{FRAME_EVERY},scale=1280:-2", "-q:v", "4", str(folder / "%04d.jpg")], check=True)
+    # Decode only keyframes (fast) and keep the first one after each FRAME_EVERY seconds.
+    keep = f"select='isnan(prev_selected_t)+gte(t-prev_selected_t\\,{FRAME_EVERY})',scale=1280:-2"
+    subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-skip_frame", "nokey", "-i", str(video),
+                    "-vf", keep, "-fps_mode", "vfr", "-q:v", "4", str(folder / "%04d.jpg")], check=True)
 
 
 def stamp(seconds: float) -> str:
