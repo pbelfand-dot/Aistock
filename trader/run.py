@@ -6,7 +6,7 @@ run.py: the ONE file you run.
                                     - day desk: decides every 5 minutes, sells out before the close
                                     - swing desk: watches stop-losses, decides at 3:45pm
                                     - studies after the close (grading, shadow trading)
-    python run.py dashboard       a brokerage-style page in your browser (--demo: made-up data)
+    python run.py dashboard       open the AI Trader app (its window is the dashboard)
     python run.py status          where is each desk, and what's next?
     python run.py check           test your Alpaca/Schwab keys and price data
     python run.py backtest        test every strategy on history (any time)
@@ -368,9 +368,6 @@ def cmd_autopilot(cfg, store, args):
     if other and other != os.getpid() and process_alive(other):
         raise RuntimeError(f"The autopilot is already running (process {other}). Only one may run at a time.")
     store.set("autopilot_pid", os.getpid())
-    from aitrader import dashboard
-    if dashboard.start(cfg, dashboard_actions(cfg)):
-        store.log(f"Dashboard is up at http://127.0.0.1:{cfg.get('dashboard', {}).get('port', 8765)}")
     data = MarketData(cfg)
     store.log("Autopilot started. Keep the laptop awake and online (Ctrl+C stops it).")
     while True:
@@ -475,8 +472,7 @@ def cmd_check(cfg, store, args):
 
 
 MENU = [
-    ("Open the DASHBOARD (brokerage-style page in your browser)", "dashboard"),
-    ("See the dashboard with DEMO data (made-up prices, not your account)", "dashboard-demo"),
+    ("Open the AI Trader app (your dashboard)", "dashboard"),
     ("Status: where is each desk, and what's next?", "status"),
     ("Check my Alpaca keys and price data", "check"),
     ("Edit my keys (opens the .env file)", "edit-keys"),
@@ -527,8 +523,8 @@ def cmd_menu(cfg, store, args):
             elif action == "service-off":
                 mac_service.uninstall()
                 print("Background autopilot is OFF.")
-            elif action in ("dashboard", "dashboard-demo"):
-                print(open_dashboard(cfg, demo=action == "dashboard-demo"))
+            elif action == "dashboard":
+                print(open_app())
             elif action == "connect-claude-code":
                 from aitrader.claude_setup import connect_claude_code
                 print(connect_claude_code(ROOT))
@@ -543,58 +539,18 @@ def cmd_menu(cfg, store, args):
             print(f"\nPROBLEM: {e}")
 
 
-def dashboard_actions(cfg):
-    """What the dashboard's two buttons do. Each opens its own database connection (they run on
-    the web server's thread)."""
-    def pause():
-        store = Store(data_path(cfg, "aitrader.sqlite"))
-        for desk in active_desks(cfg):
-            store.set(f"halted:{desk}", True)
-        store.log("PAUSED from the dashboard: no new trades. Stop-losses still protect what it owns.")
-        return ("Paused: no new trades. Nothing was sold now; stop-losses still protect what it owns, and the "
-                "day desk still sells before the close. Resume from the AI Trader menu.")
-
-    def kill():
-        cmd_kill(cfg, Store(data_path(cfg, "aitrader.sqlite")), None)
-        return ("Emergency stop: the bot sold (or is selling) everything it owns, and both desks are halted. "
-                "Check the Activity and Journal tabs.")
-    return {"pause": pause, "kill": kill}
-
-
-_demo_cfg = None                                     # the demo is built once per menu session
-
-
-def open_dashboard(cfg, demo=False, block=False) -> str:
-    """Opens the dashboard in your browser, starting it first if needed."""
-    global _demo_cfg
-    import webbrowser
-    from aitrader import dashboard
-    port = cfg.get("dashboard", {}).get("port", 8765) + (1 if demo else 0)
-    if demo:
-        if _demo_cfg is None:
-            from aitrader.demo import build
-            print("Building demo data with the bot's real code (about a minute)...")
-            demo_cfg = build(cfg)
-            if dashboard.start(demo_cfg, dashboard_actions(demo_cfg), port) is None:
-                return f"Port {port} is busy; change dashboard.port in config.yaml."
-            _demo_cfg = demo_cfg
-        cfg = _demo_cfg
-    elif not dashboard.is_running(cfg, port):
-        if dashboard.start(cfg, dashboard_actions(cfg), port) is None:
-            return f"Port {port} is busy; change dashboard.port in config.yaml."
-    link = dashboard.url(cfg, port)
-    webbrowser.open(link)
-    message = f"Dashboard: {link.split('#')[0]}" + (" (DEMO data)" if demo else "")
-    if block:
-        print(message + "\nLeave this window open while you use it. Ctrl+C stops it.")
-        while True:
-            time.sleep(3600)
-    return message + ("\nIt stays open while this menu is open (or all the time with the background autopilot)."
-                      if not demo else "\nThe demo stays open while this menu is open.")
+def open_app() -> str:
+    """Opens the AI Trader app; its window is the dashboard."""
+    import subprocess
+    if sys.platform != "darwin":
+        return "The AI Trader app is for Mac."
+    found = subprocess.run(["open", "-b", "com.aitrader.app"], capture_output=True).returncode == 0
+    return ("Opened the AI Trader app." if found else
+            "Couldn't find the AI Trader app. Drag it into Applications and open it once.")
 
 
 def cmd_dashboard(cfg, store, args):
-    open_dashboard(cfg, demo=args.demo, block=True)
+    print(open_app())
 
 
 def cmd_study(cfg, store, args):
@@ -766,7 +722,7 @@ def main(argv=None, cfg=None, store=None):
     sub.add_parser("menu")
     sub.add_parser("status")
     sub.add_parser("check")
-    sub.add_parser("dashboard").add_argument("--demo", action="store_true", help="made-up data, to see how it looks")
+    sub.add_parser("dashboard")
     sub.add_parser("study")
     t = sub.add_parser("trade")
     t.add_argument("--desk", choices=["swing", "day"], help=desk_help)

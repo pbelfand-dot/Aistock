@@ -196,6 +196,7 @@
   <button id="theme" class="icon-btn" title="Light / dark" aria-label="Switch light or dark mode">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
   </button>
+  <button id="setup" class="btn" title="Keys, plans, autopilot and more (opens in Terminal)">Setup</button>
   <button id="pause" class="btn">Pause</button>
   <button id="kill" class="btn btn-danger" aria-label="Emergency stop"><span class="hide-sm">Emergency stop</span><span class="sm-only">Stop</span></button>
 </header>
@@ -278,7 +279,7 @@
   <h3>Pause trading?</h3>
   <p class="ink2">Both desks stop making new trades. Nothing is sold now. The bot still protects what it owns:
      stop-losses stay on, and the day desk still sells before the close (it never holds overnight).
-     Resume from the AI Trader menu when you're ready.</p>
+     Resume from the Setup menu when you're ready.</p>
   <div class="dlg-actions"><button value="cancel" data-close>Cancel</button><button class="primary blue" id="do-pause">Pause</button></div>
 </dialog>
 <dialog id="dlg-kill">
@@ -291,16 +292,14 @@
 
 <script>
 "use strict";
-/* ---------------- key + settings ---------------- */
+/* ---------------- settings ---------------- */
 const store = {
-  get(k) { try { return sessionStorage.getItem(k) || localStorage.getItem(k); } catch { return null; } },
-  set(k, v, keep) { try { (keep ? localStorage : sessionStorage).setItem(k, v); } catch {} },
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
 };
-const fromHash = new URLSearchParams(location.hash.slice(1)).get("t");
-if (fromHash) { store.set("aitrader-token", fromHash); history.replaceState(null, "", location.pathname); }
-const TOKEN = store.get("aitrader-token") || "";
 
-const state = { snap: null, account: null, tab: "summary", range: "3M", side: "all", desk: "all", table: false };
+const state = { snap: null, account: null, tab: "summary", range: "3M", side: "all", desk: "all", table: false,
+                demo: false, building: false, notice: null };
 const theme = store.get("aitrader-theme");
 if (theme) document.documentElement.dataset.theme = theme;
 
@@ -325,25 +324,29 @@ const arrow = (v) => v == null || v === 0 ? "" : v > 0 ? "▲ " : "▼ ";
 const niceDate = (s) => new Date(s + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-/* ---------------- data ---------------- */
-async function load() {
-  document.body.classList.toggle("loading", !!state.snap);
-  try {
-    const r = await fetch("/api/snapshot", { headers: { "X-Token": TOKEN } });
-    if (r.status === 401) throw new Error("Open the dashboard from the AI Trader menu (it carries your key).");
-    if (!r.ok) throw new Error("The bot answered with an error (" + r.status + ").");
-    state.snap = await r.json();
-    render();
-  } catch (e) {
-    showBanner(e.message || "Can't reach the bot. Is the AI Trader menu or autopilot running?", true);
-  } finally { document.body.classList.remove("loading"); }
+/* ---------------- data: the app's bridge to the bot (no web server) ---------------- */
+const bridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.aitrader;
+async function call(action, extra) {
+  if (!bridge) throw new Error("Open this from the AI Trader app.");
+  const data = JSON.parse(await bridge.postMessage({ action, demo: state.demo, ...(extra || {}) }));
+  if (data.error) throw new Error(data.error);
+  return data;
 }
-async function act(name, body) {
-  const r = await fetch("/api/" + name, { method: "POST", headers: { "X-Token": TOKEN, "Content-Type": "application/json" },
-                                           body: JSON.stringify(body || {}) });
-  const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(data.error || "failed");
-  return data.message;
+let inFlight = null;
+function load() {                                          // one question to the bot at a time
+  if (state.building) return Promise.resolve();
+  if (inFlight) return inFlight;
+  const demo = state.demo;
+  document.body.classList.toggle("loading", !!state.snap);
+  inFlight = call("snapshot")
+    .then(snap => { if (demo === state.demo) { state.snap = snap; render(); } })
+    .catch(e => showBanner(e.message || "The bot didn't answer. Try View → Refresh.", true))
+    .finally(() => { inFlight = null; document.body.classList.remove("loading"); });
+  return inFlight;
+}
+function notify(text, error) {                             // a message that stays up for 20 seconds
+  state.notice = { text, error, until: Date.now() + 20000 };
+  showBanner(text, error);
 }
 function showBanner(text, error) {
   const b = $("#banner"); b.hidden = !text; b.textContent = text || ""; b.classList.toggle("error", !!error);
@@ -354,7 +357,10 @@ function render() {
   const s = state.snap;
   if (!state.account) state.account = s.accounts.live.active ? "live" : "paper";
   const a = s.accounts[state.account];
-  showBanner(s.demo ? "DEMO: made-up prices run through the bot's real code, so you can see how this page works. Not your account." : "");
+  const n = state.notice && state.notice.until > Date.now() ? state.notice : null;
+  if (n) showBanner(n.text, n.error);
+  else showBanner(s.demo ? "DEMO: made-up prices run through the bot's real code, so you can see how the app works. " +
+                           "Not your account. (View → Show Demo Data to switch back.)" : "");
 
   const sel = $("#account");
   sel.replaceChildren(
@@ -369,7 +375,7 @@ function render() {
     el("span", { class: running ? "hide-sm" : null,
                  text: running ? `Autopilot running · ${m < 1 ? "just now" : Math.round(m) + " min ago"}`
                        : m == null ? "⚠ Autopilot off" : `⚠ Autopilot last seen ${Math.round(m)} min ago` }));
-  $("#autopilot").title = running ? "The autopilot is running" : "The autopilot isn't running: start it from the AI Trader menu";
+  $("#autopilot").title = running ? "The autopilot is running" : "The autopilot isn't running: start it from the Setup menu";
 
   renderSummary(s, a); renderPositions(a); renderActivity(a); renderResearch(s); renderJournal(s);
   $("#footer").textContent = `Updated ${new Date(s.generated_at).toLocaleTimeString()} · refreshes every 30 seconds · ` +
@@ -381,7 +387,7 @@ function renderSummary(s, a) {
   $("#hero").textContent = money(a.value);
   const dc = $("#daychange");
   if (!a.active) dc.textContent = state.account === "paper"
-      ? (s.study.ready ? "The study month is done: write the plans from the AI Trader menu."
+      ? (s.study.ready ? "The study month is done: write the plans from the Setup menu."
                        : `Not trading yet: the bot is studying (day ${s.study.calendar_days} of 30).`)
       : "No desk trades real money yet. That only happens after paper trading proves itself.";
   else if (a.day_change == null) dc.textContent = "";
@@ -412,7 +418,7 @@ function renderChart(a, bench) {
   const hasSpy = spy.some(v => v != null);
   $("#legend").replaceChildren(
     el("span", {}, el("span", { class: "key", style: "background:var(--accent)" }), "Your account"),
-    hasSpy ? el("span", {}, el("span", { class: "key", style: "background:var(--bench)" }), `${bench} (same starting amount)`) : null);
+    ...(hasSpy ? [el("span", {}, el("span", { class: "key", style: "background:var(--bench)" }), `${bench} (same starting amount)`)] : []));
 
   const box = $("#chart");
   if (dates.length < 2) {
@@ -482,7 +488,7 @@ function renderChart(a, bench) {
     if (sp != null) { dotSpy.setAttribute("cx", xx); dotSpy.setAttribute("cy", y(sp)); }
     const row = (color, name, v) => el("div", { class: "row" }, el("span", {}, el("span", { class: "key", style: `background:${color}` }), el("span", { class: "ink2", text: name })), el("strong", { text: money(v) }));
     tip.replaceChildren(el("div", { class: "when", text: new Date(dates[cur] + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" }) }),
-      row("var(--accent)", "Your account", mine[cur]), sp != null ? row("var(--bench)", bench, sp) : null);
+      row("var(--accent)", "Your account", mine[cur]), ...(sp != null ? [row("var(--bench)", bench, sp)] : []));
     tip.style.display = "block";
     const px = xx / W * box.clientWidth;
     tip.style.left = Math.max(0, px + 190 > box.clientWidth ? px - 190 : px + 12) + "px"; tip.style.top = "8px";
@@ -552,7 +558,8 @@ function spark(trail) {
 }
 function renderWatchlist(s) {
   const pricey = {}; s.desks.forEach(d => Object.assign(pricey, d.too_pricey || {}));
-  $("#watch-note").textContent = s.watchlist.length ? `${s.watchlist.length} stocks` : "";
+  $("#watch-note").textContent = !s.watchlist.length ? "" : s.watchlist.every(w => w.last == null)
+    ? "prices appear once the autopilot runs" : `${s.watchlist.length} stocks`;
   if (!s.watchlist.length) { $("#watchlist").replaceChildren(el("div", { class: "empty", text: "No stocks on the list." })); return; }
   $("#watchlist").replaceChildren(...s.watchlist.map(w => el("div", { class: "wl-row" },
     el("div", {}, el("div", { class: "sym", text: w.ticker }),
@@ -647,17 +654,21 @@ $("#account").onchange = (e) => { state.account = e.target.value; render(); };
 $("#theme").onclick = () => {
   const dark = getComputedStyle(document.documentElement).colorScheme.includes("dark");
   document.documentElement.dataset.theme = dark ? "light" : "dark";
-  store.set("aitrader-theme", document.documentElement.dataset.theme, true);
+  store.set("aitrader-theme", document.documentElement.dataset.theme);
   if (state.snap) render();
 };
 document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest("dialog").close());
 $("#pause").onclick = () => $("#dlg-pause").showModal();
 $("#kill").onclick = () => { $("#kill-confirm").value = ""; $("#do-kill").disabled = true; $("#dlg-kill").showModal(); };
 $("#kill-confirm").oninput = (e) => $("#do-kill").disabled = e.target.value.trim() !== "SELL EVERYTHING";
-$("#do-pause").onclick = async () => { $("#dlg-pause").close(); try { showBanner(await act("pause")); load(); } catch (e) { showBanner(e.message, true); } };
+$("#setup").onclick = () => call("open-menu").catch(e => notify(e.message, true));
+$("#do-pause").onclick = async () => {
+  $("#dlg-pause").close();
+  try { notify((await call("pause")).message); load(); } catch (e) { notify(e.message, true); }
+};
 $("#do-kill").onclick = async () => {
   $("#do-kill").disabled = true; $("#do-kill").textContent = "Selling...";
-  try { showBanner(await act("kill", { confirm: "SELL EVERYTHING" }), true); } catch (e) { showBanner(e.message, true); }
+  try { notify((await call("kill", { confirm: "SELL EVERYTHING" })).message, true); } catch (e) { notify(e.message, true); }
   $("#dlg-kill").close(); $("#do-kill").textContent = "Sell everything and stop"; load();
 };
 let chartWidth = 0;
@@ -666,6 +677,33 @@ window.addEventListener("resize", () => {
   if (!state.snap || state.tab !== "summary" || w === chartWidth) return;
   chartWidth = w; renderChart(state.snap.accounts[state.account], state.snap.benchmark);
 });
+
+/* ---------------- called by the app's menus ---------------- */
+window.aitraderRefresh = () => load();
+window.aitraderSetDemo = async (on) => {
+  state.demo = !!on; state.snap = null; state.account = null;
+  if (on) {
+    showBanner("Building the demo: made-up prices run through the bot's real code (about a minute)...");
+    state.building = true;
+    try { await call("demo-build"); }
+    catch (e) { state.demo = false; notify(e.message, true); }
+    finally { state.building = false; }
+  }
+  if (inFlight) await inFlight;                             // a real-data answer still on its way
+  await load();
+};
+window.aitraderSelfTest = async () => {                  // used by the build machine to check the app works
+  const problems = [];
+  await load();
+  if (!state.snap) problems.push("no data from the bot");
+  if (!$("#hero").textContent.includes("$")) problems.push("no account value");
+  try { await call("pause"); } catch (e) { problems.push("pause: " + e.message); }
+  await window.aitraderSetDemo(true);
+  if (!state.snap || !state.snap.demo) problems.push("demo didn't load");
+  for (const t of ["positions", "activity", "research", "journal", "summary"]) setTab(t);
+  if (!document.querySelectorAll("#activity tr").length) problems.push("no demo trades shown");
+  return problems.length ? "FAILED: " + problems.join("; ") : "OK: " + $("#hero").textContent;
+};
 
 setTab("summary");
 load();

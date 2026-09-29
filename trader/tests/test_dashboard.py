@@ -1,8 +1,5 @@
-"""The dashboard (a local web page) and the pause button's meaning."""
-import http.client
+"""The app's dashboard: its numbers, the bridge the app uses to ask the bot, and what Pause means."""
 import json
-import os
-import socket
 from datetime import datetime
 
 import pandas as pd
@@ -51,62 +48,28 @@ def test_snapshot_reads_like_a_brokerage_account(filled):
     assert next(w for w in snap["watchlist"] if w["ticker"] == "AAA")["change_pct"] == 0.0
 
 
-def _free_port():
-    with socket.socket() as s:
-        s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]
+def ask(monkeypatch, capsys, cfg, *args):
+    """What the app does: run `python -m aitrader.app_api ...` and read the JSON it prints."""
+    from aitrader import app_api
+    monkeypatch.setattr(app_api, "load_config", lambda: cfg)
+    capsys.readouterr()
+    assert app_api.main(list(args)) == 0
+    return json.loads(capsys.readouterr().out)          # only JSON: the bot's own messages go elsewhere
 
 
-def test_only_the_page_opened_from_the_menu_can_read_or_press_buttons(filled):
-    cfg, _ = filled
-    calls = []
-    port = _free_port()
-    server = dashboard.start(cfg, {"pause": lambda: calls.append("pause") or "paused",
-                                   "kill": lambda: calls.append("kill") or "killed"}, port)
-    key = dashboard.token(cfg)
-    assert oct(os.stat(dashboard.data_path(cfg, "dashboard_token")).st_mode & 0o777) == "0o600"
-    assert dashboard.url(cfg, port) == f"http://127.0.0.1:{port}/#t={key}"
+def test_the_app_asks_the_bot_directly_and_gets_json(filled, monkeypatch, capsys):
+    cfg, store = filled
+    assert ask(monkeypatch, capsys, cfg, "snapshot")["accounts"]["paper"]["value"] == 998.0
 
-    def ask(method, path, host=f"127.0.0.1:{port}", key=None, body=None):
-        conn = http.client.HTTPConnection("127.0.0.1", port, timeout=10)
-        headers = {"Host": host, **({"X-Token": key} if key else {})}
-        conn.request(method, path, body=json.dumps(body) if body is not None else None, headers=headers)
-        r = conn.getresponse()
-        data = r.read()
-        conn.close()
-        return r.status, data
+    answer = ask(monkeypatch, capsys, cfg, "kill")                        # no typed phrase: nothing happens
+    assert "SELL EVERYTHING" in answer["error"] and not store.get("halted:swing")
+    assert "error" in ask(monkeypatch, capsys, cfg, "kill", "--confirm", "sell everything")
 
-    try:
-        status, page = ask("GET", "/")
-        assert status == 200 and b"<title>AI Trader</title>" in page
-        assert dashboard.is_running(cfg, port)
-        assert ask("GET", "/api/snapshot")[0] == 401                                # no key
-        assert ask("GET", "/api/snapshot", key="wrong")[0] == 401
-        assert ask("GET", "/api/snapshot", host=f"evil.example:{port}", key=key)[0] == 403   # DNS rebinding
-        status, data = ask("GET", "/api/snapshot", key=key)
-        assert status == 200 and json.loads(data)["accounts"]["paper"]["value"] == 998.0
-
-        assert ask("POST", "/api/pause")[0] == 403 and calls == []                  # no key: no button
-        assert ask("POST", "/api/pause", host=f"evil.example:{port}", key=key)[0] == 403
-        assert ask("POST", "/api/kill", key=key, body={})[0] == 400 and calls == []       # must type it
-        assert ask("POST", "/api/kill", key=key, body={"confirm": "sell everything"})[0] == 400
-        assert ask("POST", "/api/buy", key=key)[0] == 404                             # there is no buy button
-        status, data = ask("POST", "/api/pause", key=key)
-        assert status == 200 and json.loads(data)["message"] == "paused" and calls == ["pause"]
-        assert ask("POST", "/api/kill", key=key, body={"confirm": "SELL EVERYTHING"})[0] == 200
-        assert calls == ["pause", "kill"]
-        assert dashboard.start(cfg, {}, port) is None                                # port busy: no crash
-    finally:
-        server.shutdown()
-        server.server_close()
-
-
-def test_the_dashboards_pause_button_halts_every_desk(cfg):
-    import run
-    store = Store(dashboard.data_path(cfg, "aitrader.sqlite"))
-    message = run.dashboard_actions(cfg)["pause"]()
+    answer = ask(monkeypatch, capsys, cfg, "pause")                       # Pause: every desk, nothing sold
+    assert "no new trades" in answer["message"]
     assert store.get("halted:swing") and store.get("halted:day") and not store.get("exiting:swing")
-    assert "no new trades" in message and "PAUSED from the dashboard" in store.journal(1)[0][1]
+    assert "PAUSED by you, from the app" in store.journal(1)[0][1]
+    assert store.get("paper-swing_ledger")["positions"]                   # still owns its stock
 
 
 # ---------------------------------------------------------------- what "paused" means
@@ -152,27 +115,27 @@ def test_resume_waits_until_an_emergency_exit_is_finished(paused_desk):
     assert not store.get("halted:day") and not store.get("exiting:day")
 
 
-def test_demo_runs_the_real_code_and_never_touches_your_data(cfg, tmp_path, monkeypatch):
+def test_demo_runs_the_real_code_and_never_touches_your_data(cfg, tmp_path, monkeypatch, capsys):
     from aitrader import demo
     monkeypatch.setattr(demo, "DAYS", 300)
     monkeypatch.setattr(demo, "INTRADAY_DAYS", 6)
     monkeypatch.setattr(demo, "PAPER_DAYS", 5)
     monkeypatch.setattr(demo, "DAY_DESK_PAPER_DAYS", 2)
-    (tmp_path / "demo").mkdir()
-    monkeypatch.setattr(demo.tempfile, "mkdtemp", lambda prefix: str(tmp_path / "demo"))
     cfg["desks"]["swing"]["watchlist"] = cfg["desks"]["swing"]["watchlist"][:3]
     cfg["desks"]["day"]["watchlist"] = cfg["desks"]["day"]["watchlist"][:3]
-    out = demo.build(cfg)
-    assert out["data_dir"] != cfg["data_dir"] and not list(tmp_path.glob("*.sqlite"))   # real folder untouched
-    snap = dashboard.snapshot(out, Store(dashboard.data_path(out, "aitrader.sqlite")))
+    assert "isn't built" in ask(monkeypatch, capsys, cfg, "snapshot", "--demo")["error"]
+
+    assert ask(monkeypatch, capsys, cfg, "demo-build")["message"] == "Demo data is ready."
+    assert not (tmp_path / "aitrader.sqlite").exists()                    # your real data: untouched
+    snap = ask(monkeypatch, capsys, cfg, "snapshot", "--demo")
     assert snap["demo"] and snap["prices"] == "demo"
     assert [d["phase"] for d in snap["desks"]] == ["PAPER", "PAPER"]
     assert len(snap["accounts"]["paper"]["dates"]) == 5 and snap["accounts"]["paper"]["series"]["benchmark"]
 
-    import run
-    run.dashboard_actions(out)["kill"]()              # the demo's emergency stop works offline
-    store = Store(dashboard.data_path(out, "aitrader.sqlite"))
+    ask(monkeypatch, capsys, cfg, "kill", "--confirm", "SELL EVERYTHING", "--demo")   # works offline
+    store = Store(tmp_path / "demo" / "aitrader.sqlite")
     assert store.get("paper-swing_ledger")["positions"] == {} == store.get("paper-day_ledger")["positions"]
     assert store.get("halted:swing") and not store.get("exiting:swing")
-    paper = dashboard.snapshot(out, store)["accounts"]["paper"]
+    paper = ask(monkeypatch, capsys, cfg, "snapshot", "--demo")["accounts"]["paper"]
     assert paper["value"] == paper["cash"]            # sold out: the headline value is just the cash
+    assert not (tmp_path / "aitrader.sqlite").exists()
