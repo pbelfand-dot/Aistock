@@ -31,6 +31,8 @@ def load_config(path=None) -> dict:
         "app_secret": os.environ.get("SCHWAB_APP_SECRET", ""),
         "callback_url": os.environ.get("SCHWAB_CALLBACK_URL", "https://127.0.0.1:8182"),
         "account_number": os.environ.get("SCHWAB_ACCOUNT_NUMBER", ""),
+        "telegram_token": os.environ.get("TELEGRAM_BOT_TOKEN", ""),      # phone alerts (phone.py)
+        "telegram_chat": os.environ.get("TELEGRAM_CHAT_ID", ""),
     }
     cfg["live_trading_enabled"] = os.environ.get("LIVE_TRADING_ENABLED", "").strip().lower() == "true"
     cfg.setdefault("data_dir", str(DATA_DIR))

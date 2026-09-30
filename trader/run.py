@@ -491,12 +491,28 @@ def process_alive(pid) -> bool:
     return True
 
 
+def start_phone(cfg, store):
+    """Your phone (phone.py): forward alerts, and answer your commands in a background thread."""
+    import threading
+    from aitrader import phone
+    from aitrader.scanner import is_on
+    if is_on((cfg.get("phone") or {}).get("screen", False)):  # the Kestrel screen over Tailscale
+        from aitrader import phone_screen
+        threading.Thread(target=phone_screen.serve_forever, args=(cfg,), daemon=True, name="phone-screen").start()
+    if not phone.token(cfg):
+        return
+    store.on_log = phone.forwarder(cfg)
+    path = data_path(cfg, "aitrader.sqlite")
+    threading.Thread(target=phone.listen, args=(cfg, lambda: Store(path)), daemon=True, name="phone").start()
+
+
 def cmd_autopilot(cfg, store, args):
     other = store.get("autopilot_pid")
     if other and other != os.getpid() and process_alive(other):
         raise RuntimeError(f"The autopilot is already running (process {other}). Only one may run at a time.")
     store.set("autopilot_pid", os.getpid())
     data = MarketData(cfg)
+    start_phone(cfg, store)
     store.log("Autopilot started. Keep the laptop awake and online (Ctrl+C stops it).")
     while True:
         now = now_ny()

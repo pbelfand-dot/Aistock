@@ -112,6 +112,12 @@ plan:
   min_forward_signals: 10  # swing: graded "buy" opinions in the study month
   min_forward_trades: 10   # day: shadow trades in the study month
 
+# ---- Your phone -----------------------------------------------------------------
+# Alerts and commands: a private Telegram bot (set up in the app's Setup screen, phone.py).
+# The Kestrel screen on your phone over your private Tailscale network (phone_screen.py): on/off.
+phone:
+  screen: off
+
 # ---- Rules to go from PAPER -> LIVE ("once you're profitable") -------------
 # Checked per desk. ALL must pass, and you must still confirm by hand.
 # Your rule: over the stage (30 trading days), make money AND beat SPY. The drawdown limit stays.
