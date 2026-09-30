@@ -89,6 +89,22 @@ def test_promotion_requires_every_rule(cfg):
     assert not all(ok for *_, ok in check_promotion(cfg, {**good, "max_drawdown_pct": 12}, 2.0))
 
 
+def test_the_owners_rule_made_money_and_beat_spy_over_30_days_no_trade_count(cfg):
+    """Momentum trades rarely: 3 closed trades and a low profit factor still pass if it made money,
+    beat SPY and stayed within the drawdown limit. Too short, a loss, or losing to SPY fail."""
+    few = {"trading_days": 30, "num_closed_trades": 3, "total_return_pct": 5.0,
+           "profit_factor": 0.8, "max_drawdown_pct": 6.0}
+    names = [name for name, *_ in check_promotion(cfg, few, benchmark_return_pct=2.0)]
+    assert "closed trades" not in names and "profit factor" not in names
+    assert all(ok for *_, ok in check_promotion(cfg, few, benchmark_return_pct=2.0))
+    assert not all(ok for *_, ok in check_promotion(cfg, {**few, "trading_days": 29}, 2.0))
+    assert not all(ok for *_, ok in check_promotion(cfg, {**few, "total_return_pct": -1.0}, -3.0))   # lost money
+    assert not all(ok for *_, ok in check_promotion(cfg, few, benchmark_return_pct=6.0))            # lost to SPY
+    assert not all(ok for *_, ok in check_promotion(cfg, {**few, "max_drawdown_pct": 11.0}, 2.0))
+    cfg["promotion"].update(min_closed_trades=20, min_profit_factor=1.2)                          # switch back on
+    assert not all(ok for *_, ok in check_promotion(cfg, few, benchmark_return_pct=2.0))
+
+
 def test_the_local_ai_gets_the_knowledge_pack_with_every_request(cfg, monkeypatch):
     """The owner's plan, the safety rules, the research and the TJR notes go along as background."""
     import io
