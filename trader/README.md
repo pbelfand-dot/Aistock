@@ -105,6 +105,14 @@ Only deleting the AITrader folder removes them.
 - **New listings** (under a year of history) go on a separate watch-only list.
 - **How the swing desk uses it:** it considers the 30 strongest stocks it can afford one whole share
   of (not the day desk's stocks), and holds up to 8. Its own rules and budget still decide every trade.
+- **If a scan doesn't finish** (the Mac slept, an update restarted it, Alpaca refused too many
+  requests), it tries again in 5 minutes, up to 3 times, and again the next morning if the list is
+  old. The after-market report says when the list was last made, or why not.
+- **Stocks in play (day desk):** the evening scan also keeps a pool of the busiest stocks the day
+  desk could trade. At 9:35am it compares each one's first 5 minutes of trading with its usual first
+  5 minutes (14-day average) and adds the top 10 (at least 1x usual, no danger news, not the swing
+  desk's) to the day desk's list for that day. The report shows whether trades in them did better
+  than trades in the fixed list (in_play.py, knowledge/36-stocks-in-play.md).
 - **News:** it reads headlines from Alpaca's news feed (Benzinga, free with your keys), or Yahoo's
   without keys.
   - A stock with **danger headlines** in the last 3 days (share offering, bankruptcy, trading halt,

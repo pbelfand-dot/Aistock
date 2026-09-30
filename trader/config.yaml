@@ -151,6 +151,19 @@ scanner:
   trade_top: 30            # the swing desk considers the 30 strongest stocks it can afford (whole shares)
                            # (enough for its 8 slots: it buys from the top 20% of what it considers)
 
+# ---- Stocks in play (in_play.py): the day desk's extra stocks each morning ----------------------
+# At 9:35 ET: which of the busiest stocks traded far more than usual in their first 5 minutes (relative
+# volume). The top ones join the day desk's list for that day; its watchlist above stays.
+in_play:
+  enabled: true
+  pool: 300                # the busiest stocks it checks (from the evening scan of all US stocks)
+  picks: 10                # added to the day desk's list each morning
+  min_rvol: 1.0            # at least as busy as usual in the first 5 minutes (the research used 1.0)
+  min_price: 5             # the research's filters: $5+ a share,
+  min_avg_volume: 1000000  # 1M+ shares a day (14-day average),
+  min_atr: 0.5             # and moving at least $0.50 a day (14-day average true range)
+  history_days: 14         # "usual" = the average of the last 14 days' first 5 minutes
+
 # ---- The team (agents.py) ------------------------------------------------------
 # Every decision goes through five agents that each write a short note: Scout (facts), Analyst (views),
 # Trader (the tested strategy's orders), Risk (checks every buy), Reviewer (after the close).

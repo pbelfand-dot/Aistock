@@ -44,6 +44,9 @@ class MarketData:
         if desk == "swing":                          # the top of the daily all-stocks scan (scanner.py)
             from .scanner import trade_candidates
             scanned = trade_candidates(self.cfg)
+        elif desk == "day":                          # today's stocks in play (in_play.py), from 9:35
+            from .in_play import today_picks
+            scanned = today_picks(self.cfg)
         wanted = list(dict.fromkeys(self.cfg["desks"][desk]["watchlist"] + scanned + list(extra)))
         tickers = list(dict.fromkeys(wanted + [self.cfg["benchmark"]]))
         bars = {}

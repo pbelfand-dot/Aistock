@@ -138,7 +138,7 @@ def test_a_new_install_scans_in_the_morning_so_the_first_decision_can_use_the_li
     store = Store(":memory:")
     run.run_job("morning", cfg, store, None, datetime(2026, 9, 30, 9, 30), set())
     assert ran == ["2026-09-30"]
-    monkeypatch.setattr(scanner, "load_list", lambda cfg: {"liked": [{"symbol": "ROCKET"}]})
+    monkeypatch.setattr(scanner, "load_list", lambda cfg: {"updated": "2026-09-30", "liked": [{"symbol": "ROCKET"}]})
     run.run_job("morning", cfg, store, None, datetime(2026, 10, 1, 9, 30), set())
     assert ran == ["2026-09-30"]                                                # has a list: waits for tonight
 
@@ -254,3 +254,110 @@ def test_an_older_list_without_picks_still_works(cfg, monkeypatch):
     data_path(cfg, scanner.LIST_FILE).write_text(json.dumps({"liked": [{"symbol": "AAA"}, {"symbol": "SOFI"}]}))
     cfg["desks"]["day"]["watchlist"] = ["SOFI"]
     assert scanner.trade_candidates(cfg) == ["AAA"]
+
+
+def test_the_scan_counts_as_done_only_when_it_finished(cfg, monkeypatch):
+    """A scan cut short (the Mac restarted, an update) or one that failed runs again; three failures wait
+    for the next day. Before, it was never marked done and started over every 5 minutes all evening."""
+    import run
+    monkeypatch.setattr(run, "SCAN_IN_BACKGROUND", False)
+    store, today, now = Store(":memory:"), "2026-09-30", datetime(2026, 9, 30, 16, 25)
+    results = iter([RuntimeError("Alpaca refused 20 of 30 batches"), "scan: 9000 stocks checked"])
+
+    def fake_run(cfg, store, day):
+        r = next(results)
+        if isinstance(r, Exception):
+            raise r
+        return r
+    monkeypatch.setattr(scanner, "run", fake_run)
+    run.run_job("scan", cfg, store, None, now, set())
+    assert not run.job_complete("scan", store, today)                   # failed once: tries again
+    assert "try 1 of 3" in store.journal(5)[-1][1] and "tries again in 5 minutes" in store.journal(5)[-1][1]
+    run.run_job("scan", cfg, store, None, now, set())
+    assert run.job_complete("scan", store, today)                       # finished
+    assert run.scan_state(store, today)["summary"] == "scan: 9000 stocks checked"
+    assert run.run_job("scan", cfg, store, None, now, set()) == ""      # doesn't scan again today
+
+    store = Store(":memory:")
+    monkeypatch.setattr(scanner, "run", lambda cfg, store, day: 1 / 0)
+    for _ in range(3):
+        run.run_job("scan", cfg, store, None, now, set())
+    assert run.job_complete("scan", store, today)                       # gave up until tomorrow
+    assert "gave up" in run.run_job("scan", cfg, store, None, now, set())
+
+    store = Store(":memory:")                                           # started, then the Mac restarted
+    store.set("scan_status", {"day": today, "kind": "evening", "tries": 1, "started": "2026-09-30T16:20"})
+    assert not run.job_complete("scan", store, today)
+
+
+def test_a_stale_list_is_scanned_again_in_the_morning(cfg, monkeypatch):
+    import run
+    monkeypatch.setattr(run, "SCAN_IN_BACKGROUND", False)
+    monkeypatch.setattr(scanner, "universe", lambda cfg: list(fake_market()))
+    run_scan(cfg, Store(":memory:"), "2026-09-25")                      # Friday's list
+    ran = []
+    monkeypatch.setattr(scanner, "run", lambda cfg, store, day: ran.append(day) or "scan: ok")
+    run.first_scan(cfg, Store(":memory:"), "2026-09-28")                # Monday: Friday's list is fine
+    assert ran == []
+    run.first_scan(cfg, Store(":memory:"), "2026-09-30")                # Wednesday: Tuesday's scan didn't finish
+    assert ran == ["2026-09-30"]
+
+
+def test_a_quick_look_first_then_a_full_year_only_for_actively_traded_stocks(cfg, monkeypatch):
+    monkeypatch.setattr(scanner, "universe", lambda cfg: list(fake_market()))
+    asked = []
+
+    def fetch(cfg, symbols, days):
+        asked.append((days, sorted(symbols)))
+        return {s: df for s, df in fake_market().items() if s in symbols}
+    cfg["scanner"] = {**scanner.settings(cfg), "top": 5}
+    summary = scanner.run(cfg, Store(":memory:"), "2026-09-29", fetch=fetch, get_news=lambda c, s, d: {})
+    assert asked[0] == (45, sorted(fake_market()))
+    assert asked[1] == (400, ["NEWCO", "ROCKET", "SINKER", "STEADY"])  # not PENNY (under $3) or QUIET (thin)
+    assert "6 stocks checked, 4 actively traded" in summary and "the swing desk can afford" in summary
+
+
+def test_alpaca_batches_that_fail_are_tried_again_and_mostly_failing_is_an_error(cfg, monkeypatch):
+    from aitrader import alpaca_api
+    monkeypatch.setattr(scanner, "_pause", lambda s: None)
+    cfg["secrets"].update(alpaca_paper_key="k", alpaca_paper_secret="s")
+    calls = {"n": 0}
+
+    class Reply:
+        def __init__(self, symbols):
+            rows = [(s, pd.Timestamp("2026-09-29", tz="UTC")) for s in symbols]
+            self.df = pd.DataFrame({"open": 1.0, "high": 1.0, "low": 1.0, "close": 5.0, "volume": 1e6},
+                                   index=pd.MultiIndex.from_tuples(rows, names=["symbol", "timestamp"]))
+
+    class Flaky:                                                         # refuses the first 3 requests
+        def get_stock_bars(self, request):
+            calls["n"] += 1
+            if calls["n"] <= 3:
+                raise RuntimeError("too many requests")
+            return Reply(request.symbol_or_symbols)
+    monkeypatch.setattr(alpaca_api, "data_client", lambda cfg: Flaky())
+    out = scanner._alpaca_bars(cfg, ["AAA", "BBB"], 45)
+    assert sorted(out) == ["AAA", "BBB"]                                 # the retry got it
+
+    class Refuses:
+        def get_stock_bars(self, request):
+            raise RuntimeError("too many requests")
+    monkeypatch.setattr(alpaca_api, "data_client", lambda cfg: Refuses())
+    with pytest.raises(RuntimeError, match="refused 1 of 1 batches"):
+        scanner._alpaca_bars(cfg, ["AAA"], 45)
+
+
+def test_the_report_says_whether_the_scan_is_working(cfg, monkeypatch):
+    from aitrader.report import scan_lines
+    store = Store(":memory:")
+    text = "\n".join(scan_lines(cfg, store, "2026-09-30"))
+    assert "No stock list yet" in text and "only picks from its watchlist" in text
+    store.set("scan_status", {"day": "2026-09-30", "kind": "evening", "tries": 2, "error": "RuntimeError('refused')"})
+    assert "FAILED: RuntimeError('refused')" in "\n".join(scan_lines(cfg, store, "2026-09-30"))
+    monkeypatch.setattr(scanner, "universe", lambda cfg: list(fake_market()))
+    summary = run_scan(cfg, store, "2026-09-30")
+    store.set("scan_status", {"day": "2026-09-30", "kind": "evening", "tries": 1,
+                              "finished": "2026-09-30T16:31", "summary": summary})
+    text = "\n".join(scan_lines(cfg, store, "2026-09-30"))
+    assert "Last scan (2026-09-30 16:31): 6 stocks checked" in text and "ROCKET" in text
+    assert "The swing desk also considers" in text
