@@ -1,0 +1,72 @@
+{
+  "video": {
+    "n": 35,
+    "file": "06_25_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 12 sheets, 14 full-size shots (#1, #4, #6, #10, #11, #16, #17, #21, #28, #30, #34, #37, #42, #45) and the transcript. Charts are ES1! (legend 'S&P 500 E-mini Futures · 1/5/15/1h/4h · CME') and NQ1! (legend 'NASDAQ 100 E-mini Futures · 5/1h · CME'); price-axis labels, x-axis date/time and one TradingView long-position box are readable. No position-tool tooltip, broker panel, fills, size or P&L shown. Chart time-zone label not visible. Transcript (pocketsphinx) is heavily garbled: only fragments usable ('long ... trade I've been in', 'currently live', 'SMT divergence', 'equilibrium', 'ten am ... wait for that', 'imbalance ... invalidated', 'underneath the bottom ... imbalance', 'Nasdaq was the leading index'). Structure: 00:00-00:44 ES 1m with open long box, ES 4h; 00:49-01:15 ES 15m/1h/5m; 01:22-01:44 ES 5m (circled sweep), NQ 5m; 01:48-02:24 ES 5m/15m; 02:31 Forex Factory calendar; 02:38-04:34 ES 1m walk-through of the entry and the imbalance zones; 04:39-05:12 ES 1h, NQ 1h/1m/5m; 05:17-06:01 ES 5m, 4h, 15m. He is recording while the trade is still open (~11:15 chart time).",
+    "duration_min": 6.1,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-06-25",
+      "src": "seen",
+      "ref": "#1 00m00s and #21 03m06s x-axis red marker 'Tue 25 Jun '24 09:30'; #16 02m31s forexfactory.com/calendar?day=jun25.2024 'Today: Jun 25'; file name 06_25_2024."
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "4h: sell-off from a mid-June high (≈5,588) into the 24-25 Jun lows (5,513.50 line / ≈5,511), price back at the 4h range equilibrium (≈5,525). 1h: basing/range ≈5,511-5,530.75. 25 Jun intraday (chart time, likely ET): pre-market high 5,530.75 (≈09:05); drop at the 09:30 open; low ≈5,517.75 at ≈09:59-10:00 (10:00 news); rally back to ≈5,532 by ≈11:15.",
+      "src": "inferred",
+      "ref": "#4 00m29s ES 4h fib range drawn ≈5,588 (1) to ≈5,462 (0), 0.5 at ≈5,525 (from axis spacing, ±3); #42 05m37s 4h and #6 00m56s 1h labels 5,535.00 / 5,530.75 / 5,524.50 / 5,520.25 / 5,513.50 / 5,511.00 (seen); #21 03m06s 1m candles vs axis (±0.5); #45 05m54s 15m legend H5,532.25 C5,530.75 (seen). Chart time zone not shown; 09:30 marker and the ≈10:00 news spike fit ET (inferred)."
+    },
+    "news": {
+      "value": "Tue 25 Jun 2024 (Forex Factory, times as displayed, consistent with ET): 9:00am USD S&P/CS Composite-20 HPI y/y actual 7.2% vs forecast 7.0% (prev 7.5%); 9:59am USD Richmond Manufacturing Index -10 vs -3 (prev 0); 10:00am USD CB Consumer Confidence (red/high impact) 100.4 vs 100.0 (prev 102.0). He says he waited for the 10am release.",
+      "src": "seen",
+      "ref": "#16 02m31s Forex Factory rows read directly; heard [02:30] 'we have at home ... ten am ... obviously we wait for that said it happened right here' read as 'we had 10am news, we wait for it, it happened here' (uncertain)."
+    },
+    "bias": {
+      "value": "Bullish: price in the 4h discount/equilibrium after sweeping intraday sell-side lows; draw on liquidity = buy-side highs above at 5,530.75 (pre-market high) and 5,535.00 (24 Jun swing high); possibly 5,542.75 further out.",
+      "src": "inferred",
+      "ref": "Heard [00:45] 'bullish ... we were already within the [discount] price range', [02:15] 'down in the equilibrium overall everything works', [05:30] 'I think we're ready to start moving higher'. Levels seen as drawn lines/labels (#6, #42, #45; the 5,535.00 line starts at a 24 Jun ≈14:30 swing high on #45 15m, the 5,530.75 line at the 25 Jun pre-market high on #21). 5,542.75 is only a crosshair label on #45 (seen) tied to heard [04:30] '... all the way out here' (uncertain)."
+    }
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-06-25", "src": "seen", "ref": "#21 03m06s x-axis 'Tue 25 Jun '24'; position box sits on 25 Jun candles"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#1 00m00s legend 'S&P 500 E-mini Futures · 1 · CME', symbol box 'ES1!'"},
+      "direction": {"value": "long", "src": "seen", "ref": "#17 02m38s / #21 03m06s TradingView long-position box: blue (target) above the entry, grey (stop) below; heard [00:15] 'this is a long ... trade I've been in'"},
+      "timeframes": {"value": {"bias": "4h/1h", "setup": "5m", "entry": "1m"}, "src": "inferred", "ref": "Fib ranges drawn on 4h (#4) and 1h (#6); sweep circled on 5m (#10); position box shown on 1m (#1, #17, #21, #28); heard [01:15] '... five minutes' near the SMT remark"},
+      "setup": {"value": "sweep of pre-market low into 10:00 news + ES/NQ SMT at 4h equilibrium -> bearish imbalance invalidated -> long from bullish imbalance, target 24 Jun high", "src": "inferred", "ref": "Assembled from the seen chart drawings (#10 circle, #21/#28 imbalance boxes, position box) and garbled heard fragments [01:15]-[02:45], [03:30], [05:00]"},
+      "entry_conditions": [
+        {"value": "Price at/below the 4h range equilibrium (≈5,525; discount)", "src": "inferred", "ref": "#4 00m29s 4h fib 0.5 ≈5,525 (±3) from axis; heard [00:45] 'within the [discount] price range', [02:15] 'down in the equilibrium'"},
+        {"value": "Sell-side sweep: price traded below a prior pre-market low (line ≈5,520.75) at the 09:30 open and again to ≈5,517.75 at ≈09:59-10:00", "src": "inferred", "ref": "#10 01m22s ES 5m: circle drawn at the 09:30 candle piercing the line labelled 5,520.75 (seen); low ≈5,517.6 from axis spacing on #10 and #21 (±0.5)"},
+        {"value": "SMT divergence: NQ held a higher low while ES made a lower low (NQ the leading index)", "src": "heard", "ref": "[01:15] 'he diverted some five minutes ... the lower lows raise your' , [02:15] 'the essence the divergence', [05:00] 'nasdaq was the leading index in terms of the essence he doesn't see divergence only at these low' read as 5m SMT; #37 05m12s NQ 5m ≈10:00 low ≈19,791 vs ≈02:00 low ≈19,780 (higher low, ±3) while ES ≈10:00 low was below its pre-market low (inferred, rough)"},
+        {"value": "Wait for the 10:00 news, then a bearish imbalance gets invalidated (closed through, IFVG) before entering", "src": "heard", "ref": "[02:30]-[02:45] 'ten am ... we wait for that ... the main thing that i was looking for was this ... balance gate invalidated which ended up happening on these [candles]' (garbled; which gap is meant is not identifiable)"},
+        {"value": "Entry on the retrace into the bullish imbalance just after 10:00 (entry line 5,524.50, above the overlapping imbalance zone ≈5,521.75-5,523.75)", "src": "seen", "ref": "#21 03m06s / #28 03m40s: box entry line at axis label 5,524.50; dark-grey imbalance zone ≈5,521.75-5,523.75 (inferred from axis, ±0.25); heard [02:45] 'push down into this bullish ... bounce', [03:00] 'I got a really solid entry'"}
+      ],
+      "entry_time": {"value": "≈10:05 chart time (likely ET)", "src": "inferred", "ref": "Left edge of the position box at x≈475 on #21 1m (10:10 at x=503, 5.8 px/min) and ≈10:05 on #17/#28; entry fill time itself not shown"},
+      "entry": {"value": 5524.5, "src": "seen", "ref": "#17 02m38s and #21 03m06s axis label 5,524.50 at the box entry line"},
+      "stop": {"value": 5520.25, "src": "seen", "ref": "#17 02m38s / #21 03m06s axis label 5,520.25 at the bottom of the grey stop zone (a dashed line and the 1h fib 0.5 on #6 also sit at 5,520.25)"},
+      "stop_rule": {"value": "below the bottom of the bullish imbalance (and below the 1h range 50%)", "src": "heard", "ref": "[03:30] 'i just pulled myself was underneath the bottom weight of this ... imbalance' read as 'I put my stop underneath the bottom of this imbalance' (uncertain); 1h 0.5 = 5,520.25 seen on #6"},
+      "target": {"value": 5535.0, "src": "seen", "ref": "#17 02m38s top of the blue target zone at axis label 5,535.00; same 5,535.00 line/label on #4 4h, #6 1h, #42 4h, #45 15m"},
+      "target_rule": {"value": "buy-side liquidity at the 24 Jun swing high (5,535.00), above the 25 Jun pre-market high (5,530.75)", "src": "inferred", "ref": "#45 05m54s 15m: the 5,535.00 line starts at a 24 Jun ≈14:30 swing high; heard [04:30] 'based off of these ... highs ... all the way out here' (garbled)"},
+      "exit": {"value": "open at end of video; last seen 5,530.75 (15m bar H5,532.25)", "src": "seen", "ref": "#45 05m54s legend O5,528.75 H5,532.25 L5,527.75 C5,530.75; target 5,535.00 not reached in any shot. Heard [01:45] 'we have a profit i just finished up my position and go ahead and move if stop loss' read as a partial taken and stop moved (level unknown; uncertain)"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "No contract count, account or order panel shown"},
+      "result": {"value": "unknown", "src": "inferred", "ref": "Trade still open when the recording ends (heard [00:15] 'currently live'; #45 price below target). Unrealized ≈+6.25 pts at 5,530.75. Worst seen after entry ≈5,521.5 at ≈10:47 (#30, ±0.5), stop not touched in the shots"},
+      "r_multiple": {"value": null, "src": "unknown", "ref": "Exit unknown. Planned R = (5535.00-5524.50)/(5524.50-5520.25) = 10.50/4.25 = 2.47. Mark at video end (5530.75-5524.50)/4.25 = 1.47R; max favourable seen (5532.25-5524.50)/4.25 = 1.82R; max adverse ≈(5521.5-5524.5)/4.25 ≈ -0.7R. Partial/stop move heard but not shown"},
+      "claimed_pnl": {"value": "no $ amount; garbled percent remarks", "src": "heard", "ref": "[00:00] 'looks like price is about to hit one percent profit' and [04:30] 'i just eight percent profit' (could be 'first take profit'; unintelligible)"},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "No broker/platform P&L, fills or position panel shown; only the drawn position box"},
+      "mistakes": [
+        {"value": "none identified; trade ran ≈0.7R against him before moving and he says it took much longer than anticipated", "src": "inferred", "ref": "#30 03m51s low ≈5,521.5 at ≈10:47 vs entry 5,524.50; heard [00:15] 'much longer than anticipated'"}
+      ],
+      "evidence_summary": "Seen: date, ES 1m long box with entry 5,524.50 / stop 5,520.25 / target 5,535.00, levels, FF news, last price 5,530.75. Heard (garbled): SMT, 10am wait, IFVG trigger, stop under imbalance, partial/stop move. Inferred: entry time ≈10:05, sweep prices, result open/unknown."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "Wait for the 10am news release before taking the entry", "src": "heard", "ref": "[02:30] 'ten am ... obviously we wait for that' (garbled)"},
+    {"value": "Look for SMT divergence at the lows; Nasdaq was the leading (stronger) index", "src": "heard", "ref": "[05:00] 'nasdaq was the leading index in terms of the essence he doesn't see divergence only at these low' read as SMT"},
+    {"value": "Mark where two imbalances overlap; expect price to revisit/fill that overlap before continuing", "src": "heard", "ref": "[03:30]-[04:15] 'come down a fill ... the middle in this imbalance', 'highlighted the price range where these two overlap', 'price to revisit it'; #30 03m51s wavy drawing through the zone ≈5,521.75-5,523.75 (seen)"},
+    {"value": "Entry trigger: a bearish imbalance getting invalidated after the sweep", "src": "heard", "ref": "[02:30]-[02:45] 'the main thing that i was looking for was this ... balance gate invalidated' (garbled)"}
+  ],
+  "quality_notes": "Trade was still open when recording ended, so exit and realized R are unknown; a partial and stop move are only faintly heard. No tooltip, size, fills or broker P&L. Transcript badly garbled (SMT, IFVG trigger and stop logic are reconstructions). Chart time zone not shown (ET inferred). SMT and sweep prices are pixel estimates (±0.5 ES, ±3 NQ)."
+}
