@@ -50,19 +50,19 @@ closed trades, the desk made money, won at least 1.2× what it lost, never dropp
 2. **First open:** macOS will block it (it isn't from the App Store). Open **System Settings →
    Privacy & Security**, scroll down, click **Open Anyway**. (Or in Terminal:
    `xattr -dr com.apple.quarantine "/Applications/AI Trader.app"`.)
-3. The app's window opens. The first time, it also opens the **Setup menu** in Terminal, which
-   installs Python plus the bot's libraries (about 2 minutes, once); then the window shows your
-   dashboard. From then on, opening the app just opens its window. The Setup menu is always at
-   **AI Trader → Setup Menu** (⌘,) or the **Setup** button.
-4. **Alpaca keys** (free, about 5 minutes):
+3. The app's window opens. **The first time only**, a Terminal window also opens to install
+   Python and the bot's libraries (about 2 minutes). Then the dashboard appears with the **Setup**
+   screen on top. The Setup screen is always one click away: the **Setup** button.
+4. **Setup → 1. Connect your Alpaca paper account** (free, about 5 minutes):
    - Sign up at <https://app.alpaca.markets>. Paper trading needs no money and no approval.
    - The default paper account holds $100,000. Make a new paper account with **$1,000** so paper
      behaves like your real account (the bot caps itself at $1,000 either way).
-   - In the paper account: **API Keys → Generate**. Setup menu → **Edit my keys**, paste them as
-     `ALPACA_PAPER_API_KEY` / `ALPACA_PAPER_SECRET_KEY`, save, close TextEdit.
-   - Setup menu → **Check my Alpaca keys** should say "connected".
-5. Setup menu → **Keep the autopilot running in the BACKGROUND**. Done: it studies every trading
-   day, starts when you log in, and restarts itself if it crashes (closing the app doesn't stop it).
+   - In the paper account: **API Keys → Generate**. Paste the Key ID and Secret into Setup and
+     press **Save and test**. It should show two green checks. The keys are saved only on your Mac
+     (`~/AITrader/.env`). Live (real-money) keys are refused here on purpose.
+5. **Setup → 2. Autopilot → Turn on.** Done: it studies every trading day, starts when you log
+   in, and restarts itself if it crashes (closing the app doesn't stop it).
+6. **Setup → 3. What happens next** tells each desk's step in plain English.
 
 Your files live in **~/AITrader** (your home folder): `.env` = keys, `config.yaml` = settings,
 `data/` = the bot's memory, plans and logs (`data/autopilot.log`).
@@ -97,15 +97,17 @@ web server: when the window needs numbers, the app asks the bot directly
   cards and plans. **Journal:** what it did, and why.
 - Switch between the **Paper** and **Live** account at the top. Light and dark mode follow your Mac.
 - Menus: **View → Refresh** (⌘R), **View → Show Demo Data** (⌘D: made-up prices run through the
-  bot's real code, so you can see everything before it has traded), **AI Trader → Setup Menu** (⌘,).
+  bot's real code, so you can see everything before it has traded), **AI Trader → Setup Menu** (⌘,:
+  the full Terminal menu).
 
 Two buttons, both ask first:
 - **Pause:** no new trades. Nothing is sold now; stop-losses keep protecting what it owns, and the
-  day desk still sells before the close. Resume from the Setup menu.
+  day desk still sells before the close. **Setup → Resume trading** turns it back on.
 - **Emergency stop:** you type `SELL EVERYTHING`; it cancels the bot's orders, sells everything
   the bot owns (never your own stocks) and halts both desks.
 
-Approving plans, going live and resuming stay in the Setup menu, where you type a confirmation.
+Approving plans, going live and Schwab stay in the full Setup menu (Terminal), where you type a
+confirmation.
 The app only reads the bot's own files (no broker keys). It's the bot's own design, not a copy of
 Schwab's or Alpaca's: it never asks for a broker login. If something goes wrong, the bot's
 messages are in `data/app.log`.

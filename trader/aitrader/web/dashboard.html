@@ -169,6 +169,25 @@
   .dlg-actions button { padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); }
   .dlg-actions .primary { background: var(--down); border-color: var(--down); color: #fff; }
   .dlg-actions .primary.blue { background: var(--accent); border-color: var(--accent); }
+  dialog.setup { max-width: 560px; width: calc(100vw - 48px); max-height: calc(100vh - 48px); overflow: auto; }
+  .setup-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .setup-step { border-top: 1px solid var(--border); padding: 14px 0 6px; }
+  .setup-step h4 { margin: 0 0 6px; display: flex; align-items: center; gap: 8px; font-size: 15px; }
+  .setup-step .num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent-wash); color: var(--ink);
+                     display: inline-grid; place-items: center; font-size: 12px; font-weight: 700; }
+  .setup-step p { margin: 4px 0 8px; font-size: 13px; }
+  .setup-step label { display: block; font-size: 13px; color: var(--ink-2); }
+  .setup-step input { margin: 4px 0 10px; }
+  .setup-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .setup-row button, .setup-step > button { padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border);
+                     background: var(--surface); color: var(--ink); font: inherit; }
+  .setup-row button.primary, .setup-step > button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .setup-row button:disabled, .setup-step > button:disabled { opacity: .55; }
+  .checks { list-style: none; padding: 0; margin: 10px 0 4px; font-size: 13px; }
+  .checks li { display: flex; gap: 8px; padding: 3px 0; }
+  .checks .ok { color: var(--up); font-weight: 700; } .checks .bad { color: var(--down); font-weight: 700; }
+  .next-desk { font-size: 13px; margin: 4px 0 8px; }
+  #autopilot { cursor: pointer; }
   [hidden] { display: none !important; }
   .loading { opacity: .6; transition: opacity .2s; }
 
@@ -196,7 +215,7 @@
   <button id="theme" class="icon-btn" title="Light / dark" aria-label="Switch light or dark mode">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
   </button>
-  <button id="setup" class="btn" title="Keys, plans, autopilot and more (opens in Terminal)">Setup</button>
+  <button id="setup" class="btn" title="Connect Alpaca, turn the autopilot on or off, see what's next">Setup</button>
   <button id="pause" class="btn">Pause</button>
   <button id="kill" class="btn btn-danger" aria-label="Emergency stop"><span class="hide-sm">Emergency stop</span><span class="sm-only">Stop</span></button>
 </header>
@@ -279,7 +298,7 @@
   <h3>Pause trading?</h3>
   <p class="ink2">Both desks stop making new trades. Nothing is sold now. The bot still protects what it owns:
      stop-losses stay on, and the day desk still sells before the close (it never holds overnight).
-     Resume from the Setup menu when you're ready.</p>
+     Resume from Setup when you're ready.</p>
   <div class="dlg-actions"><button value="cancel" data-close>Cancel</button><button class="primary blue" id="do-pause">Pause</button></div>
 </dialog>
 <dialog id="dlg-kill">
@@ -288,6 +307,37 @@
      both desks. Your own investments are never touched.</p>
   <label>Type <strong>SELL EVERYTHING</strong> to confirm<input id="kill-confirm" autocomplete="off"></label>
   <div class="dlg-actions"><button data-close>Cancel</button><button class="primary" id="do-kill" disabled>Sell everything and stop</button></div>
+</dialog>
+
+<dialog id="dlg-setup" class="setup" aria-labelledby="setup-title">
+  <div class="setup-head"><h3 id="setup-title">Setup</h3><span class="muted" id="setup-version"></span></div>
+  <section class="setup-step">
+    <h4><span class="num">1</span> Connect your Alpaca paper account <span class="tag" id="keys-state"></span></h4>
+    <p class="ink2">Free, with pretend money. <a href="https://app.alpaca.markets/signup">Sign up at Alpaca</a>,
+       switch to <strong>Paper Trading</strong>, open <strong>API Keys → Generate</strong>, and paste both keys here.
+       They're saved only on this Mac. (Optional: without keys the bot simulates paper trading on this Mac.)</p>
+    <label>Key ID<input id="key-id" autofocus autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="PK…"></label>
+    <label>Secret key<input id="key-secret" type="password" autocomplete="off" spellcheck="false"></label>
+    <div class="setup-row"><button class="primary" id="save-keys">Save and test</button><button id="test-keys">Test connection</button></div>
+    <ul class="checks" id="key-results" aria-live="polite"></ul>
+  </section>
+  <section class="setup-step">
+    <h4><span class="num">2</span> Autopilot <span class="tag" id="auto-state"></span></h4>
+    <p class="ink2">Runs the bot in the background: it starts when you log in and restarts itself if it stops.
+       Keep the Mac plugged in; closing the lid puts it to sleep.</p>
+    <button class="primary" id="auto-toggle">Turn on</button>
+  </section>
+  <section class="setup-step">
+    <h4><span class="num">3</span> What happens next</h4>
+    <div id="next-steps" class="ink2"></div>
+    <button id="resume" hidden>Resume trading</button>
+  </section>
+  <p class="muted" style="font-size:12px">Approving plans, real money and Schwab stay in the full Setup menu (Terminal),
+     where each big step needs a typed confirmation.</p>
+  <div class="dlg-actions">
+    <button id="open-menu">Full Setup menu…</button><button id="check-updates">Check for updates</button>
+    <button class="primary blue" data-close>Done</button>
+  </div>
 </dialog>
 
 <script>
@@ -375,7 +425,7 @@ function render() {
     el("span", { class: running ? "hide-sm" : null,
                  text: running ? `Autopilot running · ${m < 1 ? "just now" : Math.round(m) + " min ago"}`
                        : m == null ? "⚠ Autopilot off" : `⚠ Autopilot last seen ${Math.round(m)} min ago` }));
-  $("#autopilot").title = running ? "The autopilot is running" : "The autopilot isn't running: start it from the Setup menu";
+  $("#autopilot").title = running ? "The autopilot is running" : "The autopilot isn't running: turn it on in Setup";
 
   renderSummary(s, a); renderPositions(a); renderActivity(a); renderResearch(s); renderJournal(s);
   $("#footer").textContent = `Updated ${new Date(s.generated_at).toLocaleTimeString()} · refreshes every 30 seconds · ` +
@@ -387,7 +437,7 @@ function renderSummary(s, a) {
   $("#hero").textContent = money(a.value);
   const dc = $("#daychange");
   if (!a.active) dc.textContent = state.account === "paper"
-      ? (s.study.ready ? "The study month is done: write the plans from the Setup menu."
+      ? (s.study.ready ? "The study month is done: write the plans from the full Setup menu (Setup → Full Setup menu)."
                        : `Not trading yet: the bot is studying (day ${s.study.calendar_days} of 30).`)
       : "No desk trades real money yet. That only happens after paper trading proves itself.";
   else if (a.day_change == null) dc.textContent = "";
@@ -661,7 +711,67 @@ document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.close
 $("#pause").onclick = () => $("#dlg-pause").showModal();
 $("#kill").onclick = () => { $("#kill-confirm").value = ""; $("#do-kill").disabled = true; $("#dlg-kill").showModal(); };
 $("#kill-confirm").oninput = (e) => $("#do-kill").disabled = e.target.value.trim() !== "SELL EVERYTHING";
-$("#setup").onclick = () => call("open-menu").catch(e => notify(e.message, true));
+/* ---------------- Setup screen ---------------- */
+const setupCall = (action, extra) => call(action, { demo: false, ...(extra || {}) });   // always your real setup
+function showChecks(items) {
+  $("#key-results").replaceChildren(...items.map(c => el("li", {},
+    el("span", { class: c.ok == null ? "muted" : c.ok ? "ok" : "bad", text: c.ok == null ? "…" : c.ok ? "✓" : "✗",
+                 "aria-label": c.ok == null ? "working" : c.ok ? "OK" : "problem" }), c.text)));
+}
+async function refreshSetup() {
+  try {
+    const s = await setupCall("setup-status");
+    $("#keys-state").textContent = s.paper_keys ? "keys saved" : "not connected";
+    $("#auto-state").textContent = s.autopilot_on ? "on" : "off";
+    const t = $("#auto-toggle");
+    t.textContent = s.autopilot_on ? "Turn off" : "Turn on";
+    t.dataset.on = s.autopilot_on ? "1" : "";
+    t.classList.toggle("primary", !s.autopilot_on);
+    t.disabled = !s.can_autopilot;
+    $("#next-steps").replaceChildren(...s.desks.map(d => el("p", { class: "next-desk" },
+      el("strong", { text: `${cap(d.desk)} desk (${d.phase.replace("_", " ").toLowerCase()}): ` }),
+      d.exiting ? "Emergency stop: still selling. " : d.halted ? "Paused. " : "", d.next)));
+    $("#resume").hidden = !s.desks.some(d => d.halted);
+    return s;
+  } catch (e) { $("#next-steps").textContent = e.message; return null; }
+}
+async function openSetup() {
+  if (!$("#dlg-setup").open) $("#dlg-setup").showModal();
+  setupCall("app-version").then(v => $("#setup-version").textContent = "Version " + v.version).catch(() => {});
+  await refreshSetup();
+}
+async function testKeys() {
+  showChecks([{ ok: null, text: "Testing the connection…" }]);
+  try { const r = await setupCall("check-keys"); showChecks([r.prices, r.paper]); }
+  catch (e) { showChecks([{ ok: false, text: e.message }]); }
+}
+$("#setup").onclick = openSetup;
+$("#autopilot").onclick = openSetup;
+$("#save-keys").onclick = async () => {
+  const key_id = $("#key-id").value.trim(), secret = $("#key-secret").value.trim();
+  if (!key_id || !secret) { showChecks([{ ok: false, text: "Paste both the Key ID and the Secret key." }]); return; }
+  $("#save-keys").disabled = true;
+  try {
+    const r = await setupCall("save-keys", { input: JSON.stringify({ key_id, secret }) });
+    $("#key-id").value = ""; $("#key-secret").value = "";
+    notify(r.message);
+    await testKeys(); await refreshSetup(); load();
+  } catch (e) { showChecks([{ ok: false, text: e.message }]); }
+  finally { $("#save-keys").disabled = false; }
+};
+$("#test-keys").onclick = testKeys;
+$("#auto-toggle").onclick = async () => {
+  const t = $("#auto-toggle"); t.disabled = true;
+  try { notify((await setupCall(t.dataset.on ? "autopilot-off" : "autopilot-on")).message); }
+  catch (e) { notify(e.message, true); }
+  await refreshSetup(); load();
+};
+$("#resume").onclick = async () => {
+  try { notify((await setupCall("resume")).message); } catch (e) { notify(e.message, true); }
+  await refreshSetup(); load();
+};
+$("#open-menu").onclick = () => call("open-menu").catch(e => notify(e.message, true));
+$("#check-updates").onclick = () => call("check-updates").catch(e => notify(e.message, true));
 $("#do-pause").onclick = async () => {
   $("#dlg-pause").close();
   try { notify((await call("pause")).message); load(); } catch (e) { notify(e.message, true); }
@@ -698,6 +808,13 @@ window.aitraderSelfTest = async () => {                  // used by the build ma
   if (!state.snap) problems.push("no data from the bot");
   if (!$("#hero").textContent.includes("$")) problems.push("no account value");
   try { await call("pause"); } catch (e) { problems.push("pause: " + e.message); }
+  try {                                                  // the Setup screen: status and resume, on the real data
+    await openSetup();
+    if (!$("#next-steps").textContent.includes("desk")) problems.push("setup screen: no next steps");
+    const r = await setupCall("resume");
+    if (!r.message) problems.push("setup: resume didn't answer");
+    $("#dlg-setup").close();
+  } catch (e) { problems.push("setup: " + e.message); }
   await window.aitraderSetDemo(true);
   if (!state.snap || !state.snap.demo) problems.push("demo didn't load");
   for (const t of ["positions", "activity", "research", "journal", "summary"]) setTab(t);
@@ -706,7 +823,11 @@ window.aitraderSelfTest = async () => {                  // used by the build ma
 };
 
 setTab("summary");
-load();
+load().then(async () => {                               // first time here and nothing set up: show Setup
+  if (window.aitraderTesting || store.get("aitrader-setup-shown")) return;
+  const s = await setupCall("setup-status").catch(() => null);
+  if (s && !s.paper_keys && !s.autopilot_on) { store.set("aitrader-setup-shown", "1"); openSetup(); }
+});
 setInterval(load, 30000);
 </script>
 </body>
