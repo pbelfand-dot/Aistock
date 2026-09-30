@@ -247,8 +247,9 @@ def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
         return f"{desk}: no prices today (market holiday?)"
 
     work_store = Store(":memory:") if dry_run else store     # a dry run saves nothing
-    result = run_cycle(work_store, broker, strategy, RiskManager.for_desk(cfg, desk), bars, market, now,
-                       cfg["desks"][desk], stops_only=stops_only)
+    risk, change = learned(cfg, store, desk, broker.mode, strategy.name, market)
+    result = run_cycle(work_store, broker, strategy, risk, bars, market, now,
+                       cfg["desks"][desk], stops_only=stops_only, no_buys=change["no_buys"])
     if dry_run:
         return f"{desk}: dry run finished; nothing was saved or sent"
     if result["kill_switch"]:
@@ -258,6 +259,34 @@ def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
         return f"{desk}: KILL SWITCH TRIPPED"
     save_broker(store, broker)
     return f"{desk} [{broker.mode}]: value ${result['equity']:,.2f}"
+
+
+def learned(cfg, store, desk, mode, strategy_name, market):
+    """What the desk has learned from its own finished trades (learning.py): smaller positions for a
+    strategy that's losing, none for one that's clearly losing or in a market condition that clearly
+    loses. Never bigger. Also refreshes the lessons note the local AI reads."""
+    import dataclasses
+    from aitrader import learning
+    risk = RiskManager.for_desk(cfg, desk)
+    try:
+        lessons = learning.review(store.fills(mode), market)
+        change = learning.adjust(lessons, strategy_name, learning.today_condition(market))
+    except Exception as e:                                   # learning must never stop trading safely
+        store.log(f"[{mode}] couldn't review its past trades ({e!r}); trading without lessons this cycle")
+        return risk, {"size": 1.0, "no_buys": ""}
+    before = store.get(f"lessons:{desk}") or {}
+    store.set(f"lessons:{desk}", {"mode": mode, **{k: lessons[k] for k in ("trades", "strategies", "conditions", "avoid")}})
+    if before.get("trades") != lessons["trades"]:            # a trade finished since last time: tell the owner
+        for name, card in lessons["strategies"].items():
+            old = (before.get("strategies") or {}).get(name, {})
+            if card["status"] != old.get("status") and card["status"] in ("half size", "paused"):
+                store.log(f"[{mode}] LEARNED: {name} {card['why']} -> {card['status']}")
+        data_path(cfg, learning.NOTE).write_text(learning.note(
+            {d: store.get(f"lessons:{d}") or {"trades": 0, "strategies": {}, "conditions": {}, "avoid": []}
+             for d in active_desks(cfg)}))
+    if change["size"] < 1:
+        risk = dataclasses.replace(risk, max_position_pct=risk.max_position_pct * change["size"])
+    return risk, change
 
 
 def protect_live(cfg, store, desk):

@@ -24,7 +24,15 @@ def read(topic: str) -> str:
     return path.read_text()
 
 
-def pack(max_chars: int = 24000) -> str:
-    """All notes, in order, as one text (cut off at max_chars so a small local model can hold it)."""
-    text = "\n\n".join(p.read_text().strip() for p in sorted(FOLDER.glob("*.md")))
+def pack(cfg: dict = None, max_chars: int = 24000) -> str:
+    """All notes, in order, plus what the bot learned from its own trades (kept in its data folder),
+    as one text (cut off at max_chars so a small local model can hold it)."""
+    paths = sorted(FOLDER.glob("*.md"))
+    if cfg is not None:
+        from .config import data_path
+        from .learning import NOTE
+        own = data_path(cfg, NOTE)
+        if own.exists():
+            paths.append(own)
+    text = "\n\n".join(p.read_text().strip() for p in paths)
     return text if len(text) <= max_chars else text[:max_chars] + "\n\n[... notes cut here to fit ...]"

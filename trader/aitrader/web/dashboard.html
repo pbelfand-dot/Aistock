@@ -742,8 +742,23 @@ function renderResearch(s) {
             el("td", { class: "num", text: plain(r.sharpe) }), el("td", { class: "num", text: plain(r.max_drawdown_pct) }),
             el("td", { class: "num", text: r.trades }), el("td", { class: "ink2", text: r.study_month || "" }),
             el("td", { title: r.why_not, text: r.eligible ? (r.strategy === plan.strategy ? "✓ Picked" : "Passed") : "No" })))))))
-        : el("div", { class: "empty", text: "The plan is written after the study month." }));
+        : el("div", { class: "empty", text: "The plan is written after the study month." }),
+      el("h3", { style: "font-size:13px;margin:16px 0 8px", text: "What it learned from its own trades" }),
+      lessonsView(d.lessons));
   }));
+}
+function lessonsView(l) {                                  // learning.py: more careful when something loses, never bolder
+  if (!l || !l.trades) return el("div", { class: "empty", text: "No finished trades yet. Every finished trade is reviewed; with enough of them, a losing strategy gets half size and then a pause." });
+  const rows = Object.entries(l.strategies);
+  return el("div", {},
+    el("div", { class: "table-scroll" }, el("table", {},
+      el("thead", {}, el("tr", {}, ["Strategy", "Trades", "Win %", "Avg per trade %", "Status"].map((h, i) => el("th", { class: i && i < 4 ? "num" : null, text: h })))),
+      el("tbody", {}, rows.map(([name, c]) => el("tr", {},
+        el("td", { class: "sym", text: name }), el("td", { class: "num", text: c.trades }),
+        el("td", { class: "num", text: plain(c.win_rate, 0) }),
+        el("td", { class: "num " + dir(c.avg_return_pct), text: pct(c.avg_return_pct) }),
+        el("td", { title: c.why, text: c.status === "paused" ? "⏸ Paused" : c.status === "half size" ? "½ Half size" : c.status === "learning" ? "Learning" : "Normal" })))))),
+    l.avoid.length ? el("p", { class: "ink2", text: "Avoiding new buys in: " + l.avoid.join("; ") + " (its trades there clearly lost)." }) : null);
 }
 function renderJournal(s) {
   $("#journal").replaceChildren(...s.journal.map(j => el("li", {}, el("time", { text: j.ts.replace("T", " ") }), j.message)));

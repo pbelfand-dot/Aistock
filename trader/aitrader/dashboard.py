@@ -164,6 +164,7 @@ def _desk_info(cfg, store, desk) -> dict:
             "halted": bool(store.get(f"halted:{desk}")), "exiting": bool(store.get(f"exiting:{desk}")),
             "watchlist": cfg["desks"][desk]["watchlist"],
             "too_pricey": (store.get(f"too_pricey:{desk}") or {}).get("tickers", {})}
+    info["lessons"] = store.get(f"lessons:{desk}")          # what it learned from its own trades (learning.py)
     card = forward_report(store, cfg) if desk == "swing" else day_forward_report(store)
     info["study"] = json.loads(card.reset_index().rename(columns={"index": "strategy"})
                                .to_json(orient="records")) if len(card) else []
