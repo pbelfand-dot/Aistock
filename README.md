@@ -47,6 +47,10 @@ code changes.
     Add it to your Home Screen and it opens like an app. Keys and settings stay on the Mac.
 - **View → Show Demo Data** shows it with made-up prices right away.
 - **Setup** (the button) connects Alpaca, switches the autopilot and says what's next.
+- **Stage 2: TJR's model** (day desk). It waits for a sweep below a low, a break back up, then buys
+  the pullback into the gap, 9:35-11:30am, with the hourly trend. The day desk practices it in its
+  head. A weekly history test on your Mac's 5-minute data compares it with random buys; once it
+  passes, **Setup → Start Stage 2** paper trades it next to Stage 1. Results are in Research.
 - **The team.** Every decision passes through five agents, each writing a short note: **Scout** (the
   facts), **Analyst** (what agrees and what conflicts), **Trader** (the tested strategy's orders),
   **Risk** (checks each buy) and **Reviewer** (after the close). The notes are in the after-market

@@ -166,7 +166,9 @@ def all_strategies(cfg: dict, style: str) -> list:
                 AIModel("swing", brain, ai["buy_above"], ai["sell_below"])]
     brain = Brain(horizon=ai["horizon"], retrain_every=ai["retrain_every"], min_train=ai["min_train"],
                   intraday=True)
-    return [OpeningRangeBreakout(), VwapReversion(), AIModel("day", brain, ai["buy_above"], ai["sell_below"])]
+    from .tjr import TJRModel                            # Stage 2: TJR's model (tjr.py)
+    return [OpeningRangeBreakout(), VwapReversion(), AIModel("day", brain, ai["buy_above"], ai["sell_below"]),
+            TJRModel()]
 
 
 def get_strategy(name: str, cfg: dict, style: str) -> Strategy:

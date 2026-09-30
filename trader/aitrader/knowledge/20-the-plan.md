@@ -13,8 +13,18 @@
      Stocks too expensive for one whole share are skipped.
    - The owner starts it with **Start Stage 1 paper trading** in Setup (or `python run.py
      start-stage1`). It skips the study month; the day desk keeps studying.
-2. **Stage 2: paper, 30 trading days:** Stage 1 plus TJR's model. TJR's rules only trade after
-   they pass an intraday history test.
+2. **Stage 2: paper, 30 trading days:** Stage 1 plus TJR's model on the day desk (`tjr_model`,
+   tjr.py).
+   - The rules: only with the stock's hourly trend up (a higher hourly low, closing above it).
+     Wait for a sweep below a low where stops sit (yesterday's low or a 5-minute swing low), then a
+     5-minute close above the last swing high. Buy the pullback into the gap that move left,
+     9:35-11:30am. Stop below the sweep minus 1/4 of the 5-minute ATR, target 2R, one trade per
+     stock a day, long only.
+   - The day desk practices it in its head now.
+   - A weekly history test on the Mac's own 5-minute data must pass before it paper trades: 30+
+     trades, a profit factor of 1.15+, making money, and a better profit factor than random buys
+     with the same stop and target.
+   - Then the owner starts it: Setup -> Start Stage 2.
 3. **Real money:** $50 at Alpaca and $50 at Schwab. More only if it makes money.
 
 **Pass rule the owner set (this is what `promote` checks):** over at least 30 trading days of
