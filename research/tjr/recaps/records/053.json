@@ -1,0 +1,60 @@
+{
+  "video": {
+    "n": 53,
+    "file": "Live.Day.Trading.-.29.130.Profit.From.One.Strategy.Best.720p.mp4",
+    "kind": "live session",
+    "accessed": true,
+    "access_note": "All 8 sheets (30 pictures) viewed; 11 full-size shots opened (#1, #3, #7, #8, #17, #22, #23, #24, #25, #29, #30). TradingView legends, axes, x-axis dates, clock (UTC-5 = ET) and position-tool box/labels readable. Video t=0 = ~09:32:30 ET (clock 09:45:17 at 12m48s, 10:17:18 at 44m48s, 10:18:24 at 45m54s). Transcript (pocketsphinx) heavily garbled; long stretches (05:00-13:00, 22:00-27:00, 29:00-31:00, 40:00-43:30) are near-unusable. No broker/fills/P&L panel shown.",
+    "duration_min": 51.44,
+    "title_claim": "info.json title_claim empty; file name claims '29.130 Profit From One Strategy' (i.e. ~$29,130)",
+    "session_date": {"value": "2026-02-17", "src": "seen", "ref": "#1 00m00s-12m48s x-axis 'Tue 17 Feb '26 10:01'; #23 44m54s x-axis 'Tue 17 Feb '26 10:03'; heard [50:30] 'it's tuesday monday was a bank holiday' (Presidents Day 16 Feb 2026)"}
+  },
+  "market_context": {
+    "regime": {"value": "ES 1h: sharp drop around 12 Feb from ~6,960s, then a multi-day range ~6,810-6,898 (drawn lines 6,898.00 / 6,885.50 / 6,869.75). 17 Feb NY open: ES spiked above London high (~6,849 +/-1) to ~6,861 around 09:40 ET, then sold off through Asia low (~6,810 +/-1) and London low (~6,805.5 +/-1) to a low of 6,796.25 by ~10:00 ET (below the multi-day range). NQ same shape: took London high (~24,713 +/-3) at the open, then traded below London low (~24,49x) to ~24,470 by ~10:00. Higher low on both ~10:10-10:11, then 1m recovery.", "src": "inferred", "ref": "seen #8 28m48s legend 'S&P 500 E-mini Futures · 1h · CME' 10:00 bar O 6,799.75 H 6,803.00 L 6,796.25 C 6,800.75 and labels 6,898.00/6,885.50/6,869.75; #3 13m12s ES 5m 'London High', 'Asia Low', 'London Low' lines (prices estimated from axis +/-1); #24 46m00s ES 1m high aligned with 6,861.00 label; #1 00m00s NQ 1m 'London High' ~24,713 (+/-3); #7 28m00s NQ 4h 'London Low' swept; #17 36m36s NQ 1m lows"},
+    "news": {"value": "None mentioned. Day after a US bank holiday (Mon 16 Feb).", "src": "heard", "ref": "no news reference found in transcript; [50:30] 'it's tuesday monday was a bank holiday'"},
+    "bias": {"value": "At the open: bullish, draw on liquidity = ES Asia/session highs and 'equal highs' above; he expected only a 1m/5m retrace. After the sell-off through London lows he said he had 'married' his bias. From ~10:08 ET: long-only again because of the size of the drop ('rather take a long'), draw = top of the gap above / the NY-open high (~6,861).", "src": "heard", "ref": "[01:45] 'we're going to want to take these london highs ... up to asia highs'; [02:45] 'five minute retrace ... go long ... to these asia session highs'; [07:15] 'pretty high confidence that we're going to come up to the equal highs up here'; [20:45]-[21:00] 'i married my bias and should've known better'; [38:45]-[39:00] 'i don't want to short ... we made such a substantial move down already ... i'm really only looking for long setups'; [45:45] 'the top of this gap'"}
+  },
+  "trades": [
+    {
+      "date": {"value": "2026-02-17", "src": "seen", "ref": "#23 44m54s x-axis 'Tue 17 Feb '26'"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1! chart); contract actually traded (ES vs MES) not shown", "src": "seen", "ref": "#23 44m54s legend 'S&P 500 E-mini Futures · 1 · CME', symbol box 'ES1!'; heard [46:15] 'we just entered into longs for the s. and p. five hundred'"},
+      "direction": {"value": "long", "src": "seen", "ref": "#23/#24 position tool: blue profit zone above entry, gray stop zone below; heard [44:15] 'we're long'"},
+      "timeframes": {"value": {"bias": "1h/4h session levels (Asia/London highs & lows)", "setup": "5m/1m", "entry": "1m"}, "src": "inferred", "ref": "seen #7 NQ 4h and #8 ES 1h with session levels; #3 ES 5m; entry box on 1m (#23); heard [02:45] 'five minute retrace', [19:15] inversion needed"},
+      "setup": {"value": "NY open takes London high -> sell-off sweeps Asia/London lows (LOD 6,796.25) -> higher low ~10:11 -> 1m bullish close through a 1m gap (IFVG) -> long ES 6,815.50, stop 6,800, TP 6,830.50 partial, runner target 6,861 (open high)", "src": "inferred", "ref": "combination of seen levels/boxes (#3, #8, #22, #23, #24) and heard [35:30] 'inverse the gap ... going long', [42:30] 'if we can break up then we should move through this gap very smoothly'"},
+      "entry_conditions": [
+        {"value": "At the 09:30 open price traded above the London high (ES ~6,849 +/-1, NQ ~24,713 +/-3) and reversed", "src": "inferred", "ref": "seen #1 NQ 1m and #24 ES 1m: spike above 'London High' line then drop; prices estimated from axis"},
+        {"value": "Price then traded below the Asia low (~6,810) and London low (~6,805.5) on ES and below London low on NQ (sweep), ES low 6,796.25 at ~10:00 ET", "src": "seen", "ref": "#8 28m48s ES 1h legend L 6,796.25; #3 ES 5m Asia/London low lines; #7 NQ 4h price below 'London Low'"},
+        {"value": "ES made a higher low ~6,800.5 (+/-1) around 10:11 ET", "src": "inferred", "ref": "#23 44m54s second low at x~10:11, just above the 6,800.00 label"},
+        {"value": "A 1m bullish candle closed up through a small gray zone ~6,810.5-6,813.5 (a 1m FVG, inverted = IFVG) at ~10:16-10:17 ET; entry at 6,815.50", "src": "inferred", "ref": "seen #22 44m48s (clock 10:17:18) gray box and large up candle, last 6,815.50; zone prices estimated +/-1; heard [19:15] 'no entry for me because we didn't even inverse ... either of the indexes', [42:30] 'if we can break up ... move through this gap'"},
+        {"value": "Only longs considered after the large down move", "src": "heard", "ref": "[38:45]-[39:00] 'i don't want to short ... such a substantial move down already ... only looking for long setups'"}
+      ],
+      "entry_time": {"value": "~10:17 ET (+/-1 min)", "src": "inferred", "ref": "heard [44:15] 'we're long' = ~10:16:45 ET via clock offset; #22 (10:17:18 ET) shows last 6,815.50 and no box yet; box left edge in #23 just after the 10:15 tick"},
+      "entry": {"value": 6815.5, "src": "seen", "ref": "#23/#24/#25 gray axis label 6,815.50 at the position-tool entry line (tool level, not a fill)"},
+      "stop": {"value": 6800.0, "src": "seen", "ref": "#23/#24 gray axis label 6,800.00 at bottom of the gray stop zone"},
+      "stop_rule": {"value": "just below the ~10:11 higher low (~6,800.5) and round 6,800; above the 6,796.25 LOD", "src": "inferred", "ref": "#23 stop level vs lows; not stated in transcript"},
+      "target": {"value": 6861.0, "src": "seen", "ref": "#24 46m00s blue axis label 6,861.00 at box top (moved up from the first box top ~6,830.50 in #23, which sits at a partly hidden 6,830.50 label)"},
+      "target_rule": {"value": "First TP 6,830.50 = 'end/top of this gap' (a 1m gap from the sell-off); extended runner target 6,861 = NY-open session high ('aggro TPs')", "src": "inferred", "ref": "heard [45:00] 'the end of this gap', [45:45] 'the top of this gap here', [46:00] 'we can set some agro tps'; seen #24 box top level with the ~09:40 high"},
+      "exit": {"value": "Partial at ~6,830.50 (~10:19 ET); stop moved to breakeven 6,815.50; runner stopped at breakeven ~10:23 ET", "src": "inferred", "ref": "seen #25/#30: 1m high ~6,830.5 (+/-0.5) touches the 6,830.50 line, then price 6,812.50 at 10:23:48 (#30) below entry; heard [46:45] 'taking profit', [47:15] 'partials right here ... move stops to break even', [50:15] '...break even'. Partial fill price and size not shown"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "no order/position panel shown; heard [49:30] 'two positions right now' (unclear). If the heard $28,530 were real profit on ~15 pts, it would imply ~38 ES-contract equivalents on the partial alone (arithmetic on an unverified claim)"},
+      "result": {"value": "win", "src": "inferred", "ref": "partial taken at ~+15 pts, rest at breakeven -> net positive before fees; based on heard statements plus price path, fills not seen"},
+      "r_multiple": {"value": null, "src": "unknown", "ref": "partial leg: (6830.50-6815.50)/(6815.50-6800.00) = 15.00/15.50 = +0.97R; runner at BE = 0R; blended = 0.97 x (fraction closed at partial), fraction unknown -> between 0 and +0.97R. Planned: first box 0.97R, extended box (6861.00-6815.50)/15.50 = 2.94R (not reached)"},
+      "claimed_pnl": {"value": "$28,530 locked on the partial; '28k' on the day; file name '$29,130'; '$64,000' mentioned mid-trade (likely open P&L); '$280,000' for February", "src": "heard", "ref": "[47:45] 'twenty eight thousand five hundred thirty dollars'; [48:30] 'twenty eight ... is safe'; [46:30] 'sixty four thousand dollars on this'; [50:45] 'two hundred eighty thousand dollars on the ... month of february'; file name"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "only the TradingView position tool is shown; no broker/platform panel with P&L and matching fills; amounts come from speech and the file name"},
+      "mistakes": [
+        {"value": "First target gave <1R (15.00 reward vs 15.50 risk); runner stopped at BE ~4 min after entry, never reached the 2.94R target", "src": "inferred", "ref": "#23 and #24 box levels; #30 price below entry at 10:23:48"},
+        {"value": "Earlier in the session held a bullish bias while both indexes sold through London/Asia lows ('married my bias'); no trade was taken on it", "src": "heard", "ref": "[20:45]-[21:00] 'maybe i just married my bias ... should've known better'; [14:45] 'i'm glad i didn't take'"}
+      ],
+      "evidence_summary": "Seen: date, ES 1m chart, long box entry 6,815.50 / stop 6,800.00 / extended target 6,861.00, LOD 6,796.25, price back below entry by 10:23:48. Inferred: first TP 6,830.50, entry time, IFVG trigger, partial+BE exit. Heard only: partial, BE move, all $ amounts."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "No entry without an inversion (IFVG) on the indexes", "src": "heard", "ref": "[19:15] 'realistically there's no entry for me because we didn't even inverse ... either of the indexes'"},
+    {"value": "Wait for at least a 1m retrace (ideally 5m) before continuation toward the draw", "src": "heard", "ref": "[04:30] 'giving us at least one retrace ... minimum of one minute retrace'; [02:45] 'five minute retrace'"},
+    {"value": "After a big move, wait for a proper 15m retrace", "src": "heard", "ref": "[27:45] 'it's best to be waiting for some form of a fifteen minute retrace'"},
+    {"value": "Don't marry your bias", "src": "heard", "ref": "[21:00] 'i married my bias and should've known better'"},
+    {"value": "Don't short after a substantial move down; prefer longs", "src": "heard", "ref": "[38:45]-[39:00]"},
+    {"value": "Take partials, then move stop to breakeven for a risk-free trade", "src": "heard", "ref": "[47:15] 'partials right here ... move stops to break even'; [47:45] 'risk free trade'"},
+    {"value": "Session model on his indicator: Asia continuation -> London manipulation -> New York reversal", "src": "seen", "ref": "#23 Session/Bias/Next table: Asia 'Continuation', London 'Manipulation', New York 'Reversal'"}
+  ],
+  "quality_notes": "Transcript is very garbled, so the trigger (IFVG) and exits come partly from price path plus fragments. Partial fill price, fraction closed, BE fill and size are not shown, so realized R and P&L cannot be computed. First TP 6,830.50 comes from a partly hidden label that matches a later drawn line. Session-level prices (London/Asia highs/lows) are estimated from the axis (+/-1 ES, +/-3 NQ). '[49:30] two positions' is unexplained (a possible second position or account is not visible)."
+}

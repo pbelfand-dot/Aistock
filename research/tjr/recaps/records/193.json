@@ -1,0 +1,224 @@
+{
+ "video": {
+  "n": 193,
+  "file": "Weekly.Market.Recap.1080p.60fps.mp4",
+  "kind": "dated recap/analysis",
+  "accessed": true,
+  "access_note": "The video has three parts. 00:00-04:15 recaps Friday's trades: an NQ setup he did not take and an ES long he took. 04:15-08:15 gives his weekly bias on ES/NQ. 08:15-12:30 covers crypto (BTC, TOTAL3), and 12:30-14:00 promotes his mastermind. I looked at all 7 sheets (28 scenes) and opened 12 full-size shots: #3, #4, #5, #11, #13, #14, #17, #18, #22, #24, #25, #27. Scene #20 runs 04m18s-09m42s as one scene, so its only frame is the last one, a TOTAL3 monthly chart. None of the ES/NQ monthly, weekly or daily charts from the weekly-bias section were captured, and neither were the first BTC charts. That section rests on the transcript alone, and the transcript is badly garbled (e.g. 'us and he' probably means ES and NQ). Legends, axis labels and position-tool labels are readable.",
+  "duration_min": 14.1,
+  "title_claim": "",
+  "session_date": {
+   "value": "2024-05-03",
+   "src": "seen",
+   "ref": "Session recapped. #4/#5 00m36s-00m42s x-axis 'Fri 03 May '24 09:30' and 'Fri 03 May '24 12:20'. Heard: [00:15] 'the nasdaq trade from yesterday'."
+  },
+  "recorded": {
+   "value": "2024-05-04 (Sat), around 12:40-12:55 ET",
+   "src": "inferred",
+   "ref": "Seen: #5 chart clock '12:41:02 (UT..'; #27 12m06s BTC daily-bar countdown '07:07:35' (to 00:00 UTC). #24 BTC monthly countdown '27d 8h'. #25 BTC weekly countdown '1d 8h'. ES data ends Fri 3 May. Heard: 'yesterday' at [00:15] and [04:15]."
+  },
+  "forecast_week": {
+   "value": "2024-05-06 to 2024-05-10",
+   "src": "inferred",
+   "ref": "Recorded Sat 4 May. Heard: [04:15] 'weekly bias going into next week', [13:30] 'bullish going into ... this next week'."
+  }
+ },
+ "market_context": {
+  "regime": {
+   "value": "ES 4h: late-April swing highs around 5,148 (±3). Price dropped to about 5,039 on Wed 1 May/Thu 2 May, and a 4h wick briefly traded under a drawn low line. Fri 3 May then rallied from about 5,105 through those highs to a 5,162.25 high and closed at 5,161.50. On the 1h chart, the 08:00 ET NFP bar left a gray imbalance box at about 5,112-5,137 with a dashed midline around 5,125. After an early high of about 5,167 (±1, ~09:56 ET), price pulled back to about 5,127 at ~11:10 ET, which is inside the box and just above its midline. It then trended up for the rest of the day. NQ followed the same pattern: its 5m low of about 17,895 sat inside the 1h box, and it closed at 18,025.50.",
+   "src": "seen",
+   "ref": "#11 02m06s legend 'S&P 500 E-mini Futures · 4h · CME O5154.50 H5162.25 L5152.75 C5161.50'. #13 03m12s 1h legend 'O5154.25 H5162.25 L5153.75 C5161.50' with the gray box. #14/#17/#18 5m/1m views of the pullback into the box. #3 NQ 5m price label 18025.50. Box edges, the April highs, the ~5,039 low, the ~5,167 high and the ~5,127 pullback low are inferred from where they sit between axis labels (±1-3 pts)."
+  },
+  "news": {
+   "value": "Probably NFP (April jobs report), 08:30 ET Fri 3 May 2024. He does not clearly name any release.",
+   "src": "inferred",
+   "ref": "Seen: #3/#5 5m ES and NQ make a single huge expansion bar at 08:30 ET (12 bars before the 09:30 marker). Calendar: NFP was released Fri 3 May 2024. Heard: [02:45] 'we had a clumsy free market and usually an entree never wants the bomb however i saw this is a pretty good opportunity'. I read this as 'usually I don't want to trade [this kind of day], but I saw a good opportunity'; it is too garbled to confirm."
+  },
+  "bias": {
+   "value": "Friday intraday: bullish, expecting price to hold the 1h imbalance and its equilibrium after the NFP expansion. Coming week (6-10 May): bullish on ES and NQ. The monthly imbalance has been filled; he expects the weekly imbalance to be invalidated and a push to new all-time highs. Short term, he warns that price is 'coming into' a strong selling area / 'weekly breaker' and a small weekly pullback is possible. BTC and altcoins: bullish, with a next leg to about 87k (BTC) and about 2T (TOTAL3).",
+   "src": "heard",
+   "ref": "[03:00] 'came down and [filled] the imbalance of the [hourly]'; [04:30] 'so bullish on the monthly'; [05:45] 'going to invalidate [the] imbalance ... push higher'; [06:15] 'coming into this area ... super strong selling point'; [06:30] 'maybe ... slight little drawdown on a weekly ... overall pretty bullish long term on the [ES] and ... nasdaq'; [08:00] 'coming into this weekly breaker'; [08:45]-[09:00] 'next leg up ... eighty seven k'."
+  },
+  "weekly_outlook_conditions": [
+   {
+    "value": "ES/NQ bullish case holds if the week closes above the weekly imbalance he is 'filling in'. A close that respects it (fails there) would mean a small weekly drawdown, not a trend change. The weekly imbalance price range was not captured.",
+    "src": "heard",
+    "ref": "[04:45] 'right now we're filling in this weekly ... invalidation of [the fair] value gaps ... if we can close above this weekly'; [05:00] 'invalidated ... gonna go take out all time highs ... if we end up respecting this'; [06:00] 'best case scenario ... respect this ... next week and then we'll blow out of it'. No ES/NQ weekly chart frame exists (scene #20 04m18s-09m42s)."
+   },
+   {
+    "value": "ES/NQ monthly: the monthly imbalance was filled, and he sees no reason for a significantly lower monthly unless price trades down into a deeper 'quarter' of the range. That level was not captured.",
+    "src": "heard",
+    "ref": "[05:00]-[05:30] 'on the monthly we filled in this imbalance ... don't really see much of a reason for the monthly to go significantly lower unless ... quarter'; [08:00] 'this imbalance perfectly filled'."
+   },
+   {
+    "value": "BTC levels drawn on his chart: 69,000 (black line), 62,332 (black), 60,760 (red), 59,567 (black), 87,018 (green label above price). There is a daily/weekly gray zone of about 59.4k-63.9k with a midline around 61.6k. The week's low of 56,500 poked below that zone, and price was back inside it at 63,665. Target is about 87k. He says weekly structure never broke down and expects this week's close to trigger the next leg up.",
+    "src": "seen",
+    "ref": "#24 10m30s BTC 1M BITSTAMP legend 'O60611 H64522 L56500 C63705' with labels 87018/83839(crosshair)/69000/63705/62332/60760/59567. #25 11m12s 1W legend 'O63106 H64714 L56500 C63665'. #27 12m06s 1D legend 'O62907 H64522 L62585 C63665'. Zone edges are inferred ±300 from axis positions. Heard: [08:30]-[08:45] 'swept ... weekly lows ... this week ... triggers the next leg up into around eighty [seven k]'; [09:30] 'we never broke weekly structure to the downside'."
+   },
+   {
+    "value": "TOTAL3 (altcoins excl. BTC/ETH, monthly): he measures +1.334T (+203.79%) from about 654.7B to about 1.99T and says 'two trillion' is his target for this cycle. Other drawn levels: 839.143B, 983.926B, 1.132T.",
+    "src": "seen",
+    "ref": "#22 10m06s TOTAL3 1M CRYPTOCAP measure tool '1.334 T (203.79%) 10 bars' and labels 654.704B/839.143B/983.926B/1.132T. The 1.99T end is computed (654.7B × 3.038). Heard: [09:45]-[10:00] 'around like two trillion ... that's the number that i marked out'."
+   }
+  ],
+  "setups_not_taken": [
+   {
+    "value": "NQ 5m long, shown but not taken (Fri 3 May 2024). Position box: entry 17,996.75, stop 17,951.50 (45.25 pts), target 18,049.50 (52.75 pts), tool R:R 1.17. The box starts around 11:50 ET. The target sits at about the early-session high (~18,050). The stop is at the bottom of a small gray box (~17,952-17,972, midline ~17,962) above the 1h imbalance, where the low was about 17,895. The tool reads 'Open P&L -6.25' at the box's end. Neither the target nor the stop was reached before Friday's close: the post-entry high was about 18,030 and the low about 17,970. That would make this a hypothetical open position, not a result.",
+    "src": "seen",
+    "ref": "#4 00m36s legend 'NASDAQ 100 E-mini Futures · 5 · CME'; tool 'Target: 52.75 (0.29%) 211', 'Stop: 45.25 (0.25%) 181', 'Open P&L: -6.25, Qty: 1.105, Risk/Reward Ratio: 1.17'; axis labels 18049.50/17996.75/17951.50 match the distances. The box start time, the post-entry high/low and the small-box edges are inferred from pixel positions. Heard: [00:15]-[00:30] 'the nasdaq trade from yesterday ... that i never ended up taking ... could eventually been a trade but i didn't end up taking'. No reason given for skipping it."
+   }
+  ]
+ },
+ "trades": [],
+ "lessons_stated": [
+  {
+   "value": "He usually doesn't trade this kind of [news] day, but takes the trade when the setup is a clear opportunity (garbled)",
+   "src": "heard",
+   "ref": "[02:45] 'usually an entree never wants the bomb however i saw this is a pretty good opportunity'"
+  },
+  {
+   "value": "An hourly imbalance whose equilibrium holds, followed by a 5m break of structure, is the long trigger; the stop goes under the equilibrium",
+   "src": "heard",
+   "ref": "[03:15]-[03:30] 'equilibrium on the hourly ... five minute ... broke [structure] ... entry right here, stopped underneath the equilibrium'"
+  },
+  {
+   "value": "A weekly close above the weekly imbalance invalidates the bearish case and points to new all-time highs",
+   "src": "heard",
+   "ref": "[04:45]-[05:00] 'if we can close above this weekly ... completely invalidated ... take out all time highs'"
+  },
+  {
+   "value": "BTC: no weekly break of structure to the downside means the trend is still bullish. He is accumulating BTC/altcoins ('not financial advice'), with 87k as his realistic target rather than 100k.",
+   "src": "heard",
+   "ref": "[09:30] 'we never broke weekly [structure] to the downside'; [11:00] 'focus on eighty seven [k] for the time being'; [12:00] 'accumulate ... not financial advice'"
+  }
+ ],
+ "quality_notes": "The ES trade is well evidenced by readable position-tool labels, but fills, size and P&L are never shown, so the result is chart-level only. The entry time and all zone edges are pixel estimates. The ES/NQ weekly-outlook charts (04:15-08:15) were not captured because they fall in one long scene, #20, whose only frame is TOTAL3. The weekly bias therefore has no price levels and is heard only, from a badly garbled transcript that doesn't clearly separate ES from NQ. 12:30-14:00 is mastermind promotion.",
+ "duplicate_trades": [
+  {
+   "same_as": "video 020, trade 3",
+   "why": "same date, instrument, entry 5148.50, stop 5141.00 and target 5161.50; 020 recorded it while still open, 193 shows it closed at the target. Counted once, under 020.",
+   "trade": {
+    "date": {
+     "value": "2024-05-03",
+     "src": "seen",
+     "ref": "#5 00m42s x-axis 'Fri 03 May '24 09:30'"
+    },
+    "instrument": {
+     "value": "ES (E-mini S&P 500 futures, ES1! continuous; June 2024 contract)",
+     "src": "seen",
+     "ref": "#5 00m42s legend 'S&P 500 E-mini Futures · 5 · CME', symbol ES1!; watchlist also lists 'ESM'. Heard: [00:30] 'this was the [ES] trade that [I] ended up taking'."
+    },
+    "direction": {
+     "value": "long",
+     "src": "seen",
+     "ref": "#5 TradingView long-position tool: target box above entry, stop box below."
+    },
+    "timeframes": {
+     "value": {
+      "bias": "4h/1h (1h imbalance after NFP)",
+      "setup": "5m",
+      "entry": "5m or 1m (unknown)"
+     },
+     "src": "heard",
+     "ref": "[02:45] 'four hour'; [03:15] 'equilibrium on the hourly'; [03:15] 'on a five minute ... we broke [structure]'. The position box is shown on both 5m (#5) and 1m (#17), so the entry timeframe can't be determined."
+    },
+    "setup": {
+     "value": "NFP-day pullback into the 1h imbalance, holding above its equilibrium -> 5m break of structure up -> long on a pullback",
+     "src": "inferred",
+     "ref": "Built from the charts seen in #13/#14/#17 and heard [03:00]-[03:30] 'came down and [filled] the imbalance ... equilibrium on the hourly ... five minute ... broke [structure] ... entry right here, stop underneath the equilibrium'."
+    },
+    "entry_conditions": [
+     {
+      "value": "The 08:30 ET NFP expansion leaves a 1h imbalance (gray box ≈5,112-5,137, midline ≈5,125)",
+      "src": "inferred",
+      "ref": "#13 03m12s 1h box; edges read between axis labels 5,110-5,130 (±1)"
+     },
+     {
+      "value": "After the early high (≈5,167 at ~09:56 ET), price retraces into the 1h imbalance but holds above its 50% equilibrium: low ≈5,127 at ~11:10 ET",
+      "src": "inferred",
+      "ref": "#14 03m30s 5m and #17/#18 1m: low sits ~2 pts above the dashed midline. Heard: [03:15] 'equilibrium on the hourly ... respected'."
+     },
+     {
+      "value": "5m break of structure to the upside after the lows (a swing high closed through). The exact swing level can't be read; a red line he drew at 5,148.25 from ~11:45 ET may mark it.",
+      "src": "heard",
+      "ref": "[03:15]-[03:30] 'on a five minute ... we broke [structure] ... lower lows ... waited for a higher [low]'. Seen: red line + label 5148.25 in #17 03m54s."
+     },
+     {
+      "value": "Entry on the pullback after the shift, which 'closed back' above an equilibrium",
+      "src": "heard",
+      "ref": "[03:30] 'get down into ... close back [above] equilibrium right here, entry right here'"
+     }
+    ],
+    "entry_time": {
+     "value": "≈12:00 ET (±5 min)",
+     "src": "inferred",
+     "ref": "The position box's left edge lines up with the '12:00' axis label on the 1m chart (#17 03m54s) and sits ~4 bars before the 12:20 crosshair on 5m (#5). The chart time is taken as ET because of the 09:30 session marker and the 08:30 news bar."
+    },
+    "entry": {
+     "value": 5148.5,
+     "src": "seen",
+     "ref": "#5 axis label 5148.50 on the box's entry line; consistent with the tool's target 13.00 / stop 7.50 distances"
+    },
+    "stop": {
+     "value": 5141.0,
+     "src": "seen",
+     "ref": "#5 axis label 5141.00 at the stop box bottom; 'Stop: 7.50 (0.15%) 30'"
+    },
+    "stop_rule": {
+     "value": "'underneath the equilibrium'; on the chart, just below the ~11:50 ET 1m higher low (≈5,141.5)",
+     "src": "heard",
+     "ref": "[03:30] 'stopped underneath the equilibrium and [invalidation]'. The link to the ~11:50 low is inferred from #17."
+    },
+    "target": {
+     "value": 5161.5,
+     "src": "seen",
+     "ref": "#5 axis label 5161.50 at the target box top; 'Target: 13.00 (0.25%) 52'"
+    },
+    "target_rule": {
+     "value": "Probably the level where price reacted around 09:55 ET, just under the ≈5,167 day high. His stated reasoning is garbled.",
+     "src": "inferred",
+     "ref": "#18 04m00s 1m crosshair at 5161.50 on the 09:55 ET candles (legend H 5160.50). Heard: [03:45] 'take profit was based on the ... this is super strong draw ... yes it is liquidity but'; [04:00] 'same area ... significant ... reaction'."
+    },
+    "exit": {
+     "value": "target hit at 5,161.50, sometime ≈14:15-15:00 ET",
+     "src": "seen",
+     "ref": "#5 tool shows 'Closed P&L: 13.00, Qty: 2.667, Risk/Reward Ratio: 1.73', which means price reached the target inside the box (box ends ≈15:00 ET). 1h last-bar high 5,162.25 (#13). Candles after entry stay above ≈5,146 (inferred from #17), so the stop was not touched first. The ≈14:15 touch time is inferred from 5m candle positions."
+    },
+    "size_or_leverage": {
+     "value": null,
+     "src": "unknown",
+     "ref": "Not stated. The tool's Qty 2.667 and 'Amount: 101733.33 / 99000' come from TradingView's default $100k account with 1% risk ($1,000/(7.5×$50)); they are not his size."
+    },
+    "result": {
+     "value": "win",
+     "src": "seen",
+     "ref": "Tool closed at target (#5). Heard: [00:30] 'ended up taking full ... fully got it'. Real fills not shown."
+    },
+    "r_multiple": {
+     "value": 1.73,
+     "src": "computed",
+     "ref": "(5161.50-5148.50)/(5148.50-5141.00) = 13.00/7.50 = 1.73; the tool shows the same 'Risk/Reward Ratio: 1.73'. Assumes fills at the drawn levels."
+    },
+    "claimed_pnl": {
+     "value": null,
+     "src": "unknown",
+     "ref": "No $ amount stated or shown for his account. The title makes no claim. The tool's $1,733.33 is TradingView's default-account math."
+    },
+    "pnl_verified": {
+     "value": "no",
+     "src": "inferred",
+     "ref": "Only a TradingView drawing tool is shown; there is no broker panel, fills or account P&L."
+    },
+    "mistakes": [
+     {
+      "value": "Possible deviation from his usual habit of not trading this kind of (news/NFP) session. He called it an exception because the opportunity was good. The entry came ~3.5 h after the release, around lunch.",
+      "src": "heard",
+      "ref": "[02:45] 'usually an entree never wants the bomb however i saw this is a pretty good opportunity' (garbled; meaning uncertain)"
+     }
+    ],
+    "evidence_summary": "Seen: instrument, date, direction, entry/stop/target and the tool's closed-at-target status. Inferred: entry time and the 1h-imbalance levels. Heard: the reasons (5m BOS, equilibrium, target logic). Size and P&L unknown."
+   }
+  }
+ ],
+ "no_trade_reason": "weekly recap; its one trade is the May 3 ES long already recorded as 020 #3 (counted there, now closed as a win)"
+}
