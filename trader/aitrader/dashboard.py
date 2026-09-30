@@ -201,4 +201,16 @@ def snapshot(cfg, store) -> dict:
         "accounts": {"paper": _account(cfg, store, "paper"), "live": _account(cfg, store, "live")},
         "watchlist": [{"desk": d, **quote(cfg, t)} for d in active_desks(cfg) for t in cfg["desks"][d]["watchlist"]],
         "journal": [{"ts": ts, "message": m} for ts, m in store.journal(60)][::-1],
+        "scan": _scan(cfg),
     }
+
+
+def _scan(cfg) -> dict:
+    """The daily all-stocks scan (scanner.py): the list, new listings, and their news."""
+    from .scanner import load_list
+    state = load_list(cfg)
+    keep = ("rank", "symbol", "price", "momentum_pct", "return_1m_pct", "return_3m_pct", "days_listed",
+            "since_first_listed_pct", "news", "news_count", "danger")
+    return {"updated": state.get("updated"),
+            "liked": [{k: r.get(k) for k in keep} for r in state.get("liked", [])],
+            "new_listings": [{k: r.get(k) for k in keep} for r in state.get("new_listings", [])]}

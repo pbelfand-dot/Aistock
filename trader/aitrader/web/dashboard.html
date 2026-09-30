@@ -352,6 +352,10 @@
         <label>Account type<select id="set-acct"><option value="auto">Automatic (Schwab = cash rules)</option>
           <option value="cash">Cash: settled money only</option><option value="margin">Margin</option></select></label>
         <label>Paper (practice) money ($)<input id="set-paper" inputmode="decimal"></label>
+        <label>Scan all US stocks every day<select id="set-scan"><option value="on">On</option>
+          <option value="off">Off (only the watchlist)</option></select></label>
+        <label>Let Kestrel read the news<select id="set-news"><option value="on">On (Alpaca/Yahoo headlines)</option>
+          <option value="off">Off</option></select></label>
       </div>
       <div class="setup-row"><button id="save-settings">Save settings</button></div>
     </section>
@@ -717,8 +721,29 @@ function renderActivity(a) {
       el("td", { class: "num " + dir(r.realized_pnl), text: r.realized_pnl == null ? "" : signedMoney(r.realized_pnl) }),
       el("td", { class: "reason", text: r.reason }))))));
 }
+function scanCard(scan) {                                 // scanner.py: the daily scan of all US stocks
+  if (!scan || !scan.updated) return el("div", { class: "card", style: "margin-bottom:16px" },
+    el("div", { class: "card-head" }, el("h2", { text: "Stocks it likes" })),
+    el("div", { class: "empty", text: "The first scan of all US stocks runs after today's close (the autopilot must be on)." }));
+  const row = (r, i) => el("tr", {},
+    el("td", { class: "num", text: r.rank || i + 1 }), el("td", { class: "sym", text: r.symbol }),
+    el("td", { class: "num", text: money(r.price) }),
+    el("td", { class: "num " + dir(r.momentum_pct), text: r.momentum_pct == null ? "--" : pct(r.momentum_pct, 1) }),
+    el("td", { class: "num " + dir(r.return_1m_pct), text: pct(r.return_1m_pct, 1) }),
+    el("td", { class: "num", text: r.days_listed == null ? "new" : r.days_listed }),
+    el("td", { class: "reason" }, r.danger && r.danger.length ? el("strong", { class: "down", text: "⚠ " + r.danger.join(", ") + ": not buying. " }) : null,
+      r.news && r.news.length ? el("a", { href: r.news[0].url || null, text: r.news[0].headline }) : el("span", { class: "muted", text: r.news_count === 0 ? "no news" : "" })));
+  const head = el("thead", {}, el("tr", {}, ["#", "Stock", "Price", "12-month", "This month", "Days on list", "Latest news"]
+    .map((h, i) => el("th", { class: i && i < 6 && i !== 1 ? "num" : null, text: h }))));
+  return el("div", { class: "card", style: "margin-bottom:16px" },
+    el("div", { class: "card-head" }, el("h2", { text: "Stocks it likes" }), el("span", { class: "muted", text: `scan of all US stocks · ${scan.updated}` })),
+    el("p", { class: "ink2", style: "font-size:13px;margin:0 0 8px", text: "Ranked by the past year's rise (uptrends only, $3+ a share, actively traded). The swing desk considers the top of this list; its own rules and budget still decide. Danger headlines block buying." }),
+    el("div", { class: "table-scroll" }, el("table", {}, head, el("tbody", {}, scan.liked.map(row)))),
+    scan.new_listings.length ? el("h3", { style: "font-size:13px;margin:16px 0 8px", text: "New listings (under a year of history · watch only)" }) : null,
+    scan.new_listings.length ? el("div", { class: "table-scroll" }, el("table", {}, el("tbody", {}, scan.new_listings.map(row)))) : null);
+}
 function renderResearch(s) {
-  $("#research").replaceChildren(...s.desks.map(d => {
+  $("#research").replaceChildren(scanCard(s.scan), ...s.desks.map(d => {
     const study = d.study || [], plan = d.plan;
     const cols = study.length ? Object.keys(study[0]) : [];
     const whole = new Set(["signals", "trading_days", "num_closed_trades"]);
@@ -817,6 +842,7 @@ async function refreshSetup() {
     if (!$("#setup-later").dataset.filled) {                     // don't overwrite what you're typing
       $("#set-broker").value = set.broker; $("#set-cap").value = set.real_money_cap;
       $("#set-acct").value = set.account_type; $("#set-paper").value = set.paper_cash;
+      $("#set-scan").value = set.scan_all_stocks || "on"; $("#set-news").value = set.read_news || "on";
       $("#sw-callback").value = s.schwab.callback_url || "";
       $("#setup-later").dataset.filled = "1";
     }
@@ -875,7 +901,8 @@ async function setupAction(button, action, payload, after) {
 }
 $("#save-settings").onclick = (e) => setupAction(e.target, "save-settings", {
   broker: $("#set-broker").value, real_money_cap: $("#set-cap").value,
-  account_type: $("#set-acct").value, paper_cash: $("#set-paper").value });
+  account_type: $("#set-acct").value, paper_cash: $("#set-paper").value,
+  scan_all_stocks: $("#set-scan").value, read_news: $("#set-news").value });
 $("#save-schwab").onclick = (e) => setupAction(e.target, "save-schwab-keys", {
   app_key: $("#sw-key").value, app_secret: $("#sw-secret").value, callback_url: $("#sw-callback").value,
   account_number: $("#sw-acct").value }, async (r) => { $("#sw-key").value = ""; $("#sw-secret").value = ""; notify(r.message); });

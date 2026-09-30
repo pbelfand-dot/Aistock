@@ -1,0 +1,127 @@
+{
+  "video": {
+    "n": 21,
+    "file": "05_06_2024.Trade.Recap.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 6 sheets, 11 full-size shots (#8, #9, #11, #12, #15, #16, #17, #18, #20, #22, #23) and the transcript. TradingView legends, x-axis date/time labels and price-axis labels are readable. Chart time zone shown partly as '(UTC-4' at bottom right (= ET in May). No broker/order panel, fills or P&L shown; only TradingView position-tool boxes. The ES stop label is hidden behind the webcam overlay. Transcript (pocketsphinx) is very garbled. Structure: 00:00-01:40 intro on camera; 01:42-06:15 ES trade (1m/1h); 06:15-11:15 NQ trade and NQ add-on (5m/1m); 11:15-12:54 wrap-up on trading the PM session.",
+    "duration_min": 12.9,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-05-06",
+      "src": "seen",
+      "ref": "#8 01m42s, #11 06m30s, #17 08m06s x-axis 'Mon 06 May '24'; file name 05_06_2024. He calls it 'yesterday' ([00:45] 'i took three trades yesterday'), so recorded on a later day."
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "NQ trended up on the 5m from ~12:00 through the PM session (from the ~18093-18108 area to ~18148 by ~14:45 and above 18158.50 by ~15:47 ET). He describes the AM session as slow and the PM session (from 14:00 ET) as having more action.",
+      "src": "inferred",
+      "ref": "Seen: #12 06m42s legend 'NASDAQ 100 E-mini Futures · 5 · CME', x-axis 09:30-16:00; #23 11m12s NQ 1m. Levels estimated from candle positions (±1 pt). Heard: [02:00] 'much much action goes unnoticed monday than this is pm session ... there is a lot more action' read as 'the AM session had much less action ... the PM session has a lot more'."
+    },
+    "news": {
+      "value": "No news that day and hardly any for the week (his statement); he expected a slow, low-volatility session.",
+      "src": "heard",
+      "ref": "[04:45] 'errors no news at all when there's no news pretty much for this entire week' and [05:00] 'going to be relatively slow week in terms of price action'."
+    },
+    "bias": {
+      "value": "Bullish: 4h and 1h bullish. For the PM session he uses lower-timeframe draws (5m lows as liquidity to sweep, nearby 1h/5m imbalance tops as targets) instead of higher-timeframe draws.",
+      "src": "heard",
+      "ref": "[01:45] 'at the four hour we're obviously polish on the hourly we were polish' read as 'bullish on 4h, bullish on 1h'; [06:30] 'bullish on the four hour ... polish on the hourly'; [02:15] 'instead of using high time for draws on liquidity were using lower [timeframe] ... draws'."
+    }
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-05-06", "src": "seen", "ref": "#8 01m42s x-axis 'Mon 06 May '24 13:48'"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#8 01m42s legend 'S&P 500 E-mini Futures · 1 · CME'"},
+      "direction": {"value": "long", "src": "seen", "ref": "#8 01m42s position-tool box: blue (target) zone above the entry, gray (stop) zone below"},
+      "timeframes": {"value": {"bias": "4h/1h", "setup": "5m lows", "entry": "1m"}, "src": "inferred", "ref": "Entry on the 1m chart (#8 legend '· 1'); [01:45] 4h/1h bullish; [02:30] 'marked these five [minute] lows'; target level shown on 1h chart (#9 legend '· 1h')."},
+      "setup": {"value": "PM session: sweep of 5m low (5191.00) -> 1m inverse FVG (close back above a 1m bearish FVG) -> long", "src": "inferred", "ref": "Heard [02:30]-[03:30] '5 minute lows', 'pm session starts', 'inverse fair value gap as a confluence', 'one minute'; seen #8: blue line 5191.00, 14:21-14:22 wick below it to ≈5190.75, 1m gray FVG boxes ≈5192.4-5192.7 and ≈5193.5-5194.2, entry just after."},
+      "entry_conditions": [
+        {"value": "4h and 1h bullish", "src": "heard", "ref": "[01:45] 'four hour we're obviously polish on the hourly we were polish'"},
+        {"value": "PM session (after 14:00 ET)", "src": "seen", "ref": "#8 red dashed vertical line at 14:00; entry box starts ≈14:23"},
+        {"value": "price traded below a marked 5m low at 5191.00 (sweep)", "src": "inferred", "ref": "#8 blue line/label 5191.00 (seen); 1m wick at ≈14:21-14:22 reaches ≈5190.75 ±0.25 (estimated between axis labels); heard [02:30]/[03:00] 'five minute lows'"},
+        {"value": "a 1m bearish FVG is closed through upward (inverse FVG) before entry", "src": "heard", "ref": "[03:15] 'how can we use the [inverse fair value] gap as a confluence ... one minute'; [03:30] 'we can validate that there's [an inverse FVG]'. Which exact box is the IFVG is not clear from #8."}
+      ],
+      "entry_time": {"value": "≈14:23 ET", "src": "inferred", "ref": "#8 position box left edge x≈790; x-axis 14:00 at x≈627, 14:15 at x≈734 (≈7.1 px/min); chart TZ '(UTC-4'"},
+      "entry": {"value": 5193.25, "src": "seen", "ref": "#8 gray axis label 5193.25 at the blue/gray boundary of the position box; same gray label on #9 03m06s"},
+      "stop": {"value": 5189.5, "src": "inferred", "ref": "#8 gray stop zone bottom at y≈585 vs axis 5190.00 (y=544) / 5190.50 (y=500): ≈5189.50 ±0.25; its axis label is hidden behind the webcam overlay"},
+      "stop_rule": {"value": "below the lows under the setup (he says it could have been tighter)", "src": "heard", "ref": "[03:30] 'that was stopped underneath these body lows in reality i could've been a little bit tighter'"},
+      "target": {"value": 5198.5, "src": "seen", "ref": "#9 03m06s ES 1h: blue axis label '5198.50' (partly overlapped) next to black horizontal-line label 5198.50; blue = position-tool target by the same colour use as the NQ boxes. The label reads 5198.50; linking it to this box is inferred."},
+      "target_rule": {"value": "single take profit at the top of a 1h level/imbalance", "src": "heard", "ref": "[04:30] 'take profit ... purely based on the top of this one hour [imbalance?]'; [03:45] 'my first ... and only take profit'"},
+      "exit": {"value": "target hit (about 3 minutes after entry, by his account)", "src": "heard", "ref": "[03:45] 'my first ... and only take profit ended up getting hit like it's only three minutes later'. Not visible: #8 candles run off the top of the chart above ≈5194.4."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "No size shown or stated"},
+      "result": {"value": "win", "src": "heard", "ref": "[03:45] take profit hit; [04:00] 'so this trade was great'"},
+      "r_multiple": {"value": 1.4, "src": "inferred", "ref": "(5198.50-5193.25)/(5193.25-5189.50) = 5.25/3.75 = 1.40; range 1.31-1.50 with the stop at ±0.25; assumes the fill was at the target"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No $ amount stated or shown; [00:45] only says the trades 'hit ... profit'"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "No broker/platform P&L or fills shown; only a TradingView position-tool drawing"},
+      "mistakes": [
+        {"value": "stop wider than needed (his own view)", "src": "heard", "ref": "[03:30] 'in reality i could've been a little bit tighter'"}
+      ],
+      "evidence_summary": "Seen: ES 1m chart, date, long box, entry 5193.25, target label 5198.50, 5191.00 line. Inferred: stop ≈5189.50, entry time, sweep. Heard: bias, IFVG trigger, TP hit ~3 min later (the hit itself is not visible)."
+    },
+    {
+      "date": {"value": "2024-05-06", "src": "seen", "ref": "#17 08m06s x-axis 'Mon 06 May '24 14:24'"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#17 08m06s legend 'NASDAQ 100 E-mini Futures · 1 · CME'"},
+      "direction": {"value": "long", "src": "seen", "ref": "#15/#17/#23 position box: blue zone above the entry, gray below"},
+      "timeframes": {"value": {"bias": "4h/1h", "setup": "5m lows", "entry": "1m"}, "src": "inferred", "ref": "Heard [06:30] 4h/1h bullish, 5m lows marked; seen 5m chart (#11, #12) and 1m entry chart (#15-#23)"},
+      "setup": {"value": "PM session: sweep of 5m lows (18125.50 / 18124.75) -> 1m inverse FVG (close above bearish 1m FVG ≈18131.5-18134.4) -> long", "src": "inferred", "ref": "Seen #11/#18 lines 18125.50 (blue) and 18124.75 (black); #18 wick at ≈14:21 to ≈18123.25 (crosshair label at the wick); #15 1m gray FVG box ≈18131.5-18134.4 (estimated). Heard [06:45] 'come down sweep of those lows', [07:00] 'same exact [entry]', [08:00] 'breaking one minute structure'."},
+      "entry_conditions": [
+        {"value": "4h and 1h bullish", "src": "heard", "ref": "[06:30] 'bullish on the four hour ... polish on the hourly'"},
+        {"value": "5m lows made before the PM session are marked (18125.50, 18124.75)", "src": "seen", "ref": "#11 06m30s NQ 5m: blue line 18125.50, black line 18124.75; heard [06:30] 'marked out these five [minute lows] ... made [prior to the] start of the [PM] session'"},
+        {"value": "price trades below those 5m lows in the PM session (sweep, ≈14:21 ET, low ≈18123.25)", "src": "inferred", "ref": "#18 08m12s crosshair label 18123.25 at the wick low; #16 crosshair 14:21 on the large bearish 1m candle; heard [06:45] 'we come down sweep of those lows'"},
+        {"value": "a 1m candle closes above a 1m bearish FVG (inverse FVG) and breaks 1m structure", "src": "heard", "ref": "[07:30] '[fair value] gap getting invalidated'; [08:00] 'we can validate ... along with breaking one minute structure'. Seen #15: gray FVG box just under the entry, box top ≈18134.4."}
+      ],
+      "entry_time": {"value": "≈14:23 ET", "src": "inferred", "ref": "Box left edge at the 14:24 crosshair in #17; ≈14:23 from x-axis scale in #16/#20/#22; chart TZ '(UTC-4'"},
+      "entry": {"value": 18134.75, "src": "seen", "ref": "Gray axis label 18134.75 (#11, #18, #20, #22, #23) at the blue/gray boundary of the first box"},
+      "stop": {"value": 18123.5, "src": "seen", "ref": "Gray axis label 18123.50 at the bottom of the first box (#11, #15, #18)"},
+      "stop_rule": {"value": "below the swept 5m lows", "src": "heard", "ref": "[08:00] 'stops underneath these lows that were made'"},
+      "target": {"value": 18158.5, "src": "seen", "ref": "#23 11m12s blue axis label 18158.50 at the top of the box, plus black line 18158.50; the position tool reads 'Risk/Reward Ratio: 2.11' (#17), which matches 23.75/11.25"},
+      "target_rule": {"value": "single take profit at the end of a nearby imbalance (lower-timeframe draw)", "src": "heard", "ref": "[08:15] 'my one and only take profit was based off the end of this [...] imbalance'"},
+      "exit": {"value": "target hit ≈15:47 ET after consolidation; stop not touched first", "src": "inferred", "ref": "#23: first 1m candles cross the 18158.50 line at x≈833 (15:45 at x≈822, ≈5.8 px/min); lowest low after entry ≈18129.5 (#22, #23) > 18123.50. Heard [11:00] 'after a lot of consolidation ... ripping up getting that and then moving even further'."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Not stated. The position tool shows 'Qty: 4.444' (#17), which is a drawing-tool setting, not proof of real size."},
+      "result": {"value": "win", "src": "inferred", "ref": "Chart shows price reaching the 18158.50 target before the 18123.50 stop (#20, #22, #23); heard [11:00] he says it got there. Real fill not shown."},
+      "r_multiple": {"value": 2.11, "src": "computed", "ref": "(18158.50-18134.75)/(18134.75-18123.50) = 23.75/11.25 = 2.11; matches the seen tool label 'Risk/Reward Ratio: 2.11' (#17)"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No $ amount stated. The '#17 Open P&L: 16.75' is a TradingView drawing-tool readout, not an account P&L."},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "No broker/platform P&L or fills shown"},
+      "mistakes": [],
+      "evidence_summary": "Seen: NQ 1m/5m, date, long box, entry 18134.75, stop 18123.50, target 18158.50, R:R 2.11, target reached on chart. Inferred: times, sweep low, FVG edges. Heard: bias, IFVG/BOS trigger, rule for TP."
+    },
+    {
+      "date": {"value": "2024-05-06", "src": "seen", "ref": "#20 09m18s x-axis 'Mon 06 May '24 14:48'"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#20/#22/#23 legend 'NASDAQ 100 E-mini Futures · 1 · CME'"},
+      "direction": {"value": "long", "src": "seen", "ref": "#20/#22/#23 second position box (x≈675-862 in #20): blue above entry, gray below"},
+      "timeframes": {"value": {"bias": "4h/1h", "setup": "1m", "entry": "1m"}, "src": "inferred", "ref": "Drawn and entered on the NQ 1m chart; same bias as trade 2"},
+      "setup": {"value": "Add-on to trade 2: pullback into 1m FVG / equilibrium (0.5 of a drawn fib) after a bearish 1m FVG was inverted -> long", "src": "inferred", "ref": "Seen #20/#22: fib drawn with levels 1 (≈18145.7), 0.5 (≈18140.1), 0 (≈18134.5) and gray FVG boxes ≈18140.3-18141.9 and ≈18143.2-18143.7 (estimated). Heard [10:15] 'price come down to an equilibrium and i've entered'; [09:15] 'bearish [FVG] ... invalidate'. Entry 18142.00 is above the drawn 0.5, so the exact trigger is unclear."},
+      "entry_conditions": [
+        {"value": "already in the trade-2 long; price made a first leg up then pulled back", "src": "heard", "ref": "[06:15] 'the second trade was just a added on position'; [08:30] 'after that first leg'"},
+        {"value": "a 1m bearish FVG was inverted (closed through upward)", "src": "heard", "ref": "[09:00] 'we get that big leg [and] invalidate ... [fair] value gap'; [09:15] 'bears ... [FVG] ... come to ... it'"},
+        {"value": "price pulled back to equilibrium (50% of the leg)", "src": "heard", "ref": "[10:15] 'price come down to an equilibrium and i've entered'"}
+      ],
+      "entry_time": {"value": "≈14:52 ET", "src": "inferred", "ref": "Second box left edge x≈675 in #20 (14:40 at x≈535, 15:00 at x≈768) and x≈508 in #22; chart TZ '(UTC-4'"},
+      "entry": {"value": 18142.0, "src": "seen", "ref": "Gray axis label 18142.00 at the blue/gray boundary of the second box (#12, #20, #22, #23)"},
+      "stop": {"value": 18134.25, "src": "seen", "ref": "Gray axis label 18134.25 at the bottom of the second box (#20, #22, #23; box bottom y≈455 in #23 = ≈18134.3)"},
+      "stop_rule": {"value": "under the 1m low where equilibrium/the setup would be invalidated", "src": "heard", "ref": "[10:30] 'stops were put under[neath] this one minutes [low] because again that's where equilibrium was ... where my trade would've been invalidated'"},
+      "target": {"value": 18158.5, "src": "inferred", "ref": "#23: top of the second box's blue zone aligns with the 18158.50 line (same as trade 2); no separate label"},
+      "target_rule": {"value": "same take profit as trade 2", "src": "inferred", "ref": "Box tops aligned in #23"},
+      "exit": {"value": "stopped at ≈15:01 ET", "src": "inferred", "ref": "#20/#22: the box's dashed exit line runs to the stop edge at x≈780 (#20) / x≈578 (#22) ≈15:01; that 1m candle's low ≈18132.9 < 18134.25. Heard [06:15] 'added on position which ended up getting stopped out'; [10:45] 'we end up coming down sweeping ...'"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Not stated or shown"},
+      "result": {"value": "loss", "src": "heard", "ref": "[06:15] 'ended up getting stopped out'; consistent with chart (#20, #22)"},
+      "r_multiple": {"value": -1.0, "src": "computed", "ref": "Exit at the stop: (18134.25-18142.00)/(18142.00-18134.25) = -1.0 (planned R:R to 18158.50 would have been 16.5/7.75 = 2.13); slippage unknown"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No $ amount stated or shown"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "No broker/platform P&L or fills shown"},
+      "mistakes": [
+        {"value": "added to a winning position without enough confluence; he says he shouldn't have", "src": "heard", "ref": "[00:45] 'additional position added on ... which i probably should[n't] have done'; [08:45] 'i fucked up and [took an]other trade'; [10:00] 'this is a stupid trade'"}
+      ],
+      "evidence_summary": "Seen: NQ 1m, second long box, entry 18142.00, stop 18134.25, price trading below the stop. Inferred: times, target, trigger details. Heard: add-on, equilibrium entry, stopped out, his admission it was a mistake."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "In the PM session use lower-timeframe draws on liquidity (5m lows/highs, nearby imbalances) instead of higher-timeframe draws", "src": "heard", "ref": "[02:15] 'instead of using high time for draws on liquidity were using lower [timeframe draws]'; [04:00] 'pretty much the exact same strategy were just using lower [timeframe]'"},
+    {"value": "Use the 1m inverse FVG as confluence/confirmation for entry after the sweep", "src": "heard", "ref": "[00:15] 'apply that inverse [fair value] gap confluence'; [03:15] 'how can we use the [inverse] fair value gap as a confluence'"},
+    {"value": "Only one take profit; with no news expect a slow session and take the nearby target", "src": "heard", "ref": "[03:45] 'first ... and only take profit'; [04:45] 'i don't really see much ... volatility coming ... no news at all'"},
+    {"value": "If the AM session looks bad, or there is high-impact news an hour before it, wait and trade the PM session", "src": "heard", "ref": "[12:00] 'super high impact news an hour before ... am session ... wait it out until the [PM] session and then trade'"},
+    {"value": "Lower timeframes mean take profits and stops get hit faster than when waiting for higher-timeframe confluence", "src": "heard", "ref": "[11:45] 'i'm trading on a lot lower [time frames] ... take profits or stop losses [get] hit a lot quicker'"}
+  ],
+  "quality_notes": "Prices for all three boxes come from axis labels except the ES stop (≈5189.50, label hidden by webcam) and the add-on target (box alignment). The ES target hit is not visible on any picture (only heard). No broker/fill evidence for any trade; results come from position-tool drawings, candles and his words. The transcript is very garbled (e.g. the IFVG trigger wording, '[12:15] both wanted a to b s' unreadable), so trigger details are partly inferred. The exact 1m FVG used as the IFVG for each trade isn't labelled."
+}

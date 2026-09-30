@@ -15,6 +15,8 @@ SETTINGS = {
     "real_money_cap": (("live", "max_capital"), (10, 100000), "Most real money the bot may use ($)"),
     "account_type": (("live", "account_type"), ("auto", "cash", "margin"), "Account type"),
     "paper_cash": (("paper", "starting_cash"), (100, 1000000), "Paper (practice) money ($)"),
+    "scan_all_stocks": (("scanner", "enabled"), ("on", "off"), "Scan all US stocks every day"),
+    "read_news": (("news", "enabled"), ("on", "off"), "Let Kestrel read the news"),
 }
 
 
@@ -85,5 +87,7 @@ def current(cfg: dict) -> dict:
         value = cfg
         for key in where:
             value = value.get(key) if isinstance(value, dict) else None
+        if isinstance(value, bool):
+            value = "on" if value else "off"
         out[name] = value if value is not None else ("auto" if name == "account_type" else None)
     return out
