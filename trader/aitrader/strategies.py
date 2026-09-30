@@ -71,6 +71,36 @@ class MeanReversion(Strategy):
         return pd.DataFrame(out)
 
 
+class Momentum(Strategy):
+    """Stage 1's method: the one the 16-year research backed (research/history/RESULTS-methods.md).
+    The score is the stock's rank among everything on the list by its 12-1 month return, so 1.0 is
+    the strongest. Buying needs the top 20%; holding needs the top half (the gap stops it trading
+    back and forth every day)."""
+    name = "momentum"
+    description = ("Own the strongest stocks: rank every stock on the list (the watchlist plus the top of "
+                   "the daily all-stocks scan) by its return over the last 12 months, skipping the latest "
+                   "month. Buy from the top 20% while the stock is above its 200-day average; sell when it "
+                   "drops out of the top half or below its 200-day average. No new buys while the S&P 500 "
+                   "is below its own 200-day average.")
+    buy_above = 0.8
+    sell_below = 0.5
+    months, skip = 252, 21                   # trading days in 12 months and in the skipped latest month
+
+    def scores(self, bars, market, since=None):
+        momentum, uptrend = {}, {}
+        for ticker, df in bars.items():
+            close = df["close"]
+            momentum[ticker] = close.shift(self.skip) / close.shift(self.months) - 1
+            uptrend[ticker] = (close > sma(close, 200)).where(sma(close, 200).notna())
+        momentum, uptrend = pd.DataFrame(momentum), pd.DataFrame(uptrend)
+        score = momentum.rank(axis=1, pct=True)
+        score = score.where(uptrend.fillna(False).astype(bool), 0.0).where(momentum.notna())
+        benchmark = market["close"]
+        market_up = (benchmark > sma(benchmark, 200)).reindex(score.index, method="ffill").fillna(False)
+        capped = score.clip(upper=self.buy_above - 0.01)       # keep what it owns, buy nothing new
+        return score.where(market_up.astype(bool), capped, axis=0)
+
+
 # ---------------------------------------------------------------- day desk
 class OpeningRangeBreakout(Strategy):
     name = "opening_range_breakout"
@@ -132,7 +162,8 @@ def all_strategies(cfg: dict, style: str) -> list:
     if style == "swing":
         brain = Brain(horizon=cfg["study"]["horizon_days"], retrain_every=ai["retrain_every"],
                       min_train=ai["min_train"])
-        return [TrendFollowing(), MeanReversion(), AIModel("swing", brain, ai["buy_above"], ai["sell_below"])]
+        return [TrendFollowing(), MeanReversion(), Momentum(),
+                AIModel("swing", brain, ai["buy_above"], ai["sell_below"])]
     brain = Brain(horizon=ai["horizon"], retrain_every=ai["retrain_every"], min_train=ai["min_train"],
                   intraday=True)
     return [OpeningRangeBreakout(), VwapReversion(), AIModel("day", brain, ai["buy_above"], ai["sell_below"])]

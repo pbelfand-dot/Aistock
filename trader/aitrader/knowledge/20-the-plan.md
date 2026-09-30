@@ -3,17 +3,23 @@
 1. **Stage 1: paper trading, 30 trading days, "free ball".**
    - Trade what the research says works, and build a growing list of stocks the bot likes, from
      niche names to big ones.
-   - Proposed method (waiting for the owner's OK): each month, own the 10 stocks that rose most
-     over the past 12 months (skipping the latest month), equal weight. Move to cash-like bonds
-     when SPY is below its 200-day average.
+   - Method (`momentum`, swing desk): rank every stock on the list (the watchlist plus the top
+     15 of the daily all-stocks scan) by its 12-month return, skipping the latest month. Buy from
+     the top 20% while the stock is above its 200-day average; sell when it drops out of the top
+     half or below its 200-day average. No new buys while SPY is below its 200-day average.
+   - Whole shares only, at most 3 positions of up to 34% of the desk's money each, 7% stop-loss.
+     Stocks too expensive for one whole share are skipped.
+   - The owner starts it with **Start Stage 1 paper trading** in Setup (or `python run.py
+     start-stage1`). It skips the study month; the day desk keeps studying.
 2. **Stage 2: paper, 30 trading days:** Stage 1 plus TJR's model. TJR's rules only trade after
    they pass an intraday history test.
 3. **Real money:** $50 at Alpaca and $50 at Schwab. More only if it makes money.
 
 **Pass rule the owner set:** make money and beat SPY over the stage.
 - Caveat from the research: over any 30 trading days, even the best method did that only about
-  6 times in 10.
+  6 times in 10 (58%), and momentum with the trend filter about half the time (49%).
 - So a single stage can catch a broken method, but can't prove a good one.
 
-**Where the code is now:** each desk goes study (30 days) → plan review → paper → live. Reworking
-this into the stages above is planned.
+**Where the code is now:** Stage 1 is a button. Otherwise each desk still goes study (30 days) →
+plan review → paper → live. Real money always needs the promotion rules to pass and the owner's
+typed confirmation.

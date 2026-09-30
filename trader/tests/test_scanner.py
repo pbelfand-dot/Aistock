@@ -125,3 +125,16 @@ def test_the_app_always_gets_valid_json_even_with_missing_numbers(cfg, monkeypat
     assert "NaN" not in text and "Infinity" not in text
     snap = json.loads(text)
     assert snap["scan"]["new_listings"][0]["symbol"] == "NEWCO" and snap["scan"]["new_listings"][0]["momentum_pct"] is None
+
+
+def test_a_new_install_scans_in_the_morning_so_the_first_decision_can_use_the_list(cfg, monkeypatch):
+    import run
+    monkeypatch.setattr(run, "schwab_login_warning", lambda cfg: "")
+    ran = []
+    monkeypatch.setattr(scanner, "run", lambda cfg, store, today: ran.append(today) or "scan: 6 stocks checked")
+    store = Store(":memory:")
+    run.run_job("morning", cfg, store, None, datetime(2026, 9, 30, 9, 30), set())
+    assert ran == ["2026-09-30"]
+    monkeypatch.setattr(scanner, "load_list", lambda cfg: {"liked": [{"symbol": "ROCKET"}]})
+    run.run_job("morning", cfg, store, None, datetime(2026, 10, 1, 9, 30), set())
+    assert ran == ["2026-09-30"]                                                # has a list: waits for tonight

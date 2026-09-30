@@ -17,7 +17,8 @@ code changes.
      `xattr -dr com.apple.quarantine "/Applications/Kestrel.app"`
 4. **The first time only**, a Terminal window installs Python and the bot's libraries (about
    2 minutes). Then the dashboard appears with the **Setup** screen on top.
-5. In **Setup**: paste your Alpaca paper keys → **Save and test** → **Autopilot: Turn on**.
+5. In **Setup**: paste your Alpaca paper keys → **Save and test** → **Autopilot: Turn on** →
+   **Start Stage 1 paper trading** (pretend money; it decides 15 minutes before each close).
 
 ### The app
 **Kestrel** is a normal Mac app: its own window, Dock icon and menus (no browser, no web server).

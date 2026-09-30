@@ -314,6 +314,17 @@
   <div class="dlg-actions"><button data-close>Cancel</button><button class="primary" id="do-kill" disabled>Sell everything and stop</button></div>
 </dialog>
 
+<dialog id="dlg-stage1" aria-labelledby="stage1-title">
+  <h3 id="stage1-title">Start Stage 1?</h3>
+  <p class="ink2">The swing desk starts paper trading now, with <strong>pretend money</strong>, and skips the
+     study month. It owns the strongest stocks from your watchlist and the daily all-stocks scan (their
+     12-month rise), buys only while a stock and the S&amp;P 500 are above their 200-day averages, and
+     sells when a stock weakens. Stop-losses, loss limits and good faith violation rules all apply.</p>
+  <p class="ink2">Honest expectation, from 16 years of data: about the market's return plus a little, with
+     bigger drops. Thirty trading days can catch a broken method but can't prove a good one.</p>
+  <div class="dlg-actions"><button data-close>Cancel</button><button class="primary blue" id="do-stage1">Start Stage 1</button></div>
+</dialog>
+
 <dialog id="dlg-setup" class="setup" aria-labelledby="setup-title">
   <div class="setup-head"><h3 id="setup-title">Setup</h3><span class="muted" id="setup-version"></span></div>
   <section class="setup-step">
@@ -333,9 +344,10 @@
     <button class="primary" id="auto-toggle">Turn on</button>
   </section>
   <section class="setup-step">
-    <h4><span class="num">3</span> What happens next</h4>
+    <h4><span class="num">3</span> What happens next <span class="tag" id="stage-state" hidden></span></h4>
     <div id="next-steps" class="ink2"></div>
-    <button id="resume" hidden>Resume trading</button>
+    <div class="setup-row"><button class="primary" id="stage1" hidden>Start Stage 1 paper trading</button>
+      <button id="resume" hidden>Resume trading</button></div>
   </section>
   <section class="setup-step">
     <h4><span class="num">4</span> Good faith violation protection <span class="tag" id="gfv-state"></span></h4>
@@ -394,8 +406,8 @@
       <div class="setup-row"><button id="claude-code">Claude Code</button><button id="claude-desktop">Claude Desktop</button></div>
     </section>
   </details>
-  <p class="muted" style="font-size:12px">Approving plans, real money and Schwab stay in the full Setup menu (Terminal),
-     where each big step needs a typed confirmation.</p>
+  <p class="muted" style="font-size:12px">Approving a study plan and moving a desk to real money stay in the full Setup menu
+     (Terminal), where each big step needs a typed confirmation.</p>
   <div class="dlg-actions">
     <button id="open-menu">Full Setup menu…</button><button id="check-updates">Check for updates</button>
     <button class="primary blue" data-close>Done</button>
@@ -830,6 +842,10 @@ async function refreshSetup() {
       el("strong", { text: `${cap(d.desk)} desk (${d.phase.replace("_", " ").toLowerCase()}): ` }),
       d.exiting ? "Emergency stop: still selling. " : d.halted ? "Paused. " : "", d.next)));
     $("#resume").hidden = !s.desks.some(d => d.halted);
+    const st = s.stage1 || {};
+    $("#stage1").hidden = !st.can_start;
+    $("#stage-state").textContent = st.running_since ? `Stage 1 · ${st.trading_days} of ${st.days_needed} days` : "";
+    $("#stage-state").hidden = !st.running_since;
     const g = s.gfv;
     $("#gfv-state").textContent = g.cash_rules ? `on · ${g.violations} of ${g.limit}` : "not needed";
     $("#gfv-text").textContent = g.cash_rules
@@ -863,6 +879,13 @@ async function testKeys() {
   try { const r = await setupCall("check-keys"); showChecks([r.prices, r.paper]); }
   catch (e) { showChecks([{ ok: false, text: e.message }]); }
 }
+$("#stage1").onclick = () => $("#dlg-stage1").showModal();
+$("#do-stage1").onclick = async () => {
+  $("#do-stage1").disabled = true;
+  try { notify((await setupCall("start-stage1")).message); } catch (e) { notify(e.message, true); }
+  $("#do-stage1").disabled = false; $("#dlg-stage1").close();
+  await refreshSetup(); load();
+};
 $("#setup").onclick = openSetup;
 $("#autopilot").onclick = openSetup;
 $("#save-keys").onclick = async () => {
