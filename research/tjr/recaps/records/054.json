@@ -1,0 +1,83 @@
+{
+  "video": {
+    "n": 54,
+    "file": "Live.Day.Trading.Losing.1.185.I.TRADED.WHILE.TRUMP.WAS.SPEAKING.Best.1080p.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 9 sheets viewed; 13 full-size shots opened (#1,#5,#12,#15,#17,#18,#19,#26,#29,#32,#33,#34,#36) plus label crops of #5, #15, #36. Legends, axes, x-axis dates and position-tool labels readable. info.json calls it a 'live session', but it is a same-day screen recap recorded 10:56-11:01 chart time (UTC-5) after both trades. Transcript (pocketsphinx, 17 lines) is heavily garbled; gist only ('size' appears to be 'highs', 'trouble'/'voting rights' appear to be 'Trump'). No broker/fills/P&L panel shown.",
+    "duration_min": 4.09,
+    "title_claim": "Losing $1,185 (title: 'Live Day Trading Losing 1,185 | I TRADED WHILE TRUMP WAS SPEAKING')",
+    "session_date": {"value": "2025-01-23", "src": "seen", "ref": "#15 01m41s x-axis 'Thu 23 Jan '25 10:07'; #18 02m08s x-axis 'Thu 23 Jan '25 10:11'"}
+  },
+  "market_context": {
+    "regime": {"value": "NQ: overnight sell-off from ~21,969 to 21,855.50 (by ~04:30), range ~21,860-21,920 into the open, dip to ~21,867 after 09:30, then rally to ~21,941 by ~10:45. ES: grind up from ~6,101.5 (~04:00) under a rising trendline of highs, capped ~6,117-6,119 until ~10:37, then broke out to 6,127 by 11:00", "src": "inferred", "ref": "seen #26 02m50s (NQ 5m) and #29 03m06s (ES 5m) drawn lines 21,969.00/21,855.50 and 6,101.50/6,120.25; #36 04m00s ES 1m last 6,127.00; intermediate prices estimated from axis, +/-2 NQ pts, +/-0.5 ES pts"},
+    "news": {"value": "Trump speaking during the session (title + his words); exact time of the speech not shown. News widget headline 'Jobless claims: Fir...' visible", "src": "heard", "ref": "title; [03:30] 'after i figured out that way trouble speaking' read as 'after I figured out that Trump was speaking'; [04:00] 'don't trade with voting rights' read as 'don't trade with Trump speaking'; seen #17 01m57s widget '26 minutes ago - Jobless claims: Fir...'"},
+    "bias": {"value": "mixed: NQ bullish after the NY-open dip into a 5m zone (draw: drawn highs 21,942.50 / 21,951.50); ES bearish at 10:11 after a sweep of the morning highs (draw: drawn lows 6,101.50 / 6,098.00)", "src": "inferred", "ref": "direction and targets of the two position tools (#5, #36) and the drawn levels they point at; not stated as a single daily bias"}
+  },
+  "trades": [
+    {
+      "date": {"value": "2025-01-23", "src": "seen", "ref": "#15 01m41s x-axis 'Thu 23 Jan '25 10:07'"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#15 01m41s legend 'NASDAQ 100 E-mini Futures · 1 · CME', symbol box 'NQ1!'"},
+      "direction": {"value": "long", "src": "seen", "ref": "#15 position tool: blue target zone above entry, gray stop zone below"},
+      "timeframes": {"value": {"bias": "5m", "setup": "5m zone + 1m IFVG", "entry": "1m"}, "src": "inferred", "ref": "seen #26 NQ 5m with gray zone ~21,880-21,893; #15 1m position tool; heard [01:00] 'inverse one minute'"},
+      "setup": {"value": "NY-open sell-off into 5m gray zone (~21,880-21,893, called an order block) -> 1m inverse FVG -> long", "src": "inferred", "ref": "heard [00:45] 'new york market ... came down', [01:00] 'came down into this or it is on our block' ('order block') + 'we got an inverse one minute ... outbreak'; seen zone #12/#26"},
+      "entry_conditions": [
+        {"value": "after 09:30 price sold off into the drawn gray zone ~21,880-21,893 (dashed mid ~21,887)", "src": "inferred", "ref": "seen #12 01m25s zone and 09:30/09:50 dashed verticals; zone edges estimated from axis +/-1"},
+        {"value": "liquidity taken on the drop before the reversal (which low is not identifiable)", "src": "heard", "ref": "[00:45] 'we set aside time for liquidity then we broke' read as '... took liquidity, then we broke'; low confidence"},
+        {"value": "1m inverse FVG (bearish gap closed through, flipped to support) before entry", "src": "heard", "ref": "[01:00] 'we got an inverse one minute variety outbreak'; the specific gap is not marked on the chart"}
+      ],
+      "entry_time": {"value": "~09:58 ET (+/-2 min)", "src": "inferred", "ref": "tool left edge x~709 in #5 (09:50 dashed at x 673, 4.37 px/min) and x~736 in #15 (09:00 at x 527, 3.6 px/min); chart clock '(UTC-5)' = ET"},
+      "entry": {"value": 21897.5, "src": "seen", "ref": "#5 00m32s gray axis label 21,897.50 at the position-tool entry line (drawing tool, not a broker fill)"},
+      "stop": {"value": 21865.75, "src": "seen", "ref": "#5 axis label 21,865.75 at box bottom; #15 tool label 'Stop: 31.75 (0.14%)' (21,897.50-31.75)"},
+      "stop_rule": {"value": "just below the post-open low (~21,866 wick)", "src": "inferred", "ref": "#12 low wick near 09:3x at ~21,866 (+/-1) sits just above the 21,865.75 stop"},
+      "target": {"value": 21951.0, "src": "seen", "ref": "#5 crop: blue tool label 21,951.00 under drawn-line label 21,951.50; #15 'Target: 53.50 (0.24%)' (21,897.50+53.50); tool 'Risk/Reward Ratio: 1.69'"},
+      "target_rule": {"value": "just under the drawn 21,951.50 line, above the drawn 21,942.50 high (buy-side liquidity)", "src": "inferred", "ref": "drawn horizontal lines seen on #1/#5/#26; rule not stated audibly"},
+      "exit": {"value": "manual, early, near entry after heat (price unknown)", "src": "heard", "ref": "[01:30] 'came down like towards this ... lose a bunch of money and then when we came back' [01:45] '... just got out i made like to wonder ... like just being out like this much'. Chart: low ~21,868 (+/-2) ~10:02-10:05, ~2-3 pts above stop; high ~21,941 by ~10:45; 21,951 target not reached as of 10:58 (#12, #15)"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "not shown; tool 'Qty: 1.575' and 'Amount: 99000 / 101685.04' are position-tool account settings, not contracts"},
+      "result": {"value": "win", "src": "heard", "ref": "[01:45] 'i made like to wonder about' read as 'I made like two hundred'; small, near break-even; garbled, low confidence"},
+      "r_multiple": {"value": null, "src": "unknown", "ref": "exit price not shown. If the tool's right edge (~10:22, 'Open P&L: 6.75') marked his exit, R = 6.75/31.75 = +0.21, but that is not confirmed"},
+      "claimed_pnl": {"value": "~+$200 (garbled)", "src": "heard", "ref": "[01:45] 'i made like to wonder about spawn off'"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "no broker/platform panel with fills or P&L shown; only a drawn position tool"},
+      "mistakes": [
+        {"value": "none stated; he says it followed every one of his rules", "src": "heard", "ref": "[01:15] 'follow literally every single one of my rules for trading'"}
+      ],
+      "evidence_summary": "Seen: instrument, date, long position tool with entry 21,897.50 / stop 21,865.75 / target 21,951.00 (R:R 1.69). Inferred: entry time ~09:58 ET, zone, stop placement. Heard (garbled): IFVG trigger, early manual exit, ~$200 gain. Exit price and R unknown."
+    },
+    {
+      "date": {"value": "2025-01-23", "src": "seen", "ref": "#18 02m08s x-axis 'Thu 23 Jan '25 10:11'"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#18 02m08s legend 'S&P 500 E-mini Futures · 1 · CME', symbol box 'ES1!'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#18/#34 position tool: gray stop zone above entry, blue target zone below"},
+      "timeframes": {"value": {"bias": "5m", "setup": "1m", "entry": "1m"}, "src": "inferred", "ref": "seen #29 ES 5m with same box and target lines; #18/#33 ES 1m with the entry structure"},
+      "setup": {"value": "sweep of the morning highs (~6,118.5-6,118.75) -> 1m break of structure down to ~6,112 -> short on the pullback from the 1m gap ~6,116-6,117", "src": "inferred", "ref": "seen #17/#33 1m structure; heard [02:15] 'we took out on besides' read as 'we took out the highs', [03:15] 'great juncture push into this one' read as 'break of structure, push into this one'"},
+      "entry_conditions": [
+        {"value": "price traded above the drawn 6,117.00 level to ~6,118.5-6,118.75 at ~09:50-09:58 ET (highs under a drawn rising trendline from the ~08:25 high)", "src": "inferred", "ref": "seen #33 03m28s trendline and 6,117.00 line; high estimated from axis +/-0.5"},
+        {"value": "1m drop to ~6,112.0 by ~10:05, below the pre-sweep 1m lows (break of structure)", "src": "inferred", "ref": "seen #17 01m57s; heard [03:15] 'great juncture' = 'break of structure'; prices +/-0.5"},
+        {"value": "pullback into a drawn gray 1m zone ~6,116.0-6,116.9 (likely the FVG from the drop, starting ~10:00), short taken below it at 6,114.00", "src": "inferred", "ref": "seen #17 gray zone with dashed mid, #18 entry label; zone type not stated audibly"}
+      ],
+      "entry_time": {"value": "10:11 ET", "src": "seen", "ref": "#18 crosshair on the tool's left edge, x-axis 'Thu 23 Jan '25 10:11'; #34 left edge x~658 also ~10:11; chart clock '(UTC-5)'"},
+      "entry": {"value": 6114.0, "src": "seen", "ref": "#18/#19/#32/#34/#36 gray axis label 6,114.00 at the tool entry line (drawing tool, not a broker fill)"},
+      "stop": {"value": 6118.75, "src": "seen", "ref": "#32/#34/#36 gray axis label 6,118.75 at box top (03:22-04:00). Earlier drawing #18 02m08s showed 'Stop: 3.25 (0.05%)' = 6,117.25, so the real stop is uncertain between the two"},
+      "stop_rule": {"value": "above the swept highs", "src": "heard", "ref": "[03:30] 'that won't stop was above the size' read as 'that one's stop was above the highs'; consistent with 6,118.75 sitting at the ~09:50-09:58 highs (#34)"},
+      "target": {"value": 6098.0, "src": "seen", "ref": "#36 crop: blue tool label 6,098.00 at box bottom, next to drawn-line label 6,098.00; #29 same. Earlier drawing #18 'Target: 4.75' = 6,109.25. Planned R:R 16/4.75 = 3.37"},
+      "target_rule": {"value": "drawn sell-side level 6,098.00, below the drawn ~04:00 low line 6,101.50", "src": "inferred", "ref": "#29 ES 5m drawn lines; heard [03:00] '... liquidity ... east asian session lows' (garbled)"},
+      "exit": {"value": "stopped (price went through 6,118.75 ~10:37-10:40 ET, reached 6,127 by 11:00)", "src": "inferred", "ref": "seen #17/#36 rally through the box top; #18 first drawing labeled 'Closed P&L: -3.25' (stop hit); actual fill not shown"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "not shown; tool 'Qty: 0.126' is a position-tool setting, not contracts; 'size' in transcript [02:30]-[02:45] appears to mean 'highs'"},
+      "result": {"value": "loss", "src": "heard", "ref": "[01:45] 'the second trade was ah yes it is where i actually lost money'; matches price trading through both drawn stops"},
+      "r_multiple": {"value": -1.0, "src": "inferred", "ref": "assumes fill at stop: (6,114.00-6,118.75)/(6,118.75-6,114.00) = -1; also -1 with the earlier 6,117.25 stop; slippage or earlier manual exit unknown"},
+      "claimed_pnl": {"value": "not stated separately; day total -$1,185 for the two trades", "src": "heard", "ref": "title 'Losing 1,185'; [00:00] 'one thousand one hundred eighty ... at the two trades'"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "no broker/platform panel with fills or P&L shown; the -$1,185 is only in the title and his words"},
+      "mistakes": [
+        {"value": "traded while Trump was speaking; he says he took it after realizing Trump was speaking and accepted he might lose", "src": "heard", "ref": "[03:30] 'this was after i figured out that way trouble speaking so it's like okay whatever i might [lose] money on this'; title"},
+        {"value": "shorted ES about 13 min after going long NQ, while NQ was recovering off its low; no SMT or reason for the flip is visible or audible", "src": "inferred", "ref": "entry times ~09:58 (NQ) and 10:11 (ES); NQ low ~10:02-10:05 then rising (#12)"}
+      ],
+      "evidence_summary": "Seen: instrument, date, 10:11 entry, short tool entry 6,114.00, stop 6,118.75, target 6,098.00 (earlier drawing 6,117.25/6,109.25). Inferred: sweep/BOS/FVG structure, stop-out ~10:38, R = -1. Heard: loss, stop above highs, Trump-speaking context."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "Don't trade while Trump is speaking; the key lesson of the day", "src": "heard", "ref": "[04:00] 'that don't trade with voting rights is the key lesson learned' read as 'don't trade with Trump speaking'; matches title"},
+    {"value": "The NQ trade followed every one of his rules", "src": "heard", "ref": "[01:15] 'follow literally every single one of my rules for trading'"},
+    {"value": "He looks for liquidity sweeps (e.g. of Asian-session lows/highs) before entering", "src": "heard", "ref": "[03:00] 'just looking for ... liquidity sleeves ... east asian session lows' (garbled)"},
+    {"value": "Little to learn from the loss itself; Trump was the driver", "src": "heard", "ref": "[03:45] 'it is nothing to learn for me today trial is the big draw' (garbled, low confidence)"}
+  ],
+  "quality_notes": "Transcript heavily garbled; setups and exits are mostly from gist. All prices come from position-tool drawings made at recording time (10:56-11:01 ET), not fills. The ES box was redrawn: stop/target 6,117.25/6,109.25 at 02:08, then 6,118.75/6,098.00 from 03:22. NQ exit price not shown, so its R is unknown. P&L (-$1,185 day, ~+$200 NQ) is only a title/spoken claim; no broker panel. Intermediate prices (lows/highs, zones) are axis estimates."
+}

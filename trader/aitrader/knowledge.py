@@ -24,10 +24,14 @@ def read(topic: str) -> str:
     return path.read_text()
 
 
+LATER = "40-"          # notes from here on (TJR's playbook) go after the bot's own lessons and stock list
+
+
 def pack(cfg: dict = None, max_chars: int = 24000) -> str:
     """All notes, in order, plus what the bot learned from its own trades (kept in its data folder),
     as one text (cut off at max_chars so a small local model can hold it)."""
-    paths = sorted(FOLDER.glob("*.md"))
+    notes = sorted(FOLDER.glob("*.md"))
+    paths = [p for p in notes if p.name < LATER]
     if cfg is not None:
         from .config import data_path
         from .learning import NOTE
@@ -36,5 +40,6 @@ def pack(cfg: dict = None, max_chars: int = 24000) -> str:
             own = data_path(cfg, name)
             if own.exists():
                 paths.append(own)
+    paths += [p for p in notes if p.name >= LATER]      # TJR's notes last: Stage 2 material, cut first
     text = "\n\n".join(p.read_text().strip() for p in paths)
     return text if len(text) <= max_chars else text[:max_chars] + "\n\n[... notes cut here to fit ...]"
