@@ -218,6 +218,7 @@ def snapshot(cfg, store) -> dict:
         "watchlist": [{"desk": d, **quote(cfg, t)} for d in active_desks(cfg) for t in cfg["desks"][d]["watchlist"]],
         "journal": [{"ts": ts, "message": m} for ts, m in store.journal(60)][::-1],
         "scan": _scan(cfg),
+        "options_gap": _options_gap(store),
         "reports": _reports(cfg),
         "right_now": _right_now(cfg, store),
     }
@@ -246,7 +247,7 @@ def _right_now(cfg, store, now=None) -> dict:
     busy = store.get("autopilot_busy") or {}
     names = {"morning": "the morning check-in", "day": "a day-desk check", "swing": "the swing decision",
              "swing-stops": "a stop-loss check", "study": "the after-close study", "scan": "the stock scan",
-             "report": "the after-market report"}
+             "report": "the after-market report", "options": "the options-gap watcher"}
     if not running and busy.get("job"):
         since = datetime.fromisoformat(busy["since"])
         took = (now - since).total_seconds() / 60
@@ -307,6 +308,14 @@ def _right_now(cfg, store, now=None) -> dict:
                 doing = "checking every 5 minutes."
         lines.append(f"{desk.title()} desk ({account}): {doing}{last}{trades}")
     return {"ok": running, "headline": headline, "lines": lines}
+
+
+def _options_gap(store) -> dict:
+    """The options-gap watcher (options_flow.py): the latest look, the scorecard, the last graded calls."""
+    from .options_flow import SIGNALS_KEY, scorecard
+    signals = store.get(SIGNALS_KEY) or []
+    return {"today": store.get("options_gap_today"), "card": scorecard(store),
+            "recent": [x for x in signals if x["right"] is not None][-10:][::-1]}
 
 
 def _scan(cfg) -> dict:

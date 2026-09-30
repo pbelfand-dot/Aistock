@@ -47,6 +47,13 @@ code changes.
     Add it to your Home Screen and it opens like an app. Keys and settings stay on the Mac.
 - **View → Show Demo Data** shows it with made-up prices right away.
 - **Setup** (the button) connects Alpaca, switches the autopilot and says what's next.
+- **The team.** Every decision passes through five agents, each writing a short note: **Scout** (the
+  facts), **Analyst** (what agrees and what conflicts), **Trader** (the tested strategy's orders),
+  **Risk** (checks each buy) and **Reviewer** (after the close). The notes are in the after-market
+  report. The rules still decide the trades.
+- **Options-gap watcher** (Research tab, testing only). After each close it flags stocks whose option
+  bets disagree with the price (calls piling up while the price is flat, or the reverse), using
+  Alpaca's free data, and grades each flag 5 days later against the S&P 500. It never trades.
 - **Lid closed** (Setup → 2. Autopilot → "Keep trading with the lid closed"): while plugged in, the
   Mac stays awake with the lid closed and keeps trading. On battery it sleeps as usual, so it never
   runs hot in a bag. It asks for your Mac password once.

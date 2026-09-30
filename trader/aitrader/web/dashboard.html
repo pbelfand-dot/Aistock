@@ -915,8 +915,28 @@ function scanCard(scan) {                                 // scanner.py: the dai
     scan.new_listings.length ? el("h3", { style: "font-size:13px;margin:16px 0 8px", text: "New listings (under a year of history · watch only)" }) : null,
     scan.new_listings.length ? el("div", { class: "table-scroll" }, el("table", {}, el("tbody", {}, scan.new_listings.map(row)))) : null);
 }
+function optionsGapCard(g) {                             // options_flow.py: watches and grades, never trades
+  const today = g && g.today, card = (g && g.card) || {};
+  const head = el("div", { class: "card-head" }, el("h2", { text: "Options-gap watcher" }),
+    el("span", { class: "muted", text: today ? `testing only · ${today.date}` : "testing only" }));
+  const about = el("p", { class: "ink2", style: "font-size:13px;margin:0 0 8px", text: "After each close it compares each stock's option bets (the share of calls) with its last 5 days of price. A gap is when they disagree. Every gap is graded 5 trading days later against the S&P 500. Nothing trades on it until the scorecard shows an edge (20+ graded calls, right 55%+)." });
+  if (!today) return el("div", { class: "card", style: "margin-bottom:16px" }, head, about,
+    el("div", { class: "empty", text: "First look after today's close (it needs Alpaca keys and the autopilot on)." }));
+  const flags = today.flags || [];
+  const scoreRow = (dirn) => { const c = card[dirn] || {};
+    return el("tr", {}, el("td", { class: "sym", text: dirn === "bullish" ? "Calls heavy, price flat" : "Puts heavy, price holding" }),
+      el("td", { class: "num", text: c.graded || 0 }), el("td", { class: "num", text: c.right_pct == null ? "--" : plain(c.right_pct, 0) }),
+      el("td", { class: "num " + dir(c.avg_edge_pct), text: c.avg_edge_pct == null ? "--" : pct(c.avg_edge_pct) }),
+      el("td", { class: "num", text: c.waiting || 0 }), el("td", { text: c.edge ? "✓ Shows an edge" : "Not proven" })); };
+  return el("div", { class: "card", style: "margin-bottom:16px" }, head, about,
+    el("p", { style: "font-size:13px;margin:0 0 8px" }, el("strong", { text: `Today: ${today.looked} stocks looked at. ` }),
+      flags.length ? flags.map(f => `${f.symbol} ${f.direction === "bullish" ? "▲" : "▼"} ${plain(f.call_share * 100, 0)}% calls, price ${pct(f.price_5d_pct, 1)} in 5 days`).join(" · ") : "No gaps."),
+    el("div", { class: "table-scroll" }, el("table", {},
+      el("thead", {}, el("tr", {}, ["Gap", "Graded", "Right %", "Avg vs market", "Waiting", "Verdict"].map((h, i) => el("th", { class: i && i < 5 ? "num" : null, text: h })))),
+      el("tbody", {}, scoreRow("bullish"), scoreRow("bearish")))));
+}
 function renderResearch(s) {
-  $("#research").replaceChildren(scanCard(s.scan), ...s.desks.map(d => {
+  $("#research").replaceChildren(scanCard(s.scan), optionsGapCard(s.options_gap), ...s.desks.map(d => {
     const study = d.study || [], plan = d.plan;
     const cols = study.length ? Object.keys(study[0]) : [];
     const whole = new Set(["signals", "trading_days", "num_closed_trades"]);

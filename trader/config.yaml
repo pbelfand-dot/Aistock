@@ -149,6 +149,29 @@ scanner:
   trade_top: 30            # the swing desk considers the 30 strongest stocks it can afford (whole shares)
                            # (enough for its 8 slots: it buys from the top 20% of what it considers)
 
+# ---- The team (agents.py) ------------------------------------------------------
+# Every decision goes through five agents that each write a short note: Scout (facts), Analyst (views),
+# Trader (the tested strategy's orders), Risk (checks every buy), Reviewer (after the close).
+# Rules still decide the trades. Risk only warns, unless you list checks it may act on (skip a buy):
+#   correlation  = the stock moves with one we already own (return correlation >= correlation_limit)
+#   options_gap  = option bets lean against it (only once the options-gap watcher shows an edge!)
+agents:
+  enabled: true
+  risk_vetoes: []
+  correlation_limit: 0.85
+  correlation_bars: 60     # swing: 60 days; day desk: 60 five-minute bars
+
+# ---- Options-gap watcher (options_flow.py): watches and grades, never trades --------
+# After each close: calls vs puts in each watched stock's options (Alpaca's free data, next 45 days of
+# expirations) against the last 5 days of price. A gap = the bets and the price disagree. Graded 5
+# trading days later against SPY; the scorecard is in the after-market report.
+options_watch:
+  enabled: true
+  expiry_days: 45
+  min_volume: 2000         # contracts a day; less is too thin to mean anything
+  horizon_days: 5
+  max_symbols: 60
+
 # ---- News (you can turn this off in Setup) ---------------------------------
 # Headlines from Alpaca's news feed (Benzinga; free with your Alpaca keys), or Yahoo without keys.
 # Used to AVOID buying a stock with danger headlines (share offering, bankruptcy, halt, delisting,
