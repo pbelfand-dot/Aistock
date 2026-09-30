@@ -34,6 +34,18 @@ class RiskManager:
                      buying_power * (1 - self.cash_buffer_pct / 100))
         return max(0, math.floor(budget / price))
 
+    TRIM_AT = 2.0                      # a stock grown to 2x its share of the desk is trimmed back to its share
+
+    def trim_qty(self, qty: int, price: float, equity: float) -> int:
+        """Shares to sell when one stock has grown far past its limit (e.g. after the limit was lowered
+        from 34% to 12.5%): back down to the limit, whole shares. 0 = leave it alone."""
+        if not price or math.isnan(price) or price <= 0 or equity <= 0:
+            return 0
+        limit = equity * self.max_position_pct / 100
+        if qty * price <= limit * self.TRIM_AT:
+            return 0
+        return max(0, qty - math.floor(limit / price))
+
     def stop_loss_hit(self, avg_cost: float, price: float) -> bool:
         return price <= avg_cost * (1 - self.stop_loss_pct / 100)
 

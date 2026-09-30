@@ -228,3 +228,29 @@ def test_on_means_running_and_setup_says_why_it_stopped(cfg, monkeypatch):
     assert app_api.autopilot_problem(store) == ""
     store.log("STOPPED: The autopilot is already running (process 4242). Only one may run at a time.")
     assert "already running (process 4242)" in app_api.autopilot_problem(store)
+
+
+def test_the_swing_desk_gets_the_strongest_stocks_it_can_afford_and_never_the_day_desks(cfg, monkeypatch):
+    market = fake_market()
+    market["PRICEY"] = series(100, 400, seed=6)                 # the strongest of all, but $400 a share
+    market["DAYONE"] = series(20, 58, seed=7)                   # strong, but the day desk trades it
+    monkeypatch.setattr(scanner, "universe", lambda cfg: list(market))
+    cfg["desks"]["day"]["watchlist"] = list(cfg["desks"]["day"]["watchlist"]) + ["DAYONE"]
+    cfg["paper"]["starting_cash"] = 1000                          # swing: $500, 8 slots -> about $62 a share
+    cfg["desks"]["swing"]["risk"].update(max_open_positions=8, max_position_pct=12.5)
+    assert round(scanner.swing_price_limit(cfg), 2) == 61.88
+    store = Store(":memory:")
+    run_scan(cfg, store, market=market)
+    state = scanner.load_list(cfg)
+    assert state["liked"][0]["symbol"] == "PRICEY"                # still on the list you see
+    picks = scanner.trade_candidates(cfg)
+    assert "PRICEY" not in picks and "DAYONE" not in picks and picks[0] == "ROCKET"
+    assert all(r["price"] <= 61.88 for r in state["swing_picks"])
+
+
+def test_an_older_list_without_picks_still_works(cfg, monkeypatch):
+    import json
+    from aitrader.config import data_path
+    data_path(cfg, scanner.LIST_FILE).write_text(json.dumps({"liked": [{"symbol": "AAA"}, {"symbol": "SOFI"}]}))
+    cfg["desks"]["day"]["watchlist"] = ["SOFI"]
+    assert scanner.trade_candidates(cfg) == ["AAA"]

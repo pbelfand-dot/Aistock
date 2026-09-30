@@ -103,8 +103,8 @@ Only deleting the AITrader folder removes them.
 - **Where you see it:** Research & plans → *Stocks it likes*. Each stock shows when it joined, how
   long it has stayed, and how it has done since.
 - **New listings** (under a year of history) go on a separate watch-only list.
-- **How the swing desk uses it:** it considers the top 15. Its own rules and budget still decide
-  every trade, and whole shares must fit the budget.
+- **How the swing desk uses it:** it considers the 30 strongest stocks it can afford one whole share
+  of (not the day desk's stocks), and holds up to 8. Its own rules and budget still decide every trade.
 - **News:** it reads headlines from Alpaca's news feed (Benzinga, free with your keys), or Yahoo's
   without keys.
   - A stock with **danger headlines** in the last 3 days (share offering, bankruptcy, trading halt,

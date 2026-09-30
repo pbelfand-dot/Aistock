@@ -47,12 +47,17 @@ def decide_orders(scores: pd.Series, prices: pd.Series, positions: dict, buying_
         elif not stops_only and not math.isnan(score) and score < strategy.sell_below:
             orders.append(Order(ticker, "SELL", pos.qty, price,
                                 f"{strategy.name} says exit (score {score:.2f} < {strategy.sell_below})"))
+        elif not stops_only and risk.trim_qty(pos.qty, price, equity):
+            share = pos.qty * price / equity * 100
+            orders.append(Order(ticker, "SELL", risk.trim_qty(pos.qty, price, equity), price,
+                                f"trim: {share:.0f}% of the desk is in {ticker} (limit {risk.max_position_pct:g}%)"))
 
     if stops_only or not allow_new_buys:
         return orders
 
     # 2) ENTRIES: strongest scores first, while we have room and cash.
-    open_slots = risk.max_open_positions - (len(positions) - len(orders))
+    closing = sum(1 for o in orders if o.qty >= positions[o.ticker].qty)      # a trim keeps the stock
+    open_slots = risk.max_open_positions - (len(positions) - closing)
     candidates = scores.dropna()
     candidates = candidates[candidates >= strategy.buy_above].sort_values(ascending=False)
     for ticker, score in candidates.items():

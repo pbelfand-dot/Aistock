@@ -3,11 +3,13 @@
 1. **Stage 1: paper trading, 30 trading days, "free ball".**
    - Trade what the research says works, and build a growing list of stocks the bot likes, from
      niche names to big ones.
-   - Method (`momentum`, swing desk): rank every stock on the list (the watchlist plus the top
-     15 of the daily all-stocks scan) by its 12-month return, skipping the latest month. Buy from
+   - Method (`momentum`, swing desk): rank every stock on the list (the watchlist plus the 30
+     strongest stocks from the daily all-stocks scan that it can afford) by its 12-month return, skipping the latest month. Buy from
      the top 20% while the stock is above its 200-day average; sell when it drops out of the top
      half or below its 200-day average. No new buys while SPY is below its 200-day average.
-   - Whole shares only, at most 3 positions of up to 34% of the desk's money each, 7% stop-loss.
+   - Whole shares only, at most 8 positions of up to 12.5% of the desk's money each, 7% stop-loss.
+     (Was 3: holding 8 trades about 3x as often with about the same return and a smaller worst drop
+     in the bot's own 2011-2026 backtest. The scan hands it the 30 strongest stocks it can afford.)
      Stocks too expensive for one whole share are skipped.
    - The owner starts it with **Start Stage 1 paper trading** in Setup (or `python run.py
      start-stage1`). It skips the study month; the day desk keeps studying.
