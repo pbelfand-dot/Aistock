@@ -1,0 +1,79 @@
+{
+  "video": {
+    "n": 33,
+    "file": "06_17_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 7 sheets, 13 full-size shots (#1, #2, #3, #5, #7, #8, #9, #11, #13, #15, #16, #19, #25) and the transcript. All charts are ES1! (legend 'S&P 500 E-mini Futures · 5 / 1 / 1h · CME'); axis labels, x-axis date/time and TradingView position-tool boxes are readable; the price axis below ≈y=490 is hidden behind the webcam overlay, so the short's target label cannot be read. No broker panel, fills or P&L shown. Chart time-zone label not visible. Transcript (pocketsphinx) is heavily garbled; only fragments usable. Structure: 00:00-02:46 ES 5m overview of the trade (#1); 02:50-04:05 ES 1m with the short position box (#2-#8); 04:10-09:30 ES 1m, 'how could I have done better' talk (#9); 09:35-10:25 hindsight long position tool on 1m/1h (#10-#18); 10:29-12:30 5m/1m review of range and FVGs (#19-#24); 12:34 Forex Factory calendar (#25); 12:38-end ES 1m (#26).",
+    "duration_min": 13.0,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-06-17",
+      "src": "seen",
+      "ref": "#1 00m00s x-axis 'Mon 17 Jun '24 09:45'; #2/#3 red marker 'Mon 17 Jun '24 09:30'; #25 forexfactory.com/calendar?day=jun17.2024 'Today: Jun 17'; file name 06_17_2024."
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "ES 17 Jun (chart time, likely ET): pre-market high 5,503.25 at ≈08:10, drift lower; after the 09:30 open a spike to 5,498.75 then a drop to the day's low 5,489.75 in the 09:45 5m bar; then a one-way rally from ≈10:00 (through 5,501 by ≈10:10, ≈5,519+ by 11:00); ES 5,547.25 (+45.25, +0.82%) at recording time. 1h: 13-17 Jun choppy range ≈5,490-5,510 before the breakout.",
+      "src": "inferred",
+      "ref": "#1 legend of 09:45 5m bar 'O5,495.75 H5,498.75 L5,489.75 C5,490.50' (seen); #8 fib anchor '08:10' at blue label 5,503.25 (seen); #3/#7 1m candles vs axis labels 5,501.00/5,493.00 (≈±0.5); #15 1h candles vs axis (≈±1); #13 watchlist 'ES 5547.2 45.25 0.82%' (seen)."
+    },
+    "news": {
+      "value": "Mon 17 Jun 2024: 8:30am USD Empire State Manufacturing Index, actual -6.0 vs forecast -12.5 (previous -15.6). He mentions retail sales at 8:30am the next day (18 Jun).",
+      "src": "seen",
+      "ref": "#25 12m34s Forex Factory row read directly (FF time zone not shown). Heard [12:30] 'retail sales at eight thirty am' read as next-day Retail Sales."
+    },
+    "bias": {
+      "value": "Bearish for the session: expected a sweep to the downside after the NY open and a move down to the equilibrium of the 4h range. He says afterwards this bias was wrong (market was bullish).",
+      "src": "heard",
+      "ref": "[06:00] 'i thought it would be sweet to the downside ... market opens'; [07:45]-[08:00] 'threw me off today is i really thought ... the equilibrium of that four hour range'; [11:30] 'short biased'; [11:45] 'was wrong for the bias for the day'. 4h equilibrium price not shown/read."
+    },
+    "levels": {
+      "value": "Range 08:10 high 5,503.25 to 5,490.75 (fib 0/1), equilibrium 5,497.00; grey zone (FVG-style box with dashed midline) ≈5,498.5-5,499.5 drawn from ≈08:20; lighter grey zone ≈5,495.2-5,496.4; horizontal lines 5,501.00, 5,493.00, 5,491.50, 5,488.00 and ≈5,486.25.",
+      "src": "seen",
+      "ref": "#8 labels 5,503.25 / 5,490.75 (blue, selected fib), 5,501.00, 5,493.00, 5,488.00; #2 5,491.50; 0.5 = (5,503.25+5,490.75)/2 = 5,497.00 computed; grey-zone edges and ≈5,486.25 line estimated from pixel position vs axis labels in #1/#3/#5/#7 (inferred, ±0.25)."
+    }
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-06-17", "src": "seen", "ref": "#3 x-axis 'Mon 17 Jun '24 09:30' on the chart holding the position box"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#1 legend 'S&P 500 E-mini Futures · 5 · CME', symbol box 'ES1!'; #3 legend '· 1 · CME'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#3/#5/#7 position tool: grey (risk) box above entry 5,494.75 up to 5,498.75, blue (profit) box below entry; same colour scheme as his long tool in #11 (blue above). Heard [06:00] expected a sweep to the downside."},
+      "timeframes": {"value": {"bias": "4h", "setup": "5m", "entry": "1m"}, "src": "inferred", "ref": "Heard [07:45]-[08:00] 'four hour range'; #1 trade overview on 5m with circles; position box drawn on 1m (#3, #5, #7)."},
+      "setup": {"value": "Bearish-bias short: post-open spike into grey premium zone (≈5,498.5-5,499.5, above range 0.5 at 5,497.00) -> rejection -> 1m short, target lower range level", "src": "inferred", "ref": "Built from #1 circles (one on the 0.5 line ≈5,497 around 09:20-09:30, one on the 09:45 wick into the grey zone) and #3 box placement; transcript does not intelligibly name the trigger (possible 'break of structure' at [03:00] 'long break judge')."},
+      "entry_conditions": [
+        {"value": "Session bias bearish, expecting price to sweep lower after the 09:30 open toward the 4h range equilibrium", "src": "heard", "ref": "[06:00] 'sweet to the downside ... market opens'; [07:45]-[08:00] 'equilibrium of that four hour range'"},
+        {"value": "Price traded above the 0.5 of the 08:10 range (5,497.00, premium) and wicked to 5,498.75 into the grey zone at ≈09:46", "src": "inferred", "ref": "#1 legend H5,498.75 for 09:45 5m bar (seen); #3 1m spike candle at the box's left edge; zone edges from pixel position (±0.25)"},
+        {"value": "Price fell back below the zone; short entered at 5,494.75 (exact trigger - FVG, BOS or IFVG - not determinable)", "src": "inferred", "ref": "#3/#5 grey axis label 5,494.75 at the risk/profit boundary of the box; trigger unknown"}
+      ],
+      "entry_time": {"value": "≈09:46 chart time (likely ET)", "src": "inferred", "ref": "Left edge of position box on 1m: #3 x≈457 with 09:30 at x=350, 09:40 at 417 (≈6.7 px/min); #7 gives ≈09:46 too. ±1-2 min; actual fill time not shown."},
+      "entry": {"value": 5494.75, "src": "seen", "ref": "#3 03m07s and #5 03m24s grey price-axis label 5,494.75 at the entry line of the short box"},
+      "stop": {"value": 5498.75, "src": "seen", "ref": "#3/#5/#7 grey price-axis label 5,498.75 at the top of the risk box (= the 09:45 5m bar high 5,498.75 in #1 legend)"},
+      "stop_rule": {"value": "At the high of the post-open spike into the grey zone (no buffer above it)", "src": "inferred", "ref": "Stop 5,498.75 equals the 09:45 5m bar high H5,498.75 (#1 legend)"},
+      "target": {"value": 5486.0, "src": "inferred", "ref": "Target label hidden behind webcam. Bottom of blue box ≈5,486.0-5,486.1 (±0.5) in #5 (y≈550; 5,501.00@200, 5,493.00@388) and #7 (y≈548; 5,501.00@233, 5,493.00@402), aligned with a drawn line ≈5,486.25. BUT #3 (03m07s) showed the box bottom at ≈5,490.0 with a cut-off blue axis label there: the box was apparently edited on screen, so the original order target is uncertain."},
+      "target_rule": {"value": "Lower range level / 4h range equilibrium (drawn line ≈5,486.25)", "src": "inferred", "ref": "Box bottom aligns with drawn line ≈5,486.25; heard [07:45]-[08:00] wanted the 4h range equilibrium; that equilibrium's price was not shown"},
+      "exit": {"value": "stopped at 5,498.75 ≈10:08-10:09 (after price first moved to 5,489.75, ≈+1.25R, at ≈09:49)", "src": "inferred", "ref": "Heard [00:00] 'i got railed out' (read as 'stopped out'), [08:30] 'after the fact that i got stopped', [11:15] 'after i had gotten stopped'; #3/#7 1m candles reach ≈5,499.5 at ≈10:08-10:09 where the box ends; low 5,489.75 from #1 legend. Fill price not shown."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "No quantity or account shown; [09:15] says he did not want to go heavier on risk for the day"},
+      "result": {"value": "loss", "src": "heard", "ref": "[00:00] 'i got railed out' (stopped out), [01:15] 'the reason for why i lost', [10:30] 'losses are normal'; consistent with chart (stop level traded ≈10:08, ≈5,486 target never reached). Note: if the target had been the ≈5,490.0 seen in #3, the 5,489.75 low would have reached it - so the final ≈5,486 target is the one consistent with a loss."},
+      "r_multiple": {"value": -1.0, "src": "computed", "ref": "(entry-exit)/(stop-entry) = (5,494.75-5,498.75)/(5,498.75-5,494.75) = -4.00/4.00 = -1.0, assuming exit exactly at the stop (slippage unknown). Planned R:R ≈ (5,494.75-5,486.0)/4.00 ≈ 2.2 (inferred target)."},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No dollar amount stated or shown; title claim empty"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "No broker/platform panel, fills or P&L shown; only a TradingView drawing tool"},
+      "mistakes": [
+        {"value": "Traded against the actual direction: bias for the day was wrong (he expected a move down to the 4h range equilibrium; market rallied)", "src": "heard", "ref": "[07:45] 'what threw me off today is i really thought ... equilibrium of that four hour range'; [11:45] 'was wrong for the bias for the day'"},
+        {"value": "Trade reached ≈+1.25R (low 5,489.75) but was held for the ≈5,486 target and reversed to a full -1R stop", "src": "inferred", "ref": "Entry 5,494.75, stop 5,498.75, low 5,489.75 (#1 legend) = 5.0 pts / 4.0 pts risk; not stated by him as a mistake ([03:15] 'profit was right here' possibly refers to this)"}
+      ],
+      "evidence_summary": "Seen: instrument, date, short box with entry 5,494.75 / stop 5,498.75, 09:45 bar OHLC; inferred: target ≈5,486 (label hidden, box edited on screen), entry/exit times from box edges; heard: stopped out, bearish bias wrong. No fills, size or P&L."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "Losses are normal; even the best traders take losses; he stays open and honest about losing trades", "src": "heard", "ref": "[10:15]-[10:30] 'always gonna be open and honest ... losses are normal ... the best ... take losses'"},
+    {"value": "Hindsight trade: after the stop-out, the obvious play was long once price rejected/validated the gap on the way back up, stop below, target the hourly highs (he calls it complete hindsight)", "src": "heard", "ref": "[09:30]-[10:00] 'the obvious ... is long ... rejection out of it ... obviously this is complete hindsight ... these hourly highs'"},
+    {"value": "Hindsight long drawn: entry 5,499.25, stop 5,497.75 (1.50 pts), target first 5,503.00 (R:R 2.5), 5,504.25 on 1m, then stretched to 5,519.50 (R:R 13.5); ≈10:35-10:45 chart time", "src": "seen", "ref": "#11 09m51s axis labels 5,504.25 (blue) / 5,499.25 / 5,497.75 (grey); #13 10m00s tool text 'Target: 3.75 ... Stop: 1.50 ... Risk/Reward Ratio: 2.5'; #15 10m12s 'Target: 20.25 ... Risk/Reward Ratio: 13.5', axis 5,519.50. Time from box edge (inferred). Not a taken trade."},
+    {"value": "During the 'macro' (read as the ~09:50-10:10 ICT macro window) on the down move, bullish confirmations appeared that price would be bullish for the rest of the day", "src": "heard", "ref": "[08:45] 'during the macro we get all these both confirmation that ... prices ... bullish for the rest day at least' (garbled; 'both' read as 'bullish')"},
+    {"value": "Ideal sequence (hindsight): see the sweep, then let price trade down into the equilibrium of the range, then look for more bullish confirmation before entering", "src": "heard", "ref": "[12:00] 'once we see that sweep ... down into the equilibrium of these range lows ... see more bullish confirmation'; #19 10m29s 5m range box 5,503.0-5,489.75 with 0.5 ≈5,496.4 (inferred from axis)"},
+    {"value": "Did not take another trade after the stop-out; did not want more risk for the day", "src": "heard", "ref": "[09:15] 'i just didn't wanna go heavier on the risk for the day'; [11:30] 'i didn't want to take another trade'"},
+    {"value": "Only one trade for the day; nothing taken on Nasdaq", "src": "heard", "ref": "[04:00] 'that was the one trade ... for the day ... i didn't think anything on nasdaq' (read as 'didn't take anything')"}
+  ],
+  "quality_notes": "Main limitation: the short's target label is hidden behind the webcam and the box changed on screen (≈5,490.0 in #3 vs ≈5,486 in #5/#7), so the target is an estimate; the loss result rests on his words plus the chart path. Entry/exit times are estimated from box edges (±1-2 min); fill prices, size and P&L never shown. Entry trigger (FVG/BOS/IFVG) not determinable: transcript is heavily garbled throughout (e.g. 00:30-03:45, 04:30-05:45). Chart time zone not displayed; 09:30 open marker suggests ET."
+}
