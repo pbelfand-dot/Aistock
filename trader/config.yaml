@@ -125,3 +125,5 @@ llm:
   url: http://localhost:11434
   model: qwen3:4b          # small enough for a normal laptop (~2.5 GB)
   timeout_seconds: 180
+  use_knowledge: true      # give it the background notes (aitrader/knowledge): plan, safety rules, research, TJR
+  context_tokens: 8192     # room for those notes plus the question

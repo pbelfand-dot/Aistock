@@ -87,3 +87,31 @@ def test_promotion_requires_every_rule(cfg):
     assert all(ok for *_, ok in check_promotion(cfg, good, benchmark_return_pct=2.0))
     assert not all(ok for *_, ok in check_promotion(cfg, good, benchmark_return_pct=6.0))   # lost to SPY
     assert not all(ok for *_, ok in check_promotion(cfg, {**good, "max_drawdown_pct": 12}, 2.0))
+
+
+def test_the_local_ai_gets_the_knowledge_pack_with_every_request(cfg, monkeypatch):
+    """The owner's plan, the safety rules, the research and the TJR notes go along as background."""
+    import io
+    import json as _json
+    from aitrader import knowledge, llm
+    sent = {}
+
+    class Reply(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    def fake_urlopen(request, timeout):
+        sent.update(_json.loads(request.data))
+        return Reply(_json.dumps({"response": "ok"}).encode())
+
+    monkeypatch.setattr(llm.urllib.request, "urlopen", fake_urlopen)
+    cfg["llm"].update(enabled=True, url="http://localhost:11434", model="qwen3:4b")
+    assert llm.ask_local_llm(cfg, "Write the plan.") == "ok"
+    assert sent["prompt"] == "Write the plan." and sent["options"]["num_ctx"] >= 8192
+    for must_know in ("good faith violation", "Stage 1", "MTUM", "TJR", "never decide trades"):
+        assert must_know.lower() in sent["system"].lower(), must_know
+    assert set(knowledge.topics()) >= {"00-how-to-use", "10-safety-rules", "20-the-plan", "30-research-findings",
+                                       "40-tjr-playbook"}
