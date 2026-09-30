@@ -1,4 +1,4 @@
-# AI Trader
+# Kestrel (formerly AI Trader)
 
 A small, readable bot that **studies the market for a month, writes a trading plan,
 proves it with paper money, and only then trades real money**, capped at $1,000.
@@ -46,10 +46,10 @@ closed trades, the desk made money, won at least 1.2× what it lost, never dropp
 ## Setup on a Mac (the easy way)
 
 1. **Download the app** from the [GitHub page](https://github.com/pbelfand-dot/Aistock) (big link at
-   the top), unzip it, and drag **AI Trader** into Applications.
+   the top), unzip it, and drag **Kestrel** into Applications.
 2. **First open:** macOS will block it (it isn't from the App Store). Open **System Settings →
    Privacy & Security**, scroll down, click **Open Anyway**. (Or in Terminal:
-   `xattr -dr com.apple.quarantine "/Applications/AI Trader.app"`.)
+   `xattr -dr com.apple.quarantine "/Applications/Kestrel.app"`.)
 3. The app's window opens. **The first time only**, a Terminal window also opens to install
    Python and the bot's libraries (about 2 minutes). Then the dashboard appears with the **Setup**
    screen on top. The Setup screen is always one click away: the **Setup** button.
@@ -74,17 +74,17 @@ background autopilot restarts on the new version.
 - **Paper trading only:** it updates by itself.
 - **Real money involved** (switched on in `.env`, a desk in LIVE, or real shares owned): it
   **asks you first**, so new code never takes over real money unannounced.
-- **Menu:** AI Trader → **Check for Updates…** checks right now. **Update Automatically** turns
+- **Menu:** Kestrel → **Check for Updates…** checks right now. **Update Automatically** turns
   the automatic part off (then it always asks).
 - **It must live in your Applications folder** to replace itself.
 - **Updates that need new libraries** open the Setup window, as on the first install.
 - **Settings:** if the settings file changed, your old one is saved as
   `config.yaml.before-<version>` and the menu tells you.
-- **Versions before 1.0.11** can't update themselves: download the zip once more by hand.
+- **Versions before 1.0.13** can't update themselves: download the zip once more by hand.
 
 ## The app (your account, like a brokerage)
 
-**AI Trader** is a normal Mac app: its own window, Dock icon and menus. It's written in Swift and
+**Kestrel** is a normal Mac app: its own window, Dock icon and menus. It's written in Swift and
 shows the dashboard with Apple's WebKit (the engine inside Safari), so there's no browser and no
 web server: when the window needs numbers, the app asks the bot directly
 (`python -m aitrader.app_api`, see `aitrader/app_api.py`).
@@ -97,7 +97,7 @@ web server: when the window needs numbers, the app asks the bot directly
   cards and plans. **Journal:** what it did, and why.
 - Switch between the **Paper** and **Live** account at the top. Light and dark mode follow your Mac.
 - Menus: **View → Refresh** (⌘R), **View → Show Demo Data** (⌘D: made-up prices run through the
-  bot's real code, so you can see everything before it has traded), **AI Trader → Setup Menu** (⌘,:
+  bot's real code, so you can see everything before it has traded), **Kestrel → Setup Menu** (⌘,:
   the full Terminal menu).
 
 Two buttons, both ask first:
@@ -159,7 +159,7 @@ python run.py menu            # or: python run.py check / autopilot / status ...
 
 | Menu item | Command | What it does |
 |---|---|---|
-| Open the AI Trader app | `dashboard` | opens the app window above |
+| Open the Kestrel app | `dashboard` | opens the app window above |
 | Status | `status` | each desk's phase, report card, results, journal |
 | Check my keys | `check` | tests Alpaca/Schwab keys and price data |
 | Start the autopilot | `autopilot` | runs everything, every trading day |

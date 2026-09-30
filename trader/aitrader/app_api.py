@@ -1,5 +1,5 @@
 """
-app_api.py: how the AI Trader app (its window) talks to the bot.
+app_api.py: how the Kestrel app (its window) talks to the bot.
 
 The app runs `python -m aitrader.app_api <action>` from the AITrader folder and shows
 the JSON this prints. No web server and no network: the app starts this helper

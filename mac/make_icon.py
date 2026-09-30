@@ -1,52 +1,37 @@
-"""Draws the app icon and writes mac/AppIcon.icns (run by hand when the icon changes; needs Pillow).
+"""Makes the Kestrel app icon from mac/kestrel.svg: mac/AppIcon.icns, docs/app-icon.png and the
+dashboard's header logo. Run by hand when the logo changes (needs Pillow and Playwright's Chromium).
 
-    python mac/make_icon.py
+    python mac/make_icon.py [path/to/chromium]
 """
+import asyncio
+import base64
 import io
 import struct
+import sys
 from pathlib import Path
 
-from PIL import Image, ImageChops, ImageDraw
+from PIL import Image
 
-S = 4096                                   # draw big, then shrink: smooth edges
+HERE = Path(__file__).resolve().parent
 
 
-def draw() -> Image.Image:
-    img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
-    # The rounded square (Apple's icon grid: 824 of 1024, centered), navy top to bottom.
-    inset, radius = S * 100 // 1024, S * 185 // 1024
-    top, bottom = (22, 70, 122), (8, 30, 56)
-    grad = Image.new("RGBA", (S, S))
-    gd = ImageDraw.Draw(grad)
-    for y in range(S):
-        t = y / (S - 1)
-        gd.line([(0, y), (S, y)], fill=tuple(round(a + (b - a) * t) for a, b in zip(top, bottom)) + (255,))
-    mask = Image.new("L", (S, S), 0)
-    ImageDraw.Draw(mask).rounded_rectangle([inset, inset, S - inset, S - inset], radius, fill=255)
-    img.paste(grad, (0, 0), mask)
+def render(svg: Path, size: int = 1024, chromium: str = None) -> Image.Image:
+    """Draws the SVG with a headless browser (it handles the gradients and glows exactly)."""
+    from playwright.async_api import async_playwright
 
-    # A rising price line with a soft blue wash under it, and a bright dot at "today".
-    u = S / 1024
-    pts = [(235, 690), (385, 560), (500, 620), (640, 440), (790, 330)]
-    pts = [(x * u, y * u) for x, y in pts]
-    shape = Image.new("L", (S, S), 0)
-    ImageDraw.Draw(shape).polygon(pts + [(pts[-1][0], 800 * u), (pts[0][0], 800 * u)], fill=255)
-    fade = Image.new("L", (S, S), 0)                     # strongest under the line, gone at the bottom
-    fd = ImageDraw.Draw(fade)
-    for y in range(round(300 * u), round(800 * u)):
-        fd.line([(0, y), (S, y)], fill=round(130 * (1 - (y - 300 * u) / (500 * u))))
-    wash = Image.new("RGBA", (S, S), (57, 135, 229, 0))
-    wash.putalpha(ImageChops.darker(fade, shape))       # the fade, only inside the shape
-    img.alpha_composite(wash)
-    d = ImageDraw.Draw(img)
-    d.line(pts, fill=(255, 255, 255, 255), width=round(54 * u), joint="curve")
-    for x, y in pts[:1]:
-        r = 27 * u
-        d.ellipse([x - r, y - r, x + r, y + r], fill=(255, 255, 255, 255))
-    x, y = pts[-1]
-    for r, color in ((70 * u, (255, 255, 255, 255)), (46 * u, (57, 135, 229, 255))):
-        d.ellipse([x - r, y - r, x + r, y + r], fill=color)
-    return img
+    async def shot() -> bytes:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(**({"executable_path": chromium} if chromium else {}))
+            page = await browser.new_page(viewport={"width": size, "height": size})
+            data = base64.b64encode(svg.read_bytes()).decode()
+            await page.set_content(f'<body style="margin:0"><img src="data:image/svg+xml;base64,{data}" '
+                                   f'width="{size}" height="{size}"></body>')
+            await page.wait_for_timeout(300)
+            png = await page.screenshot(omit_background=True)
+            await browser.close()
+            return png
+
+    return Image.open(io.BytesIO(asyncio.run(shot()))).convert("RGBA")
 
 
 def icns(img: Image.Image) -> bytes:
@@ -63,8 +48,9 @@ def icns(img: Image.Image) -> bytes:
 
 
 if __name__ == "__main__":
-    here = Path(__file__).resolve().parent
-    picture = draw()
-    (here / "AppIcon.icns").write_bytes(icns(picture))
-    picture.resize((512, 512), Image.LANCZOS).save(here.parent / "docs" / "app-icon.png")
-    print("wrote mac/AppIcon.icns and docs/app-icon.png")
+    picture = render(HERE / "kestrel.svg", chromium=sys.argv[1] if len(sys.argv) > 1 else None)
+    (HERE / "AppIcon.icns").write_bytes(icns(picture))
+    picture.resize((512, 512), Image.LANCZOS).save(HERE.parent / "docs" / "app-icon.png")
+    header = HERE.parent / "trader" / "aitrader" / "web" / "kestrel-icon.png"
+    picture.crop((100, 100, 924, 924)).resize((96, 96), Image.LANCZOS).save(header, optimize=True)
+    print("wrote mac/AppIcon.icns, docs/app-icon.png and the dashboard's header logo")

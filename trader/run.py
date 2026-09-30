@@ -6,7 +6,7 @@ run.py: the ONE file you run.
                                     - day desk: decides every 5 minutes, sells out before the close
                                     - swing desk: watches stop-losses, decides at 3:45pm
                                     - studies after the close (grading, shadow trading)
-    python run.py dashboard       open the AI Trader app (its window is the dashboard)
+    python run.py dashboard       open the Kestrel app (its window is the dashboard)
     python run.py status          where is each desk, and what's next?
     python run.py check           test your Alpaca/Schwab keys and price data
     python run.py backtest        test every strategy on history (any time)
@@ -393,7 +393,7 @@ def cmd_autopilot(cfg, store, args):
 # ================================================================ commands
 def cmd_status(cfg, store, args):
     p = study_progress(store, cfg)
-    print("\n=== AI TRADER ===")
+    print("\n=== KESTREL ===")
     print(f"  Study: {p['calendar_days']} calendar days, {p['study_days']} trading days studied"
           + ("" if p["ready"] else f" (still need: {', '.join(p['missing'])})"))
     beat = store.get("autopilot_heartbeat")
@@ -472,7 +472,7 @@ def cmd_check(cfg, store, args):
 
 
 MENU = [
-    ("Open the AI Trader app (your dashboard)", "dashboard"),
+    ("Open the Kestrel app (your dashboard)", "dashboard"),
     ("Status: where is each desk, and what's next?", "status"),
     ("Check my Alpaca keys and price data", "check"),
     ("Edit my keys (opens the .env file)", "edit-keys"),
@@ -501,7 +501,7 @@ def cmd_menu(cfg, store, args):
         note.unlink()
     while True:
         running = " (background autopilot: RUNNING)" if mac_service.is_running() else ""
-        print(f"\n==== AI TRADER{running} ====")
+        print(f"\n==== KESTREL{running} ====")
         for i, (label, _) in enumerate(MENU, 1):
             print(f"  {i:>2}) {label}")
         print("   q) Quit this menu (a background autopilot keeps running)")
@@ -540,13 +540,13 @@ def cmd_menu(cfg, store, args):
 
 
 def open_app() -> str:
-    """Opens the AI Trader app; its window is the dashboard."""
+    """Opens the Kestrel app; its window is the dashboard."""
     import subprocess
     if sys.platform != "darwin":
-        return "The AI Trader app is for Mac."
+        return "The Kestrel app is for Mac."
     found = subprocess.run(["open", "-b", "com.aitrader.app"], capture_output=True).returncode == 0
-    return ("Opened the AI Trader app." if found else
-            "Couldn't find the AI Trader app. Drag it into Applications and open it once.")
+    return ("Opened the Kestrel app." if found else
+            "Couldn't find the Kestrel app. Drag it into Applications and open it once.")
 
 
 def cmd_dashboard(cfg, store, args):

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Trader</title>
+<title>Kestrel</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Crect width='26' height='26' rx='6' fill='%232a78d6'/%3E%3Cpath d='M5 18 L10 12 L14 15 L21 7' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
   :root {
@@ -52,7 +52,7 @@
   .topbar { background: var(--brand); color: var(--brand-ink); display: flex; align-items: center;
             gap: 16px; padding: 0 24px; height: 56px; }
   .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; letter-spacing: .2px; }
-  .logo svg { width: 26px; height: 26px; }
+  .logo img { width: 26px; height: 26px; border-radius: 6px; }
   .spacer { flex: 1; }
   .sm-only { display: none; }
   .pill { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--brand-ink-2); }
@@ -205,10 +205,9 @@
 </head>
 <body>
 <header class="topbar">
-  <div class="logo" aria-label="AI Trader">
-    <svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="6" fill="#2a78d6"/>
-      <path d="M5 18 L10 12 L14 15 L21 7" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    AI Trader
+  <div class="logo" aria-label="Kestrel">
+    <img src="kestrel-icon.png" width="26" height="26" alt="" aria-hidden="true">
+    Kestrel
   </div>
   <div class="spacer"></div>
   <span id="autopilot" class="pill"></span>
@@ -377,7 +376,7 @@ const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 /* ---------------- data: the app's bridge to the bot (no web server) ---------------- */
 const bridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.aitrader;
 async function call(action, extra) {
-  if (!bridge) throw new Error("Open this from the AI Trader app.");
+  if (!bridge) throw new Error("Open this from the Kestrel app.");
   const data = JSON.parse(await bridge.postMessage({ action, demo: state.demo, ...(extra || {}) }));
   if (data.error) throw new Error(data.error);
   return data;

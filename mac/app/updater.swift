@@ -1,4 +1,4 @@
-// updater.swift: AI Trader keeps itself up to date from its GitHub download page.
+// updater.swift: the app keeps itself up to date from its GitHub download page.
 //
 // The build machine publishes, next to AITrader-mac.zip, a small latest.json:
 //     {"version": "1.0.12", "zip": "AITrader-mac.zip", "sha256": "<fingerprint of the zip>"}

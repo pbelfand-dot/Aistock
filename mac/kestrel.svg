@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Kestrel app icon: a falcon of wing blades with a rising line of three glowing points.
+       The rounded square follows Apple's icon grid (824 of 1024, centered). -->
+  <defs>
+    <radialGradient id="bg" cx="0.52" cy="0.42" r="0.75">
+      <stop offset="0" stop-color="#123553"/>
+      <stop offset="0.55" stop-color="#0a1c33"/>
+      <stop offset="1" stop-color="#050b16"/>
+    </radialGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4ff0b0"/>
+      <stop offset="1" stop-color="#1aa88c"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34d3a8"/>
+      <stop offset="1" stop-color="#2a7fd0"/>
+    </linearGradient>
+    <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2f8fe0"/>
+      <stop offset="1" stop-color="#7a58ff"/>
+    </linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b9f5e2"/>
+      <stop offset="0.5" stop-color="#e9f3f4"/>
+      <stop offset="1" stop-color="#8fa6b0"/>
+    </linearGradient>
+    <linearGradient id="body" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5cf2bd"/>
+      <stop offset="0.6" stop-color="#23b894"/>
+      <stop offset="1" stop-color="#2f8fe0"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#7a58ff"/>
+      <stop offset="0.5" stop-color="#3aa6ff"/>
+      <stop offset="1" stop-color="#4ff0b0"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+    <clipPath id="tile"><rect x="100" y="100" width="824" height="824" rx="185"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#tile)">
+    <rect x="100" y="100" width="824" height="824" fill="url(#bg)"/>
+    <circle cx="560" cy="470" r="300" fill="none" stroke="#2fd3a0" stroke-opacity="0.18" stroke-width="10" filter="url(#soft)"/>
+    <ellipse cx="560" cy="500" rx="230" ry="200" fill="#1fbf95" opacity="0.10" filter="url(#soft)"/>
+
+    <!-- the bird, drawn on a 1254 grid and fitted into the tile -->
+    <g transform="translate(20 118) scale(0.78)">
+      <!-- wing: three blades, green to violet -->
+      <path d="M275,105 C430,165 640,255 815,335 C700,338 575,325 480,302 C385,276 318,205 275,105 Z" fill="url(#green)" filter="url(#glow)"/>
+      <path d="M278,282 C410,322 575,372 718,420 C612,444 492,446 408,424 C338,404 296,346 278,282 Z" fill="url(#teal)" filter="url(#glow)"/>
+      <path d="M322,452 C425,472 530,482 622,472 C552,532 480,562 428,562 C375,556 338,512 322,452 Z" fill="url(#violet)" filter="url(#glow)"/>
+      <!-- head and beak -->
+      <path d="M560,300 C705,298 858,330 938,382 C982,412 1004,452 993,494 C972,463 946,447 916,442 C882,437 850,442 820,457 C760,421 668,380 560,300 Z" fill="url(#silver)" filter="url(#glow)"/>
+      <!-- body: the long blade down to the tail tip -->
+      <path d="M820,457 C762,562 642,692 366,836 C470,702 562,622 642,562 C702,516 762,482 820,457 Z" fill="url(#body)" filter="url(#glow)"/>
+      <!-- tail -->
+      <path d="M762,612 L922,800 C850,792 722,762 632,732 C692,702 732,662 762,612 Z" fill="url(#silver)" opacity="0.92"/>
+      <!-- the rising line and its three points -->
+      <path d="M440,705 L528,648 L660,548 L818,436" fill="none" stroke="url(#line)" stroke-width="9" stroke-linecap="round" filter="url(#glow)"/>
+      <circle cx="528" cy="648" r="27" fill="#7a58ff" filter="url(#glow)"/>
+      <circle cx="660" cy="548" r="27" fill="#3aa6ff" filter="url(#glow)"/>
+      <circle cx="818" cy="436" r="27" fill="#4ff0b0" filter="url(#glow)"/>
+      <circle cx="520" cy="640" r="8" fill="#ffffff" opacity="0.7"/>
+      <circle cx="652" cy="540" r="8" fill="#ffffff" opacity="0.7"/>
+      <circle cx="810" cy="428" r="8" fill="#ffffff" opacity="0.7"/>
+    </g>
+  </g>
+</svg>
