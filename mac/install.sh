@@ -52,8 +52,16 @@ xattr -dr com.apple.quarantine "$APP_HOME" 2>/dev/null
 # Setup menu installs them first and restarts it afterwards.)
 if [ -f "$APP_HOME/.restart_autopilot" ] && cmp -s "$APP_HOME/requirements.txt" "$APP_HOME/.venv/.installed-requirements"; then
   rm -f "$APP_HOME/.restart_autopilot"
-  if [ -f "$HOME/Library/LaunchAgents/com.aitrader.autopilot.plist" ]; then
-    launchctl kickstart -k "gui/$(id -u)/com.aitrader.autopilot" >/dev/null 2>&1
+  PLIST="$HOME/Library/LaunchAgents/com.aitrader.autopilot.plist"
+  if [ -f "$PLIST" ]; then
+    # Older installs ran the autopilot under caffeinate, which could leave it running behind a restart.
+    # Rewrite the service the new way (the autopilot keeps the Mac awake itself); else just restart it.
+    if grep -q caffeinate "$PLIST" && [ -x "$APP_HOME/.venv/bin/python" ] && (cd "$APP_HOME" && \
+       "$APP_HOME/.venv/bin/python" -c "from pathlib import Path; from aitrader import mac_service; mac_service.install(Path.cwd())") >/dev/null 2>&1; then
+      :
+    else
+      launchctl kickstart -k "gui/$(id -u)/com.aitrader.autopilot" >/dev/null 2>&1
+    fi
   fi
 fi
 exit 0

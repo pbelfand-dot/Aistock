@@ -72,8 +72,14 @@ def test_background_autopilot_service(tmp_path, monkeypatch):
     monkeypatch.setattr(mac_service.os, "getuid", lambda: 501, raising=False)
     mac_service.install(tmp_path)
     plist = plistlib.loads(mac_service.PLIST.read_bytes())
-    assert plist["ProgramArguments"][:2] == ["/usr/bin/caffeinate", "-i"]         # no idle sleep while running
+    assert "caffeinate" not in plist["ProgramArguments"][0]      # python itself: a restart leaves nothing behind
+    assert plist["EnvironmentVariables"] == {"KESTREL_SERVICE": "1"}
     assert plist["ProgramArguments"][-1] == "autopilot" and plist["KeepAlive"] and plist["RunAtLoad"]
+    started = []                                                  # it keeps the Mac awake itself while it runs
+    monkeypatch.setattr(mac_service.sys, "platform", "darwin")
+    monkeypatch.setattr(mac_service.subprocess, "Popen", lambda args, **kw: started.append(args))
+    mac_service.keep_awake()
+    assert started[0][:3] == ["/usr/bin/caffeinate", "-i", "-w"] and started[0][3] == str(os.getpid())
     assert ["launchctl", "bootstrap", "gui/501", str(mac_service.PLIST)] in calls
 
 

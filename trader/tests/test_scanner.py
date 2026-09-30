@@ -3,6 +3,7 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from aitrader import knowledge, scanner
 from aitrader.config import data_path
@@ -181,3 +182,49 @@ def test_a_stuck_autopilot_restarts_itself_but_a_busy_one_is_left_alone(cfg, mon
     assert run.restart_if_stuck(cfg, {"t": time.monotonic() - 31 * 60, "job": "day"})          # 31 min: stuck
     assert restarted and any("stuck for 31 minutes on 'day'" in m
                              for _, m in Store(data_path(cfg, "aitrader.sqlite")).journal(5))
+
+
+def test_a_new_background_autopilot_stops_an_old_one_left_behind(cfg, monkeypatch):
+    import run
+    from aitrader import mac_service
+    store = Store(data_path(cfg, "aitrader.sqlite"))
+    store.set("autopilot_pid", 4242)
+    alive = {4242}
+    killed = []
+    monkeypatch.setattr(run, "process_alive", lambda pid: pid in alive)
+    monkeypatch.setattr(run.os, "kill", lambda pid, sig: killed.append((pid, sig)) or alive.discard(pid))
+    monkeypatch.setattr(run.time, "sleep", lambda s: None)
+    monkeypatch.setattr(mac_service, "command_of", lambda pid: "/usr/bin/python3 -u /Users/x/AITrader/run.py autopilot")
+    monkeypatch.setenv("KESTREL_SERVICE", "1")
+    assert "Stopped an older autopilot (process 4242)" in run.take_over(store) and killed[0][0] == 4242
+
+    store.set("autopilot_pid", 5151)                              # that id now belongs to some other program
+    alive.add(5151)
+    monkeypatch.setattr(mac_service, "command_of", lambda pid: "/usr/libexec/something")
+    assert run.take_over(store) == "" and 5151 in alive
+
+    monkeypatch.delenv("KESTREL_SERVICE")                         # a Terminal-window autopilot steps aside
+    monkeypatch.setattr(run.os, "getppid", lambda: 999)
+    monkeypatch.setattr(mac_service, "command_of", lambda pid: "python run.py autopilot" if pid == 5151 else "-zsh")
+    with pytest.raises(RuntimeError, match="already running"):
+        run.take_over(store)
+
+
+def test_on_means_running_and_setup_says_why_it_stopped(cfg, monkeypatch):
+    import subprocess
+    from aitrader import app_api, mac_service
+    monkeypatch.setattr(mac_service.sys, "platform", "darwin")
+    answers = {"out": "state = waiting\n\tpid = 812\n", "code": 0}
+    monkeypatch.setattr(mac_service.subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(
+        a[0], answers["code"], stdout=answers["out"], stderr=""))
+    assert mac_service.status() == {"on": True, "running": True}
+    answers["out"] = "state = spawn scheduled\n\tlast exit code = 1\n"            # crashing: on, not running
+    assert mac_service.status() == {"on": True, "running": False}
+    answers["code"] = 113                                                        # not installed
+    assert mac_service.status() == {"on": False, "running": False}
+
+    store = Store(data_path(cfg, "aitrader.sqlite"))
+    store.log("Autopilot started. Keep the laptop awake and online (Ctrl+C stops it).")
+    assert app_api.autopilot_problem(store) == ""
+    store.log("STOPPED: The autopilot is already running (process 4242). Only one may run at a time.")
+    assert "already running (process 4242)" in app_api.autopilot_problem(store)

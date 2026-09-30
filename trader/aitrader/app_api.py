@@ -255,18 +255,29 @@ def check_keys(cfg) -> dict:
 
 
 def restart_autopilot() -> bool:
-    """A running background autopilot read .env when it started: restart it so new keys take effect."""
+    """A running background autopilot read .env when it started: restart it so new keys take effect.
+    Reinstalling (not just kickstarting) also moves older installs to the current service setup."""
     from . import mac_service
+    from .config import ROOT
     if not mac_service.is_running():
         return False
-    import subprocess
-    subprocess.run(["launchctl", "kickstart", "-k", f"{mac_service._domain()}/{mac_service.LABEL}"],
-                   capture_output=True)
+    mac_service.install(ROOT)
     return True
+
+
+def autopilot_problem(store) -> str:
+    """Why the autopilot stopped, if it did recently (the latest STOPPED line in the journal)."""
+    for ts, message in reversed(store.journal(200)):
+        if message.startswith("STOPPED:") or "stuck for" in message:
+            return f"{ts.replace('T', ' ')}: {message}"
+        if message.startswith("Autopilot started"):
+            return ""
+    return ""
 
 
 def setup_status(cfg, store) -> dict:
     from . import mac_service
+    service = mac_service.status()
     from .alpaca_api import has_keys
     from .config import active_desks, data_source, uses_broker_paper
     from .phases import current_phase, study_progress
@@ -300,7 +311,8 @@ def setup_status(cfg, store) -> dict:
                        "account_number": bool(secrets["account_number"])},
             "gfv": gfv_status(cfg, store),
             "prices_from": data_source(cfg), "paper_at": "Alpaca paper account" if uses_broker_paper(cfg)
-            else "simulated on this Mac", "autopilot_on": mac_service.is_running(),
+            else "simulated on this Mac", "autopilot_on": service["on"], "autopilot_alive": service["running"],
+            "autopilot_problem": autopilot_problem(store),
             "autopilot_seen": store.get("autopilot_heartbeat"), "can_autopilot": sys.platform == "darwin",
             "desks": desks, "stage1": stage1, "phone": phone_status(cfg)}
 

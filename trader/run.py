@@ -562,11 +562,42 @@ def restart_if_stuck(cfg, progress: dict) -> bool:
     return True
 
 
-def cmd_autopilot(cfg, store, args):
+def launched_by_service() -> bool:
+    """True when launchd (Setup -> Autopilot: on) started this autopilot, not a Terminal window."""
+    from aitrader import mac_service
+    return (os.environ.get("KESTREL_SERVICE") == "1" or os.getppid() == 1
+            or "caffeinate" in mac_service.command_of(os.getppid()))        # older installs
+
+
+def take_over(store) -> str:
+    """Only one autopilot may run. The background one (launchd) always wins: an older autopilot that's
+    still alive (e.g. left behind by a restart, maybe stuck) is stopped. A Terminal one steps aside."""
+    import signal
+    from aitrader import mac_service
     other = store.get("autopilot_pid")
-    if other and other != os.getpid() and process_alive(other):
+    if not other or other == os.getpid() or not process_alive(other):
+        return ""
+    if "run.py" not in (cmd := mac_service.command_of(other)) or "autopilot" not in cmd:
+        return ""                                            # that process id now belongs to something else
+    if not launched_by_service():
         raise RuntimeError(f"The autopilot is already running (process {other}). Only one may run at a time.")
+    os.kill(other, signal.SIGTERM)
+    for _ in range(15):
+        time.sleep(1)
+        if not process_alive(other):
+            break
+    else:
+        os.kill(other, signal.SIGKILL)
+    return f"Stopped an older autopilot (process {other}) that was still running; this one takes over."
+
+
+def cmd_autopilot(cfg, store, args):
+    note = take_over(store)
     store.set("autopilot_pid", os.getpid())
+    if note:
+        store.log(note)
+    from aitrader import mac_service
+    mac_service.keep_awake()
     import socket
     socket.setdefaulttimeout(120)                       # a network call that never answers fails (and retries)
     data = MarketData(cfg)
