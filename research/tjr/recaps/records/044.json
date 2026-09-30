@@ -1,0 +1,170 @@
+{
+  "video": {
+    "n": 44,
+    "file": "7_8_24.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 6 sheets viewed; 13 full-size shots opened (#1,#2,#4,#6,#7,#9,#12,#13,#15,#17,#18,#20,#21), plus enlarged crops of #1 (price axis) and #15 (position-tool labels). Legends, x-axis dates/times, axis labels and the position-tool labels were readable. Transcript (pocketsphinx) is very garbled; usable only for gist (bullish NQ structure, SMT, break of structure, stop under lows, take profit, week forecast).",
+    "duration_min": 5.76,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-07-08",
+      "src": "seen",
+      "ref": "#13 02m52s / #17 03m29s x-axis 'Mon 08 Jul '24 09:30'; #15 03m03s 'Mon 08 Jul '24 09:46'; file name 7_8_24; #21 Forex Factory calendar shows Jul 8 boxed as today"
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "NQ 4h/1h: strong uptrend (rally from ~20,380 around Jul 3-5 to ~20,670 on Jul 8). NQ 5m on Jul 8: overnight grind up to ~20,640 pre-open; 09:30-09:35 drop to ~20,601 (1m wick); rally to 20,652 by ~09:51 and to the day high ~20,670 around 11:00; then sell-off to ~20,588 by ~12:00",
+      "src": "inferred",
+      "ref": "seen #1 00m00s legend 'NASDAQ 100 E-mini Futures · 4h · CME' O20,635.00 H20,670.75 L20,588.00; #2 01m11s '1h · CME'; #4 01m48s / #18 03m35s '5 · CME'; intraday levels estimated from candle positions vs axis labels (±2 pts)"
+    },
+    "news": {
+      "value": "No news shown or mentioned for Mon Jul 8. For the week he mentions (garbled) Powell on Tue/Wed and says he probably won't take a big trade then; calendar shown for Fri Jul 12: 8:30am Core PPI m/m (f 0.1%, prev 0.0%), PPI m/m (f 0.1%, prev -0.2%); 10:00am Prelim UoM Consumer Sentiment (f 67.0, prev 68.2), Prelim UoM Inflation Expectations (prev 3.0%)",
+      "src": "seen",
+      "ref": "#21 04m46s forexfactory.com/calendar?day=jul12.2024 (clock 12:41pm); heard [04:45] 'we probably won't [take] a huge [trade] tomorrow because ... [jerome powell]' and 'probably won't be taking [a trade] on wednesday ... [jerome powell] ... i will be streaming live' (Powell reading is inferred from 'german how's')"
+    },
+    "bias": {
+      "value": "bullish on NQ: higher-timeframe bullish market structure, plus an NQ/ES SMT divergence at the NY-open lows 'in line with the overall bias'; draw on liquidity = highs above (target 20,652.00)",
+      "src": "heard",
+      "ref": "[00:45] 'we're [in a] bullish market structure [on] nasdaq'; [02:30] '[SMT] divergence for nasdaq which is in line with our overall bias'; consistent with seen 4h/1h uptrend (#1, #2)"
+    }
+  },
+  "trades": [
+    {
+      "date": {
+        "value": "2024-07-08",
+        "src": "seen",
+        "ref": "#15 03m03s x-axis 'Mon 08 Jul '24 09:46' at the position box's left edge"
+      },
+      "instrument": {
+        "value": "NQ (E-mini Nasdaq-100 futures, NQ1!)",
+        "src": "seen",
+        "ref": "#15 03m03s legend 'NASDAQ 100 E-mini Futures · 1 · CME', symbol box 'NQ1!'"
+      },
+      "direction": {
+        "value": "long",
+        "src": "seen",
+        "ref": "#15 / #17 position tool: blue target box above the entry, gray stop box below"
+      },
+      "timeframes": {
+        "value": {"bias": "4h/1h", "setup": "5m (sweep + ES/NQ SMT)", "entry": "1m"},
+        "src": "inferred",
+        "ref": "4h (#1) and 1h (#2) shown first for structure; 5m NQ/ES compared (#4,#6,#7,#9); position tool drawn on 1m (#13,#15,#17)"
+      },
+      "setup": {
+        "value": "HTF bullish -> NY-open drop sweeps lows on NQ while ES holds (SMT) -> 1m break of structure up -> long at 20,623.50, stop under the 1m higher low, target 20,652.00",
+        "src": "inferred",
+        "ref": "heard [02:00]-[02:45] '[SMT] divergence on nasdaq and ES ... lows that end up sweeping ... we break structure'; prices seen on the position tool and axis labels (#1, #15, #17)"
+      },
+      "entry_conditions": [
+        {
+          "value": "Higher-timeframe (4h/1h) NQ in bullish market structure",
+          "src": "heard",
+          "ref": "[00:45] 'bullish market structure [on] nasdaq'; seen #1 4h and #2 1h uptrend"
+        },
+        {
+          "value": "At the 09:30 open NQ dropped to ~20,601 (1m wick ~09:33), below horizontal lines at 20,608.50 and 20,605.00 (sweep of the lows)",
+          "src": "inferred",
+          "ref": "seen #1 axis labels 20,608.50 (blue) and 20,605.00; wick depth estimated on #13/#17 1m (±2 pts); heard [02:00] 'lows that end up sweeping'"
+        },
+        {
+          "value": "SMT divergence: NQ took its lows at the open while ES 5m did not make a comparable low (ES stayed near ~5,629-5,636 at 09:30-09:40)",
+          "src": "inferred",
+          "ref": "heard [02:00]-[02:30] '[SMT] divergence on nasdaq and ES ... divergence for nasdaq ... in line with our overall bias'; compared #7 02m17s NQ 5m vs #9 02m30s ES 5m ('S&P 500 E-mini Futures · 5 · CME', crosshair 5,631.25 at 09:40). Exact swing pairs not readable"
+        },
+        {
+          "value": "1m break of structure to the upside after the sweep, before entering",
+          "src": "heard",
+          "ref": "[02:45] 'okay so we break structure'; entry box starts after the 09:33-09:37 lows (#15, #17)"
+        },
+        {
+          "value": "Entry taken in what he calls the discounted price range; a fib/range with levels 1 (~20,627.4), 0.5 (~20,618.0) and 0 (~20,608.1) is drawn around the entry",
+          "src": "inferred",
+          "ref": "heard [03:15] 'discounted price range'; seen fib labels '1', '0.5', '0' on #15/#17; their prices estimated from axis (±1 pt). Note entry 20,623.50 sits above that fib's 0.5"
+        }
+      ],
+      "entry_time": {
+        "value": "~09:46 (chart time, appears to be ET)",
+        "src": "inferred",
+        "ref": "#15 03m03s crosshair 'Mon 08 Jul '24 09:46' at the box's left edge; chart marks the 09:30 NY open with a dashed line, so chart time taken as ET (timezone not shown)"
+      },
+      "entry": {
+        "value": 20623.5,
+        "src": "seen",
+        "ref": "#1 00m00s axis label 20,623.50 (gray) at the box's entry line; matches stop label 'Stop: 15.25' (20,623.50-15.25=20,608.25, also a gray axis label) and RR 1.87"
+      },
+      "stop": {
+        "value": 20608.25,
+        "src": "seen",
+        "ref": "#15 03m03s label 'Stop: 15.25 (0.07%) 61'; #1 axis label 20,608.25 (gray)"
+      },
+      "stop_rule": {
+        "value": "under the lows (the 1m higher low / fib 0 at ~20,608), not under the 09:33 sweep low (~20,601)",
+        "src": "inferred",
+        "ref": "heard [03:15] 'soft underneath the slows' read as 'stop underneath the lows'; stop level 20,608.25 seen, sweep-low depth estimated on #13/#17"
+      },
+      "target": {
+        "value": 20652.0,
+        "src": "seen",
+        "ref": "#1 00m00s / #17 03m29s axis label 20,652.00 (blue) at the top of the target box; 20,623.50 + 28.50 = 20,652.00 (RR 1.87)"
+      },
+      "target_rule": {
+        "value": "highs above as liquidity (he mentions relative equal highs / prior highs and 'that was my take profit'); which highs exactly is not clear",
+        "src": "heard",
+        "ref": "[03:45]-[04:00] 'close to these [relative equal highs] right here ... these are by the way [the] prior ... [highs] ... that was my take profit' (garbled); a horizontal line also sits at the 20,652.00 level on #18 5m"
+      },
+      "exit": {
+        "value": "target hit at 20,652.00, ~09:51 ET",
+        "src": "seen",
+        "ref": "#15 03m03s tool label 'Closed P&L: 28.50 ... Risk/Reward Ratio: 1.87' (positive, = target distance); #17 03m29s dashed trade-path line runs from entry to the box top on the ~09:51 candle whose wick touches 20,652; heard [04:00] 'that was my take profit'. Time estimated from x-axis (±1 min)"
+      },
+      "size_or_leverage": {
+        "value": null,
+        "src": "unknown",
+        "ref": "Position tool shows 'Qty: 3.279' and 'Amount' (unreadable, looks like '99000'; 3.279 × 15.25 ≈ 50), which are drawing-tool settings, not his real contracts. Real size not shown or heard"
+      },
+      "result": {
+        "value": "win",
+        "src": "seen",
+        "ref": "position tool closed at target (#15 'Closed P&L: 28.50', #17 path line to target); heard [04:30] 'my one and only play ... profit' (garbled). Not a broker record"
+      },
+      "r_multiple": {
+        "value": 1.87,
+        "src": "computed",
+        "ref": "(20,652.00 - 20,623.50) / (20,623.50 - 20,608.25) = 28.50 / 15.25 = 1.87; matches tool label 'Risk/Reward Ratio: 1.87'"
+      },
+      "claimed_pnl": {
+        "value": null,
+        "src": "unknown",
+        "ref": "No dollar amount stated or shown; title has no claim. Only the drawing tool's 'Closed P&L: 28.50' (equals the 28.50-point move) is visible"
+      },
+      "pnl_verified": {
+        "value": "no",
+        "src": "seen",
+        "ref": "Only a TradingView position-drawing tool is shown; no broker/platform panel with fills or account P&L"
+      },
+      "mistakes": [
+        {
+          "value": "none identified; note the stop was above the 09:33 sweep low, and at ~10:00 price traded down to ~20,597 (below the stop) only after the target had already been hit",
+          "src": "inferred",
+          "ref": "#13 02m52s / #15 03m03s 1m candles: ~10:00 wick below the 20,608.25 stop level, after the ~09:51 target touch"
+        }
+      ],
+      "evidence_summary": "Instrument, date, direction, entry/stop/target prices, RR and target-hit seen on the TradingView position tool and axis labels; SMT/sweep/BOS reasoning heard (garbled) and partly inferred from charts; real size and money P&L unknown; result not broker-verified."
+    }
+  ],
+  "lessons_stated": [
+    {
+      "value": "Take the SMT divergence when it is in line with the overall (higher-timeframe) bias",
+      "src": "heard",
+      "ref": "[02:30] '[SMT] divergence for nasdaq which is in line with our overall bias'"
+    },
+    {
+      "value": "Around Powell's appearances (Tue/Wed of this week) he probably won't take a big trade / may not trade, but will stream",
+      "src": "heard",
+      "ref": "[04:45] 'we probably won't [take] a huge [trade] tomorrow because ... [jerome powell]' ... 'probably won't be taking [a trade] on wednesday' (garbled; Powell reading inferred)"
+    }
+  ],
+  "quality_notes": "Transcript is heavily garbled; the exact swing points used for the SMT and the break of structure are not named on screen, so they are inferred from candle positions (±2 pts). Entry time from a crosshair label at the box edge and exit time from the x-axis (±1 min); chart timezone not shown (ET inferred from the 09:30 open marker). The 'win' rests on the TradingView drawing tool, not on fills or a broker panel; real position size unknown."
+}
