@@ -1,0 +1,57 @@
+{
+  "video": {
+    "n": 45,
+    "file": "7_9_24.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 9 sheets viewed; 11 full-size shots opened (#1,#3,#5,#10,#12,#13,#16,#20,#25,#34,#35), plus zoomed crops of #25 (position-tool labels) and #35 (5m axis/last candle). Legends, axes, x-axis dates and position-tool labels readable. Recorded on a live stream (chat visible) at roughly 10:45-11:01 chart time while the runner was still open. Transcript (pocketsphinx) is near-useless for 00:00-05:00 and heavily garbled elsewhere; usable only for gist. No broker/fills panel shown.",
+    "duration_min": 15.42,
+    "title_claim": "",
+    "session_date": {"value": "2024-07-09", "src": "seen", "ref": "#25 11m04s x-axis crosshair 'Tue 09 Jul '24 10:40'; #3 05m52s x-axis 'Tue 09 Jul '24 09:30'; file name 7_9_24"}
+  },
+  "market_context": {
+    "regime": {"value": "NQ 1h: strong up-leg over the prior sessions ('substantial extension'); 10:00 1h bar O 20,749.50 H 20,771.75 L 20,680.50. Intraday 1m: spike near 10:00 to ~20,770, sell-off to 20,680.50 by ~10:33, then recovery to ~20,742 by ~10:47 and chop back to ~20,711-20,713 by ~11:00. ES was stronger: it revisited its ~10:00 high area by ~10:45-10:50.", "src": "inferred", "ref": "seen #10 07m11s legend 'NASDAQ 100 E-mini Futures · 1h · CME' O 20,749.50 H 20,771.75 L 20,680.50 C 20,724.75; seen #1 05m36s legend 'S&P 500 E-mini Futures · 1 · CME' ~5,641.50 near prior 10:00 high; heard [07:30] 'we are in a pretty substantial extension'; intraday levels read off #3/#34/#35 axes (±2)"},
+    "news": {"value": "Fed Chair Powell testimony day (browser tab 'USD Fed Chair Powell Testifies'). Start time not shown in the video; the 10:00 spike/sell-off is consistent with a 10:00 ET start. He acknowledges trading on a news day.", "src": "seen", "ref": "every shot, browser tab title 'USD Fed Chair Powell Testifies'; heard [05:15] 'news because of that ... then why did you trade on ... will explain soon'; heard [12:15] 'tomorrow ... again ... didn't really affect the market too much today' (garbled)"},
+    "bias": {"value": "Bullish: HTF up-leg, so a pullback to 1h equilibrium (≈20,677) is a buy; draw on liquidity = 0.5 of the 10:00 down-leg (20,725) and the 5m imbalance above (≈20,738-20,750).", "src": "inferred", "ref": "heard [07:30] 'biased because we are in a pretty substantial extension ... pull down to equilibrium'; heard [09:00] 'my initial overall [bias] is bullish'; seen #10 1h range with '0.5' line ≈20,677 (inferred ±3 from axis 20,680/20,690); seen #35 12m29s-15m19s 5m fib '0.5' at axis 20,725.00 and gray box with dashed line at 20,744.25"}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-07-09", "src": "seen", "ref": "#25 11m04s x-axis 'Tue 09 Jul '24 10:40'"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#25 11m04s legend 'NASDAQ 100 E-mini Futures · 1 · CME', symbol box 'NQ1!'"},
+      "direction": {"value": "long", "src": "seen", "ref": "#25 position tool: blue profit zone above entry 20,708.00, gray stop zone below"},
+      "timeframes": {"value": {"bias": "1h", "setup": "1m (SMT vs ES)", "entry": "1m", "target_ref": "5m imbalance / 5m fib"}, "src": "seen", "ref": "#10 1h chart with equilibrium range; #13/#16 1m ES/NQ with SMT lines; #25 1m position tool; #35 5m chart with fib and gray imbalance"},
+      "setup": {"value": "NY AM sell-off low at 1h equilibrium + bullish ES/NQ SMT (NQ lower low, ES higher low) -> long on 1m retrace into drawn zone at 20,708", "src": "inferred", "ref": "combination of seen drawings (#10, #13, #16, #25) and heard [08:30]-[09:00] 'SMT divergence ... lower lows on nasdaq ... that's enough for me to [go] long'"},
+      "entry_conditions": [
+        {"value": "HTF (1h) bullish bias: strong up-leg into the session", "src": "heard", "ref": "[07:30] 'biased because we are in a pretty substantial extension'; [09:00] 'my initial overall [bias] is bullish'"},
+        {"value": "Post-10:00 sell-off low (20,680.50) roughly at the 1h range equilibrium (≈20,677 ±3)", "src": "inferred", "ref": "seen #10 1h legend L 20,680.50 and '0.5' line; heard [11:15] 'the low and equilibrium are pretty much the same'"},
+        {"value": "SMT: NQ made a lower low (~10:26 then ~10:32) while ES made a higher low", "src": "seen", "ref": "#16 09m06s NQ line sloping down through the two lows; #13 08m47s ES line sloping up under its two lows; times inferred ±1 min from x-axis"},
+        {"value": "1m: price rallied off the low back above ~20,708, then retraced into a gray zone at ~20,707-20,711 (likely a 1m FVG/IFVG; not labeled) where the entry was placed", "src": "inferred", "ref": "seen #5 06m03s gray box starting at the ~10:28 sell-off candles, entry line inside it at 20,708.00 (#25 axis label); FVG/IFVG type not stated audibly"}
+      ],
+      "entry_time": {"value": "≈10:36 (chart time; ET inferred)", "src": "inferred", "ref": "left edge of position tool at x≈650 in #25 (10:30 at x 614, 10:40 at x 673) and x≈452 in #3 (10:30 at 419, 10:40 at 472) -> ≈10:36 ±1 min; timezone not shown, ET inferred from 09:30 open marker and 10:00 news spike"},
+      "entry": {"value": 20708.0, "src": "seen", "ref": "#25 11m04s axis label 20,708.00 at position-tool entry line (drawing tool, not a broker fill)"},
+      "stop": {"value": 20697.5, "src": "seen", "ref": "#25 axis label 20,697.50 and tool label 'Stop: 10.50 (0.05%)' (20,708.00-10.50)"},
+      "stop_rule": {"value": "a few points below the lower drawn 1m zone (dashed line ≈20,700-20,701); not below the 20,680.50 sweep low", "src": "inferred", "ref": "seen #25/#16 lower gray dashed band just above the stop; rule not clearly audible ([09:15] 'what invalidate[s] ...' garbled)"},
+      "target": {"value": 20725.0, "src": "seen", "ref": "#25 tool label 'Target: 17.00 (0.08%)' and axis label 20,725.00 (TP1). Runner box (TP2) top at the 5m imbalance dashed line, axis label 20,744.25 seen in #35; link of that label to the runner box is inferred"},
+      "target_rule": {"value": "TP1 = 0.5 of the ~10:00 high -> 20,680.50 low down-leg (20,725); TP2 = middle of the 5m gray imbalance (≈20,738-20,750, dashed ≈20,744.25)", "src": "inferred", "ref": "seen #35 5m fib '0.5' at axis 20,725.00 and gray box with dashed line at 20,744.25; heard [11:30] 'take profit was based off this imbalance here ... we ended up only filling it partially'"},
+      "exit": {"value": "TP1 20,725.00 hit (partial). Runner: TP2 ≈20,744.25 not reached (high ≈20,742); runner exit not shown. By video end (~11:01) the 11:00 5m bar dipped to ≈20,701 (below entry, above stop) and price was 20,713.00.", "src": "inferred", "ref": "seen #25 tool text 'Closed P&L: 17.00, Qty: 4.762, Risk/Reward Ratio: 1.62' and candles above 20,725 at ~10:44-10:47; high ≈20,742 ±1 from #35 axis (20,740/20,744.25); 11:00 5m wick ≈20,701 ±1.5 from #35 pixel read; heard [05:00] 'time for me to hit my second take profit on this trade my first ...'; heard [11:45] '... the rest ... battery even' possibly 'break even' (unconfirmed)"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "no broker panel; tool 'Qty: 4.762' is a position-tool calculation, not his size; [12:00] 'free contracts on that' might be 'three contracts' but cannot be checked against the chart"},
+      "result": {"value": "win", "src": "inferred", "ref": "TP1 portion closed at +17.00 pts (seen on chart/tool); runner outcome unknown but price never reached the 20,697.50 stop during the video, so the trade could not have been a full loss by 11:01"},
+      "r_multiple": {"value": 1.62, "src": "computed", "ref": "TP1 leg only: (20,725.00-20,708.00)/(20,708.00-20,697.50) = 17/10.5 = 1.62, matches tool 'Risk/Reward Ratio: 1.62'. Whole-trade R unknown (partial split and runner exit not shown); TP2 leg would have been (20,744.25-20,708)/10.5 ≈ 3.45 but was not filled"},
+      "claimed_pnl": {"value": "≈$600 ('only made like six hundred dollars in live')", "src": "heard", "ref": "[14:15] 'only made like six hundred dollars in live in the race again' (garbled; context unclear)"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "only a TradingView position-tool drawing ('Closed P&L: 17.00' in points) is shown; no broker/platform P&L with matching fills"},
+      "mistakes": [
+        {"value": "traded on a high-impact news day (Powell testimony), entry ~36 min after the 10:00 spike; he acknowledges viewers may question it", "src": "inferred", "ref": "seen tab 'USD Fed Chair Powell Testifies'; heard [05:15] 'why did you trade on ... will explain soon'"},
+        {"value": "runner gave back most of the move: after the ≈20,742 high price returned to ≈20,701, below entry", "src": "inferred", "ref": "#34 12m22s price 20,711.50; #35 11:00 5m wick ≈20,701"}
+      ],
+      "evidence_summary": "Seen: date, NQ 1m, long, entry 20,708.00 / stop 20,697.50 / TP1 20,725.00 and R:R 1.62 from position tool, SMT lines, 1h equilibrium, 5m imbalance 20,744.25. Heard (garbled): bullish bias, SMT reason, TP2 only partially filled, ~$600 claim. Inferred: entry time ≈10:36 ET, TP1 as partial, runner exit unknown."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "When price is in a substantial extension (bullish), a pullback to equilibrium is where he looks to buy", "src": "heard", "ref": "[07:30] 'i'm biased because we are in a pretty substantial extension ... if we pull down to equilibrium'"},
+    {"value": "A bullish SMT divergence (NQ lower low vs ES) is enough to go long, especially when the overall bias is already bullish", "src": "heard", "ref": "[08:30]-[09:00] 'bullish SMT divergence ... lower lows on nasdaq ... that's enough for me to [go] long especially because my initial overall [bias] is bullish'"},
+    {"value": "Low coinciding with HTF equilibrium makes at least a retracement very high probability", "src": "heard", "ref": "[11:00]-[11:15] 'such a high probability ... relief or at least a retrace ... the low and equilibrium are pretty much the same'"},
+    {"value": "Second take profit placed at the imbalance above; it only filled partially", "src": "heard", "ref": "[11:30] 'take profit was based off this imbalance here ... we ended up only filling it partially'"},
+    {"value": "(garbled) Trading on news days is acceptable if the news does not move the market significantly", "src": "heard", "ref": "[12:45] 'if the news does ... affect the market significantly'; [14:00] 'significantly off the market' - wording too garbled to state the rule precisely"}
+  ],
+  "quality_notes": "Transcript is extremely garbled (00:00-05:00 essentially unusable); all numbers come from the chart. Entry/stop/target are the TradingView position-tool lines, not broker fills. Partial size split, contract count and the runner's exit are not shown, so whole-trade R and P&L are unknown. Timezone not displayed (ET inferred). Runner TP2 20,744.25 is an axis label linked to the runner box by alignment only. 11:00 5m low ≈20,701 read from pixels (±1.5)."
+}
