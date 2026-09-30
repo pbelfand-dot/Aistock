@@ -69,6 +69,9 @@ def check_config(cfg: dict):
     seen = {}
     for desk in DESKS:
         for ticker in cfg["desks"][desk]["watchlist"]:
+            if not isinstance(ticker, str):              # YAML reads ON/OFF/YES/NO/Y/N as true/false
+                raise ValueError(f"The {desk} watchlist has {ticker!r}, not a ticker. Put tickers that are also "
+                                 f'yes/no words in quotes, like "ON".')
             if ticker in seen:
                 raise ValueError(f"{ticker} is on both the {seen[ticker]} and {desk} watchlists; pick one.")
             seen[ticker] = desk

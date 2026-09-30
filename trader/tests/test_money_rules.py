@@ -121,3 +121,14 @@ def test_a_stock_far_over_its_limit_is_trimmed_back_and_keeps_its_slot():
     assert "trim: 34% of the desk is in AAA (limit 12.5%)" in trim[0].reason
     assert [o.ticker for o in orders if o.side == "BUY"] == ["CCC"]            # the trim didn't free a slot
     assert risk.trim_qty(3, 17.0, 500.0) == 0 and risk.trim_qty(7, 17.0, 500.0) == 0   # under 2x: left alone
+
+
+def test_every_watchlist_entry_in_the_real_config_is_a_ticker():
+    from aitrader.config import check_config, load_config
+    cfg = load_config()
+    for desk in ("swing", "day"):
+        assert all(isinstance(t, str) and t.isupper() for t in cfg["desks"][desk]["watchlist"]), desk
+    assert "ON" in cfg["desks"]["day"]["watchlist"]
+    cfg["desks"]["day"]["watchlist"] = ["F", True]                     # what an unquoted ON turns into
+    with pytest.raises(ValueError, match='in quotes, like "ON"'):
+        check_config(cfg)

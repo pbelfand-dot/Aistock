@@ -59,8 +59,9 @@ desks:
     budget_pct: 50
     # Liquid stocks that move a lot within a day (the second row: $500M+ traded a day, 3-6% daily
     # range, under $160 a share, as of Sep 2026). More stocks = more breakouts to trade.
+    # (Tickers that are also yes/no words, like "ON", must be in quotes, or they're read as true/false.)
     watchlist: [SOFI, F, INTC, AAL, SNAP, RIVN, NIO, T,
-                HPE, ORCL, SHOP, ON, RBLX, HPQ, PCG, FCX]
+                HPE, ORCL, SHOP, "ON", RBLX, HPQ, PCG, FCX]
     last_entry_minutes_before_close: 30    # no new trades in the last 30 minutes
     flatten_minutes_before_close: 10       # sell everything 10 minutes before the close
     risk:
