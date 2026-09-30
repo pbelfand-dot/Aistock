@@ -1,0 +1,73 @@
+{
+  "video": {
+    "n": 22,
+    "file": "05_07_2024.Trade.Recap.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 12 sheets, 10 full-size shots (#1, #2, #4, #16, #18, #21, #22, #36, #37, #46) and the transcript. TradingView legends, x-axis date/time, price-axis labels and position-tool labels are readable. Chart time zone shown as '(UTC-4' at bottom right (= ET in May). No broker/order panel, fills or P&L shown; only TradingView position-tool boxes. Transcript (pocketsphinx) is very garbled. Structure: 00:00-00:40 intro; 00:39-04:45 NQ trade (15m/5m/1m); 04:45-06:50 ES same setup shown as one he could have taken but did not; 06:50-07:11 NQ wrap-up.",
+    "duration_min": 7.2,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-05-07",
+      "src": "seen",
+      "ref": "#1 00m00s, #16 02m31s, #46 07m02s x-axis 'Tue 07 May '24'; file name 05_07_2024. Chart clock reads 17:21-17:28 (UTC-4), so recorded the same evening."
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "NQ 15m: rally from the ~07:30 ET low (18158.00 line) to a high of about 18266 around 10:30-11:00 ET, then a sharp drop about 13:45-14:00 ET into the 18185 area. PM session: sweep to about 18167 at about 14:37 ET, then a rally to about 18214-18220 by about 15:50 ET. It faded to 18197.75 by about 17:00 ET.",
+      "src": "inferred",
+      "ref": "Seen: #2 00m39s legend 'NASDAQ 100 E-mini Futures · 15 · CME', axis labels 18158.00, 18254.25, 18213.75; #46 07m02s NQ 1m, 14:00-17:00. Other levels estimated from candle positions (±2 pt on 15m, ±1 pt on 1m). Heard: [00:45] 'on the fifteen minute we had a breakdown prior to ... what is it two pm to three pm [macro]'."
+    },
+    "news": {
+      "value": "none mentioned",
+      "src": "unknown",
+      "ref": "No news is referred to in the transcript or shown on the charts. A Forex Factory tab is open but never shown."
+    },
+    "bias": {
+      "value": "Intraday bullish for the PM session after the sell-off: after a sweep of the 5m lows (18185.00 / 18181.75), the draw is back up to the PM-session high at 18213.75, which is also the bottom of a grey 5m/15m supply zone (≈18213.75-18240). He uses lower-timeframe draws (next 5-15 min) in the PM session. He states no higher-timeframe (1h/4h) bias.",
+      "src": "inferred",
+      "ref": "Seen: #4 01m08s NQ 5m horizontal lines 18185.00 and 18181.75 under earlier lows, and 18213.75 from the ≈14:05 ET high; grey zone above. Heard: [03:15] 'my one and only target was just these pm session high ... or these low [time frame] highs'; [04:00] 'lower timeframe draws on [liquidity]'; [04:15] 'where ... the next like five ten fifteen minutes going to go'."
+    }
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-05-07", "src": "seen", "ref": "#16 02m31s x-axis 'Tue 07 May '24 14:43'"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#1 00m00s legend 'NASDAQ 100 E-mini Futures · 5 · CME'; #16 legend '... · 1 · CME'"},
+      "direction": {"value": "long", "src": "seen", "ref": "#1 00m00s position tool with target box (blue) above entry and stop box (grey) below; heard [03:00] 'only one long [trade] here'"},
+      "timeframes": {"value": {"bias": "15m", "setup": "5m", "entry": "1m"}, "src": "inferred", "ref": "Heard [00:45] 'on the fifteen minute we had a breakdown'; [02:00] 'break [of structure on the] one minute along with [an] invalidat[ed] ...'. Seen: 5m levels (#4) and a 1m entry box (#16, #22)."},
+      "setup": {"value": "PM-session (after 14:00 ET) sweep of 5m lows -> 1m BOS + bearish-FVG inversion (IFVG) -> long, stop under the 1m bullish FVG, target the PM-session high", "src": "inferred", "ref": "Heard [02:00] 'we come down to sweep of liquidity we get a break [of structure] one minute along with [an] invalidat[ion]'; [03:30] 'liquidity sweep ... break of structure ... confluences'. Seen: two 1m grey FVG boxes under the entry in #22."},
+      "entry_conditions": [
+        {"value": "15m sell-off into the PM session (about 13:45-14:00 ET) before the 2-3 PM ET window", "src": "heard", "ref": "[00:45] 'on the fifteen minute we had a breakdown prior to like the [PM] kill zone ... two pm to three pm [macro]'; the drop is seen on #2 NQ 15m"},
+        {"value": "price traded below the marked 5m lows 18185.00 and 18181.75 (sweep), with a low of about 18166.75 at about 14:37 ET", "src": "seen", "ref": "#4 01m08s axis labels 18185.00 and 18181.75 on lines drawn from earlier lows. Sweep low estimated from #22 03m48s: 1m wick at about 18166.75 ±0.5 (inferred)."},
+        {"value": "1m break of structure up after the sweep (bullish close above the recent 1m swing high; exact level not marked)", "src": "heard", "ref": "[02:00] 'we get a break [of structure] one minute'; [05:15] (ES) 'break of structure along with the invalidat[ion]'. The BOS level is not labeled on the chart."},
+        {"value": "1m bearish FVG at about 18178.5-18182.2 closed through and inverted (IFVG, now support)", "src": "inferred", "ref": "Heard [02:30] 'after invalidat[ing] the bear[ish FVG] ... touching in the back and ... reaction'. Seen: upper grey box with a dashed midline, #22 03m48s. Its edges are estimated from pixels (±0.5)."},
+        {"value": "1m bullish FVG at about 18174.4-18177.7 formed on the rally; used for stop placement", "src": "inferred", "ref": "Heard [02:45] 'placed my stop right underneath this bull[ish FVG] ... because that was what the trade was taken off of'. Seen: lower grey box, #22. Its edges are estimated from pixels."}
+      ],
+      "entry_time": {"value": "≈14:43-14:44 ET", "src": "inferred", "ref": "#16 02m31s: crosshair 'Tue 07 May '24 14:43' sits on the left edge of the position box; #46: box left edge ≈14:44 by pixel. Chart TZ UTC-4 = ET."},
+      "entry": {"value": 18185.75, "src": "seen", "ref": "#1 00m00s gray axis label 18185.75. It matches the tool: target 28.00 pts to 18213.75, stop 12.50 pts to 18173.25."},
+      "stop": {"value": 18173.25, "src": "seen", "ref": "#1 00m00s gray axis label 18173.25; tool 'Stop: 12.50 (0.07%) 50, Amount: 99000'"},
+      "stop_rule": {"value": "below the 1m bullish FVG the trade was taken from (where the idea is invalidated)", "src": "heard", "ref": "[02:45] 'placed my stopped right underneath his polish air' read as 'this bullish FVG'; [03:00] 'where our trade idea would invalidate'"},
+      "target": {"value": 18213.75, "src": "seen", "ref": "#1 00m00s blue axis label 18213.75; tool 'Target: 28.00 (0.15%) 112, Amount: 102240'"},
+      "target_rule": {"value": "PM-session high (the ≈14:05 ET high at 18213.75, which is also the bottom of the grey 5m/15m zone)", "src": "inferred", "ref": "Heard [03:15] 'my one and only target was just these pm such a high' read as 'PM session high'. Seen: #21 and #46, the 18213.75 line starts at the ≈14:05 ET swing high."},
+      "exit": {"value": "target level 18213.75 reached about 15:50 ET (±3 min) without the stop being touched first; his actual exit is not shown", "src": "inferred", "ref": "#46 07m02s and #21 03m42s NQ 1m: after entry the lowest wick is about 18181 (≈14:53 ET), above the 18173.25 stop; a wick goes to about 18219 near 15:50 ET. #1 tool reads 'Open P&L: 19.50' only because the drawn box ends at 15:20 (5m close 18205.25). He never states an exit price."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Tool 'Qty: 4' is the TradingView position-tool calculation (12.5 pt × 4 × $20 = $1,000 = 1% of a $100,000 tool account; 'Amount' 99000/102240). It is not real size, and no real size is stated or shown."},
+      "result": {"value": "win", "src": "inferred", "ref": "Chart shows the target reached before the stop (see exit). He presents it as a working trade ([02:30] 'got a good entry'), but gives no exit statement or fills."},
+      "r_multiple": {"value": 2.24, "src": "computed", "ref": "(18213.75-18185.75)/(18185.75-18173.25) = 28/12.5 = 2.24. This assumes exit at the planned target. The tool also shows 'Risk/Reward Ratio: 2.24' (#1)."},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No $ amount is stated or shown. The title has no claim."},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "No broker/platform P&L panel or fills are shown. Only the TradingView position tool."},
+      "mistakes": [
+        {"value": "none stated or visible; he calls the entry fill 'lucky'", "src": "heard", "ref": "[02:30] 'i got really lucky entry ... so i got a good entry'"}
+      ],
+      "evidence_summary": "Seen: instrument, date, direction, and entry/stop/target from axis labels that match the tool distances (28/12.5, R/R 2.24). Inferred: entry time ±1 min, the reached target and the win (from 1m candles), and FVG edges. Heard (garbled): sweep -> 1m BOS + IFVG reasoning, the stop rule, and the PM-high target. The exit is not documented."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "PM-session strategy is the same as his AM strategy: liquidity sweep, then break of structure, then confluences (IFVG, FVG)", "src": "heard", "ref": "[03:30] 'my main overall am session strategy ... pretty much the exact same ... what we look for liquidity sweep then ... break of structure then ... confluences'"},
+    {"value": "In the PM session, use lower-timeframe draws on liquidity (where price goes in the next 5-15 minutes) instead of the whole-day move, because the PM session is slower with less volatility and volume", "src": "heard", "ref": "[04:00]-[04:30] 'lower timeframe draws ... mainly focused on the ... days move versus the [PM] session ... next like five ten fifteen minutes ... a lot slower ... volatility in volume'"},
+    {"value": "Put the stop where the trade idea is invalidated (under the FVG the entry was based on)", "src": "heard", "ref": "[02:45]-[03:00] 'stop losses where our trade idea would invalidate'"},
+    {"value": "Take one target: the PM-session high / nearby lower-timeframe highs", "src": "heard", "ref": "[03:15] 'my one and only target was just these pm session high or these low [timeframe] highs'"},
+    {"value": "ES showed the same setup and he says it could have been taken, but he did not take it (he took only one trade that day). The tool was drawn on ES 1m at about 14:39-14:40 ET: entry 5210.00, stop 5206.25 (3.75 pt), target 5214.25 (4.25 pt), R/R 1.13. A first drawing with a 3.00-pt stop (5207.00) shows 'Closed P&L: -3.00'.", "src": "seen", "ref": "#37 06m06s legend 'S&P 500 E-mini Futures · 1 · CME', 'Target: 4.25 ... Stop: 3.75 ... Risk/Reward Ratio: 1.13', labels 5210.00 / 5206.25; #36 05m26s 'Closed P&L: -3.00 ... Stop: 3.00 ... Risk/Reward Ratio: 1.42'. Heard [04:45] 'similar situation ... could take in the same exact trade'; [06:15] 'only ended up taking one trade today'."}
+  ],
+  "quality_notes": "The prices are reliable: axis labels match the position-tool point distances exactly. The result is the weak point: he never states an exit or P&L, and the drawn box ends before the target was reached. 'Win' and 2.24R rest on 1m candles showing a wick above 18213.75 near 15:50 ET and no stop touch, so they assume he held to target. The transcript is heavily garbled (e.g. 'break a shock trauma' = break of structure, 'polish air' = bullish FVG), so the reasoning is only roughly heard. The 1m BOS level is not marked. Tool Qty/Amount assume a $100k account at 1% risk, not real size."
+}

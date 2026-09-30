@@ -1,0 +1,58 @@
+{
+  "video": {
+    "n": 24,
+    "file": "05_16_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 7 sheets viewed; 12 of 26 full-size shots opened (#5,#6,#7,#12,#14,#15,#18,#21,#22,#24,#25,#26). Position-tool labels and axis prices readable on #18/#22. Transcript is very garbled: gist and a few phrases only, no usable numbers. Video mixes a pre-open segment (Forex Factory clock 9:12am, #6), a live segment around 09:52-09:55 (#12, #14) and a post-trade breakdown (NQ ~18718-18721, #22/#26).",
+    "duration_min": 22.5,
+    "title_claim": "",
+    "session_date": {"value": "2024-05-16", "src": "seen", "ref": "#18 15m18s x-axis 'Thu 16 May '24 10:15'; #6 05m24s Forex Factory 'Today: May 16', url day=may16.2024; file name 05_16_2024"}
+  },
+  "market_context": {
+    "regime": {"value": "NQ 1h: strong rally on 15 May, then holding near the highs (~18740) and pulling back into the 16 May open. ES 5m: range of about 5330-5340 before the open", "src": "seen", "ref": "#5 02m59s legend 'NASDAQ 100 E-mini Futures · 1h · CME' (big 15 May up-leg, 09:00 16 May candle dropping to ~18686); #7 05m27s legend 'S&P 500 E-mini Futures · 5 · CME', axis labels 5339.50 / 5337.25 / 5333.50 / 5330.25"},
+    "news": {"value": "Thu 16 May 2024: 8:30am Unemployment Claims 222K (fcst 219K, prev 232K), Building Permits 1.44M (fcst 1.48M), Philly Fed 4.5 (fcst 7.7); 9:15am Industrial Production m/m 0.0% (fcst 0.1%). He says the claims were unremarkable and that there was 'super high' news the day before", "src": "seen", "ref": "#6 05m24s Forex Factory calendar table (times look like ET: claims at 8:30am). Heard [02:15] 'we get unemployment claims then that came out pretty regular', [10:30] 'we have a super high news yesterday'"},
+    "bias": {"value": "bullish: he expects price first to drop and sweep the lower pre-market lows (a sell-side draw), then push higher", "src": "heard", "ref": "[07:30] 'my overall the the bias is bullish'; [06:45]-[07:15] 'looking for prices come ... into one of these lower [lows] ... then look for some sort of entries ... we will probably end up pushing up ... higher'; [13:30] 'on the four hour ... one hour ... overall we were [bullish]' (read as HTF bullish)"},
+    "key_levels": {"value": "ES: grey zone 5337.25-5339.50 above price pre-open, lines at 5333.50 and 5330.25 (pre-market low). NQ 1h lines at 18697.75 and 18665.75. NQ intraday lines at 18716.00 (swing high), 18708.25/18707.50 (blue), 18706.00 (red), 18695.75 (midline of the grey zone 18690.75-18700.75)", "src": "seen", "ref": "#7 axis labels (ES 5m); #5 axis labels (NQ 1h); #18/#22 axis labels (NQ 1m)"}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-05-16", "src": "seen", "ref": "#18 15m18s x-axis 'Thu 16 May '24 10:15'"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1! chart); whether NQ or MNQ was traded is unknown", "src": "seen", "ref": "#18 legend 'NASDAQ 100 E-mini Futures · 1 · CME', symbol box 'NQ1!'"},
+      "direction": {"value": "long", "src": "seen", "ref": "#18 long position tool: target box above the 18700.75 entry, stop below"},
+      "timeframes": {"value": {"bias": "1h/4h", "setup": "5m", "entry": "1m"}, "src": "inferred", "ref": "Bias from heard [13:30] 'four hour ... one hour'. Setup from heard [17:00] 'five minute structure', plus the grey zone drawn on the 5m chart (#15 legend '· 5 ·'). Entry from the position tool drawn on the 1m chart (#18 legend '· 1 ·')"},
+      "setup": {"value": "sweep of pre-market lows + ES/NQ SMT divergence -> 5m break of structure -> long at the top of the 5m grey zone (18690.75-18700.75); zone type (FVG vs order block) not determinable", "src": "inferred", "ref": "Heard [14:00] 'sweeping out these pre-market lows ... making an SMT divergence on those lows', [15:00] 'break of structure ... right after the SMT'. Seen zone and position tool on #18/#22"},
+      "entry_conditions": [
+        {"value": "Higher-timeframe (1h/4h) bias bullish", "src": "heard", "ref": "[07:30] 'overall the bias is bullish'; [13:30] 'four hour ... one hour'. #5 shows the 1h uptrend (seen)"},
+        {"value": "Price trades below the pre-market lows (sweep): NQ's low at ~09:31 undercuts its pre-open lows", "src": "inferred", "ref": "Heard [14:00] 'sweeping out these pre-market lows'. #12 NQ 1m: lowest candle at ~09:31 sits below the 08:30-09:15 lows (read off candle positions)"},
+        {"value": "SMT divergence between ES and NQ at the lows. NQ: line from ~09:31 low (≈18672 ±3) rising to a higher low at ~10:07 (≈18674 ±3). ES: low 5330.00 (~09:10-09:20) not undercut later. Exact pattern he means is uncertain", "src": "inferred", "ref": "Heard [14:00] 'SMT divergence all those lows'. Seen: drawn lines from the lows on NQ (#22, #26) and ES (#21, horizontal line at 5330.00). The ES line slopes down with no candle on it"},
+        {"value": "5m break of structure to the upside after the SMT; the level he used is not readable (candidates: 18706.00 red line, 18707.50/18708.25 blue lines)", "src": "heard", "ref": "[15:00] 'it's a bottle of structure' = break of structure; [17:00] 'we made a five minute structure after that sweep'"},
+        {"value": "Entry at the top edge of the grey 5m zone (18700.75); the 10:15 1m candle closed at 18700.75", "src": "seen", "ref": "#18 legend O18698.25 H18706.00 L18695.75 C18700.75 at crosshair 10:15; grey entry label 18700.75 at the zone top; zone midline 18695.75"}
+      ],
+      "entry_time": {"value": "10:15 chart time (likely ET)", "src": "seen", "ref": "#18 crosshair x-label 'Thu 16 May '24 10:15' at the tool's left edge; #22 box starts ~5 min after the 10:10 line. ET inferred: 09:30 open marked, Forex Factory shows 8:30am claims"},
+      "entry": {"value": 18700.75, "src": "seen", "ref": "#18 grey axis label 18700.75 at the position-tool entry line (also #22)"},
+      "stop": {"value": 18690.75, "src": "seen", "ref": "#18 grey axis label 18690.75; tool label 'Stop: 10.00 (0.05%) 40'"},
+      "stop_rule": {"value": "bottom edge of the grey 5m zone", "src": "inferred", "ref": "#18/#22: stop line coincides with the zone bottom (18690.75); 18695.75 dashed midline = 50% of 18690.75-18700.75"},
+      "target": {"value": 18716.0, "src": "seen", "ref": "#18 tool label 'Target: 15.25 (0.08%) 61' + entry 18700.75 = 18716.00, matching the black axis label 18716.00. Later #22 17m05s shows 18716.50 labels (the tool may have been nudged)"},
+      "target_rule": {"value": "prior 1m swing high from ~09:50 (horizontal line at ~18716), i.e. buy-side liquidity", "src": "inferred", "ref": "#18/#22: target sits on a horizontal line drawn from the ~09:50 wick high. Heard [15:30] 'take profits were set to these ...' (garbled)"},
+      "exit": {"value": "target hit at 18716.00, ≈10:23 chart time (±2 min)", "src": "seen", "ref": "#18: tool shows 'Closed P&L: 15.25' and candles trade above the target (last 18721.50); post-entry dip stayed above 18690.75. Time estimated from candle position = inferred"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "The tool's 'Qty: 5' and Amounts 99000/101525 are TradingView's default risk calculation ($100k balance, 1% risk, $20/pt), not his stated size. No size heard"},
+      "result": {"value": "win", "src": "seen", "ref": "#18 'Closed P&L: 15.25' (points) on the position tool; price above the target line"},
+      "r_multiple": {"value": 1.525, "src": "computed", "ref": "(18716.00-18700.75)/(18700.75-18690.75) = 15.25/10.00. Tool shows 'Risk/Reward Ratio: 1.53'. Would be 1.575 if the #22 target of 18716.50 were used. Heard [15:45] 'one point five ... is your ratio'"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No $ amount heard; title claim empty. Tool Amount 101525 is a hypothetical default-account calculation, not a claim"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "Only a TradingView position-tool drawing; no broker panel, fills or account P&L shown. Not even clear the trade was executed live (heard [13:00] '... our trade')"},
+      "mistakes": [
+        {"value": "none observed", "src": "inferred", "ref": "Stop respected, target hit, entry ~1h after 9:15 data. Heard [16:00] mention of runners for more upside is garbled"}
+      ],
+      "evidence_summary": "Seen: instrument, date, direction, entry/stop/target, R:R label and target hit from the #18 position tool. Heard (garbled): sweep of pre-market lows, SMT, 5m BOS, bullish bias. Inferred: zone role, SMT pattern, exit time, ET timezone. P&L not verified."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "Marking 15m order blocks / FVGs shows where price could react; it is not a signal, and it does not mean take a trade there", "src": "heard", "ref": "[07:45]-[08:15] 'this is not the signals chat ... not a signal video ... marking out fifteen minute [order] blocks ... does not mean ... take a trade off'"},
+    {"value": "Practise marking up analysis even on days you don't trade", "src": "heard", "ref": "[08:30]-[08:45] 'even if i'm not in a trade i can see my analysis ... do that in your free time'"},
+    {"value": "Pre-open plan: wait for price to sweep the lower pre-market lows for confluence, then look for entries in a marked zone, then expect price higher", "src": "heard", "ref": "[06:45]-[07:15] 'looking for prices come ... into one of these lower [lows] ... look for some sort of entries within ... pushing up ... higher'"},
+    {"value": "The strategy is fractal: draw on liquidity from a higher timeframe, structure on a lower one (e.g. 4h draws with 30m; here a 15m draw with 5m structure)", "src": "heard", "ref": "[16:15]-[17:00] 'if you go to a four hour ... look for draws ... thirty minute ... fifteen minute ... structure your goal is on a five minute'"},
+    {"value": "Just because he made a YouTube video on a strategy doesn't mean he uses it every day", "src": "heard", "ref": "[21:45]-[22:15] 'i made a youtube video on ... a strategy that i no longer use'"}
+  ],
+  "quality_notes": "Transcript very garbled: no numbers from it, and the BOS level and zone type (FVG vs order block) can't be determined. The SMT reading comes from drawn lines and is uncertain. Target 18716.00 (#18) vs 18716.50 labels in later #22: R is 1.525 or 1.575. The trade is evidenced only by a position-tool drawing: no fills, size or $ P&L. Chart timezone assumed ET (09:30 open marked)."
+}

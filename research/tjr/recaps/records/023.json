@@ -1,0 +1,264 @@
+{
+  "video": {
+    "n": 23,
+    "file": "05_13_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 8 sheets, 13 full-size shots (#1, #3, #5, #8, #9, #11, #12, #13, #17, #19, #21, #25, #28) and the transcript. TradingView legends, x-axis dates/times and price-axis labels are readable; position-tool text labels are tiny and read with some uncertainty (checked against axis labels). Bottom-right of the chart (time-zone label) is covered by the webcam. No broker/order panel, fills or P&L shown. Transcript (pocketsphinx) is very garbled; nothing recognised before 01:15. Structure: 00:00-05:08 intro over a static NQ 1m chart; 05:08-07:13 two NQ longs (1m, 5m); 07:13-11:15 NQ 5m day overview and PM-session 1m review with freehand scribbles; 11:15-12:10 ES 1m glance; 12:12-16:31 static NQ 1m while talking (plans to go live tomorrow); 16:38-17:41 emoji images.",
+    "duration_min": 17.7,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-05-13",
+      "src": "seen",
+      "ref": "#1 00m00s, #5 05m56s, #13 07m13s x-axis 'Mon 13 May '24'; file name 05_13_2024; heard [02:00] 'today was a ... monday'"
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "NQ range/chop day: overnight trade ≈18300-18325; high ≈18335 ±3 just before 09:30 ET; flush to ≈18252 by ≈09:47; rebound to ≈18303-18309 by ≈10:15-10:25; range after that; midday flush ≈13:05 to ≈18235 ±2 (below the AM low); PM range ≈18268-18300. He describes the day as slow with poor price action. PM (no trade shown, his review): lows ≈18271 under a drawn 18270.00 line were swept at ≈14:00 ET (wick ≈18268) and price rallied to the drawn 18297.00 line (≈18300 by ≈15:30-15:45); he says the PM session 'worked pretty well' but scribbles over it as chop.",
+      "src": "inferred",
+      "ref": "Seen: #13 07m13s and #17 08m53s legend 'NASDAQ 100 E-mini Futures · 5 · CME' full-day view; #19 09m13s and #28 12m12s 1m PM view. Levels estimated from candle positions between axis labels (±2-3 pts). Heard [04:15] 'pretty slow day', [08:30] 'that's horrible price action again no news'. PM: seen #19 09m13s lines 18297.00/18270.00 and red 14:00 marker, #21 09m36s scribbles, #28 12m12s line 18270.00; heard [08:45] 'our pm session [actually] work[ed] pretty well'."
+    },
+    "news": {
+      "value": "No news on the day (his words). He may mention an 8:30 AM event 'tomorrow' but the words are too garbled to name it.",
+      "src": "heard",
+      "ref": "[08:30] 'horrible price action again no news'; [12:00] 'this is actually a forty eight am tomorrow' read as possibly '8:30 AM tomorrow' (uncertain)."
+    },
+    "bias": {
+      "value": "Intraday long after the NY-open flush swept lows below a drawn 18257.50 line (both trades are longs). No higher-timeframe bias can be heard in the transcript.",
+      "src": "inferred",
+      "ref": "Seen #1 00m00s black line 18257.50 with the ≈09:47 wick below it (≈18252, estimated); heard [03:15] 'strong liquidity ... huge [wick] down', [03:30] 'taking out the lows ... around like nine fifty', [03:45] 'right around ten am eastern'. HTF bias words not recognisable."
+    }
+  },
+  "trades": [
+    {
+      "date": {
+        "value": "2024-05-13",
+        "src": "seen",
+        "ref": "#5 05m56s x-axis 'Mon 13 May '24'"
+      },
+      "instrument": {
+        "value": "NQ (E-mini Nasdaq-100 futures, NQ1!)",
+        "src": "seen",
+        "ref": "#5 05m56s legend 'NASDAQ 100 E-mini Futures · 1 · CME'"
+      },
+      "direction": {
+        "value": "long",
+        "src": "seen",
+        "ref": "#5/#9 first position box: blue (target) zone above entry, gray (stop) zone below"
+      },
+      "timeframes": {
+        "value": {
+          "bias": "unknown",
+          "setup": "1m/5m imbalance (gray zone)",
+          "entry": "1m"
+        },
+        "src": "inferred",
+        "ref": "Entry box drawn on the 1m (#5, #8, #9 legend '· 1'); same boxes and gray zone shown on the 5m (#11, #12 legend '· 5'); HTF bias not heard"
+      },
+      "setup": {
+        "value": "NY open: flush below 18257.50 line (sweep, low ≈18252 at ≈09:47) -> 1m close back above the gray imbalance zone ≈18265.5-18271 (inverse FVG) -> long",
+        "src": "inferred",
+        "ref": "Seen #1/#3: gray box with dashed midline ≈18265.5-18271 (edges estimated ±0.5) starting ≈09:43, black line 18257.50, wick below it; rally through the box before entry (#5, #8). Heard [05:30] '... [inverse FVG?] ... be invalidated', [06:30] 'this imbalance ... filled in this area'."
+      },
+      "entry_conditions": [
+        {
+          "value": "price trades below the drawn 18257.50 line after the 09:30 open (low ≈18252 at ≈09:47 ET)",
+          "src": "inferred",
+          "ref": "#1 00m00s black label 18257.50 (seen); wick low estimated ≈18252 ±1 from #8 06m16s axis 18258.50/18255.00"
+        },
+        {
+          "value": "a 1m candle closes back above the gray imbalance zone (≈18271 top) = inverse FVG",
+          "src": "inferred",
+          "ref": "#5/#8: blue 1m candles close above the box top before the box-1 entry at 18276.00; heard [05:30] 'invalidated' (garbled). Which exact gap he means is not clearly heard."
+        }
+      ],
+      "entry_time": {
+        "value": "≈09:51 ET",
+        "src": "inferred",
+        "ref": "Box-1 left edge x≈622 in #5 (x-axis 09:50 at x=614, 10:00 at x=691), x≈480 in #8, x≈488 in #9. Chart time zone not visible (webcam covers it); red markers at 09:30 and 14:00 imply ET."
+      },
+      "entry": {
+        "value": 18276.0,
+        "src": "seen",
+        "ref": "#5 05m56s gray axis label 18276.00 at the blue/gray boundary of box 1; also #8 gray label 18276.00"
+      },
+      "stop": {
+        "value": 18258.5,
+        "src": "seen",
+        "ref": "#8 06m16s gray axis label 18258.50 at the bottom of box 1; tool label 'Stop: 17.50 (0.10%) 70' (#9/#12, tiny text)"
+      },
+      "stop_rule": {
+        "value": "under the body/close of the sweep candle (above its wick low ≈18252)",
+        "src": "inferred",
+        "ref": "18258.50 sits just below the 09:47 1m candle bodies (≈18259, estimated) in #8; heard [06:00] 'my first ... stop loss ... [the] close of a one [minute candle]' (garbled)"
+      },
+      "target": {
+        "value": 18303.0,
+        "src": "seen",
+        "ref": "#12 07m07s axis label 18303.00 at the box top; tool label 'Target: 27.00 (0.15%) 108' on box 1 (#9, tiny text); 18276.00 + 27.00 = 18303.00"
+      },
+      "target_rule": {
+        "value": "fixed target at a drawn horizontal level 18303.00; what the level marks is not stated or legible",
+        "src": "inferred",
+        "ref": "#9/#11 black horizontal line at 18302.75-18303.00 matching the box top"
+      },
+      "exit": {
+        "value": "stopped at 18258.50 (≈09:56 ET, retest wick ≈18256)",
+        "src": "seen",
+        "ref": "#9 06m48s box-1 label 'Closed P&L: -17.50 ... Risk/Reward Ratio: 1.54' in gray (tiny text); #5/#8 1m candle ≈09:56 trades below the 18258.50 stop (low ≈18256 ±1, estimated); heard [07:00] 'where i got stopped'"
+      },
+      "size_or_leverage": {
+        "value": null,
+        "src": "unknown",
+        "ref": "No size stated or shown; tool 'Qty: 2.857' is the position tool's default risk calculation, not a real size"
+      },
+      "result": {
+        "value": "loss",
+        "src": "seen",
+        "ref": "Tool label 'Closed P&L: -17.50' (#9) and candle through the stop (#5/#8); heard [07:00] 'unfortunate ... where i got stopped'"
+      },
+      "r_multiple": {
+        "value": -1.0,
+        "src": "computed",
+        "ref": "(18258.50-18276.00)/(18276.00-18258.50) = -17.50/17.50 = -1.00; planned R:R 27.00/17.50 = 1.54 matches the tool label"
+      },
+      "claimed_pnl": {
+        "value": null,
+        "src": "unknown",
+        "ref": "No $ amount tied to this trade"
+      },
+      "pnl_verified": {
+        "value": "no",
+        "src": "inferred",
+        "ref": "Only a TradingView position-tool drawing; no broker/platform panel or fills"
+      },
+      "mistakes": [
+        {
+          "value": "stop set above the sweep wick low (under the candle body), taken out by a retest (≈18256) about 5 min later before price rallied to the target; he calls it unfortunate, not a mistake",
+          "src": "inferred",
+          "ref": "#5/#8 candle positions; heard [07:00] 'unfortunate ... got stopped'"
+        }
+      ],
+      "evidence_summary": "Seen: NQ 1m, date, long box, entry 18276.00, stop 18258.50, target 18303.00, 'Closed P&L -17.50'. Inferred: sweep, IFVG trigger, times. Heard (garbled): stopped out."
+    },
+    {
+      "date": {
+        "value": "2024-05-13",
+        "src": "seen",
+        "ref": "#8 06m16s x-axis 'Mon 13 May '24 10:00'"
+      },
+      "instrument": {
+        "value": "NQ (E-mini Nasdaq-100 futures, NQ1!)",
+        "src": "seen",
+        "ref": "#8 06m16s legend 'NASDAQ 100 E-mini Futures · 1 · CME'"
+      },
+      "direction": {
+        "value": "long",
+        "src": "seen",
+        "ref": "#8/#9 second position box: blue zone above entry, gray below"
+      },
+      "timeframes": {
+        "value": {
+          "bias": "unknown",
+          "setup": "1m/5m imbalance (gray zone)",
+          "entry": "1m"
+        },
+        "src": "inferred",
+        "ref": "Box drawn on the 1m (#8, #9) and shown on the 5m (#11, #12)"
+      },
+      "setup": {
+        "value": "re-entry after stop-out: price closes back above the same gray imbalance zone (≈18265.5-18271) -> long",
+        "src": "inferred",
+        "ref": "Seen #8: after the ≈09:56 stop-out, a large 1m bull candle (≈09:58) closes above the gray zone and box 2 starts. Heard [06:15] 'came right back into it ... all [I was] looking for was a validation of the [imbalance]'."
+      },
+      "entry_conditions": [
+        {
+          "value": "trade 1 stopped; price re-closes above the gray imbalance zone top (≈18271) on the 1m",
+          "src": "inferred",
+          "ref": "#8 06m16s candle positions (estimated); heard [06:15] 'validation of the [imbalance]' (garbled)"
+        }
+      ],
+      "entry_time": {
+        "value": "≈09:58-10:02 ET",
+        "src": "inferred",
+        "ref": "Box-2 left edge ≈10:02 (#9 x=562; x-axis 09:30 at 349, ≈6.7 px/min), but price had already crossed 18276.25 upward during the ≈09:58 1m candle (#8 x≈525-530); exact fill time unknown"
+      },
+      "entry": {
+        "value": 18276.25,
+        "src": "seen",
+        "ref": "#8 gray axis label 18276.25 at the box-2 entry line; #11/#12 same label"
+      },
+      "stop": {
+        "value": 18267.0,
+        "src": "seen",
+        "ref": "#8 06m16s gray axis label 18267.00 at the bottom of box 2; tool label 'Stop: 9.25 (0.05%) 37' (#9/#12, tiny text)"
+      },
+      "stop_rule": {
+        "value": "inside the lower part of the gray imbalance zone (≈1.25 above its 18265.75 bottom line); rule not clearly heard",
+        "src": "inferred",
+        "ref": "#8 labels 18267.00 (stop) and 18265.75 (red line at zone bottom); heard [06:30] 'underneath the ... close' (garbled)"
+      },
+      "target": {
+        "value": 18303.0,
+        "src": "seen",
+        "ref": "#12 07m07s axis label 18303.00 at the box top; tool label 'Target: 26.75 (0.15%) 107' (tiny text); 18276.25 + 26.75 = 18303.00"
+      },
+      "target_rule": {
+        "value": "same fixed target as trade 1: drawn horizontal level 18303.00",
+        "src": "inferred",
+        "ref": "#11 07m01s black line/labels 18303.00 at the box top"
+      },
+      "exit": {
+        "value": "target 18303.00 probably reached ≈10:15-10:25 ET",
+        "src": "inferred",
+        "ref": "#11 5m: the ≈10:15-10:20 candle's high ≈18309 ±2 is above 18303 inside the box; #9 1m candles near 10:22-10:25 above the box top. Conflict: the box-2 label reads 'Open P&L: 31.25 ... Risk/Reward Ratio: 2.89' (#9, tiny text, blue), which would mean the tool did not register the target; not resolvable at this resolution."
+      },
+      "size_or_leverage": {
+        "value": null,
+        "src": "unknown",
+        "ref": "No size stated or shown; tool 'Qty: 5.405' is a default risk calculation"
+      },
+      "result": {
+        "value": "win",
+        "src": "inferred",
+        "ref": "Price traded above the target shortly after entry (#9, #11, estimated); blue (positive) P&L label on box 2; heard [07:00] '... got stopped ... [made it back?] on the next [trade?] which ... pretty nice' (very garbled). Low confidence."
+      },
+      "r_multiple": {
+        "value": 2.89,
+        "src": "inferred",
+        "ref": "(18303.00-18276.25)/(18276.25-18267.00) = 26.75/9.25 = 2.89, assuming the fill was at the target; matches tool 'Risk/Reward Ratio: 2.89'"
+      },
+      "claimed_pnl": {
+        "value": null,
+        "src": "unknown",
+        "ref": "No $ amount tied to this trade; '[04:45] ... two thousand dollars' and '[13:45] ... twenty thousand dollars' have no clear context"
+      },
+      "pnl_verified": {
+        "value": "no",
+        "src": "inferred",
+        "ref": "Only a TradingView position-tool drawing; no broker/platform panel or fills"
+      },
+      "mistakes": [],
+      "evidence_summary": "Seen: NQ 1m, long box, entry 18276.25, stop 18267.00, target 18303.00, R:R 2.89. Inferred: re-entry trigger, entry time, target hit from candle positions. Heard: outcome only in garbled words."
+    }
+  ],
+  "lessons_stated": [
+    {
+      "value": "After being stopped, he re-entered because price came right back and 'validated' the imbalance again",
+      "src": "heard",
+      "ref": "[06:15] 'come right back into it ... all [I was] looking for was a validation of the [imbalance]' (garbled)"
+    },
+    {
+      "value": "He did not take anything else because the market was moving so slowly",
+      "src": "heard",
+      "ref": "[07:15] 'i did not take anything on simply because of how slow [the] market was moving'"
+    },
+    {
+      "value": "Choppy, no-news price action like this NY session is 'horrible' to trade",
+      "src": "heard",
+      "ref": "[08:30] 'encapsulated all of new york's that's horrible price action again no news'"
+    }
+  ],
+  "quality_notes": "Transcript is mostly unintelligible, so setup names, stop rule, target rule and trade-2 outcome rest on chart reading plus a few garbled phrases. Position-tool labels are tiny (read at 1280x720); key prices come from the axis labels and agree with them. Trade-2 result conflicts: candles appear to reach the 18303 target, but the tool label seems to read 'Open P&L'. Gray-zone edges, sweep lows, entry times and exit times are estimates. Chart time zone not visible (assumed ET from the 09:30/14:00 markers). No fills, size or broker P&L shown."
+}
