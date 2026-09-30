@@ -15,7 +15,9 @@
    they pass an intraday history test.
 3. **Real money:** $50 at Alpaca and $50 at Schwab. More only if it makes money.
 
-**Pass rule the owner set:** make money and beat SPY over the stage.
+**Pass rule the owner set (this is what `promote` checks):** over at least 30 trading days of
+paper trading, make money and beat SPY over the same days, without dropping more than 10% from
+the best day. No minimum number of trades. Then the owner still confirms by hand.
 - Caveat from the research: over any 30 trading days, even the best method did that only about
   6 times in 10 (58%), and momentum with the trend filter about half the time (49%).
 - So a single stage can catch a broken method, but can't prove a good one.

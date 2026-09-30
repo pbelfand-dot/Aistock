@@ -61,15 +61,17 @@ def check_promotion(cfg: dict, paper: dict, benchmark_return_pct: float) -> list
     checks = [
         ("trading days in paper", paper["trading_days"], f">= {rules['min_trading_days']}",
          paper["trading_days"] >= rules["min_trading_days"]),
-        ("closed trades", paper["num_closed_trades"], f">= {rules['min_closed_trades']}",
-         paper["num_closed_trades"] >= rules["min_closed_trades"]),
         ("total return %", paper["total_return_pct"], f"> {rules['min_total_return_pct']}",
          paper["total_return_pct"] > rules["min_total_return_pct"]),
-        ("profit factor", paper["profit_factor"], f">= {rules['min_profit_factor']}",
-         paper["profit_factor"] >= rules["min_profit_factor"]),
         ("max drawdown %", paper["max_drawdown_pct"], f"<= {rules['max_drawdown_pct']}",
          paper["max_drawdown_pct"] <= rules["max_drawdown_pct"]),
     ]
+    if rules.get("min_closed_trades") is not None:          # optional (blank in config.yaml = not checked)
+        checks.insert(1, ("closed trades", paper["num_closed_trades"], f">= {rules['min_closed_trades']}",
+                          paper["num_closed_trades"] >= rules["min_closed_trades"]))
+    if rules.get("min_profit_factor") is not None:
+        checks.insert(-1, ("profit factor", paper["profit_factor"], f">= {rules['min_profit_factor']}",
+                           paper["profit_factor"] >= rules["min_profit_factor"]))
     if rules.get("must_beat_benchmark"):
         checks.append((f"beat {cfg['benchmark']} ({benchmark_return_pct:.2f}%)",
                        paper["total_return_pct"], f"> {benchmark_return_pct:.2f}",

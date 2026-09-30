@@ -110,11 +110,14 @@ plan:
 
 # ---- Rules to go from PAPER -> LIVE ("once you're profitable") -------------
 # Checked per desk. ALL must pass, and you must still confirm by hand.
+# Your rule: over the stage (30 trading days), make money AND beat SPY. The drawdown limit stays.
+# min_closed_trades / min_profit_factor: blank = not checked (momentum trades rarely, so a
+# 30-day stage may only close a few trades). Put numbers back to require them again.
 promotion:
   min_trading_days: 30
-  min_closed_trades: 20
+  min_closed_trades:
   min_total_return_pct: 0.0
-  min_profit_factor: 1.2
+  min_profit_factor:
   max_drawdown_pct: 10
   must_beat_benchmark: true
 

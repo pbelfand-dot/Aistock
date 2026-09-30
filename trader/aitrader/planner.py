@@ -165,8 +165,8 @@ Why the others were rejected:
 - Kill switch: desk down {risk['max_drawdown_pct']}% from its best day means sell everything and stop
 
 ## What must happen before real money
-- At least {promo['min_trading_days']} trading days of paper trading and {promo['min_closed_trades']} closed trades
-- Total return above {promo['min_total_return_pct']}%, profit factor at least {promo['min_profit_factor']}
+- At least {promo['min_trading_days']} trading days of paper trading{f" and {promo['min_closed_trades']} closed trades" if promo.get('min_closed_trades') is not None else ""}
+- Total return above {promo['min_total_return_pct']}%{f", profit factor at least {promo['min_profit_factor']}" if promo.get('min_profit_factor') is not None else ""}
 - Max drawdown no worse than {promo['max_drawdown_pct']}%{"; must beat buy-and-hold " + plan['benchmark']['ticker'] if promo.get('must_beat_benchmark') else ""}
 - Then YOU confirm with `python run.py promote --desk {desk}`
 

@@ -46,9 +46,11 @@ rise, skipping the latest month), only above their 200-day averages, and no new 
 below its own. Pretend money only; the day desk keeps studying. The evidence is the 16-year test
 in `research/history/RESULTS-methods.md`.
 
-"Profitable" means (see `config.yaml → promotion:`): over at least 30 trading days and 20
-closed trades, the desk made money, won at least 1.2× what it lost, never dropped more than
-10%, **and beat just holding SPY**. If it can't beat SPY, buying SPY is the better deal.
+"Profitable" means your rule (see `config.yaml → promotion:`): over at least 30 trading days
+of paper trading, the desk **made money and beat just holding SPY** over the same days, and never
+dropped more than 10% from its best day. (A minimum number of closed trades and a profit factor
+can be switched back on there; they're off because momentum trades rarely.) If it can't beat
+SPY, buying SPY is the better deal.
 
 ## Setup on a Mac (the easy way)
 
