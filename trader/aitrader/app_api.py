@@ -330,7 +330,7 @@ def setup_status(cfg, store) -> dict:
     from . import mac_service
     service = mac_service.status()
     from .alpaca_api import has_keys
-    from .config import active_desks, data_source, uses_broker_paper
+    from .config import active_desks, data_source, paper_broker
     from .phases import current_phase, study_progress
     progress = study_progress(store, cfg)
     desks = []
@@ -362,12 +362,30 @@ def setup_status(cfg, store) -> dict:
                        "account_number": bool(secrets["account_number"])},
             "webull": webull_status(cfg),
             "gfv": gfv_status(cfg, store),
-            "prices_from": data_source(cfg), "paper_at": "Alpaca paper account" if uses_broker_paper(cfg)
-            else "simulated on this Mac", "autopilot_on": service["on"], "autopilot_alive": service["running"],
+            "prices_from": data_source(cfg),
+            "paper_at": {"alpaca": "Alpaca paper account", "webull": "Webull paper account",
+                         "local": "simulated on this Mac"}[paper_broker(cfg)], "autopilot_on": service["on"], "autopilot_alive": service["running"],
             "autopilot_problem": autopilot_problem(store),
             "autopilot_seen": store.get("autopilot_heartbeat"), "can_autopilot": sys.platform == "darwin",
             "desks": desks, "stage1": stage1, "stage2": stage2_status(store), "phone": phone_status(cfg),
             "lid": lid_status()}
+
+
+def check_paper_move(cfg, choice: str):
+    """Moving paper trading to another broker while paper positions are open would lose track of them."""
+    from .config import data_path, paper_broker
+    trial = {**cfg, "paper": {**cfg["paper"], "broker": choice}}
+    if paper_broker(trial) == paper_broker(cfg):
+        return
+    store = Store(data_path(cfg, "aitrader.sqlite"))
+    try:
+        busy = [d for d in cfg["desks"] if ((store.get(f"paper-{d}_ledger") or {}).get("positions")
+                                            or (store.get(f"paper-{d}_ledger") or {}).get("pending"))]
+    finally:
+        store.db.close()
+    if busy:
+        raise ValueError(f"The {' and '.join(busy)} desk still holds paper positions where it trades now. Wait until "
+                         "they're sold (the day desk sells before each close), then switch.")
 
 
 def tjr_status(store) -> dict:
@@ -402,8 +420,11 @@ def lid_status() -> dict:
 
 def webull_status(cfg) -> dict:
     from . import webull_api
+    from .config import paper_broker
+    env = webull_api.environment(cfg)
     return {"keys": webull_api.has_keys(cfg), "account_id": bool(cfg["secrets"].get("webull_account_id")),
-            "environment": webull_api.environment(cfg), "approval": webull_api.load_token(cfg).get("status")}
+            "environment": env, "approval": webull_api.load_token(cfg).get("status"),
+            "trading": paper_broker(cfg) == "webull" if env == "paper" else cfg["broker"] == "webull"}
 
 
 def phone_status(cfg) -> dict:
@@ -443,7 +464,10 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         return check_keys(cfg)
     if action == "save-settings":
         from . import user_settings
-        saved = user_settings.save(payload or {})
+        payload = payload or {}
+        if "paper_broker" in payload:
+            check_paper_move(cfg, str(payload["paper_broker"]).strip().lower())
+        saved = user_settings.save(payload)
         restart_autopilot()
         return {"message": "Settings saved (they stay when the app updates).", "settings": saved}
     if action == "save-live-keys":

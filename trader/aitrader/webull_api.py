@@ -1,6 +1,7 @@
 """
-webull_api.py: connecting to Webull. For now it only SEES the account (keys + a connection test);
-nothing here places, changes or cancels an order.
+webull_api.py: connecting to Webull (keys, the in-app approval, a read-only connection test, and the
+signed requests). Orders are placed by brokers/webull_broker.py, with the same safety rules as Alpaca and
+Schwab; nothing in this file places, changes or cancels an order.
 
 Webull's OpenAPI needs three things:
   App Key + App Secret  from the Webull website after Webull approves your API application
@@ -87,10 +88,11 @@ def _compact(body: dict) -> str:
 
 
 def call(cfg, method: str, path: str, query: dict = None, body: dict = None, token: str = None, wait: float = 20,
-         env: str = None):
+         env: str = None, headers: dict = None):
     """One signed request to Webull; the answer as JSON. Raises WebullError with Webull's own message."""
     s = cfg["secrets"]
     host = HOSTS[env or environment(cfg)]
+    extra = dict(headers or {})                         # e.g. Webull's "category" header on orders (not signed)
     headers = signed_headers(s["webull_app_key"], s["webull_app_secret"], path, query, body, host=host)
     headers.update({"x-version": "v3", "x-webull-client-source": "sdk", "Accept": "application/json",
                     "User-Agent": "Kestrel (python)"})
@@ -100,6 +102,7 @@ def call(cfg, method: str, path: str, query: dict = None, body: dict = None, tok
         headers["Content-Type"] = "application/json"
     if token:
         headers["x-access-token"] = token
+    headers.update(extra)
     url = f"https://{host}{path}" + (f"?{urlencode(query)}" if query else "")
     request = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
@@ -267,9 +270,19 @@ def _connect(cfg) -> dict:
                 "text": f"Webull ({name}): connected (read-only). Account {label}" + (f" ({kind})" if kind else "")
                         + (f", cash ${cash:,.2f}" if cash is not None else "")
                         + (f"; {len(found)} accounts on this key" if len(found) > 1 else "")
-                        + ". Kestrel doesn't trade at Webull yet."}
+                        + ". " + trading_note(cfg)}
     except WebullError as e:
         return {"ok": False, "waiting": False, "text": f"Webull ({name}): {e}"}
+
+
+def trading_note(cfg) -> str:
+    """Whether Kestrel trades here, in one sentence."""
+    from .config import paper_broker
+    if environment(cfg) == "paper":
+        return ("Paper trading happens here." if paper_broker(cfg) == "webull" else
+                "To paper trade here: Settings -> Paper trading happens at: Webull.")
+    return ("Real money goes here once a desk passes paper and you confirm it." if cfg["broker"] == "webull" else
+            "For real money here: Settings -> Broker for real money: Webull.")
 
 
 def keep_alive(cfg) -> str:

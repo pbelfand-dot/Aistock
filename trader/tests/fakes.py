@@ -187,8 +187,84 @@ class FakeAlpaca(FakeBroker):
                 if o["status"] not in FINISHED and (not symbols or o["n"]["symbol"] in symbols)]
 
 
+# ---------------------------------------------------------------- Webull
+WEBULL_STATUS = {"WORKING": "SUBMITTED", "FILLED": "FILLED", "CANCELED": "CANCELLED", "REJECTED": "FAILED",
+                 "EXPIRED": "EXPIRED", "REPLACED": "CANCELLED"}
+
+
+class FakeWebull(FakeBroker):
+    """Webull's OpenAPI as webull_api.call would answer it (signed requests aren't needed here)."""
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        self.drop_response_after_send = False
+        self.drop_before_send = False
+        self.reject_next = None
+        self.headers_seen = []
+
+    def _error(self, status, text):
+        from aitrader.webull_api import WebullError
+        return WebullError(f"{text} (HTTP {status})", status)
+
+    def _find(self, client_id):
+        for oid, o in self.orders.items():
+            if (o["n"]["client_id"] or oid) == client_id:
+                return oid
+        return None
+
+    def __call__(self, cfg, method, path, query=None, body=None, token=None, headers=None, **kw):
+        query = query or {}
+        if path == "/openapi/trade/stock/order/place":
+            self.headers_seen.append(headers)
+            if self.drop_before_send:
+                self.drop_before_send = False
+                raise ConnectionError("network dropped before the order arrived")
+            if self.reject_next:
+                code, msg = self.reject_next
+                self.reject_next = None
+                raise self._error(code, msg)
+            o = body["new_orders"][0]
+            kind = {"LIMIT": "LIMIT", "MARKET": "MARKET", "STOP_LOSS": "STOP"}[o["order_type"]]
+            n = {"type": kind, "side": o["side"], "symbol": o["symbol"], "qty": int(o["quantity"]),
+                 "price": float(o["limit_price"]) if "limit_price" in o else None,
+                 "stop": float(o["stop_price"]) if "stop_price" in o else None,
+                 "gtc": o["time_in_force"] == "GTC", "client_id": o["client_order_id"], "webull": o}
+            self._new(n)
+            if self.drop_response_after_send:
+                self.drop_response_after_send = False
+                raise ConnectionError("network dropped after the order arrived")
+            return {"client_order_id": o["client_order_id"]}
+        if path == "/openapi/trade/order/detail":
+            if query["client_order_id"] in self.failing_ids:
+                raise self._error(429, "too many requests")
+            oid = self._find(query["client_order_id"])
+            if oid is None:
+                raise self._error(404, "order not found")
+            return self._detail(oid)
+        if path == "/openapi/trade/stock/order/cancel":
+            self._cancel(self._find(body["client_order_id"]))
+            return {"client_order_id": body["client_order_id"]}
+        if path == "/trading/assets/balances/get":
+            c = str(self.cash)
+            return {"total_cash_balance": c, "account_currency_assets": [
+                {"currency": "USD", "cash_balance": c, "settled_cash": c, "buying_power": c}]}
+        if path == "/trading/assets/positions/list":
+            return [{"symbol": s, "quantity": str(q), "instrument_type": "EQUITY"} for s, q in self.held.items()]
+        if path == "/openapi/trade/order/open":
+            return [self._detail(oid) for oid, o in self.orders.items() if o["status"] not in FINISHED]
+        raise AssertionError(f"unexpected Webull call {method} {path}")
+
+    def _detail(self, oid):
+        o = self.orders[oid]
+        qty, avg = self._filled(o)
+        cid = o["n"]["client_id"] or oid
+        kind = {"LIMIT": "LIMIT", "MARKET": "MARKET", "STOP": "STOP_LOSS"}.get(o["n"]["type"], o["n"]["type"])
+        return {"client_order_id": cid, "orders": [
+            {"client_order_id": cid, "symbol": o["n"]["symbol"], "side": o["n"]["side"], "order_type": kind,
+             "status": WEBULL_STATUS[o["status"]], "filled_quantity": str(qty), "filled_price": str(avg) if qty else ""}]}
+
+
 def make_client(kind, **kw):
-    return FakeSchwab(**kw) if kind == "schwab" else FakeAlpaca(**kw)
+    return {"schwab": FakeSchwab, "alpaca": FakeAlpaca, "webull": FakeWebull}[kind](**kw)
 
 
 def make_broker(client, cash=1000, **kw):
@@ -201,6 +277,11 @@ def make_broker(client, cash=1000, **kw):
     common = {**dict(cash_account=False, poll_seconds=0, log=lambda m: None, on_fill=recorded.append), **kw}
     if isinstance(client, FakeSchwab):
         broker = SchwabBroker(Ledger(cash), client, HASH, **common)
+    elif isinstance(client, FakeWebull):
+        from aitrader.brokers.webull_broker import WebullBroker
+        broker = WebullBroker(Ledger(cash), {"secrets": {}}, "ACCT1", "tok", call=client, **common)
+        broker.gw.new_client_id = lambda: str(client.next_id)      # the fake's numbering, like the others
+        broker.gw.tag = ""                                         # every sell stop counts, like the others
     else:
         broker = AlpacaBroker(Ledger(cash), client, **common)
     broker.recorded = recorded

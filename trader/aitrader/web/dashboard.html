@@ -446,9 +446,12 @@
       <h4>Settings <span class="muted">(kept when the app updates)</span></h4>
       <div class="setup-grid">
         <label>Broker for real money<select id="set-broker"><option value="alpaca">Alpaca</option>
-          <option value="schwab">Charles Schwab</option></select></label>
+          <option value="schwab">Charles Schwab</option><option value="webull">Webull</option></select></label>
+        <label>Paper trading happens at<select id="set-paperat"><option value="auto">Automatic (Alpaca paper if its keys are saved)</option>
+          <option value="alpaca">Alpaca paper account</option><option value="webull">Webull paper account</option>
+          <option value="local">Simulated on this Mac</option></select></label>
         <label>Most real money the bot may use ($)<input id="set-cap" inputmode="decimal"></label>
-        <label>Account type<select id="set-acct"><option value="auto">Automatic (Schwab = cash rules)</option>
+        <label>Account type<select id="set-acct"><option value="auto">Automatic (Schwab, Webull = cash rules)</option>
           <option value="cash">Cash: settled money only</option><option value="margin">Margin</option></select></label>
         <label>Paper (practice) money ($)<input id="set-paper" inputmode="decimal"></label>
         <label>Scan all US stocks every day<select id="set-scan"><option value="on">On</option>
@@ -483,7 +486,8 @@
          in about 1–2 business days). <strong>2.</strong> Once approved: Generate Key (Webull texts you a code) and paste
          the App Key and App Secret here. <strong>3.</strong> Test Webull, then approve Kestrel in the Webull app within
          5 minutes. Pick <strong>Paper</strong> for Webull test-environment keys (if you pick wrong, Test Webull
-         switches it). Kestrel only reads the account; it doesn't trade at Webull yet.</p>
+         switches it). To paper trade at Webull: Settings above → <strong>Paper trading happens at: Webull</strong>.
+         Real money at Webull needs its real-money keys, Broker for real money: Webull, and the usual typed OK.</p>
       <div class="setup-grid">
         <label>Which keys<select id="wb-env"><option value="paper">Paper (test)</option>
           <option value="live">Real money</option></select></label>
@@ -1122,6 +1126,7 @@ async function refreshSetup() {
     if (!$("#setup-later").dataset.filled) {                     // don't overwrite what you're typing
       $("#set-broker").value = set.broker; $("#set-cap").value = set.real_money_cap;
       $("#set-acct").value = set.account_type; $("#set-paper").value = set.paper_cash;
+      $("#set-paperat").value = set.paper_broker || "auto";
       $("#set-scan").value = set.scan_all_stocks || "on"; $("#set-news").value = set.read_news || "on";
       $("#sw-callback").value = s.schwab.callback_url || "";
       $("#setup-later").dataset.filled = "1";
@@ -1144,7 +1149,7 @@ async function refreshSetup() {
       : sw.days_left <= 0 ? "login expired" : `logged in · ${sw.days_left.toFixed(1)} days left`;
     const wb = s.webull || {};
     const wbEnv = wb.environment === "live" ? "real money" : "paper";
-    $("#webull-state").textContent = !wb.keys ? "not set up" : wb.approval === "NORMAL" ? `connected · ${wbEnv} · read-only`
+    $("#webull-state").textContent = !wb.keys ? "not set up" : wb.approval === "NORMAL" ? `connected · ${wbEnv} · ${wb.trading ? "trades here" : "not trading here"}`
       : wb.approval === "PENDING" ? `${wbEnv} keys saved · approve in the Webull app` : `${wbEnv} keys saved · not tested`;
     if (wb.keys && !$("#wb-key").value) $("#wb-env").value = wb.environment || "paper";
     $("#webull-test").disabled = !wb.keys;
@@ -1226,7 +1231,7 @@ $("#screen-toggle").onclick = (e) => setupAction(e.target, "save-settings", { ph
 $("#screen-send").onclick = (e) => setupAction(e.target, "phone-screen-send", undefined, async (r) => notify(r.text, !r.ok));
 $("#save-settings").onclick = (e) => setupAction(e.target, "save-settings", {
   broker: $("#set-broker").value, real_money_cap: $("#set-cap").value,
-  account_type: $("#set-acct").value, paper_cash: $("#set-paper").value,
+  account_type: $("#set-acct").value, paper_cash: $("#set-paper").value, paper_broker: $("#set-paperat").value,
   scan_all_stocks: $("#set-scan").value, read_news: $("#set-news").value });
 $("#save-schwab").onclick = (e) => setupAction(e.target, "save-schwab-keys", {
   app_key: $("#sw-key").value, app_secret: $("#sw-secret").value, callback_url: $("#sw-callback").value,

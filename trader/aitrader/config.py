@@ -31,7 +31,7 @@ def load_config(path=None) -> dict:
         "app_secret": os.environ.get("SCHWAB_APP_SECRET", ""),
         "callback_url": os.environ.get("SCHWAB_CALLBACK_URL", "https://127.0.0.1:8182"),
         "account_number": os.environ.get("SCHWAB_ACCOUNT_NUMBER", ""),
-        "webull_app_key": os.environ.get("WEBULL_APP_KEY", ""),          # Webull (webull_api.py; read-only for now)
+        "webull_app_key": os.environ.get("WEBULL_APP_KEY", ""),          # Webull (webull_api.py, brokers/webull_broker.py)
         "webull_app_secret": os.environ.get("WEBULL_APP_SECRET", ""),
         "webull_account_id": os.environ.get("WEBULL_ACCOUNT_ID", ""),
         "webull_env": os.environ.get("WEBULL_ENVIRONMENT", ""),          # paper (Webull's test server) or live
@@ -57,11 +57,28 @@ def data_source(cfg: dict) -> str:
     return "alpaca" if has_alpaca else "yfinance"
 
 
-def uses_broker_paper(cfg: dict) -> bool:
-    """Paper trade inside Alpaca's paper account (real order handling) instead of simulating it here."""
+def paper_broker(cfg: dict) -> str:
+    """Where paper trading happens: "alpaca" (Alpaca's paper account), "webull" (Webull's paper/test
+    environment) or "local" (simulated on this Mac). Setting paper.broker: auto (the old rule: Alpaca's
+    paper account when Alpaca is the broker and its paper keys are saved), alpaca, webull or local.
+    A broker is only used when its (paper) keys are saved; otherwise it's simulated here."""
     s = cfg["secrets"]
-    return (cfg["broker"] == "alpaca" and cfg["paper"].get("use_broker_paper", True)
-            and bool(s["alpaca_paper_key"] and s["alpaca_paper_secret"]))
+    choice = str(cfg["paper"].get("broker") or "auto").lower()
+    alpaca = bool(s["alpaca_paper_key"] and s["alpaca_paper_secret"])
+    webull = bool(s.get("webull_app_key") and s.get("webull_app_secret")) and \
+        str(s.get("webull_env") or "").lower() == "paper"
+    if choice == "webull":
+        return "webull" if webull else "local"
+    if choice == "alpaca":
+        return "alpaca" if alpaca else "local"
+    if choice == "local":
+        return "local"
+    return "alpaca" if (cfg["broker"] == "alpaca" and cfg["paper"].get("use_broker_paper", True) and alpaca) else "local"
+
+
+def uses_broker_paper(cfg: dict) -> bool:
+    """Paper trade inside a broker's paper account (real order handling) instead of simulating it here."""
+    return paper_broker(cfg) != "local"
 
 
 def check_config(cfg: dict):
@@ -77,16 +94,17 @@ def check_config(cfg: dict):
             seen[ticker] = desk
     if sum(cfg["desks"][d]["budget_pct"] for d in DESKS) > 100:
         raise ValueError("desks budget_pct add up to more than 100%.")
-    if cfg.get("broker", "alpaca") not in ("alpaca", "schwab"):
-        raise ValueError("broker must be alpaca or schwab.")
+    if cfg.get("broker", "alpaca") not in ("alpaca", "schwab", "webull"):
+        raise ValueError("broker must be alpaca, schwab or webull.")
 
 
 def is_cash_account(cfg: dict) -> bool:
     """Cash-account rules (only settled money is spent: no good faith violations). "auto": Schwab = cash
     (the safe assumption: in a margin account these rules only cost a day's wait), Alpaca = margin (Alpaca
-    lends the unsettled money itself, so there are no good faith violations there)."""
+    lends the unsettled money itself, so there are no good faith violations there). Webull = cash too
+    (the safe assumption until you set the account type)."""
     kind = cfg["live"].get("account_type", "auto")
-    return kind == "cash" or (kind == "auto" and cfg.get("broker", "alpaca") == "schwab")
+    return kind == "cash" or (kind == "auto" and cfg.get("broker", "alpaca") in ("schwab", "webull"))
 
 
 def active_desks(cfg: dict) -> list:
