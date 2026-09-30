@@ -415,17 +415,46 @@ def due_jobs(now: datetime, done: set) -> list:
     return jobs
 
 
+SCAN_IN_BACKGROUND = True                               # tests run it inline
+_scanning = None                                        # the running scan thread, if any
+
+
+def scan_in_background(cfg, store, today, why) -> str:
+    """The all-stocks scan can take many minutes (thousands of stocks). It runs in its own thread with its
+    own database connection, so trading, stop-losses and the check-ins never wait for it."""
+    import threading
+    from aitrader import scanner
+    global _scanning
+    if _scanning is not None and _scanning.is_alive():
+        return "scan: already running in the background"
+    path = data_path(cfg, "aitrader.sqlite")
+
+    def work():
+        own = Store(path) if SCAN_IN_BACKGROUND else store
+        own.on_log = store.on_log                           # phone alerts too
+        try:
+            own.log(f"[scan] {scanner.run(cfg, own, today)}")
+        except Exception as e:                               # the next scan tries again
+            own.log(f"[scan] failed ({e!r}); it runs again after the next close")
+        finally:
+            if own is not store:
+                own.db.close()
+    store.log(f"[scan] {why} (in the background: trading carries on meanwhile)")
+    if not SCAN_IN_BACKGROUND:
+        work()
+        return "scan finished"
+    _scanning = threading.Thread(target=work, daemon=True, name="scan")
+    _scanning.start()
+    return "scan started in the background"
+
+
 def first_scan(cfg, store, today):
     """A new install has no stock list until the first after-close scan. Scan in the morning instead,
     so the swing desk's first decision (3:45pm) already picks from all US stocks, not just the watchlist."""
     from aitrader import scanner
     if not scanner.is_on(scanner.settings(cfg)["enabled"]) or scanner.load_list(cfg).get("liked"):
         return
-    store.log("[scan] no stock list yet: scanning all US stocks now (takes a few minutes)")
-    try:
-        store.log(f"[scan] {scanner.run(cfg, store, today)}")
-    except Exception as e:                                   # the check-in must not fail; tonight's scan retries
-        store.log(f"[scan] the first scan failed ({e!r}); it runs again after the close")
+    scan_in_background(cfg, store, today, "no stock list yet: scanning all US stocks (takes a while the first time)")
 
 
 def run_job(job, cfg, store, data, now, done) -> str:
@@ -460,9 +489,9 @@ def run_job(job, cfg, store, data, now, done) -> str:
         return f"after-market report for {today} written"
     if job == "scan":
         from aitrader import scanner
-        summary = scanner.run(cfg, store, today)
-        store.log(f"[scan] {summary}")
-        return summary
+        if not scanner.is_on(scanner.settings(cfg)["enabled"]):
+            return "scan: off (Setup)"
+        return scan_in_background(cfg, store, today, "the daily scan of all US stocks and their news")
     return ""
 
 
@@ -506,19 +535,53 @@ def start_phone(cfg, store):
     threading.Thread(target=phone.listen, args=(cfg, lambda: Store(path)), daemon=True, name="phone").start()
 
 
+STUCK_MINUTES = 30                                      # a job taking longer than this = stuck: restart
+
+
+def start_watchdog(cfg, progress: dict):
+    """If one job hangs (e.g. a network call that never answers), the autopilot restarts itself after
+    STUCK_MINUTES instead of silently doing nothing all day. Mac sleep doesn't count (monotonic clock)."""
+    import threading
+
+    def watch():
+        while True:
+            time.sleep(60)
+            restart_if_stuck(cfg, progress)
+    threading.Thread(target=watch, daemon=True, name="watchdog").start()
+
+
+def restart_if_stuck(cfg, progress: dict) -> bool:
+    stuck = (time.monotonic() - progress["t"]) / 60
+    if stuck <= STUCK_MINUTES:
+        return False
+    own = Store(data_path(cfg, "aitrader.sqlite"))
+    own.log(f"!!! autopilot stuck for {stuck:.0f} minutes on '{progress['job']}': restarting itself")
+    own.set("autopilot_busy", None)
+    own.db.close()
+    os.execv(sys.executable, [sys.executable] + sys.argv)          # same process id, fresh start
+    return True
+
+
 def cmd_autopilot(cfg, store, args):
     other = store.get("autopilot_pid")
     if other and other != os.getpid() and process_alive(other):
         raise RuntimeError(f"The autopilot is already running (process {other}). Only one may run at a time.")
     store.set("autopilot_pid", os.getpid())
+    import socket
+    socket.setdefaulttimeout(120)                       # a network call that never answers fails (and retries)
     data = MarketData(cfg)
     start_phone(cfg, store)
+    progress = {"t": time.monotonic(), "job": None}
+    start_watchdog(cfg, progress)
     store.log("Autopilot started. Keep the laptop awake and online (Ctrl+C stops it).")
     while True:
         now = now_ny()
         today = now.strftime("%Y-%m-%d")
+        store.set("autopilot_heartbeat", now.isoformat(timespec="seconds"))
         done = set(store.get("autopilot_done", []))
         for job in due_jobs(now, done):
+            progress.update(t=time.monotonic(), job=job)
+            store.set("autopilot_busy", {"job": job, "since": now_ny().isoformat(timespec="seconds")})
             try:
                 message = run_job(job, cfg, store, data, now, done)
                 if message:
@@ -527,9 +590,11 @@ def cmd_autopilot(cfg, store, args):
                     done.add(f"{job}:{today}")
             except Exception as e:                           # never crash; try again next cycle
                 store.log(f"autopilot: {job} failed: {e!r} (will retry in 5 minutes)")
+        progress.update(t=time.monotonic(), job=None)
+        store.set("autopilot_busy", None)
         week_ago = (now - timedelta(days=7)).strftime("%Y-%m-%d")
         store.set("autopilot_done", sorted(k for k in done if k.split(":")[1] >= week_ago))
-        store.set("autopilot_heartbeat", now.isoformat(timespec="seconds"))
+        store.set("autopilot_heartbeat", now_ny().isoformat(timespec="seconds"))
         after = now_ny()                                     # the work may have taken minutes
         time.sleep(300 - (after.minute % 5) * 60 - after.second + 5)   # wake just after the next 5-minute mark
 

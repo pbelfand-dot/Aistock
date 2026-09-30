@@ -151,3 +151,6 @@ def test_right_now_says_whether_it_is_testing_and_what_each_desk_is_doing(cfg, t
     assert "closed today" in dashboard._right_now(cfg, store, datetime(2026, 10, 3, 11, 1))["headline"]
     store.set("autopilot_heartbeat", at(12, 0).isoformat())
     assert "hasn't checked in for 30 minutes" in dashboard._right_now(cfg, store, at(12, 30))["headline"]
+    store.set("autopilot_busy", {"job": "day", "since": at(12, 0).isoformat()})
+    busy = dashboard._right_now(cfg, store, at(12, 20))["headline"]
+    assert "busy with a day-desk check (since 12:00, 20 min)" in busy and "restarts itself" in busy
