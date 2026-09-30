@@ -13,6 +13,7 @@ run.py: the ONE file you run.
 
     python run.py plan            after the study month: write each desk's trading plan
     python run.py approve-plan    you read a plan and say yes -> that desk starts paper trading
+    python run.py start-stage1    Stage 1 now: the swing desk paper trades momentum (skips the study month)
     python run.py promote         paper results good enough? -> you confirm -> that desk trades real money
     python run.py kill            EMERGENCY: cancel orders, sell everything the bot owns, stop
     python run.py resume          un-halt after a kill (after you've looked into what happened)
@@ -360,6 +361,19 @@ def due_jobs(now: datetime, done: set) -> list:
     return jobs
 
 
+def first_scan(cfg, store, today):
+    """A new install has no stock list until the first after-close scan. Scan in the morning instead,
+    so the swing desk's first decision (3:45pm) already picks from all US stocks, not just the watchlist."""
+    from aitrader import scanner
+    if not scanner.is_on(scanner.settings(cfg)["enabled"]) or scanner.load_list(cfg).get("liked"):
+        return
+    store.log("[scan] no stock list yet: scanning all US stocks now (takes a few minutes)")
+    try:
+        store.log(f"[scan] {scanner.run(cfg, store, today)}")
+    except Exception as e:                                   # the check-in must not fail; tonight's scan retries
+        store.log(f"[scan] the first scan failed ({e!r}); it runs again after the close")
+
+
 def run_job(job, cfg, store, data, now, done) -> str:
     today = now.strftime("%Y-%m-%d")
     if job == "morning":
@@ -368,6 +382,7 @@ def run_job(job, cfg, store, data, now, done) -> str:
         warning = schwab_login_warning(cfg)
         if warning:
             store.log(f"WARNING: {warning}")
+        first_scan(cfg, store, today)
         return ""
     if job == "day":
         return trade_desk(cfg, store, data, "day", now) if "day" in active_desks(cfg) else ""
@@ -522,6 +537,7 @@ MENU = [
     ("Stop the background autopilot", "service-off"),
     ("Backtest: how would each strategy have done?", "backtest"),
     ("Write the trading plans (after the study month)", "plan"),
+    ("Start Stage 1: paper trade the momentum method now (no study month)", "start-stage1"),
     ("Approve a plan (starts paper trading)", "approve-plan"),
     ("Promote a desk to REAL money", "promote"),
     ("Connect Claude Code (Claude can see the bot, and your Schwab account read-only)", "connect-claude-code"),
@@ -676,6 +692,43 @@ def cmd_approve_plan(cfg, store, args):
         set_phase(store, desk, Phase.PAPER, "plan approved by you")
 
 
+def start_stage1(cfg, store) -> str:
+    """Stage 1 of your plan: the swing desk starts paper trading the momentum method now, skipping the
+    study month. Pretend money only; real money still needs the promotion rules and your typed yes."""
+    from aitrader.planner import STAGE1_DESK, stage1_plan
+    from aitrader.scanner import trade_candidates
+    desk = STAGE1_DESK
+    if not cfg["desks"][desk].get("enabled", True):
+        raise ValueError(f"The {desk} desk is switched off in config.yaml.")
+    phase = current_phase(store, desk)
+    if phase == Phase.PAPER:
+        raise ValueError(f"Stage 1 is already running (paper trading since {store.get(f'{desk}_paper_started_on')}).")
+    if phase == Phase.LIVE:
+        raise ValueError(f"The {desk} desk is trading real money; Stage 1 is paper only.")
+    with trading_lock(cfg):
+        plan = stage1_plan(cfg, trade_candidates(cfg))
+        reset_paper(store, desk)
+        store.set(f"lessons:{desk}", None)
+        store.set("stage", 1)
+        set_phase(store, desk, Phase.PAPER, "Stage 1 started by you")
+    days = cfg["promotion"]["min_trading_days"]
+    return (f"Stage 1 started: the {desk} desk paper trades the {plan['strategy']} method with "
+            f"${plan['capital']:,.0f} of pretend money for {days} trading days. It decides 15 minutes "
+            "before each close, so keep the autopilot on. Nothing uses real money.")
+
+
+def cmd_start_stage1(cfg, store, args):
+    print("Stage 1: the swing desk paper trades the momentum method (pretend money), starting now.")
+    print("The 16-year research: research/history/RESULTS-methods.md")
+    if input("Type YES to start Stage 1: ").strip() != "YES":
+        print("Not started.")
+        return
+    try:
+        print(start_stage1(cfg, store))
+    except ValueError as e:
+        print(e)
+
+
 def cmd_promote(cfg, store, args):
     data = None
     for desk in pick_desks(cfg, args):
@@ -778,6 +831,7 @@ def main(argv=None, cfg=None, store=None):
     for name in ("approve-plan", "promote", "resume"):
         sub.add_parser(name).add_argument("--desk", choices=["swing", "day"], help=desk_help)
     sub.add_parser("kill")
+    sub.add_parser("start-stage1")
     sub.add_parser("schwab-login").add_argument("--manual", action="store_true",
                                                 help="print a login link instead of opening a browser")
     args = parser.parse_args(argv)
@@ -786,6 +840,7 @@ def main(argv=None, cfg=None, store=None):
     store = store or Store(data_path(cfg, "aitrader.sqlite"))
     commands = {"menu": cmd_menu, "dashboard": cmd_dashboard, "autopilot": cmd_autopilot, "status": cmd_status, "check": cmd_check, "study": cmd_study, "trade": cmd_trade,
                 "backtest": cmd_backtest, "plan": cmd_plan, "approve-plan": cmd_approve_plan,
+                "start-stage1": cmd_start_stage1,
                 "promote": cmd_promote, "kill": cmd_kill, "resume": cmd_resume, "schwab-login": cmd_schwab_login}
     try:
         commands[args.command](cfg, store, args)

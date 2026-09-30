@@ -21,6 +21,7 @@ directly, like any Mac app runs a helper program.
   schwab-login-start / schwab-login-finish   log in to Schwab: open the page, then paste the address you land on
   check-schwab                               tests the Schwab login (read-only)
   connect-claude < {"which": "code"|"desktop"}  lets Claude see the bot (and Schwab, read-only)
+  start-stage1                               Stage 1: the swing desk paper trades momentum now (pretend money)
 
 --demo works on the demo folder (data/demo) instead of your real data.
 """
@@ -74,6 +75,8 @@ STDIN_ACTIONS = {"save-keys", "save-settings", "save-live-keys", "save-schwab-ke
 NEXT_STEP = {
     "STUDY": "Studying: the bot watches the market and grades its strategies with no money involved. "
              "Keep the autopilot on.",
+    "STAGE1": "Stage 1: paper trading the momentum method with pretend money. Keep the autopilot on; "
+              "it decides 15 minutes before each close.",
     "PLAN_REVIEW": "A trading plan is ready. Read it in Research & plans, then approve it from the full "
                    "Setup menu (Terminal) to start paper trading.",
     "PAPER": "Paper trading with pretend money. Keep the autopilot on; its results decide if it may move up.",
@@ -239,9 +242,18 @@ def setup_status(cfg, store) -> dict:
     from .phases import current_phase, study_progress
     progress = study_progress(store, cfg)
     desks = []
+    from .planner import STAGE1_DESK
+    stage1 = {"desk": STAGE1_DESK, "can_start": False, "running_since": None, "trading_days": 0,
+              "days_needed": cfg["promotion"]["min_trading_days"]}
     for desk in active_desks(cfg):
         phase = current_phase(store, desk).value
         text = NEXT_STEP[phase]
+        if desk == STAGE1_DESK:
+            stage1["can_start"] = phase in ("STUDY", "PLAN_REVIEW")
+            if phase == "PAPER" and store.get("stage") == 1:
+                stage1["running_since"] = store.get(f"{desk}_paper_started_on")
+                stage1["trading_days"] = len(store.equity_curve(f"paper-{desk}"))
+                text = NEXT_STEP["STAGE1"] + f" {stage1['trading_days']} of {stage1['days_needed']} trading days done."
         if phase == "STUDY":
             text += (f" So far: {progress['study_days']} trading days studied"
                      + ("; the study is complete: write the plans from the full Setup menu." if progress["ready"]
@@ -260,7 +272,7 @@ def setup_status(cfg, store) -> dict:
             "prices_from": data_source(cfg), "paper_at": "Alpaca paper account" if uses_broker_paper(cfg)
             else "simulated on this Mac", "autopilot_on": mac_service.is_running(),
             "autopilot_seen": store.get("autopilot_heartbeat"), "can_autopilot": sys.platform == "darwin",
-            "desks": desks}
+            "desks": desks, "stage1": stage1}
 
 
 def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payload: dict = None) -> dict:
@@ -326,6 +338,9 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
                     f"Still halted: {', '.join(still)} (an emergency exit is still selling; it retries every 5 minutes)."}
         if action == "pause":
             return {"message": pause_all(cfg, store, "you, from the app")}
+        if action == "start-stage1":
+            import run                                  # run.py, next to the aitrader folder
+            return {"message": run.start_stage1(cfg, store)}
         if action == "kill":
             if confirm != KILL_PHRASE:
                 raise ValueError(f'Type "{KILL_PHRASE}" to confirm.')
@@ -354,7 +369,7 @@ def main(argv=None) -> int:
     parser.add_argument("action", choices=[
         "snapshot", "pause", "kill", "demo-build", "update-policy", "setup-status", "save-keys", "check-keys",
         "autopilot-on", "autopilot-off", "resume", "save-settings", "save-live-keys", "save-schwab-keys",
-        "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude"])
+        "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude", "start-stage1"])
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)

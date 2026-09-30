@@ -39,6 +39,13 @@ It learns only from the past, and a test proves it can't peek at future prices.
  4. LIVE                   Real orders, capped at the desk's budget. Kill switch → back to PAPER.
 ```
 
+**Stage 1 shortcut (your plan):** Setup → **Start Stage 1 paper trading** (or `python run.py
+start-stage1`) skips steps 1–2 for the swing desk. It paper trades the `momentum` method right
+away: the strongest stocks on the watchlist plus the top of the daily all-stocks scan (12-month
+rise, skipping the latest month), only above their 200-day averages, and no new buys while SPY is
+below its own. Pretend money only; the day desk keeps studying. The evidence is the 16-year test
+in `research/history/RESULTS-methods.md`.
+
 "Profitable" means (see `config.yaml → promotion:`): over at least 30 trading days and 20
 closed trades, the desk made money, won at least 1.2× what it lost, never dropped more than
 10%, **and beat just holding SPY**. If it can't beat SPY, buying SPY is the better deal.
@@ -223,6 +230,7 @@ python run.py menu            # or: python run.py check / autopilot / status ...
 | Background autopilot on/off | | same, as a Mac service (starts at login) |
 | Backtest | `backtest` | every strategy vs. buy-and-hold, on history |
 | Write the trading plans | `plan` | after the study month |
+| Start Stage 1 | `start-stage1` | swing desk paper trades momentum now (skips the study month) |
 | Approve a plan | `approve-plan` | you say YES → that desk starts paper trading |
 | Promote to real money | `promote` | checks the paper rules → you type REAL MONEY |
 | Connect Claude Code / Desktop | | adds the MCP connections above |

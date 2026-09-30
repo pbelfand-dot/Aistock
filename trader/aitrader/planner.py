@@ -112,6 +112,8 @@ def write_narrative(cfg: dict, plan: dict) -> str:
 
 
 def scorecard_markdown(plan: dict) -> str:
+    if not plan["scorecard"]:                         # Stage 1: the evidence is the 16-year research
+        return plan.get("evidence", "No scorecard.")
     lines = ["| strategy | backtest return % | sharpe | max drawdown % | trades | win rate % | "
              "study month | eligible |",
              "|---|---|---|---|---|---|---|---|"]
@@ -137,6 +139,9 @@ def save_plan(cfg: dict, plan: dict):
               f"Decides every 5 minutes. No new trades in the last {s['last_entry_minutes_before_close']} "
               f"minutes; sells everything {s['flatten_minutes_before_close']} minutes before the close. "
               "Never holds overnight.")
+    next_step = (f"_Stage 1 started by you on {plan['created_on']}: paper trading with pretend money for "
+                 f"{promo['min_trading_days']} trading days._" if plan.get("stage") == 1 else
+                 f"_Next step: read this, then run `python run.py approve-plan --desk {desk}` to start paper trading._")
     md = f"""# {desk.title()} desk trading plan: {plan['created_on']}
 
 **Verdict: {plan['verdict']}**{f" (strategy: `{plan['strategy']}`)" if plan['strategy'] else ""}
@@ -165,9 +170,53 @@ Why the others were rejected:
 - Max drawdown no worse than {promo['max_drawdown_pct']}%{"; must beat buy-and-hold " + plan['benchmark']['ticker'] if promo.get('must_beat_benchmark') else ""}
 - Then YOU confirm with `python run.py promote --desk {desk}`
 
-_Next step: read this, then run `python run.py approve-plan --desk {desk}` to start paper trading._
+{next_step}
 """
     data_path(cfg, f"trading_plan_{desk}.md").write_text(md)
+
+
+STAGE1_DESK, STAGE1_STRATEGY = "swing", "momentum"
+STAGE1_EVIDENCE = """No backtest on this computer: Stage 1 rests on the 16-year test in
+research/history/RESULTS-methods.md (Jan 2011 to Sep 2026, same rules for every method).
+
+- Momentum was the one stock-picking method with real-world support. The test's numbers for it
+  (29.9% a year with the trend filter) are flattered: the stock list only has today's survivors.
+- The honest expectation comes from a real momentum fund (iShares MTUM): about 15.6-16% a year
+  since 2013, when SPY made 14.4%. That is the market plus a point or two, with bigger drops.
+- The bot's old swing rules on its old watchlist made 1-2% a year. Stage 1 doesn't use them.
+- Even the best method made money AND beat SPY in only about half of all 30-trading-day windows.
+  Thirty days can catch a broken method; it can't prove a good one."""
+
+
+def stage1_plan(cfg: dict, candidates: list = ()) -> dict:
+    """Stage 1 of your plan: the swing desk paper trades the momentum method, starting now (no study
+    month). Nothing is backtested here, so it takes a second; the plan cites the research instead."""
+    desk = STAGE1_DESK
+    watchlist = list(dict.fromkeys([*cfg["desks"][desk]["watchlist"], *candidates]))
+    strategy = next(s for s in all_strategies(cfg, desk) if s.name == STAGE1_STRATEGY)
+    plan = {
+        "desk": desk,
+        "stage": 1,
+        "created_on": date.today().isoformat(),
+        "verdict": "TRADE",
+        "strategy": STAGE1_STRATEGY,
+        "watchlist": watchlist,
+        "capital": desk_capital(cfg, desk, live=False),
+        "benchmark": {"ticker": cfg["benchmark"]},
+        "desk_settings": cfg["desks"][desk],
+        "promotion_rules": cfg["promotion"],
+        "scorecard": [],
+        "evidence": STAGE1_EVIDENCE,
+        "narrative": (f"Stage 1, started by you: paper trading (pretend money) with `{STAGE1_STRATEGY}`. "
+                      f"{strategy.description} The list it picks from is the watchlist plus the top of "
+                      "the daily all-stocks scan, so it can own any US stock that's strong enough and "
+                      "affordable. The stop-loss, daily loss limit, kill switch and good faith violation "
+                      "rules all apply, and it learns from every finished trade (smaller or paused if the "
+                      "method loses, never bigger). Watch whether it keeps up with the S&P 500: that's "
+                      "the bar it must clear before real money."),
+    }
+    save_plan(cfg, plan)
+    return plan
 
 
 def load_plan(cfg: dict, desk: str) -> dict:

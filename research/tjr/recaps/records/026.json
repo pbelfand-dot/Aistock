@@ -1,0 +1,112 @@
+{
+  "video": {
+    "n": 26,
+    "file": "05_24_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 9 sheets, 11 full-size shots (#1, #2, #6, #10, #13, #14, #16, #22, #30, #31, #33) and the transcript. All charts are ES1! (legend 'S&P 500 E-mini Futures · 1/5 · CME'); no NQ chart is shown. Price-axis labels, x-axis date/time and position-tool tooltips (stop/target distance, R:R, 'Closed/Open P&L') are readable. The chart time zone label is hidden behind the webcam overlay. No broker/order panel, fills or account P&L shown; only TradingView position-tool boxes. Transcript (pocketsphinx) is very garbled. Structure: 00:00-03:07 context (gap, 5m BOS, SMT with NQ); 03:07-04:30 trade 1 (1m); 04:30-06:10 the 'bigger move' on 5m; 06:10-08:40 trades 2 and 3 (1m); 09:00-09:29 Forex Factory calendar for Fri 24 May and outro.",
+    "duration_min": 9.5,
+    "title_claim": "",
+    "session_date": {"value": "2024-05-23", "src": "seen", "ref": "#2 03m13s, #6 03m36s, #13 05m04s x-axis 'Thu 23 May '24'. Recorded the next morning: #33 09m02s Forex Factory 'Today: May 24', clock 8:14am; file name 05_24_2024."}
+  },
+  "market_context": {
+    "regime": {"value": "ES 1m: opened ≈5,350 at 09:30 and fell to ≈5,319 or lower by ≈11:00, rallied to ≈5,342 by ≈11:55-12:00, ranged 5,332-5,341 until ≈12:45, then sold off below 5,320 by ≈13:00 (all chart time, likely ET). On 5m: volatile open, midday range ≈5,329-5,341, afternoon breakdown.", "src": "inferred", "ref": "#1 00m00s ES 1m (red x-axis marker 'Thu 23 May '24 09:30', axis labels 5,350.50/5,348.00/5,336.00; lows estimated ±2); #14 05m08s ES 5m 07:30-14:00; #30/#31 1m. Levels estimated from candle positions between axis labels."},
+    "news": {"value": "Trade day: NVIDIA earnings (reported the day before) mentioned as the driver; no economic release named for 23 May. Next day (Fri 24 May) shown: 8:30am Core Durable Goods m/m (fcst 0.1%, prev 0.0%) and Durable Goods m/m (fcst -0.9%, prev 0.9%), 9:35am FOMC Member Waller speaks, 10:00am Revised UoM Consumer Sentiment (red, fcst 67.8, prev 67.4).", "src": "seen", "ref": "Heard [00:45] 'my guess was the shoes and india earnings' read as 'NVIDIA earnings'. Seen #33 09m02s forexfactory.com/calendar?day=may24.2024. Heard [09:00] '... at ten am ... speaking ...' read as a warning that 10am news / a Fed speaker may move the market."},
+    "bias": {"value": "Bearish: he expected price to fill the daily (opening) gap below after NVIDIA earnings; 5m break of structure to the downside, SMT divergence (NQ vs ES, ES weaker) and a 5m inversion FVG supported shorts. Draw: the daily gap / lows below.", "src": "heard", "ref": "[00:45] 'wanting to build this daily over the gap ... ended up ... all the way down here and filling in this day the opening get' read as 'fill the daily opening gap'; [01:00] 'five minute break structure right here to the downside'; [01:45]-[02:30] 'divergence on nasdaq ... bare slide versions ... yes is telling us that a bit lower' read as bearish SMT with ES weaker; [05:30]-[06:00] 'five minute ... divergence ... break ... to the downside and [inversion]'."}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-05-23", "src": "seen", "ref": "#6 03m36s x-axis 'Thu 23 May '24 12:06'"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#6 03m36s legend 'S&P 500 E-mini Futures · 1 · CME'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#6 position box: gray (stop) zone above entry, blue (target) zone below"},
+      "timeframes": {"value": {"bias": "daily gap / 5m", "setup": "5m", "entry": "1m"}, "src": "inferred", "ref": "Box drawn on 1m (#6) and 5m (#16); heard [02:45] 'from where i feel the one minute', [03:15] 'a great job from one minute' read as '1m break of structure'; 5m BOS [01:00]."},
+      "setup": {"value": "bearish SMT (ES vs NQ) + 1m break of structure down, inside a higher-timeframe zone -> short", "src": "heard", "ref": "[03:15] 'we see that there's a divergence ... and i see a great job from one minute' read as 'SMT divergence and a 1m break of structure'; [03:45] 'we were within our high time for a ... we've got a great gesture' read as 'within our higher-timeframe [zone] ... got a break of structure'."},
+      "entry_conditions": [
+        {"value": "daily bias bearish (gap below to fill)", "src": "heard", "ref": "[00:45] see market_context.bias"},
+        {"value": "SMT divergence: NQ and ES disagree at the high, ES weaker", "src": "heard", "ref": "[03:15] 'there's a divergence'; [02:30]. Not verifiable: no NQ chart shown."},
+        {"value": "1m candle closes below the most recent 1m swing low (BOS) before entry", "src": "heard", "ref": "[03:15] 'great job from one minute' read as 'break of structure on the one minute'"},
+        {"value": "entry just below a gray zone at ≈5,339.5-5,340.5 marked on the 1m chart", "src": "inferred", "ref": "#6/#10 gray band above the entry line, estimated between axis labels ±0.5"}
+      ],
+      "entry_time": {"value": "≈12:05-12:06 chart time (likely ET)", "src": "seen", "ref": "#6 crosshair at the box's left edge: 'Thu 23 May '24 12:06'; #10 box A starts ≈12:05. Time zone not shown; ET inferred from the 09:30 open marker and Forex Factory ET times."},
+      "entry": {"value": 5338.0, "src": "seen", "ref": "Axis label '5,338.00' at the box entry line (#1, #6); consistent with stop label 5,341.25 minus stop distance 3.25 and target 5,334.00 plus 4.00."},
+      "stop": {"value": 5341.25, "src": "seen", "ref": "#6/#16 tooltip 'Stop: 3.25 (0.06%) 13'; axis label '5,341.25' in the stop-label stack (#1, #10)"},
+      "stop_rule": {"value": "above the local 1m high / the gray zone the short came from", "src": "inferred", "ref": "#6 stop edge sits just above the 1m swing high at ≈5,341"},
+      "target": {"value": 5334.0, "src": "seen", "ref": "#6/#16 tooltip 'Target: 4.00 (0.07%) 16'; blue axis label '5,334.00' (#1, #10)"},
+      "target_rule": {"value": "fixed ≈1:1 take-profit (he says about one-to-one R:R); 5,334.00 is also a marked horizontal line", "src": "heard", "ref": "[04:00]-[04:15] 'i'd take profit ... around one won one russell war ratio' read as 'around 1:1 risk-reward'; #1/#10 black line label 5,334.00 (seen)"},
+      "exit": {"value": "target hit (5,334.00) per position tool, ≈12:10-12:13", "src": "seen", "ref": "#6 tooltip 'Closed P&L: 4.00, Qty: 0.126, Risk/Reward Ratio: 1.23' (Closed P&L = target distance means the tool registered the target). Actual fill not shown."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Tool Qty 0.126 is a TradingView position-tool setting, not a real contract count; no size stated."},
+      "result": {"value": "win", "src": "seen", "ref": "Position-tool box shows target reached (#6 'Closed P&L: 4.00'); heard [08:30] 'went three for three'. Broker fill not shown."},
+      "r_multiple": {"value": 1.23, "src": "computed", "ref": "(5338.00-5334.00)/(5341.25-5338.00) = 4.00/3.25 = 1.23; matches tooltip R:R 1.23"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No dollar amount stated or shown."},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "Only a drawn TradingView position box; no broker panel, fills or account P&L."},
+      "mistakes": [
+        {"value": "took a ~1:1 profit while the larger bearish move continued; he says he then saw the bigger move afterwards", "src": "heard", "ref": "[04:15] '~one to one'; [04:45] 'right after that ... a bigger move'"}
+      ],
+      "evidence_summary": "Seen: ES 1m/5m short box with stop 3.25 / target 4.00 / R:R 1.23 and axis labels 5,341.25 / 5,338.00 / 5,334.00, target registered by the tool. Heard (garbled): SMT + 1m BOS rationale, ~1:1 take-profit. No fills."
+    },
+    {
+      "date": {"value": "2024-05-23", "src": "seen", "ref": "#2 03m13s x-axis 'Thu 23 May '24 12:19'"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#2 03m13s legend 'S&P 500 E-mini Futures · 1 · CME'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#2/#10 narrow box: gray stop zone above entry, blue target zone below"},
+      "timeframes": {"value": {"bias": "daily gap / 5m", "setup": "5m", "entry": "1m"}, "src": "inferred", "ref": "Box on 1m (#2, #10, #30); heard [04:45] '... scale back down by the time frame' and [05:30] 'on a five minute' for the setup."},
+      "setup": {"value": "first entry of the second (bigger) down leg: short as price 'came off' after the 5m bearish break, without a fresh trigger", "src": "heard", "ref": "[06:15] 'my first entry was purely based on price just coming off a little bit ... probably not as smart' (said while #19-#21 show this box and the next). Mapping of this sentence to this box is inferred."},
+      "entry_conditions": [
+        {"value": "5m bearish context: 5m break of structure down + SMT with NQ + 5m inversion FVG", "src": "heard", "ref": "[05:30]-[06:00] 'five minute ... divergence ... great shot through the downside and evaluation' read as 'break to the downside and inversion'"},
+        {"value": "short taken near the 12:17 1m low after the first target (5,334.00) was hit, below the gray zone at ≈5,336", "src": "inferred", "ref": "#10 box B starts ≈12:17 at ≈5,333.5, after the 12:10-12:13 drop"}
+      ],
+      "entry_time": {"value": "≈12:17 chart time (likely ET)", "src": "inferred", "ref": "Box left edge measured on x-axis in #2 (≈12:17), #6 (≈12:17), #10 (≈12:17); ±1 min"},
+      "entry": {"value": 5333.5, "src": "seen", "ref": "Axis label '5,333.50' under the 5,334.00 labels (#1, #10); matches stop 5,341.50 minus tooltip stop distance 8.00 (#2)."},
+      "stop": {"value": 5341.5, "src": "seen", "ref": "#2 tooltip 'Stop: 8.00 (0.15%) 32'; axis label '5,341.50' in the stop-label stack (#1, #10, #30)"},
+      "stop_rule": {"value": "above the 12:00 1m swing high (≈5,341.25)", "src": "inferred", "ref": "#10/#30 stop edge sits just above the 11:57-12:00 high"},
+      "target": {"value": 5325.75, "src": "inferred", "ref": "#2 tooltip R:R 0.97 x 8.00 = 7.76 -> 7.75 below 5,333.50 = 5,325.75; same bottom edge as trade 3's box (#10, #30, #31)"},
+      "target_rule": {"value": null, "src": "unknown", "ref": "No reason for 5,325.75 given audibly; possibly the daily gap / lower liquidity (not confirmed)."},
+      "exit": {"value": "unknown: box tooltip shows 'Open P&L: -0.25' at the box's end (≈12:20-12:22); price later traded through 5,325.75 (≈12:50-12:53) without reaching 5,341.50 (high ≈5,340.8 ±0.5)", "src": "inferred", "ref": "#2 tooltip 'Open P&L: -0.25, Qty: 0.051, Risk/Reward Ratio: 0.97' (seen); #30/#31 1m candles after 12:49 below the target, 12:30-12:38 highs ≈0.7 below the stop edge. Whether he held to target or closed and re-entered ([07:45] 're-enter') is not clear."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Tool Qty 0.051 is a tool setting; he says 'two positions' [07:15] but no size."},
+      "result": {"value": "win", "src": "inferred", "ref": "If held: target 5,325.75 traded through before the stop (from #30/#31 chart). Heard [08:30] 'went three for three'. Not confirmed by fills; the box itself only shows Open P&L -0.25."},
+      "r_multiple": {"value": 0.97, "src": "computed", "ref": "(5333.50-5325.75)/(5341.50-5333.50) = 7.75/8.00 = 0.97 if held to target; matches tooltip R:R 0.97. Actual exit unknown."},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No dollar amount stated or shown."},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "Only a drawn TradingView position box; no broker panel or fills."},
+      "mistakes": [
+        {"value": "entry 'purely based on price coming off', no fresh trigger; he calls it 'not as smart'", "src": "heard", "ref": "[06:15] 'purely based on price just coming off ... probably not as smart'"},
+        {"value": "wide stop (8 pts) at the low of the leg; price retraced ≈7.25 pts to within ≈0.7 of the stop; he calls it a risky play and says he was freaking out", "src": "heard", "ref": "[07:15] 'kind of risky play'; [08:00] 'super close to ... stop lost ... freaking out'; retrace measured on #30/#31 (inferred)"}
+      ],
+      "evidence_summary": "Seen: narrow 1m short box with tooltip stop 8.00 / R:R 0.97 / Open P&L -0.25 and axis labels 5,341.50 / 5,333.50. Inferred: target 5,325.75 and that price reached it before the stop. Heard: 'first entry ... not as smart', 'three for three'. Exit and fills unknown."
+    },
+    {
+      "date": {"value": "2024-05-23", "src": "seen", "ref": "#13 05m04s x-axis 'Thu 23 May '24 12:25'"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#13 legend 'S&P 500 E-mini Futures · 5 · CME'; #30 same box on '· 1 · CME'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#13/#30 box: gray stop zone above entry, blue target zone below"},
+      "timeframes": {"value": {"bias": "daily gap / 5m", "setup": "5m", "entry": "1m"}, "src": "inferred", "ref": "Box shown on 5m (#13) and 1m (#30, #31); heard 5m SMT/BOS/inversion [05:30]-[06:00]."},
+      "setup": {"value": "5m SMT (ES vs NQ) + 5m BOS down + retrace into a bearish inversion FVG at ≈5,336 -> short (re-entry / add to trade 2)", "src": "heard", "ref": "[05:00] 'my favorites confluence is ... a rate of structure combined with an evaluation of a bear rally' read as 'break of structure combined with an inversion [FVG]'; [05:30] 'five minute ... diversions'; [07:45] 'go ahead and [re-enter] ... even better entry'. Seen: entry at the gray zone ≈5,336 (#13, #30)."},
+      "entry_conditions": [
+        {"value": "5m SMT divergence: NQ and ES disagree, ES weaker", "src": "heard", "ref": "[05:30] 'on a five minute we have ... virgins' read as 'divergence'. No NQ chart shown."},
+        {"value": "5m candle closed below the prior 5m swing low (BOS down)", "src": "heard", "ref": "[05:30]-[06:00] 'great shot through the downside' read as 'break of structure to the downside'"},
+        {"value": "price closed below a gray FVG zone at ≈5,335.5-5,336.5 (inversion), then retraced back up into it", "src": "inferred", "ref": "#30/#31 gray band with dashed midline, axis label 5,336.00; 1m candles 12:10-12:20 below it, 12:22 back at it"},
+        {"value": "already short from 5,333.50 (trade 2); this entry adds / re-enters at a higher price", "src": "heard", "ref": "[07:15] 'two positions on this ... i also entered again'; [07:45] 'even better entry'"}
+      ],
+      "entry_time": {"value": "≈12:22 chart time (likely ET)", "src": "inferred", "ref": "Box C left edge measured on 1m x-axis in #6, #10, #30 (≈12:22 ±1 min)"},
+      "entry": {"value": 5336.0, "src": "seen", "ref": "#13 axis label '5,336.00' at the box entry line; #13 tooltip distances from it match labels 5,341.50 (stop)"},
+      "stop": {"value": 5341.5, "src": "seen", "ref": "#13 tooltip 'Stop: 5.50 (0.10%) 22'; axis label '5,341.50' (#13, #30)"},
+      "stop_rule": {"value": "above the 12:00 1m swing high (≈5,341.25), same stop as trade 2", "src": "inferred", "ref": "#30 both boxes share the top edge ≈5,341.5"},
+      "target": {"value": 5325.75, "src": "seen", "ref": "#13 tooltip 'Target: 10.25 (0.19%) 41'; 5,336.00 - 10.25 = 5,325.75"},
+      "target_rule": {"value": null, "src": "unknown", "ref": "Reason for 5,325.75 not audible; bias talk points to the daily gap below."},
+      "exit": {"value": "target hit (5,325.75) per the 5m position tool, ≈12:45-12:53", "src": "seen", "ref": "#13 tooltip 'Closed P&L: 10.25, Qty: 0.074, Risk/Reward Ratio: 1.86'. On 1m (#30/#31) the box ends ≈12:49 at ≈5,328 and the next candles trade below 5,325.75. Actual fill not shown."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Tool Qty 0.074 is a tool setting; no size stated."},
+      "result": {"value": "win", "src": "seen", "ref": "5m box registers target (#13 'Closed P&L: 10.25'); high between entry and target ≈5,340.8 ±0.5, below the 5,341.50 stop (#30/#31, inferred); heard [08:30] 'went three for three'. No fills."},
+      "r_multiple": {"value": 1.86, "src": "computed", "ref": "(5336.00-5325.75)/(5341.50-5336.00) = 10.25/5.50 = 1.86; matches tooltip R:R 1.86"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No dollar amount stated or shown."},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "Only a drawn TradingView position box; no broker panel or fills."},
+      "mistakes": [
+        {"value": "added a second short with the same stop while the first was offside; combined position came within ≈0.7 pt of the stop", "src": "inferred", "ref": "#30/#31 boxes share the 5,341.50 stop; 12:30-12:38 highs ≈5,340.8 ±0.5; heard [07:15] 'kind of risky play', [08:00] 'super close to ... stop ... freaking out'"}
+      ],
+      "evidence_summary": "Seen: 5m/1m short box with tooltip stop 5.50 / target 10.25 / R:R 1.86 / Closed P&L 10.25 and axis labels 5,341.50 / 5,336.00. Heard (garbled): 5m SMT + BOS + inversion FVG rationale, re-entry, near-stop scare. No fills."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "One of his favourite confluences: a break of structure combined with an inversion (of a fair value gap).", "src": "heard", "ref": "[05:00] 'my favorites confluence is wish this a rate of structure combined with an evaluation of a bear rally'"},
+    {"value": "Use SMT divergence between ES and NQ: the weaker index (here ES) is the one to short.", "src": "heard", "ref": "[01:45]-[02:45] 'divergence on nasdaq ... yes is telling us that a bit lower ... looking for nasdaq short but ... saw a better [entry] in yes'"},
+    {"value": "Entering purely because price is 'coming off' (without a structure trigger) is not as smart as waiting for the confirmation.", "src": "heard", "ref": "[06:15] 'my first entry was purely based on price just coming off a little bit ... probably not as smart'"},
+    {"value": "Check the calendar before the session: Fri 24 May has a Fed speaker (Waller) and 10am news that may move the market.", "src": "seen", "ref": "#33 09m02s Forex Factory May 24; heard [09:00] '... ten am ... speaking ...'"}
+  ],
+  "quality_notes": "Transcript is extremely garbled; setup reasons (SMT, BOS, inversion FVG, higher-timeframe zone) come only from misheard words. SMT cannot be checked: no NQ chart shown. Trade evidence is TradingView position-tool boxes only (no fills, no broker panel), so exits are 'tool registered target', not confirmed fills. Trades 2 and 3 share the same stop and target; whether trade 2 was held to target or closed (Open P&L -0.25 at box end) and re-entered as trade 3 is unclear, and mapping the [06:15] 'first entry' remark to trade 2 is inferred. Chart time zone label hidden by the webcam; ET inferred from the 09:30 open marker and the Forex Factory ET schedule. Entry times are measured from box edges (±1 min); stop-margin estimate for trades 2-3 (≈0.7 pt) is from pixel positions (±0.5)."
+}

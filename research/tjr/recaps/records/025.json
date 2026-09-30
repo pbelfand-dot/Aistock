@@ -1,0 +1,72 @@
+{
+  "video": {
+    "n": 25,
+    "file": "05_17_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 11 sheets, 13 full-size shots (#1, #2, #6, #10, #11, #13, #14, #22, #24, #25, #31, #34, #39) and the transcript. TradingView legends, x-axis date/time labels and price-axis labels are readable. One TradingView position-tool box (short) on NQ1! with readable stop/target/closed-P&L labels (#22). No broker/order panel or fills shown. Transcript (pocketsphinx, 19 lines) is very garbled; only gist usable. Structure: 00:00 ES 5m glance, then NQ 4h/5m/15m/1m walk-through of one losing short and what he should have done.",
+    "duration_min": 4.5,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-05-17",
+      "src": "seen",
+      "ref": "#2 00m08s, #11 01m15s, #22 02m17s x-axis 'Fri 17 May '24'; file name 05_17_2024."
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "NQ 17 May: rose from a London low 18617.00 (~04:20 ET) to ~18688 by ~08:45-09:15 ET, above the 16 May evening high 18667.00; sold off at the 09:30 open to ~18621 (~09:50), bounced to ~18648-18650 (~10:04), rallied back into the 18663-18688 zone (~10:40-10:58 ET, high ~18677), then fell through 18617 (~12:40) to a low 18575.00 (14:45 15m candle) and recovered to ~18635 into the close. Watchlist: NQ -14.75 (-0.08%), ES 5327.25 +7.00 (+0.13%): a flat, two-way day.",
+      "src": "inferred",
+      "ref": "Seen: #2/#34 legend 'NASDAQ 100 E-mini Futures · 5 · CME'; #25/#31 '· 15 · CME'; horizontal-line labels 18667.00 and 18617.00; #31 header of the 14:45 15m candle 'O18577.00 H18622.50 L18575.00 C18617.25'; watchlist rows 'ES1! 5327.25 7.00 0.13%', 'NQ 18635.2 -14.75 -0.08%'. Other levels/times estimated from candle positions (about ±2 pts, ±5 min). 18667.00 line starts at a 16 May ~21:45 high (#25 15m); 18617.00 line starts at the 17 May ~04:20 low (#2 5m, #31 15m)."
+    },
+    "news": {
+      "value": "No news discussion could be made out. (Outside the video: 17 May 2024 was the third Friday, i.e. monthly options expiration.)",
+      "src": "unknown",
+      "ref": "A Forex Factory calendar tab is open in the browser but never shown. Transcript [04:00] 'there's a lot of talk going on during a market' is too garbled to read as a news item. OPEX note is calendar arithmetic, not from the video."
+    },
+    "bias": {
+      "value": "Bearish: 4h bearish; draw on liquidity = the London low 18617.00 below.",
+      "src": "heard",
+      "ref": "[00:15] 'first of all four hour we were bearish'; [01:30] 'trying to capture a bomb down to this draw a look we in that lobby' read as 'capture the move down to this draw on liquidity / this low'. Target line 18617.00 seen (#2, #31)."
+    }
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-05-17", "src": "seen", "ref": "#22 02m17s x-axis 'Fri 17 May '24 10:09' at the position box"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, chart NQ1!); whether NQ or MNQ was traded is unknown", "src": "seen", "ref": "#22 legend 'NASDAQ 100 E-mini Futures · 1 · CME', symbol box 'NQ1!'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#22 position tool: 'Stop: 13.50' box above the entry line, 'Target: 17.75' box below it"},
+      "timeframes": {"value": {"bias": "4h", "context": "15m/5m", "setup": "1m", "entry": "1m"}, "src": "inferred", "ref": "4h bias heard [00:15]; position box drawn on the 1m chart (#22 legend '· 1 ·'); 5m/15m charts shown for context (#2, #31)"},
+      "setup": {"value": "4h bearish; NY-open selloff from grey zone ~18663-18688 (after running above the 16 May evening high 18667); 1m retrace into small grey box ~18642.6-18648.25, which he calls an invalidated bullish FVG, plus BOS down -> 1m short, stop at box top, target London low 18617", "src": "inferred", "ref": "Boxes/lines seen (#11, #22, #34, #39); 'invalidated bullish FVG + BOS' is heard [02:00] with low confidence"},
+      "entry_conditions": [
+        {"value": "4h bias bearish", "src": "heard", "ref": "[00:15] 'first of all four hour we were bearish'"},
+        {"value": "Pre-open, price traded above 18667.00 (16 May evening high) into the grey zone ~18663-18688, then dropped at the 09:30 open", "src": "inferred", "ref": "#25 15m line 18667.00 from 16 May ~21:45 high; #34 5m / #39 1m grey zone and 09:30 drop; zone edges estimated ±1-2 pts; the zone's type (4h FVG / supply) is not stated legibly"},
+        {"value": "After the open drop to ~18621 (~09:50), price retraced to ~18648-18650 (10:00-10:04) into the small grey box ~18642.6-18648.25 and turned down", "src": "inferred", "ref": "#11 01m15s and #22 1m: box drawn from ~10:01; top aligned with axis label 18648.25; bottom and swing prices estimated ±1 pt"},
+        {"value": "Invalidation of a bullish FVG (close back below it) together with a break of structure to the downside", "src": "heard", "ref": "[02:00] 'we had this in validation of this bowl of her right yeah along with the great gesture to the downside' read as 'invalidation of this bullish FVG ... along with the break of structure to the downside' (low confidence)"}
+      ],
+      "entry_time": {"value": "~10:07 ET (±1 min)", "src": "inferred", "ref": "Left edge of position box in #22 (10:00 at x371, crosshair 10:09 at x444) and #11; chart time taken as ET because the red dashed session line is labelled 09:30 and the open move starts there"},
+      "entry": {"value": 18634.75, "src": "inferred", "ref": "Stop level 18648.25 minus seen stop distance 13.50 = 18634.75; axis label 18634.75 sits at the box's entry line (#11, #22); consistent with target 18634.75-17.75 = 18617.00 (blue axis label)"},
+      "stop": {"value": 18648.25, "src": "inferred", "ref": "Axis label 18648.25 aligns with the box top (#11, #22); tool label 'Stop: 13.50 (0.07%) 54' seen (#22)"},
+      "stop_rule": {"value": "At the top of the small grey box he calls the invalidated bullish FVG (~ the 10:00-10:04 retrace high)", "src": "inferred", "ref": "Box top = 18648.25 (seen alignment); [02:00] 'stop loss was bob is foolish for all of her' read as 'stop loss was above this bullish FVG' (low confidence)"},
+      "target": {"value": 18617.0, "src": "inferred", "ref": "Tool label 'Target: 17.75 (0.10%) 71' seen (#22); 18634.75-17.75 = 18617.00 matches the blue 18617.00 axis label and the drawn line (#10, #31, #39)"},
+      "target_rule": {"value": "London-session low of 17 May (~04:20 ET) at 18617.00 as the draw on liquidity", "src": "inferred", "ref": "Line 18617.00 starts at the ~04:20 low (#2 5m, #31 15m); [01:30] 'capture ... down to this draw ... low' (heard, garbled)"},
+      "exit": {"value": "stopped at ~18648.25, ~10:20 ET (±1 min); low after entry ~18622 (±1) at ~10:11, about 5 pts short of target (MFE ~0.9R); target level 18617 was later taken ~12:40 and price reached 18575 by ~14:45", "src": "inferred", "ref": "#22 tool 'Closed P&L: -13.50' seen; exit time from box right edge / first 1m candle through 18648.25 (#11, #22); post-exit path from #34, #39, #31; [02:15]-[02:30] 'that did not end up happening ... stop ... it ended up going lower' heard"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Tool shows 'Qty: 0.07?' and 'Amount' fields (~660 / ~707): TradingView drawing settings, not broker size; contracts never stated legibly"},
+      "result": {"value": "loss", "src": "seen", "ref": "#22 position tool 'Closed P&L: -13.50'; also heard [00:00] 'i lost today'"},
+      "r_multiple": {"value": -1.0, "src": "computed", "ref": "(entry-exit)/(stop-entry) = (18634.75-18648.25)/13.50 = -1.0; planned R:R 17.75/13.50 = 1.31, tool label 'Risk/Reward Ratio: 1.31' seen (#22)"},
+      "claimed_pnl": {"value": "No dollar amount stated or shown; he says he lost. Drawing shows -13.50 pts.", "src": "heard", "ref": "[00:00] 'fact that i lost today'; #22 'Closed P&L: -13.50' is a drawing-tool label"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "Only a TradingView position-tool drawing; no broker/platform panel with fills or account P&L"},
+      "mistakes": [
+        {"value": "Forced the entry ('trying to find a reason to get into a trade') instead of letting price develop", "src": "heard", "ref": "[02:45] 'this is me trying to find a reason to get into a trade'; [03:00] 'i should've been ... kind of sit back and chill out a little bit see how the ... develop'"},
+        {"value": "Took a 1m entry mid-range after the open drop instead of waiting for price to return to the higher-timeframe grey zone (~18663-18688), which it did at ~10:40-10:58 before falling through the 18617 target", "src": "inferred", "ref": "#34 5m and #39 1m (crosshair 10:58 at the rejection from the zone); [03:15] 'see this fifteen minute time frame on him out so perfectly' (garbled) suggests he points to the 15m for the better entry"}
+      ],
+      "evidence_summary": "Seen: instrument, date, short direction, stop 13.50 / target 17.75 distances, R:R 1.31, closed P&L -13.50 (drawing only). Inferred: exact entry/stop/target prices (consistent to the tick with axis labels), times. Heard: 4h bearish bias, FVG-invalidation + BOS reason, self-critique."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "He was trying to find a reason to get into a trade", "src": "heard", "ref": "[02:45] 'this is me trying to find a reason to get into a trade'"},
+    {"value": "Should have sat back, chilled out and watched how price developed before entering", "src": "heard", "ref": "[03:00] 'i should've been ... kind of sit back and chill out a little bit see how'"},
+    {"value": "Better trade was on the 15m: after price returned into the grey zone (~18663-18688, ~10:40-10:58 ET) and was invalidated there, short with stops above (testable: entry on rejection from the zone, stop above ~18688, target 18617; target reached ~12:40)", "src": "inferred", "ref": "[03:15]-[03:30] 'see this fifteen minute time frame ... as well as invalidate this ... stops above' (garbled); charts #31 15m, #39 1m show the second rejection; levels estimated ±2 pts"},
+    {"value": "'So again, how can I trade this better' - framing of the recap as a review of a losing trade", "src": "heard", "ref": "[02:30] 'so again how can i trade is better'"}
+  ],
+  "quality_notes": "Transcript is very garbled; setup reasoning (bullish FVG invalidation, BOS, 15m better entry) is read with low confidence. Only a TradingView position drawing, no broker fills or account P&L, and no size. Entry/stop/target prices are derived from the tool's seen distances plus axis-label alignment; they agree to the tick. Times ±1-2 min from pixel positions; chart time zone assumed ET from the 09:30 session marker. The grey zone's type (4h FVG vs supply) and NQ vs MNQ are unknown."
+}
