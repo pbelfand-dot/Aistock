@@ -47,6 +47,10 @@ code changes.
     Add it to your Home Screen and it opens like an app. Keys and settings stay on the Mac.
 - **View → Show Demo Data** shows it with made-up prices right away.
 - **Setup** (the button) connects Alpaca, switches the autopilot and says what's next.
+- **Webull** (Setup → "Real money, Schwab, Webull and Claude"): paste the App Key and App Secret
+  from Webull's API Management page once Webull approves your application. Press **Test Webull**,
+  then approve Kestrel in the Webull app within 5 minutes. For now Kestrel only reads the account;
+  it doesn't trade at Webull.
 - **Kestrel → Setup Menu** (⌘,) opens the full Terminal menu (plans, real money, Schwab).
 
 ![The Kestrel app (demo data)](docs/dashboard.png)

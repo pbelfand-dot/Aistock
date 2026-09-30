@@ -419,7 +419,7 @@
     <p class="ink2" id="screen-link" hidden></p>
   </section>
   <details class="setup-more" id="setup-later">
-    <summary>Real money, Schwab and Claude (for later)</summary>
+    <summary>Real money, Schwab, Webull and Claude (for later)</summary>
     <section class="setup-step">
       <h4>Settings <span class="muted">(kept when the app updates)</span></h4>
       <div class="setup-grid">
@@ -454,6 +454,20 @@
       <label>The address you landed on<input id="sw-landed" spellcheck="false" placeholder="https://127.0.0.1:8182/?code=…"></label>
       <div class="setup-row"><button id="schwab-finish">Finish login</button><button id="schwab-test">Test Schwab</button></div>
       <ul class="checks" id="schwab-results" aria-live="polite"></ul>
+    </section>
+    <section class="setup-step">
+      <h4>Webull <span class="tag" id="webull-state"></span></h4>
+      <p class="ink2"><strong>1.</strong> On the Webull website: API Management → My Application → apply (Webull reviews it
+         in about 1–2 business days). <strong>2.</strong> Once approved: Generate Key (Webull texts you a code) and paste
+         the App Key and App Secret here. <strong>3.</strong> Test Webull, then approve Kestrel in the Webull app within
+         5 minutes. Kestrel only reads the account; it doesn't trade at Webull yet.</p>
+      <div class="setup-grid">
+        <label>App Key<input id="wb-key" autocomplete="off" spellcheck="false"></label>
+        <label>App Secret<input id="wb-secret" type="password" autocomplete="off"></label>
+        <label>Account ID (only if you have several)<input id="wb-acct" autocomplete="off" spellcheck="false"></label>
+      </div>
+      <div class="setup-row"><button id="save-webull">Save Webull keys</button><button id="webull-test">Test Webull</button></div>
+      <ul class="checks" id="webull-results" aria-live="polite"></ul>
     </section>
     <section class="setup-step">
       <h4>Alpaca real-money keys <span class="tag" id="live-state"></span></h4>
@@ -1049,6 +1063,10 @@ async function refreshSetup() {
     const sw = s.schwab;
     $("#schwab-state").textContent = !sw.keys ? "not set up" : sw.days_left == null ? "keys saved · not logged in"
       : sw.days_left <= 0 ? "login expired" : `logged in · ${sw.days_left.toFixed(1)} days left`;
+    const wb = s.webull || {};
+    $("#webull-state").textContent = !wb.keys ? "not set up" : wb.approval === "NORMAL" ? "connected · read-only"
+      : wb.approval === "PENDING" ? "keys saved · approve in the Webull app" : "keys saved · not tested";
+    $("#webull-test").disabled = !wb.keys;
     $("#live-state").textContent = s.live_keys ? (s.live_enabled ? "saved · real money switched ON" : "saved") : "none";
     return s;
   } catch (e) { $("#next-steps").textContent = e.message; return null; }
@@ -1129,6 +1147,38 @@ $("#schwab-login").onclick = (e) => setupAction(e.target, "schwab-login-start", 
 $("#schwab-finish").onclick = (e) => setupAction(e.target, "schwab-login-finish", { url: $("#sw-landed").value },
   async (r) => { $("#sw-landed").value = ""; schwabChecks([{ ok: true, text: r.message }]); });
 $("#schwab-test").onclick = (e) => setupAction(e.target, "check-schwab", undefined, async (r) => schwabChecks([r]));
+const webullChecks = (items) => $("#webull-results").replaceChildren(...items.map(c => el("li", {},
+  el("span", { class: c.ok == null ? "muted" : c.ok ? "ok" : "bad", text: c.ok == null ? "…" : c.ok ? "✓" : "✗" }), c.text)));
+let webullWait = null;
+async function testWebull() {
+  clearTimeout(webullWait);
+  webullChecks([{ ok: null, text: "Asking Webull…" }]);
+  let r;
+  try { r = await setupCall("check-webull", { input: "{}" }); } catch (e) { r = { ok: false, text: e.message }; }
+  webullChecks([r.waiting ? { ok: null, text: r.text } : r]);
+  if (!r.waiting) return;
+  const until = Date.now() + 5 * 60 * 1000;             // Webull allows 5 minutes to approve
+  const poll = async () => {
+    try { r = await setupCall("check-webull", { input: JSON.stringify({ poll: true }) }); }
+    catch (e) { r = { ok: null, waiting: true, text: e.message }; }
+    const left = Math.max(0, Math.round((until - Date.now()) / 1000));
+    if (r.waiting && left > 0) {
+      webullChecks([{ ok: null, text: `${r.text} (${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")} left)` }]);
+      webullWait = setTimeout(poll, 10000);
+    } else {
+      webullChecks([r.waiting ? { ok: false, text: "No approval in 5 minutes. Press Test Webull to try again." } : r]);
+      refreshSetup();
+    }
+  };
+  webullWait = setTimeout(poll, 10000);
+}
+$("#save-webull").onclick = (e) => {
+  const app_key = $("#wb-key").value.trim(), app_secret = $("#wb-secret").value.trim();
+  if (!app_key || !app_secret) { webullChecks([{ ok: false, text: "Paste both the App Key and the App Secret." }]); return; }
+  setupAction(e.target, "save-webull-keys", { app_key, app_secret, account_id: $("#wb-acct").value.trim() },
+    async (r) => { $("#wb-key").value = ""; $("#wb-secret").value = ""; notify(r.message); testWebull(); });
+};
+$("#webull-test").onclick = testWebull;
 $("#save-live").onclick = (e) => setupAction(e.target, "save-live-keys", {
   key_id: $("#live-key").value, secret: $("#live-secret").value },
   async (r) => { $("#live-key").value = ""; $("#live-secret").value = ""; notify(r.message); });

@@ -74,17 +74,23 @@ SPY, buying SPY is the better deal.
 5. **Setup → 2. Autopilot → Turn on.** Done: it studies every trading day, starts when you log
    in, and restarts itself if it crashes (closing the app doesn't stop it).
 6. **Setup → 3. What happens next** tells each desk's step in plain English.
-7. **Later, when you're ready:** **Setup → Real money, Schwab and Claude.**
+7. **Later, when you're ready:** **Setup → Real money, Schwab, Webull and Claude.**
    - **Settings:** which broker gets real money, the most real money it may use (e.g. $50), the
      account type, and the paper amount. They're kept when the app updates.
    - **Charles Schwab:** paste the App Key, the Secret and the callback address, then **Open Schwab
      login**. Sign in, then paste the address your browser lands on (that page won't load; that's
      expected). Log in again at least once a week: Schwab's limit is 7 days.
+   - **Webull:** apply on the Webull website (API Management → My Application; Webull reviews it in
+     about 1–2 business days). Once approved, Generate Key and paste the App Key and App Secret. Press
+     **Test Webull**, then approve Kestrel in the Webull app within 5 minutes (Menu → Messages →
+     OpenAPI Notifications → Check Now → the text-message code). The autopilot uses that approval each
+     morning so it doesn't lapse (Webull drops it after 15 unused days). For now Kestrel only reads the
+     Webull account; it doesn't trade there.
    - **Alpaca real-money keys:** saving them turns nothing on.
    - **Connect Claude** (Code or Desktop).
 
 **Where your keys live:** `~/AITrader/.env`, on your Mac only. Updates never touch it. The same goes
-for your Setup settings (`~/AITrader/my_settings.json`) and your Schwab login (`~/AITrader/data/`).
+for your Setup settings (`~/AITrader/my_settings.json`) and your Schwab and Webull logins (`~/AITrader/data/`).
 Only deleting the AITrader folder removes them.
 
 **It scans all US stocks every day, and reads the news.**

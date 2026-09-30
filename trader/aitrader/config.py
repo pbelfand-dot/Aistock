@@ -2,7 +2,7 @@
 config.py: loads your settings.
 
   config.yaml  normal settings (safe to share)
-  .env         secrets (Schwab keys), never shared or committed
+  .env         secrets (Alpaca, Schwab and Webull keys), never shared or committed
   my_settings.json  the settings you change in the app (kept across updates; see user_settings.py)
 """
 import os
@@ -31,6 +31,9 @@ def load_config(path=None) -> dict:
         "app_secret": os.environ.get("SCHWAB_APP_SECRET", ""),
         "callback_url": os.environ.get("SCHWAB_CALLBACK_URL", "https://127.0.0.1:8182"),
         "account_number": os.environ.get("SCHWAB_ACCOUNT_NUMBER", ""),
+        "webull_app_key": os.environ.get("WEBULL_APP_KEY", ""),          # Webull (webull_api.py; read-only for now)
+        "webull_app_secret": os.environ.get("WEBULL_APP_SECRET", ""),
+        "webull_account_id": os.environ.get("WEBULL_ACCOUNT_ID", ""),
         "telegram_token": os.environ.get("TELEGRAM_BOT_TOKEN", ""),      # phone alerts (phone.py)
         "telegram_chat": os.environ.get("TELEGRAM_CHAT_ID", ""),
     }
