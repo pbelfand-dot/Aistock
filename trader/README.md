@@ -63,6 +63,30 @@ closed trades, the desk made money, won at least 1.2× what it lost, never dropp
 5. **Setup → 2. Autopilot → Turn on.** Done: it studies every trading day, starts when you log
    in, and restarts itself if it crashes (closing the app doesn't stop it).
 6. **Setup → 3. What happens next** tells each desk's step in plain English.
+7. **Later, when you're ready:** **Setup → Real money, Schwab and Claude.**
+   - **Settings:** which broker gets real money, the most real money it may use (e.g. $50), the
+     account type, and the paper amount. They're kept when the app updates.
+   - **Charles Schwab:** paste the App Key, the Secret and the callback address, then **Open Schwab
+     login**. Sign in, then paste the address your browser lands on (that page won't load; that's
+     expected). Log in again at least once a week: Schwab's limit is 7 days.
+   - **Alpaca real-money keys:** saving them turns nothing on.
+   - **Connect Claude** (Code or Desktop).
+
+**Where your keys live:** `~/AITrader/.env`, on your Mac only. Updates never touch it. The same goes
+for your Setup settings (`~/AITrader/my_settings.json`) and your Schwab login (`~/AITrader/data/`).
+Only deleting the AITrader folder removes them.
+
+**Good faith violations (cash accounts, e.g. Schwab).** Buying with money from a sale that hasn't
+settled yet, then selling before it settles, is a good faith violation. Three in 12 months and Schwab
+limits the account to settled cash for 90 days. So in a cash account the bot **only ever spends
+settled money**:
+- Sale money settles one business day later (T+1). Bank holidays like Columbus Day and Veterans Day
+  don't count as business days.
+- Any position that was somehow bought with unsettled money is held until that money settles. Only
+  your typed emergency stop may sell it early, and that's counted and shown in Setup.
+- Paper trading follows the same rules, so the paper results match what real money would do.
+- Schwab counts as a cash account unless you set Margin. Alpaca covers unsettled money itself, so
+  violations don't apply there.
 
 Your files live in **~/AITrader** (your home folder): `.env` = keys, `config.yaml` = settings,
 `data/` = the bot's memory, plans and logs (`data/autopilot.log`).

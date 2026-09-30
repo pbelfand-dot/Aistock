@@ -22,9 +22,10 @@ paper:
 
 live:
   max_capital: 1000        # the bot NEVER uses more than this, whatever else is in your account
-  account_type: margin     # Alpaca accounts are all "margin" type, but under $2,000 they can't
-                           # borrow, and sale money is usable right away. The bot never borrows either
-                           # way. Use "cash" for a Schwab cash account (no re-spending same-day sale money).
+  account_type: auto       # auto = Schwab: cash rules, Alpaca: margin. "cash": only SETTLED money is spent
+                           # (T+1, bank holidays counted), so there are never good faith violations.
+                           # "margin": Alpaca under $2,000 can't borrow, and it covers unsettled money itself.
+                           # The bot never borrows either way.
   limit_buffer_pct: 0.2    # limit orders at quote +/- 0.2%: they fill, but never at crazy prices
   fill_timeout_seconds: 60 # cancel an order if it isn't filled in time
   resting_stops: true      # ALSO leave a stop-loss order sitting at Schwab, so a sleeping or

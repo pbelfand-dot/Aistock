@@ -62,8 +62,9 @@ class SchwabGateway:
 
     def cash(self) -> float:
         bal = self._account().get("currentBalances", {})
-        if "cashAvailableForTrading" in bal:                        # cash accounts
-            return float(bal["cashAvailableForTrading"])
+        if "cashAvailableForTrading" in bal:                        # cash accounts: SETTLED money only
+            unsettled = float(bal.get("unsettledCash") or 0)       # (spending it risks a good faith violation)
+            return max(0.0, float(bal["cashAvailableForTrading"]) - unsettled)
         if "cashBalance" in bal and "availableFunds" in bal:        # margin accounts: no borrowing
             return min(float(bal["cashBalance"]), float(bal["availableFunds"]))
         raise RuntimeError("couldn't find the available-cash field in Schwab's reply")

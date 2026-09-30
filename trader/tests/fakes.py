@@ -198,7 +198,7 @@ def make_broker(client, cash=1000, **kw):
     kw.setdefault("stop_loss_pct", 7)
     kw.setdefault("fill_timeout_seconds", 0)
     recorded = []
-    common = dict(cash_account=False, poll_seconds=0, log=lambda m: None, on_fill=recorded.append, **kw)
+    common = {**dict(cash_account=False, poll_seconds=0, log=lambda m: None, on_fill=recorded.append), **kw}
     if isinstance(client, FakeSchwab):
         broker = SchwabBroker(Ledger(cash), client, HASH, **common)
     else:

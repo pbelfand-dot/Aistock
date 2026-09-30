@@ -15,6 +15,12 @@ directly, like any Mac app runs a helper program.
   check-keys                                 tests the Alpaca paper keys and the price data
   autopilot-on / autopilot-off               the background autopilot (starts at login, restarts itself)
   resume                                     un-pause the desks (not while an emergency exit is still selling)
+  save-settings < {name: value}              broker, real-money cap, account type, paper money (kept on updates)
+  save-live-keys < {"key_id", "secret"}      Alpaca LIVE keys (saving them never turns real money on)
+  save-schwab-keys < {"app_key", ...}        Schwab app key/secret, callback address, account number
+  schwab-login-start / schwab-login-finish   log in to Schwab: open the page, then paste the address you land on
+  check-schwab                               tests the Schwab login (read-only)
+  connect-claude < {"which": "code"|"desktop"}  lets Claude see the bot (and Schwab, read-only)
 
 --demo works on the demo folder (data/demo) instead of your real data.
 """
@@ -61,6 +67,8 @@ def real_money_status(cfg, store) -> dict:
 
 # ---------------------------------------------------------------- the Setup screen
 PAPER_KEYS = ("ALPACA_PAPER_API_KEY", "ALPACA_PAPER_SECRET_KEY")
+STDIN_ACTIONS = {"save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
+                 "connect-claude"}                     # these read their details from stdin (never argv)
 
 NEXT_STEP = {
     "STUDY": "Studying: the bot watches the market and grades its strategies with no money involved. "
@@ -93,6 +101,79 @@ def write_env(path, updates: dict):
     tmp.write_text("\n".join(out) + "\n")
     os.chmod(tmp, 0o600)
     tmp.replace(path)
+
+
+LIVE_KEYS = ("ALPACA_LIVE_API_KEY", "ALPACA_LIVE_SECRET_KEY")
+SCHWAB_KEYS = ("SCHWAB_APP_KEY", "SCHWAB_APP_SECRET", "SCHWAB_CALLBACK_URL", "SCHWAB_ACCOUNT_NUMBER")
+
+
+def _key(value, what: str, pattern=r"[A-Za-z0-9]{10,64}") -> str:
+    value = str(value or "").strip()
+    if not re.fullmatch(pattern, value):
+        raise ValueError(f"That {what} doesn't look right: copy the whole thing (no spaces).")
+    return value
+
+
+def save_live_keys(payload: dict) -> dict:
+    key_id = _key(payload.get("key_id"), "live key ID")
+    secret = _key(payload.get("secret"), "live secret", r"[A-Za-z0-9/+=_-]{20,128}")
+    if key_id.upper().startswith("PK"):
+        raise ValueError("That's a PAPER key. Real-money keys come from Alpaca's live account (they start with AK).")
+    write_env(env_file(), dict(zip(LIVE_KEYS, (key_id, secret))))
+    restart_autopilot()
+    return {"message": "Real-money keys saved on this Mac only. Nothing trades real money until a desk earns it "
+                       "AND you switch it on in the full Setup menu with a typed confirmation."}
+
+
+def save_schwab_keys(payload: dict) -> dict:
+    app_key = _key(payload.get("app_key"), "Schwab App Key", r"[A-Za-z0-9]{16,64}")
+    secret = _key(payload.get("app_secret"), "Schwab Secret", r"[A-Za-z0-9]{8,64}")
+    callback = str(payload.get("callback_url") or "https://127.0.0.1:8182").strip()
+    if not re.fullmatch(r"https://[^\s]+", callback) or callback.endswith("/"):
+        raise ValueError("The callback address must match your Schwab app EXACTLY, e.g. https://127.0.0.1:8182 "
+                         "(https, no slash at the end).")
+    account = str(payload.get("account_number") or "").strip()
+    if account and not re.fullmatch(r"\d{6,12}", account):
+        raise ValueError("The account number is digits only (leave it empty if you have one Schwab account).")
+    write_env(env_file(), dict(zip(SCHWAB_KEYS, (app_key, secret, callback, account))))
+    restart_autopilot()
+    return {"message": "Schwab keys saved on this Mac only. Next: Open Schwab login."}
+
+
+def check_schwab(cfg) -> dict:
+    from .brokers.schwab_broker import SchwabGateway
+    from .schwab_api import account_hash, get_client, token_days_left
+    try:
+        client = get_client(cfg)
+        gateway = SchwabGateway(client, account_hash(client, cfg["secrets"]["account_number"]))
+        left = token_days_left(cfg)
+        return {"ok": True, "text": f"Schwab: connected. Settled cash ${gateway.cash():,.2f}. "
+                                    f"Log in again within {left:.1f} days."}
+    except Exception as e:
+        return {"ok": False, "text": f"Schwab: {e}"}
+
+
+def connect_claude(which: str) -> dict:
+    from .claude_setup import connect_claude_code, connect_claude_desktop
+    from .config import ROOT
+    if which not in ("code", "desktop"):
+        raise ValueError("Pick Claude Code or Claude Desktop.")
+    text = connect_claude_code(ROOT) if which == "code" else connect_claude_desktop(ROOT)
+    return {"message": text}
+
+
+def gfv_status(cfg, store) -> dict:
+    """Good faith violations in the last 12 months (real-money ledgers), and whether cash rules are on."""
+    from datetime import date
+    from .brokers.base import GFV_LIMIT, Ledger
+    from .config import is_cash_account
+    today = date.today().isoformat()
+    count = 0
+    for desk in cfg["desks"]:
+        saved = store.get(f"live-{desk}_ledger")
+        if saved:
+            count += Ledger.from_dict(saved).gfv_count(today)
+    return {"cash_rules": is_cash_account(cfg), "violations": count, "limit": GFV_LIMIT}
 
 
 def save_keys(payload: dict) -> dict:
@@ -166,7 +247,15 @@ def setup_status(cfg, store) -> dict:
                         else f"; still needed: {', '.join(progress['missing'])}."))
         desks.append({"desk": desk, "phase": phase, "halted": bool(store.get(f"halted:{desk}")),
                       "exiting": bool(store.get(f"exiting:{desk}")), "next": text})
+    from . import user_settings
+    from .schwab_api import token_days_left
+    secrets = cfg["secrets"]
     return {"paper_keys": has_keys(cfg, True), "live_keys": has_keys(cfg, False),
+            "live_enabled": bool(cfg.get("live_trading_enabled")), "settings": user_settings.current(cfg),
+            "schwab": {"keys": bool(secrets["app_key"] and secrets["app_secret"]),
+                       "days_left": token_days_left(cfg), "callback_url": secrets["callback_url"],
+                       "account_number": bool(secrets["account_number"])},
+            "gfv": gfv_status(cfg, store),
             "prices_from": data_source(cfg), "paper_at": "Alpaca paper account" if uses_broker_paper(cfg)
             else "simulated on this Mac", "autopilot_on": mac_service.is_running(),
             "autopilot_seen": store.get("autopilot_heartbeat"), "can_autopilot": sys.platform == "darwin",
@@ -184,6 +273,27 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         return save_keys(payload or {})
     if action == "check-keys":
         return check_keys(cfg)
+    if action == "save-settings":
+        from . import user_settings
+        saved = user_settings.save(payload or {})
+        restart_autopilot()
+        return {"message": "Settings saved (they stay when the app updates).", "settings": saved}
+    if action == "save-live-keys":
+        return save_live_keys(payload or {})
+    if action == "save-schwab-keys":
+        return save_schwab_keys(payload or {})
+    if action == "schwab-login-start":
+        from .schwab_api import login_start
+        return {"url": login_start(cfg)}
+    if action == "schwab-login-finish":
+        from .schwab_api import login_finish
+        left = login_finish(cfg, str((payload or {}).get("url", "")))
+        restart_autopilot()
+        return {"message": f"Logged in to Schwab. The login lasts {left:.0f} days; log in again before then."}
+    if action == "check-schwab":
+        return check_schwab(cfg)
+    if action == "connect-claude":
+        return connect_claude(str((payload or {}).get("which", "")))
     if action in ("autopilot-on", "autopilot-off"):
         from . import mac_service
         from .config import ROOT
@@ -229,15 +339,17 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="python -m aitrader.app_api")
-    parser.add_argument("action", choices=["snapshot", "pause", "kill", "demo-build", "update-policy", "setup-status",
-                                           "save-keys", "check-keys", "autopilot-on", "autopilot-off", "resume"])
+    parser.add_argument("action", choices=[
+        "snapshot", "pause", "kill", "demo-build", "update-policy", "setup-status", "save-keys", "check-keys",
+        "autopilot-on", "autopilot-off", "resume", "save-settings", "save-live-keys", "save-schwab-keys",
+        "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude"])
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)
     out = sys.stdout
     try:
         with contextlib.redirect_stdout(sys.stderr):    # the bot's own messages must not mix into the JSON
-            payload = json.loads(sys.stdin.read() or "{}") if args.action == "save-keys" else None
+            payload = json.loads(sys.stdin.read() or "{}") if args.action in STDIN_ACTIONS else None
             result = handle(args.action, load_config(), args.demo, args.confirm, payload)
     except Exception as e:
         result = {"error": str(e) or type(e).__name__}
