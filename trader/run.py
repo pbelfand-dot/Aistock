@@ -387,7 +387,7 @@ def schwab_login_warning(cfg):
 
 
 # ================================================================ autopilot
-ONCE_A_DAY = ("morning", "swing", "study", "options", "report")
+ONCE_A_DAY = ("morning", "swing", "study", "options", "tjr", "report")
 
 
 def due_jobs(now: datetime, done: set) -> list:
@@ -409,6 +409,8 @@ def due_jobs(now: datetime, done: set) -> list:
         jobs.append("study")
     if now >= after_close + timedelta(minutes=5) and f"options:{today}" not in done:
         jobs.append("options")                               # the options-gap watcher (options_flow.py)
+    if now >= after_close + timedelta(minutes=5) and f"study:{today}" in done and f"tjr:{today}" not in done:
+        jobs.append("tjr")                                   # TJR's weekly history test (tjr.py)
     if now >= after_close + timedelta(minutes=10) and f"scan:{today}" not in done:
         jobs.append("scan")                                  # the daily all-stocks scan and news (scanner.py)
     if (now >= after_close + timedelta(minutes=15) and f"study:{today}" in done
@@ -492,6 +494,8 @@ def run_job(job, cfg, store, data, now, done) -> str:
             raise RuntimeError("study incomplete")      # not marked done, so it retries in 5 minutes
         report_days(cfg, store, today)
         return "study done for today"
+    if job == "tjr":
+        return run_tjr_test(cfg, store, data, today)
     if job == "options":
         from aitrader.options_flow import run as watch_options
         return watch_options(cfg, store, data, today)
@@ -934,6 +938,55 @@ def start_stage1(cfg, store) -> str:
     return (f"Stage 1 started: the {desk} desk paper trades the {plan['strategy']} method with "
             f"${plan['capital']:,.0f} of pretend money for {days} trading days. It decides 15 minutes "
             "before each close, so keep the autopilot on. Nothing uses real money.")
+
+
+TJR_TEST_EVERY_DAYS = 7
+
+
+def run_tjr_test(cfg, store, data, today: str, force: bool = False) -> str:
+    """TJR's history test on the day desk's 5-minute data (tjr.py), about once a week."""
+    from aitrader.tjr import history_test
+    last = store.get("tjr_history_test") or {}
+    if not force and last.get("ran_on") and \
+            (pd.Timestamp(today) - pd.Timestamp(last["ran_on"])).days < TJR_TEST_EVERY_DAYS:
+        return "TJR test: done this week"
+    bars, market = data.load("day")
+    if not bars:
+        return "TJR test: no 5-minute data yet"
+    result = history_test(cfg, bars, market)
+    result["ran_on"] = today
+    store.set("tjr_history_test", result)
+    t = result["tjr"]
+    store.log(f"TJR history test ({result['days']} trading days of 5-minute data): {t.get('num_closed_trades')} "
+              f"trades, profit factor {t.get('profit_factor')}, return {t.get('total_return_pct')}%: "
+              + ("PASSED. Stage 2 can start (Setup)." if result["passed"] else
+                 "not passed yet (" + "; ".join(result["why_not"]) + ")."))
+    return "TJR test: " + ("passed" if result["passed"] else "not passed")
+
+
+def start_stage2(cfg, store) -> str:
+    """Stage 2 of your plan: the day desk paper trades TJR's model, once its history test has passed.
+    Stage 1 keeps running on the swing desk. Pretend money only."""
+    from aitrader.planner import STAGE2_DESK, stage2_plan
+    desk = STAGE2_DESK
+    test = store.get("tjr_history_test") or {}
+    if not test.get("passed"):
+        why = "; ".join(test.get("why_not") or ["it hasn't run yet (the autopilot runs it after a close)"])
+        raise ValueError(f"TJR's model hasn't passed its history test: {why}.")
+    phase = current_phase(store, desk)
+    if phase == Phase.PAPER:
+        raise ValueError(f"The {desk} desk is already paper trading (since {store.get(f'{desk}_paper_started_on')}).")
+    if phase == Phase.LIVE:
+        raise ValueError(f"The {desk} desk is trading real money; Stage 2 is paper only.")
+    with trading_lock(cfg):
+        stage2_plan(cfg, test)
+        close_in_head(cfg, store, desk)
+        reset_paper(store, desk)
+        store.set(f"lessons:{desk}", None)
+        store.set("stage2", True)
+        set_phase(store, desk, Phase.PAPER, "Stage 2 started by you")
+    return (f"Stage 2 started: the {desk} desk paper trades TJR's model with pretend money, 9:35-11:30am, and "
+            "sells everything before the close. Stage 1 keeps running on the swing desk. Nothing uses real money.")
 
 
 def cmd_start_stage1(cfg, store, args):

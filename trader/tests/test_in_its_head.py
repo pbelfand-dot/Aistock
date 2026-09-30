@@ -34,6 +34,7 @@ def test_each_trade_shows_what_it_spent_what_it_got_back_and_win_or_loss():
 
 def test_while_studying_both_desks_trade_in_their_head_and_report_it(cfg, tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(run, "MarketData", FakeData)
+    cfg["study"]["in_its_head_strategy"]["day"] = "opening_range_breakout"   # trades on random prices; TJR rarely does
     store = Store(tmp_path / "aitrader.sqlite")
     data = FakeData()
     days = FakeData.intraday[1].index.normalize().unique()
@@ -134,7 +135,7 @@ def test_right_now_says_whether_it_is_testing_and_what_each_desk_is_doing(cfg, t
     r = dashboard._right_now(cfg, store, at(9, 37))
     assert r["ok"] and r["headline"].startswith("Testing now")
     day, swing = [l for l in r["lines"] if l.startswith("Day")][0], [l for l in r["lines"] if l.startswith("Swing")][0]
-    assert "in its head" in day and "first trade is possible after 10:00am" in day
+    assert "in its head" in day and "watching for TJR's setup" in day and "9:35-11:30am" in day
     assert "decides at 3:45pm" in swing
 
     store.set("autopilot_heartbeat", at(11, 0).isoformat())

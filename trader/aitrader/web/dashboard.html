@@ -369,6 +369,17 @@
   <div class="dlg-actions"><button data-close>Cancel</button><button class="primary blue" id="do-stage1">Start Stage 1</button></div>
 </dialog>
 
+<dialog id="dlg-stage2" aria-labelledby="stage2-title">
+  <h3 id="stage2-title">Start Stage 2?</h3>
+  <p class="ink2">The day desk starts paper trading <strong>TJR's model</strong> with <strong>pretend money</strong>:
+     while a stock's hourly trend is up, it waits for price to sweep below a low where stops sit, break back
+     above the last swing high, and pull back into the gap that move left. Buys 9:35-11:30am, stop just below
+     the sweep, target twice the risk, one trade per stock a day, everything sold before the close.</p>
+  <p class="ink2" id="stage2-evidence"></p>
+  <p class="ink2">Stage 1 keeps running on the swing desk. Loss limits, the kill switch and good faith rules all apply.</p>
+  <div class="dlg-actions"><button data-close>Cancel</button><button class="primary blue" id="do-stage2">Start Stage 2</button></div>
+</dialog>
+
 <dialog id="dlg-setup" class="setup" aria-labelledby="setup-title">
   <div class="setup-head"><h3 id="setup-title">Setup</h3><span class="muted" id="setup-version"></span></div>
   <section class="setup-step">
@@ -398,7 +409,10 @@
   <section class="setup-step">
     <h4><span class="num">3</span> What happens next <span class="tag" id="stage-state" hidden></span></h4>
     <div id="next-steps" class="ink2"></div>
+    <p class="ink2" id="tjr-line" hidden></p>
     <div class="setup-row"><button class="primary" id="stage1" hidden>Start Stage 1 paper trading</button>
+      <button class="primary" id="stage2" hidden>Start Stage 2 (TJR) paper trading</button>
+      <button id="tjr-test" hidden>Test TJR's model now</button>
       <button id="resume" hidden>Resume trading</button></div>
   </section>
   <section class="setup-step">
@@ -935,8 +949,26 @@ function optionsGapCard(g) {                             // options_flow.py: wat
       el("thead", {}, el("tr", {}, ["Gap", "Graded", "Right %", "Avg vs market", "Waiting", "Verdict"].map((h, i) => el("th", { class: i && i < 5 ? "num" : null, text: h })))),
       el("tbody", {}, scoreRow("bullish"), scoreRow("bearish")))));
 }
+function tjrCard(t) {                                    // tjr.py: TJR's model, tested on this Mac's 5-minute data
+  const head = el("div", { class: "card-head" }, el("h2", { text: "TJR's model (Stage 2)" }),
+    el("span", { class: "muted", text: t && t.ran_on ? `history test · ${t.ran_on}` : "history test" }));
+  const about = el("p", { class: "ink2", style: "font-size:13px;margin:0 0 8px", text: "Sweep below a low → break back above the last swing high → buy the pullback into the gap, 9:35-11:30am, only with the hourly trend up; stop below the sweep, target 2× the risk. Tested once a week on the day desk's own 5-minute history against random buys with the same stop and target. It paper trades only after it passes." });
+  if (!t || !t.ran_on) return el("div", { class: "card", style: "margin-bottom:16px" }, head, about,
+    el("div", { class: "empty", text: "Not tested yet: it runs after a close (or Setup → Test TJR's model now). Meanwhile the day desk practices it in its head (Trades tab)." }));
+  const row = (name, r) => el("tr", {}, el("td", { class: "sym", text: name }), el("td", { class: "num", text: r.num_closed_trades ?? "--" }),
+    el("td", { class: "num", text: r.win_rate_pct == null ? "--" : plain(r.win_rate_pct, 0) }),
+    el("td", { class: "num", text: r.profit_factor == null ? "--" : plain(r.profit_factor) }),
+    el("td", { class: "num " + dir(r.total_return_pct), text: r.total_return_pct == null ? "--" : pct(r.total_return_pct) }),
+    el("td", { class: "num", text: r.max_drawdown_pct == null ? "--" : plain(r.max_drawdown_pct) }));
+  return el("div", { class: "card", style: "margin-bottom:16px" }, head, about,
+    el("p", { style: "font-size:13px;margin:0 0 8px" }, el("strong", { text: t.passed ? "✓ Passed: Stage 2 can start (Setup). " : "Not passed yet: " }),
+      t.passed ? `${t.days} trading days, ${t.tickers} stocks.` : (t.why_not || []).join("; ") + "."),
+    el("div", { class: "table-scroll" }, el("table", {},
+      el("thead", {}, el("tr", {}, ["", "Trades", "Win %", "Profit factor", "Return", "Worst drop %"].map((h, i) => el("th", { class: i ? "num" : null, text: h })))),
+      el("tbody", {}, row("TJR's model", t.tjr || {}), row("Random buys (same stop/target)", t.placebo || {})))));
+}
 function renderResearch(s) {
-  $("#research").replaceChildren(scanCard(s.scan), optionsGapCard(s.options_gap), ...s.desks.map(d => {
+  $("#research").replaceChildren(scanCard(s.scan), tjrCard(s.tjr_test), optionsGapCard(s.options_gap), ...s.desks.map(d => {
     const study = d.study || [], plan = d.plan;
     const cols = study.length ? Object.keys(study[0]) : [];
     const whole = new Set(["signals", "trading_days", "num_closed_trades"]);
@@ -1067,8 +1099,17 @@ async function refreshSetup() {
     $("#resume").hidden = !s.desks.some(d => d.halted);
     const st = s.stage1 || {};
     $("#stage1").hidden = !st.can_start;
-    $("#stage-state").textContent = st.running_since ? `Stage 1 · ${st.trading_days} of ${st.days_needed} days` : "";
-    $("#stage-state").hidden = !st.running_since;
+    const s2 = s.stage2 || {}, t2 = s2.test || {};
+    $("#stage-state").textContent = [st.running_since ? `Stage 1 · ${st.trading_days} of ${st.days_needed} days` : "",
+      s2.running_since ? `Stage 2 · ${s2.trading_days} of ${st.days_needed} days` : ""].filter(Boolean).join("  ·  ");
+    $("#stage-state").hidden = !(st.running_since || s2.running_since);
+    $("#stage2").hidden = !s2.can_start;
+    $("#tjr-test").hidden = !!s2.running_since;
+    $("#tjr-line").hidden = !!s2.running_since;
+    $("#tjr-line").textContent = !t2.ran_on ? "Stage 2 (TJR's model): its history test runs after a close (or test it now). It must pass before it can paper trade."
+      : t2.passed ? `Stage 2 (TJR's model): passed its history test on ${t2.ran_on} (${t2.tjr.num_closed_trades} trades, profit factor ${t2.tjr.profit_factor}). You can start it.`
+      : `Stage 2 (TJR's model): not passed yet (${t2.ran_on}): ${(t2.why_not || []).join("; ")}. The day desk keeps practicing it in its head.`;
+    $("#stage2-evidence").textContent = t2.ran_on ? `History test on this Mac's 5-minute data (${t2.days} trading days, ${t2.tickers} stocks): ${t2.tjr.num_closed_trades} trades, win rate ${t2.tjr.win_rate_pct}%, profit factor ${t2.tjr.profit_factor}, return ${t2.tjr.total_return_pct}%. Random buys with the same stop and target: profit factor ${t2.placebo.profit_factor}. A pass means worth paper trading, not proof.` : "";
     const g = s.gfv;
     $("#gfv-state").textContent = g.cash_rules ? `on · ${g.violations} of ${g.limit}` : "not needed";
     $("#gfv-text").textContent = g.cash_rules
@@ -1122,6 +1163,15 @@ async function testKeys() {
   catch (e) { showChecks([{ ok: false, text: e.message }]); }
 }
 $("#stage1").onclick = () => $("#dlg-stage1").showModal();
+$("#stage2").onclick = () => $("#dlg-stage2").showModal();
+$("#do-stage2").onclick = async () => {
+  $("#do-stage2").disabled = true;
+  try { notify((await setupCall("start-stage2")).message); } catch (e) { notify(e.message, true); }
+  $("#do-stage2").disabled = false; $("#dlg-stage2").close();
+  await refreshSetup(); load();
+};
+$("#tjr-test").onclick = (e) => { notify("Testing TJR's model on this Mac's 5-minute history: about a minute or two…");
+  setupAction(e.target, "tjr-test"); };
 $("#do-stage1").onclick = async () => {
   $("#do-stage1").disabled = true;
   try { notify((await setupCall("start-stage1")).message); } catch (e) { notify(e.message, true); }

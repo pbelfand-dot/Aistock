@@ -93,7 +93,9 @@ study:
   # While a desk studies it also trades "in its head": pretend money, simulated on this Mac, the
   # same rules as paper trading. Every trade and the daily results show up in the app (Trades tab).
   in_its_head: true
-  in_its_head_strategy: {swing: momentum, day: opening_range_breakout}
+  # The day desk practices TJR's model (Stage 2, tjr.py) in its head; the study still compares it with
+  # the other day methods, and a weekly history test decides if it may paper trade.
+  in_its_head_strategy: {swing: momentum, day: tjr_model}
 
 # ---- The local AI model (one per desk) -------------------------------------
 ai:

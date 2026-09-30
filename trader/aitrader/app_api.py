@@ -24,6 +24,8 @@ directly, like any Mac app runs a helper program.
   check-webull < {"poll": bool}              tests Webull (read-only); asks for the in-app approval if needed
   connect-claude < {"which": "code"|"desktop"}  lets Claude see the bot (and Schwab, read-only)
   start-stage1                               Stage 1: the swing desk paper trades momentum now (pretend money)
+  start-stage2                               Stage 2: the day desk paper trades TJR's model (after its history test)
+  tjr-test                                   runs TJR's history test now (a minute or two)
   save-phone < {"token": ..}                 your phone: a private Telegram bot for alerts and commands (phone.py)
   phone-test                                 sends your phone a test message
   phone-screen-send                          sends your phone the link to the Kestrel screen (Tailscale)
@@ -364,7 +366,30 @@ def setup_status(cfg, store) -> dict:
             else "simulated on this Mac", "autopilot_on": service["on"], "autopilot_alive": service["running"],
             "autopilot_problem": autopilot_problem(store),
             "autopilot_seen": store.get("autopilot_heartbeat"), "can_autopilot": sys.platform == "darwin",
-            "desks": desks, "stage1": stage1, "phone": phone_status(cfg), "lid": lid_status()}
+            "desks": desks, "stage1": stage1, "stage2": stage2_status(store), "phone": phone_status(cfg),
+            "lid": lid_status()}
+
+
+def tjr_status(store) -> dict:
+    """TJR's latest history test, small enough for the app."""
+    t = store.get("tjr_history_test") or {}
+    if not t:
+        return {}
+    pick = lambda r: {k: r.get(k) for k in ("num_closed_trades", "win_rate_pct", "profit_factor",
+                                            "total_return_pct", "max_drawdown_pct")}
+    return {"ran_on": t.get("ran_on"), "passed": t.get("passed"), "why_not": t.get("why_not"), "days": t.get("days"),
+            "tickers": len(t.get("tickers") or []), "tjr": pick(t.get("tjr") or {}), "placebo": pick(t.get("placebo") or {})}
+
+
+def stage2_status(store) -> dict:
+    from .phases import current_phase
+    from .planner import STAGE2_DESK
+    phase = current_phase(store, STAGE2_DESK).value
+    test = tjr_status(store)
+    running = phase == "PAPER" and bool(store.get("stage2"))
+    return {"desk": STAGE2_DESK, "test": test, "running_since": store.get(f"{STAGE2_DESK}_paper_started_on") if running else None,
+            "can_start": phase in ("STUDY", "PLAN_REVIEW") and bool(test.get("passed")),
+            "trading_days": len(store.equity_curve(f"paper-{STAGE2_DESK}")) if running else 0}
 
 
 def lid_status() -> dict:
@@ -487,6 +512,16 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         if action == "start-stage1":
             import run                                  # run.py, next to the aitrader folder
             return {"message": run.start_stage1(cfg, store)}
+        if action == "start-stage2":
+            import run
+            return {"message": run.start_stage2(cfg, store)}
+        if action == "tjr-test":
+            import run
+            from datetime import date
+            from .market_data import MarketData
+            run.run_tjr_test(cfg, store, MarketData(cfg), date.today().isoformat(), force=True)
+            return {"message": "TJR's history test is done: see Setup (What happens next) and the Research tab.",
+                    "test": tjr_status(store)}
         if action == "kill":
             if confirm != KILL_PHRASE:
                 raise ValueError(f'Type "{KILL_PHRASE}" to confirm.')
@@ -517,7 +552,7 @@ def main(argv=None) -> int:
         "autopilot-on", "autopilot-off", "resume", "save-settings", "save-live-keys", "save-schwab-keys",
         "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude", "start-stage1",
         "save-phone", "phone-test", "phone-screen-send", "save-webull-keys", "check-webull", "lid-mode-on",
-        "lid-mode-off"])
+        "lid-mode-off", "start-stage2", "tjr-test"])
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)

@@ -219,6 +219,7 @@ def snapshot(cfg, store) -> dict:
         "journal": [{"ts": ts, "message": m} for ts, m in store.journal(60)][::-1],
         "scan": _scan(cfg),
         "options_gap": _options_gap(store),
+        "tjr_test": _tjr_test(store),
         "reports": _reports(cfg),
         "right_now": _right_now(cfg, store),
     }
@@ -294,9 +295,14 @@ def _right_now(cfg, store, now=None) -> dict:
                      "decides at 3:45pm; until then it watches the stop-losses every 5 minutes.")
         else:
             close_in = minutes_to_close(now)
-            orb = (thinking.get("strategy") or (cfg["study"].get("in_its_head_strategy") or {}).get("day")
-                   or "opening_range_breakout") == "opening_range_breakout"
-            if since_open < 30 and orb:
+            name = (thinking.get("strategy") or (cfg["study"].get("in_its_head_strategy") or {}).get("day")
+                    or "opening_range_breakout")
+            orb = name == "opening_range_breakout"
+            if name == "tjr_model" and close_in > cfg["desks"]["day"]["flatten_minutes_before_close"]:
+                doing = ("watching for TJR's setup (a sweep below a low, a break back up, a pullback into the gap); "
+                         "it buys only 9:35-11:30am." if since_open <= 120 else
+                         "TJR's buying window (9:35-11:30am) is over for today; it only manages open trades.")
+            elif since_open < 30 and orb:
                 doing = "measuring the opening range; its first trade is possible after 10:00am."
             elif since_open < 15:
                 doing = "waiting out the first minutes after the open."
@@ -308,6 +314,11 @@ def _right_now(cfg, store, now=None) -> dict:
                 doing = "checking every 5 minutes."
         lines.append(f"{desk.title()} desk ({account}): {doing}{last}{trades}")
     return {"ok": running, "headline": headline, "lines": lines}
+
+
+def _tjr_test(store) -> dict:
+    from .app_api import tjr_status
+    return tjr_status(store)
 
 
 def _options_gap(store) -> dict:

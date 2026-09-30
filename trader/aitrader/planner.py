@@ -176,6 +176,7 @@ Why the others were rejected:
 
 
 STAGE1_DESK, STAGE1_STRATEGY = "swing", "momentum"
+STAGE2_DESK, STAGE2_STRATEGY = "day", "tjr_model"
 STAGE1_EVIDENCE = """No backtest on this computer: Stage 1 rests on the 16-year test in
 research/history/RESULTS-methods.md (Jan 2011 to Sep 2026, same rules for every method).
 
@@ -186,6 +187,35 @@ research/history/RESULTS-methods.md (Jan 2011 to Sep 2026, same rules for every 
 - The bot's old swing rules on its old watchlist made 1-2% a year. Stage 1 doesn't use them.
 - Even the best method made money AND beat SPY in only about half of all 30-trading-day windows.
   Thirty days can catch a broken method; it can't prove a good one."""
+
+
+def stage2_plan(cfg: dict, test: dict) -> dict:
+    """Stage 2 of your plan: the day desk paper trades TJR's model, next to Stage 1 on the swing desk.
+    It rests on the history test run on this Mac's own 5-minute data (tjr.history_test)."""
+    from .tjr import TJRModel
+    desk = STAGE2_DESK
+    t, p = test["tjr"], test["placebo"]
+    evidence = (f"History test on this Mac's 5-minute data ({test['days']} trading days, "
+                f"{len(test['tickers'])} stocks, the day desk's own slots, sizes and costs), run {test.get('ran_on')}:\n"
+                f"- TJR's model: {t.get('num_closed_trades')} trades, win rate {t.get('win_rate_pct')}%, profit factor "
+                f"{t.get('profit_factor')}, return {t.get('total_return_pct')}%, worst drop {t.get('max_drawdown_pct')}%.\n"
+                f"- Random buys in the same window with the same stop and target: {p.get('num_closed_trades')} trades, "
+                f"profit factor {p.get('profit_factor')}, return {p.get('total_return_pct')}%.\n"
+                "- The 16-year DAILY test (research/history/RESULTS-tjr-daily.md) found the setup adds only a little "
+                "over random buys, so treat a pass as 'worth paper trading', not as proof.")
+    plan = {
+        "desk": desk, "stage": 2, "created_on": date.today().isoformat(), "verdict": "TRADE",
+        "strategy": STAGE2_STRATEGY, "watchlist": list(cfg["desks"][desk]["watchlist"]),
+        "capital": desk_capital(cfg, desk, live=False), "benchmark": {"ticker": cfg["benchmark"]},
+        "desk_settings": cfg["desks"][desk], "promotion_rules": cfg["promotion"], "scorecard": [],
+        "evidence": evidence,
+        "narrative": (f"Stage 2, started by you: the day desk paper trades TJR's model (pretend money). "
+                      f"{TJRModel.description} The stop-loss, daily loss limit, kill switch and good faith "
+                      "violation rules all apply, it sells everything before the close, and it learns from every "
+                      "finished trade. Stage 1 keeps running on the swing desk."),
+    }
+    save_plan(cfg, plan)
+    return plan
 
 
 def stage1_plan(cfg: dict, candidates: list = ()) -> dict:
