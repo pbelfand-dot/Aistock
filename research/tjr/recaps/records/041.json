@@ -1,0 +1,50 @@
+{
+  "video": {
+    "n": 41,
+    "file": "7_18_24.Trade.Recap.Best.720p.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 10 sheets viewed; 9 full-size shots opened (#1,#5,#10,#16,#17,#22,#26,#29,#33), with crops of axis/legend areas. Legends, x-axis dates, axis labels and the TradingView position tool were readable. Transcript (pocketsphinx) is essentially unusable: almost no trading words survive, so his reasoning is largely unknown. Recorded as a live-stream segment (Kick chat overlay) starting ≈10:31 ET, right after the trade had already been stopped; the trade itself is not shown live.",
+    "duration_min": 4.6,
+    "title_claim": "",
+    "session_date": {"value": "2024-07-18", "src": "seen", "ref": "#1 00m00s x-axis red marker 'Thu 18 Jul '24 09:30'; #22 02m29s crosshair 'Thu 18 Jul '24 10:00'; file name 7_18_24"}
+  },
+  "market_context": {
+    "regime": {"value": "NQ 1h/4h: sharp selloff Jul 16-17 from ≈20,700 to ≈20,000, with a gray 1h zone (likely bearish FVG) ≈20,366-20,505 (±5) above. Jul 18 overnight range: high 20,162.50 (≈02:00 ET, retested ≈09:10-09:15), drawn low line 20,018.75. At 09:30 NQ fell from ≈20,120 to ≈20,020 (±2) by ≈09:40-09:48, rallied to 20,107.00 at ≈10:07, then broke down to 19,957.50 by ≈10:35 ET.", "src": "inferred", "ref": "seen: #10 00m56s legend 'NASDAQ 100 E-mini Futures · 1h · CME', gray box between axis labels 20,360-20,520; #17 01m55s 5m chart with green line at the overnight high and axis labels 20,120.25 / 20,043.00 / 20,018.75; #16 01m45s 1h legend of current (10:00) bar 'O20,068.00 H20,107.00 L19,976.75'; #33 03m43s 15m current price label 19,957.50 with bar countdown 09:59. Levels between axis labels estimated from pixel position."},
+    "news": {"value": null, "src": "unknown", "ref": "No calendar shown (a Forex Factory tab is open but never displayed); nothing intelligible in the transcript"},
+    "bias": {"value": "Bullish intraday (the trade was a long): after the open drop, expected price to rally back to the overnight high 20,162.50 (buy-side liquidity). Higher-timeframe trend was bearish.", "src": "inferred", "ref": "seen: long position tool with target at 20,162.25 one tick under the 20,162.50 overnight-high line (#26 03m01s, #22 02m29s). heard [01:45] 'what we expect to happen expected us to go higher' (read as: he expected price to go higher); rest of transcript garbled"}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-07-18", "src": "seen", "ref": "#22 02m29s x-axis 'Thu 18 Jul '24 10:00' beside the position box"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#22 02m29s legend 'NASDAQ 100 E-mini Futures · 1 · CME', symbol box 'NQ1!'"},
+      "direction": {"value": "long", "src": "seen", "ref": "#26 03m01s / #22 02m29s position tool: blue (profit) zone above entry, gray (stop) zone below"},
+      "timeframes": {"value": {"bias": "1h/15m (unknown which he used)", "setup": "5m/1m", "entry": "1m"}, "src": "inferred", "ref": "position tool drawn on the 1m chart (#1, #22, #26); he also showed 4h (#5), 1h (#10, #16), 15m (#33), 5m (#17); his own timeframe choice not intelligible in transcript"},
+      "setup": {"value": "NY-open drop into overnight lows -> rally back through 1m gray zone 20,065-20,084 -> long at zone midline, target overnight high", "src": "inferred", "ref": "from chart drawings in #17, #22, #26; no intelligible explanation in transcript (heard [00:45] '...equilibrium...' only)"},
+      "entry_conditions": [
+        {"value": "09:30-09:40 ET: price fell ≈100 pts from ≈20,120 to ≈20,020 (±2), near the overnight lows (≈06:25-06:30 ET lows) but ≈1-2 pts above the drawn 20,018.75 line (that line was not taken)", "src": "inferred", "ref": "#17 01m55s 5m, crosshair on the 06:30 low reading 20,035.25; #26 03m01s 1m lows vs 20,018.75 line estimated from pixel position"},
+        {"value": "price rallied back and closed above a gray zone ≈20,065-20,084 (dashed midline ≈20,075) that began ≈09:35 on 1m / the 09:30 15m bar", "src": "inferred", "ref": "#22 02m29s and #26 03m01s gray box edges estimated from axis labels 20,065-20,085; #33 03m43s same box on 15m starting at the 09:30 bar"},
+        {"value": "entry price 20,075.75 equals the high of the 10:00 ET 1m candle", "src": "seen", "ref": "#22 02m29s crosshair at 'Thu 18 Jul '24 10:00', legend 'O20,068.00 H20,075.75 L20,055.00 C20,061.75'"}
+      ],
+      "entry_time": {"value": "≈10:04 ET (±1 min)", "src": "inferred", "ref": "#22 02m29s left edge of position box at x≈673 vs x-axis 10:00 (x=646) / 10:10 (x=711); chart time treated as ET (09:30 open marker on x-axis)"},
+      "entry": {"value": 20075.75, "src": "seen", "ref": "#5 00m21s, #22, #26 gray axis label 20,075.75 aligned with the position box's entry line (alignment = inferred link)"},
+      "stop": {"value": 20043.0, "src": "seen", "ref": "#5 00m21s, #22, #26 gray axis label 20,043.00 aligned with the bottom of the position box's gray stop zone"},
+      "stop_rule": {"value": "below the lower gray zone ≈20,043-20,049 (bottom edge)", "src": "inferred", "ref": "#22 02m29s stop line coincides with the bottom of the smaller gray box starting ≈09:50; his stated rule unknown"},
+      "target": {"value": 20162.25, "src": "seen", "ref": "#5, #10, #26 blue axis label 20,162.25 aligned with the top of the blue profit zone (#26 03m01s)"},
+      "target_rule": {"value": "one tick under the overnight high 20,162.50 (buy-side liquidity)", "src": "inferred", "ref": "green axis label/line 20,162.50 starts at the ≈02:00 ET high (#16 1h, #17 5m) and was retested ≈09:10-09:15"},
+      "exit": {"value": "stopped at 20,043.00 ≈10:29 ET", "src": "inferred", "ref": "#22 02m29s position tool's dashed diagonal runs from entry down to the stop line at the candle at x≈834 (≈10:29); price then fell to 19,957.50 (#33). Max after entry 20,107.00 (#16 1h bar high), target never reached"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "no order panel or size shown; nothing intelligible heard"},
+      "result": {"value": "loss", "src": "inferred", "ref": "position tool shows price reaching the stop before the target; chat comments ('sadly took a loss today', #22) consistent but not evidence"},
+      "r_multiple": {"value": -1.0, "src": "computed", "ref": "(20,043.00-20,075.75)/(20,075.75-20,043.00) = -32.75/32.75 = -1.0; planned R:R = (20,162.25-20,075.75)/32.75 = 86.5/32.75 = 2.64; max favorable excursion (20,107.00-20,075.75)/32.75 = +0.95R"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "no P&L stated or shown by him; title claim empty; a viewer wrote 'yep -400 tjr scammer' in chat (#33) - not his claim, not evidence"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "only a TradingView position-tool drawing; no broker panel, fills or P&L shown"},
+      "mistakes": [
+        {"value": "possible setup flaw: long against the 1h/4h downtrend and while the drawn sell-side level 20,018.75 had not been taken (open low ≈1-2 pts above it); price swept it right after the stop", "src": "inferred", "ref": "#10, #16 1h downtrend; #26 1m lows vs 20,018.75 line; a viewer also wrote 'YOU DIDNT SWEEP SSL BY LIKE 10 CENTS' (#22 chat)"},
+        {"value": "possible bearish SMT during the trade: ES traded above its ≈09:00 high at ≈10:05-10:10 while NQ stayed ≈55 pts below its overnight high", "src": "inferred", "ref": "#29 03m24s ES 1m ('S&P 500 E-mini Futures · 1 · CME') highs ≈5,658 (09:00) vs ≈5,661 (≈10:07), estimated from axis labels 5,652.00/5,648.50; NQ high 20,107.00 (#16). Not stated by him (transcript garbled)"}
+      ],
+      "evidence_summary": "Seen: instrument, date, direction, entry/stop/target axis labels on the position tool, 10:00 candle OHLC. Inferred: times, setup logic, stop-out, rules. Heard: almost nothing usable."
+    }
+  ],
+  "lessons_stated": [],
+  "quality_notes": "Transcript is almost entirely garbled, so his stated reasons, rules and lessons are unknown (lessons_stated left empty). At [03:30] he appears to read aloud a viewer donation (seen #31 03m35s: 'bias bearish liqu sweep 15 min bos fvg OB Equ entry see on the chart') - that is a viewer's rule, not his. Entry/stop/target come from axis labels whose link to the position box is by alignment. Size, fill type (limit vs stop entry) and real P&L unknown. Chat overlay comments are not used as evidence."
+}

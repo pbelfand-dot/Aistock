@@ -1,0 +1,52 @@
+{
+  "video": {
+    "n": 30,
+    "file": "06_04_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "11 sheets looked at. 12 full-size shots opened (#1, #5, #8, #12, #16, #20, #24, #31, #33, #35, #38, #43), plus one enlarged crop of #31 to read the position-tool labels. The transcript is short (22 lines) and badly garbled, so it gives the gist only. Axis labels and the position-tool labels are readable. Most other prices are estimated from where candles sit.",
+    "duration_min": 5.3,
+    "title_claim": "",
+    "session_date": {"value": "2024-06-04", "src": "seen", "ref": "#1 00m00s x-axis 'Tue 04 Jun '24 09:30', legend 'NASDAQ 100 E-mini Futures · 1 · CME'. It matches the file name 06_04_2024 and Forex Factory 'Today: Jun 4' (#35)."}
+  },
+  "market_context": {
+    "regime": {
+      "value": "NQ, 4 Jun 2024. On the 4h, price pulled back into the lower half of a range. The 4h fib (#5) is drawn from ≈18,435 (0) to ≈18,672 (1), with the 0.5 at ≈18,555 (±8). The overnight low was ≈18,511 at ≈05:00. In the NY session: the 10:00 news bar spiked to 18,664.00, price fell to ≈18,569 at ≈10:13 and rallied to ≈18,655 at ≈10:40. It then chopped between ≈18,570 and ≈18,651 until ≈12:55, when he recorded. He calls it a range day. ES was similar: a ≈5,283–5,294 swing around 10:30–11:30, a dip to ≈5,270 at ≈12:05, then back to ≈5,289 by ≈12:55.",
+      "src": "inferred",
+      "ref": "Seen: legends 'NASDAQ 100 E-mini Futures · 4h/5/1 · CME' (#5, #8/#12/#43, #1/#20/#24/#31) and 'S&P 500 E-mini Futures · 5 · CME' (#38). Axis label 18,664.00 at the top of the fib in #24. All other prices and times are estimated from candle positions (NQ ±3–8 pts, ES ±1–2 pts, ±5 min). Heard: [01:30] 'we ended up just fine with it as range pretty much the entire day today' ['just ranging pretty much the entire day']. The chart's timezone is inferred as ET: 09:30 is marked, and the Forex Factory clock (12:53pm, #35) matches the last candle (≈12:55)."
+    },
+    "news": {
+      "value": "4 Jun: JOLTS Job Openings at 10:00am (actual 8.06M, forecast 8.37M, previous 8.36M). He was waiting for this release before taking a long. For 5 Jun he showed ADP Non-Farm Employment Change at 8:15am, Final Services PMI at 9:45am and ISM Services PMI at 10:00am.",
+      "src": "seen",
+      "ref": "#35 03m56s Forex Factory 'Today: Jun 4 ... 10:00am USD JOLTS Job Openings 8.06M 8.37M 8.36M'. #16 01m50s 'Tomorrow: Jun 5' with ADP 8:15am, Final Services PMI 9:45am, ISM Services PMI 10:00am. Heard: [01:30]-[01:45] 'we also have news that ... it's at ten am'; [02:00] 'i know that i'm waiting for news'."
+    },
+    "bias": {
+      "value": "Bullish. He wanted price to come into the equilibrium (0.5) of the range and then go long, targeting the highs above: 18,672.75 and 18,677.00 on NQ, i.e. buy-side liquidity. He says price was coming off a discount and was not overbought like the day before.",
+      "src": "heard",
+      "ref": "[00:15] 'was not being oversold are over bought like we were yesterday'. [00:30] 'came down it the discount and we have legs out from there'. [01:00] 'i want alongside a plain and simple just wanted to rise' ['I wanted longs, plain and simple, just wanted price to rise']. [01:15] '...equilibrium area and then for me to take walks off of that ... to come all the way out to go this low resistance' ['take longs off that ... all the way up to this liquidity']. The target levels are seen as axis labels 18,677.00 and 18,672.75 (#8, #12)."
+    },
+    "levels": {
+      "value": "NQ lines seen on the axis: 18,677.00 and 18,672.75 (highs to the left, used as the draw), 18,664.00 (top of the 1m fib, the 10:00 spike high), 18,658.50, 18,587.25 (blue; its position matches the 0.5 of the 5m fib in #12), 18,581.00 (blue line in #5/#8), 18,562.25 and 18,526.50. The 5m fib in #12 runs from ≈18,511 (0) to ≈18,662 (1). The 1m fib in #24 runs from 18,664.00 to ≈18,580, so its 0.5 is ≈18,622. ES lines seen: 5,298.50, 5,293.00, 5,280.00, 5,277.75 and 5,276.75. The ES fib (#38) runs from ≈5,283 to ≈5,294, with 0.5 ≈5,288 (±1) and two gray boxes near it.",
+      "src": "seen",
+      "ref": "Axis labels in #5, #8, #12, #24, #43 and #38. The fib endpoints and the 0.5 values are inferred from where the lines sit between axis labels."
+    },
+    "conditions_stated": {
+      "value": "The long he wanted, as a testable rule: (1) wait for the 10:00 news; (2) price trades down into the equilibrium (0.5) of the range, ≈18,587 on the 5m range or ≈18,622 on the 1m post-news range; (3) price sweeps sell-side liquidity just below and reverses; (4) go long targeting the highs at 18,672.75–18,677. He says conditions (2) and (3) happened, but he did not take the trade.",
+      "src": "inferred",
+      "ref": "Drawn from [01:15], [02:00] 'price came to around each new equilibrium', [02:15] 'they got this liquidity the side ... and a reserve saw ... that is the perfect opportunity' ['took this sell-side liquidity ... reversal'] and [02:30] 'we are also coming in equilibrium'. The drawings are seen in #12, #24 and #31."
+    },
+    "hypothetical_long_shown": {
+      "value": "After the fact he drew a long with the position tool on the NQ 1m chart: entry 18,622.00 at 10:05, stop 18,592.75 (29.25 pts) and target 18,640.75 (18.75 pts), a risk/reward of 0.64. The tool shows 'Closed P&L: -29.25', meaning the stop was hit first; price reached ≈18,569 at ≈10:13. He then moved the target up to 18,677.25 (≈1.9R). Price did not reach that level before recording (highs ≈18,655 at 10:40 and ≈18,651 at 12:50). This is a teaching illustration, not a trade.",
+      "src": "seen",
+      "ref": "Enlarged #31 03m38s: 'Target: 18.75 (0.10%) 75, Amount: 100641.03'; 'Closed P&L: -29.25, Qty: 1.709, Risk/Reward Ratio: 0.64'; 'Stop: 29.25 (0.16%) 117, Amount: 99000'. Axis labels 18,640.75, 18,622.00 and 18,592.75. The box starts at the cursor time 'Tue 04 Jun '24 10:05'. Hovered-bar legend: O18,632.25 H18,633.75 L18,596.00 C18,596.25. #33 and #43: blue label 18,677.25, with 18,622.00 and 18,592.75. Heard: [03:30] 'i just go along right they start saturday fear man cool won't stop out' ['if I just go long right there ... would have got stopped out', low confidence]. The ≈ prices come from candle positions in #20 and #43."
+    }
+  },
+  "trades": [],
+  "no_trade_reason": "He took no trade. He wanted a long on NQ and ES from equilibrium after the 10:00 JOLTS release, but did not get one in. The day ranged. The position-tool long he drew afterwards (entry 18,622 at 10:05, stop 18,592.75) would have been stopped out. No fills, broker panel or P&L are shown. Heard: [03:00] 'i didn't go along right one price is equilibrium level' ['I didn't go long right when price was at the equilibrium level']; [04:15] 'i am one longs on both of these thin never ended up getting them ... it's a trade another day' ['wanted longs on both of these, never ended up getting them'].",
+  "lessons_stated": [
+    {"value": "Wait for the scheduled 10:00 news before taking the setup.", "src": "heard", "ref": "[02:00] 'i know that i'm waiting for news'; [02:15] 'we just at the news' (garbled)."},
+    {"value": "The ideal long comes after price takes sell-side liquidity at equilibrium and reverses ('that is the perfect opportunity').", "src": "heard", "ref": "[02:15] 'they got this liquidity the side ... and a reserve saw hobbit i'm like okay that is the perfect opportunity'; [02:30] 'coming in equilibrium'."},
+    {"value": "A range day is not a high-quality trading day; missing a trade is fine ('a trade another day'), and he wants to avoid getting sloppy.", "src": "heard", "ref": "[01:30] 'really not a super high quality traits' ['trades']; [04:15] 'getting sloppy ... it's a trade another day'. Low confidence."}
+  ],
+  "quality_notes": "No trade was taken, so nothing about P&L can be verified. The only position shown is a hypothetical TradingView position tool, and its 'Closed P&L -29.25' is the tool's simulation, not a fill. The transcript is heavily garbled: 'along' = 'a long' and 'equilibrium' is recognizable, but the reasons for not entering are unclear ([02:30] 'jump the gun' is ambiguous). The stop rule for the hypothetical is not stated. Apart from the axis and tool labels, all prices and times are estimated from candle positions. The 4h fib anchors are rough (±8 pts). The ES analysis gets only a brief mention ([04:00] 'same thing here on the ES')."
+}

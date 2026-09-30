@@ -1,0 +1,55 @@
+{
+  "video": {
+    "n": 39,
+    "file": "7_16_24.Trade.Recap.Best.720p.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 11 sheets viewed; 14 full-size shots opened (#1,#4,#7,#8,#13,#18,#21,#23,#24,#26,#29,#31,#33,#42). Legends, axes, x-axis dates, the browser-tab live price and the position-tool labels were readable. Transcript (pocketsphinx) is heavily garbled; only fragments usable. The recap was recorded live while the trade was still open (chart's last candle ≈10:21-10:25 ET), so the exit is not shown.",
+    "duration_min": 6.28,
+    "title_claim": "",
+    "session_date": {"value": "2024-07-16", "src": "seen", "ref": "#23 02m35s x-axis crosshair 'Tue 16 Jul '24 10:06'; #13 01m32s 'Tue 16 Jul '24 10:19'; 09:30 marker 'Tue 16 Jul '24 09:30' on several shots; file name 7_16_24"}
+  },
+  "market_context": {
+    "regime": {"value": "ES 15m/5m: overnight drop to a London low ≈5674 (±1) at ≈04:05 ET, then a rally through pre-market into the NY open reaching ≈5705.5 (±0.5) at ≈09:33 and again ≈09:50 ET, inside a gray 15m zone ≈5698.0-5701.5; 1m: sharp drop ≈10:00-10:02 to a low ≈5690.5 (±0.5) at ≈10:15, retrace wick to ≈5697.7 at ≈10:20; price 5691.25-5696.00 while recording. NQ much weaker than ES (NQ 1m 09:30 high 20,686.75, trading ≈20,505-20,540 while recording).", "src": "inferred", "ref": "seen: #31 04m29s legend 'S&P 500 E-mini Futures · 15 · CME' with gray zone from Jul 15; #42 05m47s ES 5m range fib 0/0.5/1; #7 00m38s ES overnight low near 04:00-04:30; #4 00m19s legend 'NASDAQ 100 E-mini Futures · 1 · CME' axis label 20,686.75, legend C20,538.00; #33 04m48s NQ 15m C20,504.75; browser-tab price 'ES1! 5,696.00' (#1) ... '5,691.25' (#23). Prices between axis labels estimated from pixel position. heard [00:30] 'we started off [with a] liquidity sweep of the ...' (object unclear)"},
+    "news": {"value": null, "src": "unknown", "ref": "No calendar shown in the viewed pictures (a Forex Factory tab is open but never displayed); no news event is intelligible in the transcript"},
+    "bias": {"value": "Bearish intraday toward sell-side liquidity: ES/NQ SMT at the NY-open highs and price in the premium of the London-low→NY-high range, inside a 15m supply zone. Draw on liquidity: pre-market 1m lows 5695.25, 5691.25, 5688.50 ('hourly lows') and the ≈05:40 ET London-session low 5682.75. He says the higher timeframe is still bullish and expects the lows to be swept, then possibly a large bullish move.", "src": "inferred", "ref": "heard [01:00] 'on nasdaq we have [SMT] divergence so we had these high[s] ... way lower'; [02:15] 'equilibrium from this range'; [04:30] 'overall [higher] timeframe to believe that we're still bul[lish]'; [04:45] 'come down, sweep these hourly lows ... currently in the process of making a huge [bullish ...]'. seen horizontal lines with axis labels 5,695.25 / 5,691.25 / 5,688.50 / 5,682.75 (#1, #21, #29, #42); #29 04m16s crosshair on the 5,688.50 line at 'Tue 16 Jul '24 07:53'; target line 5,682.75 starts at the ≈05:30-05:40 low (#29)"}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-07-16", "src": "seen", "ref": "#23 02m35s x-axis 'Tue 16 Jul '24 10:06' beside the position box"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#23 02m35s legend 'S&P 500 E-mini Futures · 1 · CME', symbol box 'ES1!'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#23 02m35s position tool: gray stop box above the entry line, blue target box below"},
+      "timeframes": {"value": {"bias": "15m (zone, range equilibrium)", "setup": "1m ES + 5m/1m NQ (SMT)", "entry": "1m"}, "src": "inferred", "ref": "gray zone and range fib shown on ES 15m (#31) and 5m (#8, #42); SMT circles on NQ1! 5m (#18) and 15m (#33); position tool drawn on ES1! 1m (#13, #21, #23, #24)"},
+      "setup": {"value": "NY-open run into 15m supply zone (≈5698-5701.5) with ES/NQ SMT at the highs -> 1m break of structure down -> short 5699.75 (zone midline) targeting the London low 5682.75", "src": "inferred", "ref": "heard [01:00] SMT, [02:30] 'motivation to go sh[ort] ... [break of] structure right here on top of that'; prices seen on the position tool; zone midline: dashed line at the 5,699.75 label inside the gray zone (#1, #13, #31)"},
+      "entry_conditions": [
+        {"value": "Price rallied at the NY open into the gray 15m zone ≈5698.0-5701.5 and printed highs ≈5705.5 at ≈09:33 and ≈09:50 ET (premium of the London-low→NY-high range; equilibrium ≈5689.5)", "src": "inferred", "ref": "seen #31 15m zone (top just under the 5,702.00 label), #13/#24 1m highs vs the 5,704.00 label, range fib 0.5 on #8/#31/#42 between the 5,691.25 and 5,688.50 labels; prices ±0.5 from pixel position"},
+        {"value": "SMT divergence: NQ made a clearly lower high at ≈09:50 ET (second circle) while ES retested its opening high", "src": "inferred", "ref": "seen #18 02m01s NQ1! 5m circles at the 09:30 high (20,686.75) and at a lower high ≈20,630; #13 ES 1m two highs at similar level; heard [01:00] 'on nasdaq we have [SMT] divergence ... way lower'"},
+        {"value": "1m break of structure down: the ≈10:00-10:02 ET bearish displacement candles closed below the 09:3x-09:4x 1m swing lows, through the zone", "src": "inferred", "ref": "seen #24 02m41s candles at x-axis 10:00-10:02; heard [02:30] '[break of] structure right here' and [03:15] 'british structure' read as break of structure (garbled)"}
+      ],
+      "entry_time": {"value": "≈10:00-10:02 ET", "src": "inferred", "ref": "box left edge at the 10:00 x-axis label on #13, #21, #23, #24 (≈10:07 on #26, apparently redrawn); price traded 5699.75 only during the 10:00-10:02 drop and never returned above ≈5697.7 afterwards. Chart time treated as ET (09:30 marker at the start of the open's volatility)"},
+      "entry": {"value": 5699.75, "src": "seen", "ref": "#23 02m35s entry line on axis label '5,699.75'; same on #13, #24, #26"},
+      "stop": {"value": 5704.0, "src": "seen", "ref": "#23 02m35s tool label 'Stop: 4.25 (0.07%) 17' (17 ticks); stop box top on axis label '5,704.00' (#8, #13, #26)"},
+      "stop_rule": {"value": "just above the ≈09:56 ET 1m lower high (≈5703.5); about 1.5 pts below the session highs (≈5705.5)", "src": "inferred", "ref": "#24/#26 pixel estimate of the last high before the drop (±0.5) vs the 5,704.00 label; heard [04:00] 'stop [above] the highs' (garbled)"},
+      "target": {"value": 5682.75, "src": "seen", "ref": "#8 00m52s and #21 02m27s target-box bottom on axis label '5,682.75'; check: 5699.75 - 4 x 4.25 = 5682.75 (tool 'Risk/Reward Ratio: 4', #23)"},
+      "target_rule": {"value": "sell-side liquidity: the ≈05:40 ET London-session low at 5682.75, beyond the pre-market lows 5691.25 and 5688.50 ('hourly lows')", "src": "inferred", "ref": "#29 04m16s 1m: 5,682.75 line starts at the ≈05:30-05:40 low; heard [04:45] 'sweep these hourly lows'"},
+      "exit": {"value": "unknown; trade still open when recorded. Low after entry ≈5690.5 (≈10:15 ET); price 5691.25-5696.00 during the recording; target 5682.75 not reached by ≈10:25 ET. He says he would probably close most of it here and maybe more at the equilibrium (≈5689.5)", "src": "inferred", "ref": "browser-tab prices #1 '5,696.00', #23 '5,691.25', #29 '5,692.75', #42 '5,693.25'; #23 tool 'Open P&L: 8.50'; heard [05:00] 'probably close the majority [of] my position right here, [maybe] close more [at] that equilibrium'"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "no contract count stated or shown; the tool's 'Qty: 0.096' is a tool setting, not his size"},
+      "result": {"value": "unknown", "src": "inferred", "ref": "position open at recording (unrealized +3.75 to +8.50 pts from the tab prices); no fill or close shown"},
+      "r_multiple": {"value": null, "src": "unknown", "ref": "planned 4.0R: (5699.75-5682.75)/(5704.00-5699.75)=17/4.25 (tool 'Risk/Reward Ratio: 4'); unrealized at 02m35s = 8.50/4.25 = 2.0R; a close near the recording prices 5691.25-5696.00 would be ≈0.9-2.0R; actual exit not shown"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "no $ amount stated or shown; [00:00] mentions 'profits' but the phrase is unintelligible; title_claim empty"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "no broker/platform P&L or fills shown; only a TradingView position-tool drawing and its hover 'Open P&L'"},
+      "mistakes": [
+        {"value": "none stated or seen; recorded before the trade was closed, so management can't be assessed", "src": "inferred", "ref": "transcript has no intelligible mistake remark; exit not shown"}
+      ],
+      "evidence_summary": "Seen: ES1! 1m, 2024-07-16, short, entry 5699.75, stop 5704.00 (4.25 pts), target 5682.75, planned 4R, Open P&L 8.50 while live. Inferred: entry ≈10:00-10:02 ET, zone/SMT/BOS conditions, stop/target rules, trade still open. Heard (garbled): SMT, BOS, 'sweep hourly lows', close most here / at equilibrium."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "Uses ES vs NQ SMT divergence at the highs (NQ lower high) as short confluence; refers to a video on it in his course", "src": "heard", "ref": "[01:00] 'on nasdaq we have [SMT] divergence so we had these high[s] ... way lower'; [02:45] 'usually we had this [divergence] ... watch that ... video on the Trading Transformation'"},
+    {"value": "Look for shorts above the range's equilibrium (premium), then wait for a break of structure", "src": "heard", "ref": "[02:15]-[02:30] 'equilibrium from this range ... top of that ... motivation to go sh[ort] ... [break of] structure right here' (garbled)"},
+    {"value": "Higher timeframe still bullish: he expects the move down to sweep the hourly lows, possibly followed by a big bullish move", "src": "heard", "ref": "[04:30]-[04:45] '[higher] timeframe to believe that we're still bul[lish] ... come down, sweep these hourly lows ... making a huge [bullish ...]'"},
+    {"value": "Take most profit into liquidity and more at the range equilibrium (≈5689.5) rather than holding everything to the target", "src": "heard", "ref": "[05:00] 'probably close the majority [of] my position right here, [maybe] close more [at] that equilibrium'; equilibrium price inferred from the 0.5 fib on #8/#31/#42"},
+    {"value": "He did not trade the previous day (Jul 15) because it was very choppy", "src": "heard", "ref": "[05:00] 'i [didn't] take [a trade] yesterday, yesterday was really choppy'"}
+  ],
+  "quality_notes": "Recap recorded live (≈10:21-10:28 ET) with the position still open, so exit, result and realized R are unknown. Transcript badly garbled; the SMT/BOS reasoning is partly reconstructed from the charts. Entry time from the box edge (one shot shows the box redrawn at ≈10:07). Stop-rule and zone prices are pixel estimates (±0.5). No size, no P&L panel, no news shown."
+}

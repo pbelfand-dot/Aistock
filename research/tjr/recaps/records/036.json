@@ -1,0 +1,56 @@
+{
+  "video": {
+    "n": 36,
+    "file": "06_26_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 12 sheets viewed; 11 full-size shots opened (#3,#5,#8,#12,#13,#16,#20,#29,#31,#38,#44) plus an enlarged crop of the position-box labels in #12/#13. Position-tool labels, axis prices, legend and x-axis dates readable. Transcript is very garbled: gist only, no numbers taken from it.",
+    "duration_min": 9.22,
+    "title_claim": "",
+    "session_date": {"value": "2024-06-26", "src": "seen", "ref": "#13 04m26s x-axis 'Wed 26 Jun '24 10:01' and '10:29'; #8 02m34s forexfactory.com/calendar?day=jun26.2024; file name 06_26_2024"}
+  },
+  "market_context": {
+    "regime": {"value": "15m: rally from 25 Jun session into overnight high ≈5551 (26 Jun ~03:00), then sell-off into the NY open to a low ≈5518.75; NY morning then ranged ≈5518-5542 (1m). Higher-TF grey zone 5540.25-5542.25 overhead (4h/15m).", "src": "inferred", "ref": "#29 06m19s legend 'S&P 500 E-mini Futures · 15 · CME', axis labels 5542.25/5540.25 (zone) and 5518.75 (line at open low), overnight high estimated from axis ≈5551 ±1; #16 04m47s legend '· 4h · CME' same zone labels 5542.25/5540.25; #3 00m20s 1m full-morning view"},
+    "news": {"value": "USD New Home Sales 10:00am (red impact icon), actual 619K vs forecast 636K, previous 634K. He mentions the 10am news.", "src": "seen", "ref": "#8 02m34s Forex Factory Jun 26 row: '10:00am USD New Home Sales 619K 636K 634K'; heard [02:30] \"the news that came out at ten am ... [not?] causing much action\""},
+    "bias": {"value": "bullish: price was in a discounted part of the range after sweeping lows, with a higher-timeframe imbalance below, so he looked for longs", "src": "heard", "ref": "[00:30] \"my bias ... these lows\"; [00:45] \"we were within a discounted price range ... came down ... imbalance ... higher time frame\"; [01:00] \"so i may look for longs\" (read as 'so I'm looking for longs'); consistent with the long taken (seen)"}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-06-26", "src": "seen", "ref": "#13 04m26s x-axis 'Wed 26 Jun '24 10:01'"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#12/#13 legend 'S&P 500 E-mini Futures · 1 · CME', symbol box 'ES1!'"},
+      "direction": {"value": "long", "src": "seen", "ref": "#13 position tool: blue target area above entry, grey stop area below; heard [00:15] \"the long\""},
+      "timeframes": {"value": {"bias": "higher TF (15m/1h/4h shown)", "setup": "1m/5m imbalance zone", "entry": "1m"}, "src": "inferred", "ref": "position box drawn on 1m chart (#12/#13 legend '· 1 ·'); zone also on 5m (#38) and 15m (#29); heard [07:45] \"purely based off ... the one minutes ... wait ... five minute\""},
+      "setup": {"value": "NY-open sweep of low -> displacement up leaving 1m/5m imbalance (≈5524.5-5526.25) -> pullback into imbalance at 10:00 -> 1m long", "src": "inferred", "ref": "heard [02:15] \"market opens ... sweep low ... liquidity\", [04:00] \"drawback down ... imbalance perfectly ... break ... to the upside\"; seen grey zone on 1m/5m/15m (#20, #38, #29)"},
+      "entry_conditions": [
+        {"value": "after the 09:30 open price traded down into/through the morning low (≈5519) = sell-side sweep", "src": "inferred", "ref": "heard [02:15] \"sweep low ... liquidity\"; #3 1m low ≈5519 ±1 around 09:05-09:31 (estimated between axis labels 5524.00/5527.75); #29 line labelled 5518.75"},
+        {"value": "price then rallied to ≈5534 by ~09:50 leaving a gray imbalance zone ≈5524.5-5526.25", "src": "inferred", "ref": "#20 05m33s 1m zone edges estimated from axis 5526.00/5525.00 (±0.25); #29 15m zone ≈5524.6-5526.2"},
+        {"value": "at ~10:00 (New Home Sales release) price pulled back into that zone and reacted up; entry 10:01 on 1m", "src": "inferred", "ref": "#13 box left edge at x-axis '10:01'; #8 news at 10:00am; heard [04:00] \"drawback down and ... in balance perfectly\""},
+        {"value": "entry trigger was a 1m move up/break (not a 5m confirmation)", "src": "heard", "ref": "[04:00] \"break ... to the outside [upside]\"; [07:45] \"trade purely based off ... the one minutes ... wait [for] a ... five minute\" (garbled)"}
+      ],
+      "entry_time": {"value": "10:01 chart time (likely ET)", "src": "seen", "ref": "#13 x-axis label 'Wed 26 Jun '24 10:01' at box left edge; ET inferred because the red 09:30 marker line and the 10:00 FF news time align with NY times; chart timezone label not visible (covered by webcam)"},
+      "entry": {"value": 5528.25, "src": "seen", "ref": "#13 axis grey label 5,528.25 at box entry line; consistent with target 5535.00 - 6.75 and stop 5524.00 + 4.25 (box labels). Drawn position tool, not a broker fill"},
+      "stop": {"value": 5524.0, "src": "seen", "ref": "#13 axis label 5,524.00 at box bottom; box label 'Stop: 4.25 (0.08%) 17, Amount: 99000'"},
+      "stop_rule": {"value": "just below the imbalance zone (zone bottom ≈5524.5)", "src": "inferred", "ref": "stop 5524.00 vs zone bottom ≈5524.5 (#20); no rule heard clearly"},
+      "target": {"value": 5535.0, "src": "seen", "ref": "#13 axis label 5,535.00 at box top; box label 'Target: 6.75 (0.12%) 27, Amount: 101588.24'. Note #12 (02m59s-04m22s) shows the same box with target 3.75 -> 5532.00 (RR 0.88, 'Closed P&L 3.75'), read as a what-if/intermediate edit"},
+      "target_rule": {"value": "a marked horizontal level at 5535.00 below the 5540.25-5542.25 higher-TF zone; why he chose it not audible", "src": "inferred", "ref": "horizontal line 5535.00 drawn across 1m/15m/4h charts (#3, #29, #16)"},
+      "exit": {"value": "stopped at 5524.00 around 10:29; high before that 5534.50, 0.50 pt short of target", "src": "seen", "ref": "#13 box 'Closed P&L: -4.25', right edge x-axis '10:29'; #31 06m31s measure tool '0.50 (0.01%), 2' from the high to the 5535.00 line, axis label 5,534.50"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "box shows 'Qty: 4.706', 'Amount: 99000' = TradingView tool default (1% of $100k, $50/pt: 1000/(4.25*50)=4.706), not his real size"},
+      "result": {"value": "loss", "src": "seen", "ref": "#13 'Closed P&L: -4.25'; heard [06:15] \"caught on the wrong side of that trade\", [06:45] \"okay with a loss like this\", [07:15] \"not happy about the money lost\""},
+      "r_multiple": {"value": -1.0, "src": "computed", "ref": "(5524.00-5528.25)/(5528.25-5524.00) = -4.25/4.25; planned RR 1.59 (box label); max favourable excursion (5534.50-5528.25)/4.25 = +1.47R; slippage unknown"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "no $ amount stated or shown; title_claim empty"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "only a drawn TradingView position tool; no broker/platform fills or P&L panel shown"},
+      "mistakes": [
+        {"value": "entered on a 1m trigger alone instead of waiting for 5m / higher-TF confirmation (his own admission)", "src": "heard", "ref": "[07:30]-[07:45] \"higher time frame ... trade purely based off ... the one minutes ... wait ... five minute\"; [01:45] \"would have been avoided by just waiting for a ... close\""},
+        {"value": "entered one minute after the 10:00 New Home Sales release", "src": "inferred", "ref": "#8 news 10:00am; #13 entry 10:01. He does not clearly call this a mistake"}
+      ],
+      "evidence_summary": "Seen: instrument, date, 1m position box (entry 5528.25, stop 5524.00, target 5535.00, closed P&L -4.25), high 0.50 short of target, 10:00 news. Heard (garbled): bias, sweep/imbalance reasoning, loss and lessons. Inferred: zone prices, timezone, stop/target rules."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "wait for a higher-timeframe candle close/confirmation instead of entering early; this loss would have been avoided", "src": "heard", "ref": "[01:45] \"would have been avoided by just waiting for a much higher ... close\" (garbled)"},
+    {"value": "don't trade purely off the 1-minute; wait for 5-minute structure", "src": "heard", "ref": "[07:30]-[07:45] \"trade purely based off ... the one minutes ... wait ... five minute\" (garbled)"},
+    {"value": "he is okay with a loss on a setup like this; every loss is a learning experience", "src": "heard", "ref": "[06:45] \"i'm perfectly okay with a loss like this\"; [08:30] \"every single loss as a learning experience\""},
+    {"value": "after the stop, price swept the 15m low and then rallied through his 5535 target to ≈5542 (hindsight: right idea, wrong timing)", "src": "seen", "ref": "#20 05m33s 1m: drop to ≈5518 ~10:57 then rally above 5540 by ~11:35; heard [00:15] \"ended up flying out just unfortunately not the way that i want\", [06:00] \"fifteen minute\""}
+  ],
+  "quality_notes": "Prices come from the drawn TradingView position tool, not fills. #12 and #13 show two target versions (5532.00 win vs 5535.00 loss); 5535.00 taken as the real one because he says it was a loss and #31 measures the 0.50 miss to 5535.00. Transcript badly garbled (esp. 03:00-04:30, 05:00-06:15): setup reasoning and lessons are gist only. Chart timezone label not visible; ET inferred. Zone edges and sweep low estimated between axis labels (±0.25 to ±1)."
+}

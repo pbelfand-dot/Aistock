@@ -1,0 +1,66 @@
+{
+  "video": {
+    "n": 43,
+    "file": "7_25_24.Trade.Recap.Best.720p.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 10 sheets viewed; 11 full-size shots opened (#1,#3,#4,#13,#15,#22,#24,#27,#33,#34,#35), plus an enlarged crop of #24 (position-tool labels and price axis). Legends, x-axis dates/times, level labels and position-tool labels were readable. The recap is recorded during a live stream (chat visible). Transcript (pocketsphinx) is very garbled: gist only (imbalances, bullish interaction/BOS wanted, '9:52', 'get these lows', 'no reason to go long', 'catch a falling knife').",
+    "duration_min": 4.13,
+    "title_claim": "",
+    "session_date": {"value": "2024-07-25", "src": "seen", "ref": "#22 02m08s x-axis 'Thu 25 Jul '24 09:52'; #24 02m36s 'Thu 25 Jul '24 09:30'; file name 7_25_24"}
+  },
+  "market_context": {
+    "regime": {
+      "value": "ES 4h: steep sell-off into Jul 25 with stacked bearish 4h imbalances overhead (lowest ≈5,486-5,493, next ≈5,499-5,525). ES 5m: overnight/premarket range ≈5,451-5,483; at 09:30 price dropped from ≈5,475.5 to 5,458.75, retraced to a lower high ≈5,469-5,473 by ~09:42-09:50, then broke down to ≈5,442 by ~10:00. NQ 1m showed the same pattern (retrace into a 1m bearish imbalance ~09:41, then new lows below 19,107.75).",
+      "src": "inferred",
+      "ref": "seen #3/#4 legend 'S&P 500 E-mini Futures · 4h · CME' with gray imbalance boxes above price; #15/#33/#34 '5 · CME' level labels 5,487.25, 5,483.00, 5,481.25, 5,475.50, 5,458.75, 5,452.25, 5,451.00; #13 'NASDAQ 100 E-mini Futures · 1 · CME' lines 19,107.75, 19,080.00, 19,062.00; zone prices and swing prices estimated from candle positions vs axis labels (±2 pts ES, ±3 on 4h)"
+    },
+    "news": {"value": "none mentioned; a 'Calendar | Forex Factory' browser tab is open but never shown", "src": "seen", "ref": "browser tab titles in every shot; transcript has no news reference"},
+    "bias": {
+      "value": "Pre-session: apparently bullish (wanted price to take out buy-side / fill the 4h imbalances above, needing a bullish reaction at a level plus a bullish break of structure). That never came; after the bearish 1m imbalances were respected he took an intraday short toward the lows (sell-side liquidity at ≈5,451-5,452).",
+      "src": "heard",
+      "ref": "[00:15]-[00:45] 'take out ... all of these imbalances', 'wanting to eat these imbalances', 'some sort of [bullish] interaction with that level', '[bullish] [break of structure] we're looking for'; [03:30] 'today I [was biased] to take out the [buy]sides but price ...', 'on the verge of getting a [bullish] ...'; [02:45] 'there's no reason to go long'. Direction words are garbled; the bullish reading is low confidence."
+    }
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-07-25", "src": "seen", "ref": "#27 02m53s x-axis 'Thu 25 Jul '24 09:54' at the position box's left edge"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#24 02m36s legend 'S&P 500 E-mini Futures · 1 · CME', symbol box 'ES1!'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#24 position tool: gray stop box above entry, blue target box below"},
+      "timeframes": {
+        "value": {"bias": "4h", "setup": "5m/1m (NQ and ES)", "entry": "1m"},
+        "src": "inferred",
+        "ref": "4h imbalances shown first (#3, #4 00m19s-00m25s); NQ 1m/5m analysis (#5-#21); position tool drawn on ES 1m (#24 legend '· 1 ·')"
+      },
+      "setup": {"value": "NY-open drop leaves 1m bearish imbalance -> retrace into it rejected (lower high, no bullish BOS) -> 1m short targeting overnight/premarket lows", "src": "inferred", "ref": "seen gray imbalance zones on ES/NQ 1m (#13, #22, #27) + heard [01:00] 'two [bearish] imbalances ... it is respected ... takes out the lows'"},
+      "entry_conditions": [
+        {"value": "at/after 09:30 price dropped sharply on ES and NQ, leaving a 1m bearish imbalance (gray zone ≈5,468-5,471 on ES)", "src": "inferred", "ref": "#22/#27 ES 1m gray zones vs axis; #13 NQ 1m gray zone"},
+        {"value": "price retraced up into that imbalance (~09:41-09:42) and was rejected; a lower high formed below the 09:30 high 5,475.50", "src": "inferred", "ref": "#13 NQ 1m and #22 ES 1m candle positions; heard [01:00] 'it is respected'"},
+        {"value": "no bullish reaction / bullish break of structure appeared (his condition for a long)", "src": "heard", "ref": "[00:45] '[bullish] interaction with that level ... [break of structure] we're looking for'; [02:45] 'there's no reason to go long'"},
+        {"value": "entry at the lower edge of a small 1m imbalance box ≈5,465-5,467 on the push back down", "src": "inferred", "ref": "#24 crop: entry line at bottom of the dark gray box; #27 small gray box ending at the entry level"}
+      ],
+      "entry_time": {"value": "≈09:53 (close of the 09:52 1m bar; box starts 09:54), chart time, likely ET", "src": "seen", "ref": "#22 crosshair 'Thu 25 Jul '24 09:52' with legend C 5,465.50 = entry; #27 crosshair '09:54' at box left edge; heard [02:00] 'at around nine fifty two'. ET inferred from the 09:30 marker line at the open."},
+      "entry": {"value": 5465.5, "src": "seen", "ref": "#24/#15 axis label 5,465.50 on the entry line; #22 09:52 bar close 5,465.50"},
+      "stop": {"value": 5470.75, "src": "seen", "ref": "#33/#34 axis label 5,470.75 on the stop edge; #24 tool 'Stop: 5.25 (0.10%)' -> 5,465.50 + 5.25"},
+      "stop_rule": {"value": "above the 1m bearish imbalance / latest lower high (not above the ~09:42 retrace high ≈5,472-5,475)", "src": "inferred", "ref": "#22/#27 stop edge at top of the gray zone; retrace high estimated ≈5,472.7 (±1)"},
+      "target": {"value": 5451.0, "src": "seen", "ref": "#24 tool 'Target: 14.50 (0.27%)' -> 5,465.50 - 14.50; axis label 5,451.00 on the target line"},
+      "target_rule": {"value": "sell-side liquidity: below the 09:37 low 5,458.75, at the overnight/premarket lows (lines 5,452.25 and 5,451.00)", "src": "inferred", "ref": "#15/#33/#35 level lines; heard [02:30] 'probably going to get these [lows]'"},
+      "exit": {"value": "target hit ≈10:00 (5,451.00); price went on to ≈5,442", "src": "inferred", "ref": "#24/#27: after 09:54 candles fall straight through 5,451 without trading back to 5,470.75; tool label 'Closed P&L: 14.50'. Actual fill/exit not shown."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "tool shows 'Qty: 0.078', a position-tool setting, not his contracts"},
+      "result": {"value": "win", "src": "inferred", "ref": "chart shows target reached before stop (#24, #27); not confirmed by any broker panel"},
+      "r_multiple": {"value": 2.76, "src": "computed", "ref": "(5465.50-5451.00)/(5470.75-5465.50) = 14.50/5.25 = 2.76; tool shows 'Risk/Reward Ratio: 2.76'"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "no $ claim heard or in title; tool labels 'Amount: 659.6' (stop) / 'Amount: 736.34' (target) are position-tool calculations, not account P&L"},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "only the TradingView position tool is shown; no broker/platform fills or P&L panel"},
+      "mistakes": [
+        {"value": "traded against his own stated pre-session bullish bias (intraday short)", "src": "inferred", "ref": "bias reading is heard/garbled ([00:45], [03:30]); may be a deliberate switch after the bearish imbalances were respected, not a mistake"}
+      ],
+      "evidence_summary": "Instrument, date, direction, entry/stop/target, R:R and price path seen on the chart and position tool; entry time seen + heard; setup logic and bias mostly inferred/heard from a garbled transcript; actual fill, size and P&L not shown."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "for a long he wants a bullish reaction at a level followed by a bullish break of structure", "src": "heard", "ref": "[00:45] 'some sort of [bullish] interaction with that level ... [bullish break of structure] we're looking for' (garbled)"},
+    {"value": "no reason to go long while bearish imbalances are being respected", "src": "heard", "ref": "[01:00] 'two [bearish] imbalances ... it is respected'; [02:45] 'there's no reason to go long'"},
+    {"value": "don't try to catch a falling knife (don't long into the sell-off without a reaction)", "src": "heard", "ref": "[03:00] 'catch a falling [knife]'; [03:15] 'price is still [not] giving us ... [a reaction]'"}
+  ],
+  "quality_notes": "Transcript is almost unintelligible: bias direction, the exact entry trigger (FVG vs IFVG vs BOS) and any NQ/ES SMT argument ([01:30]-[01:45] 'higher low' / 'lower low') could not be confirmed. Prices are well supported (axis labels + tool arithmetic agree). Whether he was actually filled and held to target is not shown; the win is read from the chart. Chart timezone is not displayed (ET inferred). Chat comments ('Why did you enter?', 'you entered before the ifvg') are viewers' words, not evidence."
+}

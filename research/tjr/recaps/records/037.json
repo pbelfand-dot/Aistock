@@ -1,0 +1,56 @@
+{
+  "video": {
+    "n": 37,
+    "file": "06_27_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 11 sheets viewed; 14 full-size shots opened (#9,#10,#12,#15,#18,#19,#21,#22,#25,#34,#36,#37,#39,#41). Legends, axes, x-axis dates and the position-tool labels were readable. Transcript is very garbled (pocketsphinx) and usable only for gist; trade management/exit is not clear from it.",
+    "duration_min": 8.29,
+    "title_claim": "",
+    "session_date": {"value": "2024-06-27", "src": "seen", "ref": "#25 04m55s x-axis 'Thu 27 Jun '24 09:30 / 10:00 / 10:34'; #9 01m06s Forex Factory 'Today: Jun 27' (Jun 2024 calendar); file name 06_27_2024"}
+  },
+  "market_context": {
+    "regime": {"value": "4h: sideways range after a spike high around Jun 20 (lows ~5508-5512 on Jun 24-25, price ~5544 on Jun 27); 1h: range under a gray 1h zone 5556.00-5563.50; 1m on the day: 09:30 spike to ~5554, 10:15 retest of ~5554.25, then sell-off to ~5531 by ~11:40 ET", "src": "inferred", "ref": "#12 01m31s legend 'S&P 500 E-mini Futures · 4h · CME'; #18 02m55s ES 1h gray zone labels 5,563.50/5,556.00; #19 03m03s 1m line 5,554.25; #41 07m38s 1m low below the 5532.25 line at crosshair 11:43"},
+    "news": {"value": "8:30am USD Final GDP q/q 1.4% (f 1.4%), Unemployment Claims 233K (f 236K), Core Durable Goods -0.1% (f 0.2%), Durable Goods 0.1% (f -0.5%), Final GDP Price Index 3.1% (f 3.0%); 10:00am Pending Home Sales m/m -2.1% (f 0.6%); 9:00pm President Biden Speaks (debate). He waited for the 10:00 news before trading.", "src": "seen", "ref": "#9 01m06s Forex Factory calendar Jun 27 (times as shown there, consistent with ET); [01:15] 'also watching the debate' and [03:00] 'wait for news ... at ten' (heard, garbled)"},
+    "bias": {"value": "No overall daily bias going in; turned bearish after the 10:00 news because of a higher-timeframe SMT divergence (NQ 1h traded above its circled prior high). Draw on liquidity: pre-market lows 5538.00 then 5532.25.", "src": "inferred", "ref": "heard [01:30]-[01:45] 'i didn't really have an overall ... [bias] of the day, which typically isn't the best'; heard [04:00] 'we still maintain that high time frame ... divergence' -> SMT divergence; seen #15 02m13s NQ1! 1h with circled prior high (~20,070-20,098) and circle at the Jun 27 09:00 high above it; seen #34 06m15s / #41 07m38s horizontal lines 5,538.00 and the target line at 5532.25"}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-06-27", "src": "seen", "ref": "#37 06m52s x-axis 'Thu 27 Jun '24 10:27' inside the position box"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#25 04m55s legend 'S&P 500 E-mini Futures · 1 · CME', symbol box 'ES1!'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#25 04m55s position tool: gray stop box above the entry, blue target box below"},
+      "timeframes": {"value": {"bias": "1h (ES/NQ SMT)", "setup": "1m", "entry": "1m"}, "src": "inferred", "ref": "SMT shown on 1h charts (#15 NQ1! 1h, #18 ES1! 1h); position tool drawn on ES1! 1m (#25, #37); 15m (#10) and 4h (#12) also shown for context"},
+      "setup": {"value": "HTF SMT divergence (NQ took 1h high) -> wait for 10:00 ET news -> 1m lower high ~5554.25 -> 1m break of structure down -> short at 5548.00 targeting pre-market low 5532.25", "src": "inferred", "ref": "heard [04:00]-[04:30] 'high time frame ... divergence ... start looking for shorts ... waiting for a little bit more confirmation, just a simple [break] to the downside from their hi[gh]'; prices seen on #25/#37 position tool and horizontal lines"},
+      "entry_conditions": [
+        {"value": "Wait until the 10:00 ET news (Pending Home Sales) is out before looking for the trade", "src": "heard", "ref": "[03:00] 'obviously i'm to wait for news ... at ten'; #9 shows 10:00am Pending Home Sales"},
+        {"value": "Higher-timeframe SMT divergence: NQ 1h traded above its prior high (circled), used as bearish evidence", "src": "inferred", "ref": "seen #15 02m13s NQ1! 1h circles; heard [04:00] 'high time frame ... divergence'. The matching ES 1h failure to make a new high could not be confirmed at this resolution"},
+        {"value": "ES 1m made a high at ~5554.25 around 10:15 ET, which he treated as the invalidation high", "src": "inferred", "ref": "seen #19 03m03s 1m horizontal line label 5,554.25 at the ~10:15 high; heard [04:30] 'that [could] be invalidated on this ... high'"},
+        {"value": "A 1m break of structure to the downside from that high before entering", "src": "heard", "ref": "[04:30] 'waiting for a little bit more confirmation just a simple [break] of the downside from their hi[gh]' read as 'simple break of structure to the downside from there'"}
+      ],
+      "entry_time": {"value": "≈10:19 ET (±1 min)", "src": "inferred", "ref": "left edge of the position box vs x-axis on #22 04m35s (10:10 at x=420, 10:20 at x=512, box edge x≈503) and #37; chart treated as ET because its 09:30 and 10:00 markers line up with the open and the 10:00am news"},
+      "entry": {"value": 5548.00, "src": "seen", "ref": "#25 04m55s and #37 06m52s: position-tool entry line sits on the axis label '5,548.00'; stop box = 7.00 above"},
+      "stop": {"value": 5555.00, "src": "seen", "ref": "#25 04m55s tool label 'Stop: 7.00 (0.13%) 28' (28 ticks); top of the stop box on axis label '5,555.00'"},
+      "stop_rule": {"value": "above the 1m high at ~5554.25 (stop 0.75 above it)", "src": "inferred", "ref": "#19 line 5,554.25 at the 10:15 high vs stop 5555.00; heard [04:30] invalidation at the high"},
+      "target": {"value": 5532.25, "src": "seen", "ref": "#25 04m55s tool label 'Target: 15.75 (0.28%) 63'; 5548.00-15.75=5532.25; #18 02m55s 1h line labeled '5,532.25'; #41 target box bottom on the long horizontal line"},
+      "target_rule": {"value": "pre-market sell-side liquidity: the low at 5532.25 (a nearer pre-market low at 5538.00 lies in between)", "src": "inferred", "ref": "#34 06m15s and #41 07m38s horizontal lines at 5,538.00 and 5532.25, both drawn from pre-09:30 lows; he points at the lows at [06:15]"},
+      "exit": {"value": "unknown; on the chart, price reached 5532.25 at ≈11:34-11:43 ET (low ≈5531) without trading above 5555 (max after entry ≈5553.8 at ≈10:37)", "src": "inferred", "ref": "#41 07m38s crosshair 11:43 at the low under the target line; #37 highest post-entry candle ≈1.2 pts below the stop (±0.5). He never clearly says how he exited; [05:15] 'my phone didn't have any connection when i was driving to the gym ... i want[ed] to take partial profits off right here'"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "no contract count stated or shown; the position tool's 'Qty: 0.058' is a tool setting, not his size"},
+      "result": {"value": "win", "src": "inferred", "ref": "he calls it a 'healthy profit' ([08:00], heard, garbled), and the chart shows the target reached before the stop; the actual fill is not shown"},
+      "r_multiple": {"value": 2.25, "src": "inferred", "ref": "planned R:R from the tool: (5548.00-5532.25)/(5555.00-5548.00)=15.75/7.00=2.25 (tool also shows 'Risk/Reward Ratio: 2.25'); assumes a full exit at target, which is not confirmed"},
+      "claimed_pnl": {"value": "no $ amount; says 'healthy profit' and roughly 'I made a lot more money today than I should have / should have taken profits off here'", "src": "heard", "ref": "[07:45] 'i made a lot more money today that i should have a slight shift a profits off here'; [08:00] 'healthy profit so i'm not lying' (meaning unclear)"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "no broker/platform P&L or fills shown; only a TradingView position-tool drawing"},
+      "mistakes": [
+        {"value": "Managed the live trade from a phone with no connection while driving to the gym, so he could not take the partial profits he wanted", "src": "heard", "ref": "[05:15] 'my phone didn't have any connection when i was driving to the gym ... i want to take partial profits off right here'; [07:30] 'i didn't know that my phone was [not getting] connection'"},
+        {"value": "Entered without an overall daily bias (he calls that 'not the best')", "src": "heard", "ref": "[01:30]-[01:45] 'i didn't really have an overall ... [bias] of the day which typically isn't the best'"}
+      ],
+      "evidence_summary": "Seen: ES1! 1m, date, short, entry 5548.00, stop 5555.00, target 5532.25 and R:R 2.25 from the position tool; price later reached the target. Inferred: entry time ≈10:19 ET, stop/target rules, exit. Heard (garbled): SMT reason, BOS confirmation, phone problem, 'healthy profit'."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "Ideally he has a strong overall bias every day; not having one 'typically isn't the best'", "src": "heard", "ref": "[01:30]-[01:45] 'ideally every single day ... a strong bias ... today i just didn't really have [one]'"},
+    {"value": "Wait for high-impact news (10:00 ET here) to come out before trading", "src": "heard", "ref": "[01:15] '... so obviously we want to wait for that'; [03:00] 'wait for news ... at ten'"},
+    {"value": "After a higher-timeframe SMT divergence, look for shorts but wait for a simple break of structure down from the high; the high is the invalidation", "src": "heard", "ref": "[04:00]-[04:30] garbled: 'high time frame ... divergence ... start looking for shorts immediately ... that [could] be invalidated on this ... high ... waiting for a little bit more confirmation just a simple [break] to the downside'"},
+    {"value": "He needed a bullish imbalance to be disrespected (closed through) to flip his bias bearish; the zone he highlighted is ≈5542.5-5544.25 (≈09:53-10:45 ET)", "src": "heard", "ref": "[06:30]-[06:45] 'i really needed to see this [bullish] imbalance [get disrespected] for me to [flip] my bias'; zone seen on #36 06m44s (prices inferred ±0.25 from axis). Note: price closed through it at ≈10:47, after the 10:19 entry, so how it fits the entry timing is unclear"}
+  ],
+  "quality_notes": "Transcript is heavily garbled throughout, so trade management and the exit are unknown; the phone/no-connection remark suggests he did not manage it as planned. At 04m35s (#22) the tool's target briefly sat at ≈5544.25 before showing 15.75 pts / 2.25R at 04m51s+ (probably a redraw); partial-profit level unknown. Entry time comes from the box edge, not a fill. No size and no P&L panel. ES-side SMT detail not readable at 1h resolution."
+}

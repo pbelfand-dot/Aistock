@@ -1,0 +1,61 @@
+{
+  "video": {
+    "n": 42,
+    "file": "7_22_24.Trade.Recap.Best.720p.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 9 sheets viewed; 12 full-size shots opened (#1,#3,#5,#7,#12,#16,#19,#21,#22,#26,#29,#31). Legends, x-axis dates/times, right-axis labels and the position-tool labels were readable, though the chat overlay covers the upper right price axis. Transcript (pocketsphinx) is almost entirely garbled; only fragments ('bias', 'sweep', 'break of structure', 'inverse [FVG]', 'equilibrium', 'no news monday') are usable, and only as hints.",
+    "duration_min": 3.48,
+    "title_claim": "",
+    "session_date": {"value": "2024-07-22", "src": "seen", "ref": "#1 00m00s x-axis 'Mon 22 Jul '24 09:30'; #7 00m41s 'Mon 22 Jul '24 10:05'; file name 7_22_24"}
+  },
+  "market_context": {
+    "regime": {
+      "value": "NQ 4h: sharp sell-off during the prior week (Jul 17-19), then a Monday Jul 22 rebound. NQ 5m: overnight/pre-market grind up from about 19,807 into Friday's high area (19,976.50/19,979.75). NQ 1m: dropped at 09:30 to about 19,885, rallied to about 20,025 by about 09:48, then sold off through 19,932 by about 10:03 and was at 19,906.50 when the chart was shown. ES moved the same way (high about 5,607, later 5,578.75).",
+      "src": "inferred",
+      "ref": "seen #3 00m14s legend 'NASDAQ 100 E-mini Futures · 4h · CME'; #12 01m19s '5 · CME'; #21/#29 '1 · CME'; #29 02m59s current price 19,906.50; #31 03m07s ES1! 1m current price 5,578.75. The intraday highs and lows are estimated from candle positions against the axis labels (about ±3 pts); the fib '0' anchor of about 19,807 is estimated from #3 (about ±5)"
+    },
+    "news": {"value": "possibly none ('no news monday'), which is unconfirmed; no calendar was shown", "src": "heard", "ref": "[02:45] 'oh three flocking smooth no news monday' read as 'no news Monday'; low confidence"},
+    "bias": {
+      "value": "Intraday bearish after the open: NQ ran Friday's high (buy-side liquidity) and he shorted, drawing on the 1m swing low at 19,932-19,933.75. He also drew a fib on the Monday rally with its 0.5 (equilibrium, about 19,917) marked. His pre-market bias statement is not recoverable.",
+      "src": "inferred",
+      "ref": "from the short position tool (#7, #22), the Friday-high lines (#12, #26) and the fib 1/0.5/0 (#3, #5, #12); heard [00:30] 'bias' and [02:30] 'equilibrium' are too garbled to say what he stated"
+    }
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-07-22", "src": "seen", "ref": "#1 00m00s x-axis 'Mon 22 Jul '24 09:30' on the chart with the position box"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#1/#21/#22 legend 'NASDAQ 100 E-mini Futures · 1 · CME', symbol NQ1!"},
+      "direction": {"value": "short", "src": "seen", "ref": "#7 00m41s / #22 02m16s position tool: grey stop zone above the entry, blue target zone below"},
+      "timeframes": {"value": {"bias": "4h/1h", "setup": "5m/1m", "entry": "1m"}, "src": "inferred", "ref": "he showed the 4h (#3), 1h (#5, #26), 5m (#7, #12) and 1m (#1, #21, #22, #29) charts in that order; the zone and entry sit on 1m candles"},
+      "setup": {"value": "NY-open rally sweeps Friday's high (≈19,976.5-19,979.75) up to ≈20,025, then a 1m bearish shift (break of structure / inverse FVG), then a short from inside the zone, stop above the high, target at the 1m swing low", "src": "inferred", "ref": "chart sequence plus heard [02:15] 'the liquidity see we break of structure or inverse variety out', read as 'liquidity sweep, break of structure or inverse FVG'"},
+      "entry_conditions": [
+        {"value": "HTF context: a big sell-off during the prior week, then Monday retraced up into it (retrace into premium)", "src": "inferred", "ref": "#3 00m14s NQ 4h; fib 1/0.5/0 drawn on the Monday leg (#3, #5, #12)"},
+        {"value": "Price traded above Friday's high level at 19,976.50/19,979.75 (buy-side liquidity sweep), reaching ≈20,025 around 09:48 ET", "src": "inferred", "ref": "seen: lines labeled 19,979.75 and 19,976.50 (#12 01m19s, #26 02m44s) starting from Fri 19 Jul ≈09:00-10:00 candles on 5m/1h. Inferred: the high and its time come from candle positions (±3 pts, ±1 min)"},
+        {"value": "Price closed back down through a zone he drew at ≈19,996-20,011 (starting ≈09:43), read as an inverse FVG, and the entry sits inside that zone", "src": "inferred", "ref": "#21 02m12s / #29 02m59s grey rectangle whose edges are estimated from the axis scale (±2); the 'inverse' reading comes from heard [02:15] 'inverse variety' and chat 'It inversed that 1m FVG'"},
+        {"value": "ES made the same move: it touched or ran its Friday-high line at 5,607.50, and he drew a zone on ES 1m at 5,602.50-5,605.75 from 09:50", "src": "seen", "ref": "#16 01m41s ES1! 5m line label 5,607.50; #19 01m58s ES1! 1m rectangle handles with axis labels 5,605.75 and 5,602.50, start date label 'Mon 22 Jul '24 09:50'. Heard [01:30] 'both of them ended up getting a sweep' (low confidence)"}
+      ],
+      "entry_time": {"value": "≈09:55 (chart time, assumed ET)", "src": "inferred", "ref": "left edge of the position box against the x-axis on #1 (09:50 at x583, 10:00 at x636, box at x609) and #21 (09:45 at x646, 10:00 at x718, box at x694); ±1 min. The chart timezone is not shown, but the 09:30 volatility is consistent with ET"},
+      "entry": {"value": 20002.25, "src": "seen", "ref": "#21/#22 right-axis label 20,002.25 at the entry line; consistent with stop label 20,027.75 minus the tool's 'Stop: 25.50'"},
+      "stop": {"value": 20027.75, "src": "seen", "ref": "#22 02m16s right-axis label 20,027.75 at the top of the stop box; tool label 'Stop: 25.50 (0.13%) 102' (102 ticks)"},
+      "stop_rule": {"value": "just above the swing high (≈20,025) made by the post-open sweep", "src": "inferred", "ref": "the stop box top sits just above the highest 1m wick (#21, #29)"},
+      "target": {"value": 19932.0, "src": "seen", "ref": "#21/#22 right-axis label 19,932.00 at the bottom of the target box; tool label 'Target: 70.25 (0.35%) 281'"},
+      "target_rule": {"value": "1m swing low of the rally leg (≈09:41, line at 19,933.75), with the target set just below it", "src": "inferred", "ref": "#1/#29 horizontal line labeled 19,933.75 drawn from the ≈09:41 pullback low; the target is 1.75 pts below it"},
+      "exit": {"value": "target hit at 19,932.00 (per the position tool) ≈10:03 ET; his actual fill or any partial exits are not shown", "src": "seen", "ref": "#7 00m41s / #22 02m16s tool label 'Closed P&L: 70.25 ... Risk/Reward Ratio: 2.75'; candles trade through 19,932 on #1, #21, #29 (the time is estimated from the x-axis, ±1 min)"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "the tool shows 'Qty: 0.04' and an 'Amount', but these are drawing-tool settings, not a real position size; no broker panel is shown and nothing is audible"},
+      "result": {"value": "win", "src": "seen", "ref": "the position tool shows 'Closed P&L: 70.25' (target reached) and price is seen below 19,932 afterwards (#29 19,906.50); this assumes he held to the drawn target"},
+      "r_multiple": {"value": 2.75, "src": "computed", "ref": "(entry-exit)/(stop-entry) = (20002.25-19932.00)/(20027.75-20002.25) = 70.25/25.50 = 2.755; the tool shows 'Risk/Reward Ratio: 2.75'"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "no $ amount was stated in audible speech or shown; title_claim is empty; the tool's 'Closed P&L: 70.25' is in points on a drawing"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "no broker/platform panel with fills or positions is shown; only a TradingView position-tool drawing"},
+      "mistakes": [
+        {"value": "none observable; fills, partials and management are not shown", "src": "inferred", "ref": "only the drawn position tool is visible"}
+      ],
+      "evidence_summary": "Seen: instrument, date, direction, entry/stop/target axis labels, and the tool's R:R 2.75 and closed P&L of 70.25 pts. Inferred: entry time ≈09:55 ET, the stop and target rules, the sweep of Friday's high and the IFVG reading. Heard: only garbled fragments ('liquidity', 'break of structure', 'inverse')."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "The setup is a liquidity sweep, then a break of structure or inverse FVG (possibly also called 'probably like the most simple' setup)", "src": "heard", "ref": "[02:00] 'this is probably like the most simple see they are phrase' and [02:15] 'the liquidity see we break of structure or inverse variety out'; heavily garbled, gist only"},
+    {"value": "ES and NQ both swept liquidity (used as confluence)", "src": "heard", "ref": "[01:30] 'similar situation here ... both of them ended up getting a sweep'; low confidence"}
+  ],
+  "quality_notes": "The transcript is essentially unusable (pocketsphinx over stream audio), so his stated bias, reasoning and any P&L claim are unknown. The prices come from right-axis labels and position-tool labels, which agree with each other (20,027.75 - 25.50 = 20,002.25; 20,002.25 - 70.25 = 19,932.00). Times, the sweep high (≈20,025), the zone bounds and the fib anchors are estimates from candle positions. The chat overlay hides part of the price axis. Whether this was a real filled trade (and at what size) cannot be verified: only a TradingView position drawing is shown, and chat messages ('SAME TRADE', 'nice short') come from viewers, not from him. ES was only analysed; no ES position box was seen."
+}

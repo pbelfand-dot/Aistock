@@ -1,0 +1,57 @@
+{
+  "video": {
+    "n": 40,
+    "file": "7_17_24.Trade.Recap.Best.720p.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 6 sheets viewed; 14 full-size shots opened (#2,#3,#5,#6,#8,#10,#13,#14,#16,#18,#20,#21,#22,#23). Legends, axis labels, x-axis dates and the position-tool box edges were readable; the position tool's own text (R:R, qty) is never shown. Transcript (pocketsphinx) is heavily garbled; only gist fragments usable. No broker/P&L panel appears.",
+    "duration_min": 4.05,
+    "title_claim": "",
+    "session_date": {"value": "2024-07-17", "src": "seen", "ref": "#2 00m05s x-axis 'Wed 17 Jul '24 09:30' and 'Wed 17 Jul '24 11:41'; same date on #3, #5, #13, #16; file name 7_17_24"}
+  },
+  "market_context": {
+    "regime": {"value": "NQ 4h/1h: after a run-up into early/mid July, a sharp news-driven selloff on Jul 17. NQ 1m: pre-market range ≈20,260-20,320 (high 20,320.25 ≈08:0x-08:1x ET), NY-open drop from ≈09:45 to a low of 20,098.00 at ≈10:12 ET, retrace to ≈20,175-20,179 (≈10:35-10:45), then lower lows from ≈11:05 and a leg down after ≈11:41 to ≈20,000-20,050. Tab/watchlist: NQ ≈-2.7%, ES ≈-1.3% on the day. He calls it a ~300-point sell-off day.", "src": "inferred", "ref": "seen: #20 03m22s legend 'NASDAQ 100 E-mini Futures · 4h · CME', labels 20,320.25 / 20,098.00 / 20,048.00 (last); #14 02m47s 1m full-day view, fib '0' line at the pre-market high, '1' at the 10:12 low; #6 01m46s 1m candles vs labels 20,138.25 / 20,098.00; browser tab 'NQ1! 20,042.00 ▼ -2.7%' (#2), watchlist 'ES 5,64x -7x -1.28%' (#22). heard [00:15] 'super over extended ... on the four hour'; [03:15] 'keep going lower and lower ... like three hundred points sell [off] day'. Intraday prices between labels are pixel estimates (±2)"},
+    "news": {"value": "Headline-driven risk-off: 'Wall Street set to fall as megacap chip, tech stocks tumble' (Reuters, shown in TradingView news panel). No scheduled calendar release seen or heard.", "src": "seen", "ref": "#21 03m35s NQ1! news panel: Reuters '4 hours ago' 'Wall Street set to fall as megacap chip, tech stocks tumble'; heard [03:30] 'there was some news that clearly went down today' (garbled). A Forex Factory calendar tab is open but never displayed"},
+    "bias": {"value": "Bullish (counter to the intraday drop): higher timeframe (4h) seen as over-extended to the downside; NY-open drop swept hourly lows and put price in the discount half of the 20,320.25 -> 20,098.00 range, so he expected a retrace up to the range equilibrium (0.5 ≈20,209) / the 20,205 line.", "src": "inferred", "ref": "heard [00:00] 'i came in with a [bullish] bias'; [00:45] 'we came down and swept [the] hourly low'; [01:00] 'overall my [bias] ... [because] we're in [a] discounted price range from these ... lows up to these ... highs'. seen fib on NQ 1m/5m/1h: '0' line = 20,320.25 label, '0.5' line ≈20,209.25 (blue label), '1' line = 20,098.00 label (#3, #5, #16, #21, #23)"}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-07-17", "src": "seen", "ref": "#2 00m05s x-axis 'Wed 17 Jul '24' under the position box"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#2/#10/#13 legend 'NASDAQ 100 E-mini Futures · 1 · CME', symbol box 'NQ1!'; #5/#8 same at '· 5 ·'"},
+      "direction": {"value": "long", "src": "seen", "ref": "#2, #6, #10 position tool: blue target box above the entry line, gray stop box below"},
+      "timeframes": {"value": {"bias": "4h/1h (over-extension, range fib)", "setup": "5m", "entry": "1m"}, "src": "inferred", "ref": "fib range drawn on 1h (#21, #23), 4h shown (#20); box shown on 5m (#5, #8) and 1m (#2, #6, #10); heard [01:45] '... one minute ... for me though the five minute ...' (garbled)"},
+      "setup": {"value": "NY-open selloff sweeps hourly lows into discount of the 20,320.25->20,098 range -> bounce off the 10:12 low -> long 20,138.25 on a pullback into a small gray (gap) zone, target the range equilibrium", "src": "inferred", "ref": "heard [00:45] sweep of hourly low, [01:00]/[02:15] 'discounted price range'; seen fib 0/0.5/1 levels and position box; zone seen on #6/#10"},
+      "entry_conditions": [
+        {"value": "Higher-timeframe (4h) bias bullish / market seen as over-extended down", "src": "heard", "ref": "[00:00] 'came in with a [bullish] bias'; [00:15] 'super over extended ... on the four hour'"},
+        {"value": "The ≈09:45-10:12 ET drop swept an hourly low (which one is not identifiable)", "src": "heard", "ref": "[00:45] 'we came down and swept [the] hourly low'; level not marked in the viewed shots"},
+        {"value": "Price in discount: below the 0.5 (≈20,209) of the range from the pre-market high 20,320.25 to the 10:12 ET low 20,098.00", "src": "seen", "ref": "fib labels '0' 20,320.25, '0.5' ≈20,209.25, '1' 20,098.00 on #3, #16, #20, #23; entry 20,138.25 lies below the 0.5"},
+        {"value": "Lower-timeframe bounce: from the 20,098 low (≈10:12) price rallied to ≈20,157 (≈10:18-10:20), then pulled back into a small dark-gray zone ≈20,129-20,136 (dashed midline ≈20,132, drawn from ≈10:22); entry line 20,138.25 just above the zone top. Whether a 1m/5m break of structure was required is not intelligible", "src": "inferred", "ref": "#6 01m46s and #10 02m22s pixel estimates vs labels 20,138.25 / 20,150 / 20,098.00 (±1-2 pts); heard [01:30]-[01:45] mentions of confirmation and the 1m/5m, garbled"}
+      ],
+      "entry_time": {"value": "≈10:26 ET (±2 min)", "src": "inferred", "ref": "box left edge at ≈10:26 on #2 (between 10:15 and 10:30 labels), #6 and #10 (between 10:20 and 10:30); price traded 20,138.25 on those bars. Chart timezone: bottom bar reads '(UTC-4)' (#21) = ET in July; 09:30 marker at the start of the open's volatility"},
+      "entry": {"value": 20138.25, "src": "seen", "ref": "axis label '20,138.25' at the blue/gray boundary of the position box (#3, #5, #6, #10, #13)"},
+      "stop": {"value": 20098.0, "src": "seen", "ref": "axis label '20,098.00' at the gray box bottom (#3, #5, #6); stop distance 40.25 pts"},
+      "stop_rule": {"value": "exactly at the ≈10:12 ET session low (the fib '1' anchor), no buffer", "src": "inferred", "ref": "#6 low wick at ≈10:12 sits on the 20,098.00 line; fib '1' line = 20,098.00 (#3, #14)"},
+      "target": {"value": 20207.0, "src": "inferred", "ref": "box top not labelled by the tool; pixel estimates ≈20,206 (#3), ≈20,208.7 (#13), ≈20,207.3 (#18), i.e. ≈20,207 ±2, between the axis labels 20,205.00 (horizontal line) and 20,209.25 (fib 0.5)"},
+      "target_rule": {"value": "equilibrium (0.5) of the 20,320.25 -> 20,098.00 range / the 20,205 line, top of the discount zone", "src": "inferred", "ref": "box top coincides with the fib '0.5' line and the 20,205.00 line (#3, #13, #18); heard [01:00] 'discounted price range ... up to these ... highs'"},
+      "exit": {"value": "stopped (inferred) at 20,098.00: after entry price peaked ≈20,175-20,179 (≈10:35-10:45 ET, target not reached), then traded to/below 20,098 from ≈11:05 ET (≈20,092 by ≈11:16) and far below after 11:41 (≈20,000-20,050 while recording). His actual fill/close is not shown", "src": "inferred", "ref": "#6 01m46s and #18 03m12s candles vs the 20,098.00 stop line (pixel estimates ±1-2); tab price 20,042-20,057 during the video; heard [00:00] 'trade [that] happened today, unfortunately'; [02:15] '... we end up [invalidating] it'"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "no contract count stated or shown"},
+      "result": {"value": "loss", "src": "inferred", "ref": "target never reached, price later traded well through the stop; he says 'unfortunately' and 'invalidated'. No fill or P&L shown, so a manual earlier exit can't be excluded"},
+      "r_multiple": {"value": -1.0, "src": "inferred", "ref": "(20,098.00-20,138.25)/(20,138.25-20,098.00) = -40.25/40.25 = -1.0, assuming the stop was honored without slippage. Planned R:R ≈1.66-1.76 ((20,205-20,138.25)/40.25 to (20,209.25-20,138.25)/40.25). MFE ≈+37-41 pts ≈+0.9-1.0R"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "no $ amount stated or shown; title_claim empty"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "no broker/platform P&L or fills shown; only a TradingView position-tool drawing"},
+      "mistakes": [
+        {"value": "Went long against a strong news-driven trend day ('catching a falling knife'), in his own words", "src": "heard", "ref": "[01:15] 'for me [I] played a long [at] price in a d[iscount] ... [catching a] falling knife' (garbled)"},
+        {"value": "Entered without the higher-timeframe confirmation he says he wants", "src": "heard", "ref": "[01:30] 'i want [to] wait for higher time[frame] ... confirmation and i guess ... it really [wasn't]' (garbled; reading uncertain)"},
+        {"value": "Target sat inside/above an opposing bearish imbalance (≈20,182-20,206 from the ≈09:50 drop); price stalled at ≈20,178 just under it", "src": "inferred", "ref": "#16 02m57s / #18 03m12s gray zones above the box (pixel estimates ±2); heard [03:00] 'this imbalance here, more so this imbalance'"}
+      ],
+      "evidence_summary": "Seen: NQ1! 1m/5m, 2024-07-17, long, entry 20,138.25, stop 20,098.00 (40.25 pts), fib range 20,320.25-20,098 and 0.5 ≈20,209, Reuters chip-selloff headline. Inferred: entry ≈10:26 ET, target ≈20,207 ±2, stop hit ≈11:05-11:16 ET, loss -1R. Heard (garbled): bullish bias, hourly-low sweep, discount, 'falling knife', 'unfortunately'."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "Bullish when price is in the discount of the range after sweeping an hourly low", "src": "heard", "ref": "[00:45]-[01:00] 'swept [the] hourly low ... overall my [bias is bullish] because ... we're in [a] discounted price range' (garbled)"},
+    {"value": "Wait for higher-timeframe confirmation (not just the 1-minute); look at the 5-minute", "src": "heard", "ref": "[01:30] 'i want [to] wait for higher time[frame] ... confirmation'; [01:45] 'i wasn't just looking at it from the ... one minute ... for me though the five minute' (garbled; exact rule unclear)"},
+    {"value": "Opposing imbalances above price matter: the retrace failed at a bearish imbalance", "src": "heard", "ref": "[03:00] 'or this imbalance here, more so this imbalance because it was pretty much ...' (garbled)"},
+    {"value": "News drove a one-way ~300-point sell-off; price kept going lower all day", "src": "heard", "ref": "[03:15] 'prices wanna keep going lower and lower and lower today ... like three hundred points sell [off] day'; [03:30] 'some news that clearly went down today'"}
+  ],
+  "quality_notes": "Transcript badly garbled: the reasoning (sweep, confirmation, imbalance) is reconstructed from fragments and the charts. Exit and result are inferred from price action vs the stop line; no fill, close or P&L shown, and he may have exited manually. Target is a pixel estimate (≈20,207 ±2) between two labels. Hourly low that was swept is not identifiable. Time check: 1m/5m charts show candles to ≈14:10 chart time (#8, #14) while the bottom-bar clock on #21 reads like '12:06 (UTC-4)'; digits uncertain at this resolution, so recording time is ≈12:00-14:10 ET. ES 1h (#22) shows a gray zone ≈5,646-5,656 and a 5,660.00 line but no ES trade."
+}

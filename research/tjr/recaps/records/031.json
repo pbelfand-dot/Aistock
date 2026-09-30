@@ -1,0 +1,126 @@
+{
+  "video": {
+    "n": 31,
+    "file": "06_05_2024.Trade.Recap.Best.720p.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 9 sheets, 14 full-size shots (#1, #2, #5, #8, #13, #14, #18, #23, #26, #27, #28, #30, #32, #35) and the transcript. Charts are ES1! (legend 'S&P 500 E-mini Futures · 1/7/15/1h/4h · CME'); price-axis labels, x-axis date/time and the one TradingView long-position box are readable. No position-tool tooltip, broker panel, fills or P&L shown. Chart time-zone label hidden behind the webcam overlay. Transcript (pocketsphinx) is almost entirely garbled: only fragments usable ('bias on a one hour', 'news coming out at ten am', 'break of structure ... fair value gap ... fill', 'one minute'). Structure: 00:00-00:39 ES 1m/7m overview (+ brief BTC charts #3-#4, not opened); 00:39-00:55 Forex Factory calendar; 00:55-02:30 ES 1m/15m/4h/1h context; 02:33-03:46 the trade on ES 1m; 03:53-04:47 1h, talking head, phone showing the same chart (#32, blurred); 04:47-05:29 NQ1! 15m with three lines, purpose not intelligible.",
+    "duration_min": 5.6,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-06-05",
+      "src": "seen",
+      "ref": "#1 00m00s, #2 00m11s, #27 03m22s x-axis red marker 'Wed 05 Jun '24 09:30'; #8 00m42s forexfactory.com/calendar?day=jun5.2024 'Today: Jun 5', clock 9:44pm (recorded the same evening, inferred); file name 06_05_2024."
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "1h: sell-off from the 28 May 1h swing high (5,339.00) into 31 May, then higher lows/rally 3-5 Jun (bullish). 5 Jun 1m (chart time, likely ET): pre-market high ≈5,328.4 at ≈09:28; drop after the 09:30 open to a 10:00 news wick ≈5,306.6 and a ≈10:09 low ≈5,309.6; then a one-way rally through 5,330.75 and 5,339.00 (≈5,342 by 11:41); ES ≈5,368-5,369 at recording time.",
+      "src": "inferred",
+      "ref": "#30 03m53s ES 1h (5,339.00 line starts at the 28 May high; x-axis 'Fri 31 May '24 15:00'); #18 02m07s 1h; #27/#28 1m candles vs axis labels 5,317.00/5,312.25/5,330.75 (≈±0.5); #1 legend at crosshair 'Wed 05 Jun '24 11:41' C5,342.25 (seen); watchlist ES1! 5,368-5,369 (seen)."
+    },
+    "news": {
+      "value": "Wed 5 Jun 2024 (Forex Factory, times as displayed, consistent with ET): 8:15am USD ADP Non-Farm Employment Change (red) actual 152K vs forecast 173K; 9:45am CAD BOC Rate Statement / Overnight Rate 4.75% (prev 5.00%); USD Final Services PMI 54.8; 10:00am USD ISM Services PMI (red) actual 53.8 vs forecast 51.0; 10:30am BOC Press Conference; Crude Oil Inventories. He says he had news at 10am.",
+      "src": "seen",
+      "ref": "#8 00m42s Forex Factory calendar rows read directly; heard [02:15] 'i got news coming out at ten am' read as waiting for the 10:00 ISM release. FF time zone not shown; ISM at 10:00am implies ET (inferred)."
+    },
+    "bias": {
+      "value": "Bullish on the 1h: draw on liquidity = old buy-side highs above at 5,330.75/5,331.75 (28-29 May 1h highs) and 5,339.00 (28 May 1h high).",
+      "src": "inferred",
+      "ref": "Heard [02:00] 'we were obviously most bias on a one hour' read as 'bullish bias on the 1-hour' (uncertain); [02:15] 'four hour ... flawless'. Levels seen as drawn lines/labels on #14 4h and #30 1h (lines start at the 28-29 May swing highs); draw-on-liquidity reading is inferred from the long target at 5,330.75."
+    }
+  },
+  "trades": [
+    {
+      "date": {
+        "value": "2024-06-05",
+        "src": "seen",
+        "ref": "#27 03m22s x-axis 'Wed 05 Jun '24 09:30' marker, position box at ≈10:27 on the same axis"
+      },
+      "instrument": {
+        "value": "ES (E-mini S&P 500 futures, ES1!)",
+        "src": "seen",
+        "ref": "#1 00m00s legend 'S&P 500 E-mini Futures · 1 · CME', symbol box 'ES1!'"
+      },
+      "direction": {
+        "value": "long",
+        "src": "seen",
+        "ref": "#1/#27 position tool: blue (profit) zone above entry, gray (risk) zone below"
+      },
+      "timeframes": {
+        "value": {"bias": "1h (4h also shown)", "setup": "unknown (FVG box shown on 1m)", "entry": "1m"},
+        "src": "inferred",
+        "ref": "Position box drawn on the 1m chart (#1, #26-#28, seen); heard [02:00] 'bias on a one hour', [03:00] '... one minutes'. FVG timeframe not stated intelligibly."
+      },
+      "setup": {
+        "value": "after 10:00 ET ISM news: sweep of the ≈07:00 low (5,312.25) -> 1m break of structure up -> FVG ≈5,317.4-5,319.7 -> long on the retrace, target old 1h highs at 5,330.75",
+        "src": "inferred",
+        "ref": "Built from the drawn levels/boxes on #23, #26-#28 and heard [03:00]-[03:15] 'we sweep out ... lows ... we get [break of] structure right here we gave it a fair value [gap] we get a [retrace] to fill there'."
+      },
+      "entry_conditions": [
+        {"value": "1h context bullish (higher lows 3-5 Jun), trading toward old 1h highs above", "src": "inferred", "ref": "#18 02m07s, #30 03m53s 1h; heard [02:00] 'bias on a one hour'"},
+        {"value": "wait until after the 10:00 ET high-impact release (ISM Services PMI) before entering", "src": "inferred", "ref": "seen #8 FF 10:00am ISM (red); heard [02:15] 'news coming out at ten am'; entry ≈10:27 is after it"},
+        {"value": "price traded below the ≈07:00 swing low marked at 5,312.25 (10:00 wick ≈5,306.6, ≈10:09 low ≈5,309.6) but stayed above the overnight low line 5,305.50", "src": "inferred", "ref": "lines 5,312.25 (starts ≈07:00) and 5,305.50 (starts ≈02:15) seen on #23 02m33s; lows estimated from candles on #26/#27 (±0.5); heard [03:00] 'we sweep out ... lows'"},
+        {"value": "1m candle(s) closed above the post-open swing high (≈5,320-5,322) during the ≈10:20-10:25 rally (break of structure)", "src": "inferred", "ref": "#27 03m22s candle positions (±1); heard [03:15] 'get rid of structure right here' read as 'break of structure'"},
+        {"value": "a fair value gap formed in the rally, gray box ≈5,317.4-5,319.7 from ≈10:22, and price retraced to its top (≈5,319.7) at ≈10:27", "src": "inferred", "ref": "#27/#28 gray box edges vs axis labels 5,317.00/5,321.75 (±0.25); heard [03:15] 'fair value ... fill there'"}
+      ],
+      "entry_time": {
+        "value": "≈10:27 chart time (likely ET)",
+        "src": "inferred",
+        "ref": "left edge of position box on #27 03m22s (x-axis 10:20 / 10:30 labels, ±1 min); ET assumed because the 09:30 marker and the 10:00 news spike line up with NY open and the ISM release"
+      },
+      "entry": {
+        "value": 5321.75,
+        "src": "seen",
+        "ref": "#1 00m00s gray position-tool axis label '5,321.75' (also #26, #27). Note: ≈2 pts above the FVG box top."
+      },
+      "stop": {
+        "value": 5315.25,
+        "src": "seen",
+        "ref": "#1 00m00s gray position-tool axis label '5,315.25' (also #26, #27, #28)"
+      },
+      "stop_rule": {
+        "value": "below the FVG and below the 5,317.00 line; just above the 5,315.00 level (not below the 10:09 sweep low)",
+        "src": "inferred",
+        "ref": "stop location vs drawn levels on #27; he states no rule intelligibly"
+      },
+      "target": {
+        "value": 5330.75,
+        "src": "seen",
+        "ref": "#1 00m00s blue position-tool axis label '5,330.75'"
+      },
+      "target_rule": {
+        "value": "old 1h highs of 28-29 May (lines 5,330.75/5,331.75), i.e. buy-side liquidity; above the pre-market high ≈5,328.4",
+        "src": "inferred",
+        "ref": "#30 03m53s 1h: lines 5,331.75/5,330.75 start at the 28-29 May swing highs; #28 pre-09:30 high estimated ±0.5"
+      },
+      "exit": {
+        "value": "target 5,330.75 reached (a wick touches the box top ≈10:37-10:38; certainly exceeded by ≈11:00); post-entry low ≈5,319.7-5,324.8, stop never touched. Actual exit/partials unknown.",
+        "src": "inferred",
+        "ref": "#1/#28 candles vs box top (touch within ±0.25); #1 11:41 crosshair C5,342.25 (seen); heard [03:00] '... scale out ...' suggests partials, not confirmable"
+      },
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "no contracts, account or order panel shown or intelligibly stated"},
+      "result": {
+        "value": "win",
+        "src": "inferred",
+        "ref": "price reached the drawn target without touching the drawn stop (chart path on #1, #27, #28); based on the position box, not on fills"
+      },
+      "r_multiple": {
+        "value": 1.38,
+        "src": "computed",
+        "ref": "(5330.75-5321.75)/(5321.75-5315.25) = 9.00/6.50 = 1.385, from the position-tool labels; assumes full exit at target"
+      },
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "no $ figure shown or intelligibly stated; title claim empty; heard [03:45] '... to a profit ...' with no number"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "only a TradingView position-tool drawing; no broker/platform panel, fills or P&L"},
+      "mistakes": [
+        {"value": null, "src": "unknown", "ref": "no execution or risk mistake visible; transcript too garbled to know if any was mentioned"}
+      ],
+      "evidence_summary": "Seen: instrument, date, direction, entry/stop/target labels of the position box, levels, news calendar. Inferred: entry time, sweep/BOS/FVG prices, target hit and win. Heard (garbled): 1h bias, 10am news, BOS + FVG + fill, 'scale out'. No fills or P&L."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "Entry model described as: break of structure, then a fair value gap, then enter when price comes back to fill it", "src": "heard", "ref": "[03:15] 'so we get rid of structure right here we gave it a fair value yeah we get a rise to fill there' read as 'break of structure ... fair value gap ... retrace to fill'"},
+    {"value": "Be aware of the 10am news before taking the trade", "src": "heard", "ref": "[02:15] 'i got news coming out at ten am' (context of the rule unclear)"}
+  ],
+  "quality_notes": "Transcript nearly unusable: reasons, rules and any claims are mostly unintelligible, so conditions are reconstructed from drawn levels/boxes. Only one position box shown; no fills, size or P&L. Whether he actually took the trade live, and whether he scaled out, is unknown. Entry (5,321.75) sits ≈2 pts above the drawn FVG box, so the exact trigger is unclear. Target touch at ≈10:37 is pixel-level; the win relies on the later move above 5,330.75. Chart time zone hidden (ET inferred). The NQ1! 15m levels at the end (18,900.50/18,888.75/18,879.75) and the BTC charts at 00:14-00:21 have no intelligible explanation."
+}

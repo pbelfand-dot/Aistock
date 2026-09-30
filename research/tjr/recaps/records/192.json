@@ -1,0 +1,74 @@
+{
+  "video": {
+    "n": 192,
+    "file": "Weekly.Forecast.7_6-11_24.Best.720p.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Weekly forecast, no trades. I looked at all 4 sheets (13 scenes) and opened 12 full-size shots (#2-#13); #1 is webcam only. Scene #4 runs 00m58s-05m00s as one scene, so only its last frame (ES daily) is available. Whatever was on screen 01:00-04:15 can't be seen; the transcript says 'nasdaq' at [04:00] and 'now moving [to ES]' at [04:15], but no NQ chart was captured. The transcript (29 lines) is badly garbled, so it gives the gist only. Axis labels and legends are readable. The gray-box edges and fib levels are estimated from their position between axis labels.",
+    "duration_min": 7.2,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-07-06",
+      "src": "inferred",
+      "ref": "Recording date. File name '7_6-11_24'. Seen: last ES data is Fri 5 Jul 2024. #5 05m04s 4h crosshair 'Fri 05 Jul '24 06:00' and #11 06m13s 1h crosshair 'Fri 05 Jul '24 13:00' sit on the final bars. In #4 the daily crosshair 'Wed 10 Jul '24' is about 3 bars right of the last candle. BTC's daily bar is live: #2 00m03s countdown '04:38:13', with the legend low 56,044 above the prior candle's long wick. So this was recorded over the weekend, most likely Sat 6 Jul 2024."
+    },
+    "forecast_week": {
+      "value": "2024-07-08 to 2024-07-12",
+      "src": "inferred",
+      "ref": "Recorded over the weekend after the Fri 5 Jul close. Heard: [01:00] 'last week's', [01:30] 'coming into this week', [05:00] 'again on monday', [06:15] 'so coming in the week'."
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "ES: strong uptrend on the daily and 4h into the week's high. Fri 5 Jul daily bar: O 5,591.00, H 5,626.00, L 5,585.00, settlement/daily close 5,621.50 (+31.25, +0.56%); last traded 5,615.00. The Fri 5 Jul leg on the 1h/4h ran from ≈5,585 to 5,626. Below price are two gray zones, most likely daily imbalances with dashed midlines, and a swing low at 5,510.50. Per his words, no bearish 4h shift had formed yet.",
+      "src": "seen",
+      "ref": "Seen: #4/#8 legend 'S&P 500 E-mini Futures · 1D · CME' with 'O5,591.00 H5,626.00 L5,585.00 C5,621.50 +31.25 (+0.56%)'; watchlist 'ES 5621.5 31.25 0.56%'. Seen: #6/#12/#13 4h legend last bar 'O5,618.25 H5,626.00 L5,613.50 C5,615.00', price label 5,615.00, bid/ask 5614.75/5615.50. Inferred: the daily close differs from the last trade, probably because TradingView uses settlement for futures daily bars. Heard: [05:00] 'we are yet to see [a shift] on four hours', [06:00] 'haven't necessarily [seen] ... the downside yet'."
+    },
+    "news": {
+      "value": "No specific release is named intelligibly. 'holiday' at [05:30] probably refers to the 4 Jul holiday-shortened prior week. No economic calendar is shown.",
+      "src": "heard",
+      "ref": "[05:30] 'four hour and a holiday'; [02:00] 'all the high impact price range' is garbled and may be 'high impact [news]', so it is not usable. No Forex Factory or calendar picture appears among the 13 scenes."
+    },
+    "bias": {
+      "value": "ES and NQ: bullish until the 4h confirms bearish. He would like a retracement early in the week (Monday). If 4h bearish closes appear, he could turn bearish and expect price to drop into the gray zones below. Until then he looks for longs toward higher highs above 5,626, for example off the equilibrium (≈5,605.5) of the Fri 5 Jul range. BTC: expects more downside toward the 50,503-53,013 zone.",
+      "src": "heard",
+      "ref": "[01:15] 'honestly like to see a bit of a retreat [retrace] ... on both'; [03:00]-[03:15] 'as long as we don't see any significant [bearish] closes on four hour'; [05:15] 'i very well [could] have a bearish bias'; [05:30] 'would like to see [a pullback] on monday ... [bearish] confirmation on the four hour, until then i'm going to be still [bullish]'; [05:45] 'higher ... try and find positions ... right now for example ... looking for equilibrium'; [06:00] 'this [could run] very long [to] new higher highs'. Seen: fib 0/0.5/1 on the 4h (#9) and 1h (#10); cursor at 5,632.00 above the high while he talks about highs (#13). All readings are garbled; the words in brackets are my interpretation."
+    },
+    "levels": {
+      "value": {
+        "ES1!_high_5Jul": 5626.0,
+        "ES1!_last_trade": 5615.0,
+        "ES1!_equilibrium_5Jul_range": "≈5,605.5 ±1.5 (0.5 of the fib ≈5,585 → 5,626)",
+        "ES1!_blue_line_top_of_upper_zone": 5585.75,
+        "ES1!_low_5Jul": 5585.0,
+        "ES1!_upper_gray_zone": "≈5,569.5-5,585.75, dashed midline ≈5,577 ±1.5",
+        "ES1!_lower_gray_zone": "≈5,541-5,560 ±1.5, dashed midline ≈5,550.5",
+        "ES1!_swing_low_line": 5510.5,
+        "BTCUSD_lines": [60170, 56533],
+        "BTCUSD_zone": "50,503-53,013",
+        "BTCUSD_last": 57853
+      },
+      "src": "seen",
+      "ref": "Axis labels: 5,585.75 and 5,510.50 (#4-#13); 5,615.00 (#5-#13); 5,626.00 and 5,585.00 from the daily legend (#4). The zone edges are inferred from pixel position. #6 4h axis 5,580@y352, 5,570@y384, 5,560@y416, 5,550@y448, 5,540@y479: the upper box spans y337-385 and the lower box y417-476. Fib: #10 1h axis 5,588@y397 and 5,624@y192; 0 at y415 ≈5,585, 1 at y182 ≈5,626, 0.5 at y300 ≈5,605. #11 crosshair label 5,605.50 at the same place. BTC (#2/#3 'Bitcoin / U.S. Dollar · 1D · BITSTAMP'): line labels 60,170 and 56,533; the selected box shows axis labels 53,013 and 50,503; last 57,853/57,856."
+    },
+    "conditions_stated": {
+      "value": "Testable version: (A) Bullish default. While no 4h candle closes decisively bearish (operationalized: no 4h close below the Fri 5 Jul range low ≈5,585), look for ES longs on a pullback to ≈5,605.5 (0.5 of 5,585-5,626), targeting new highs above 5,626. (B) Bearish switch. Once 4h bearish closes or a bearish 4h shift appear (ideally Mon-Wed), expect ES to retrace into 5,569.5-5,585.75, then 5,541-5,560, with the 5,510.50 swing low as sell-side liquidity below. Then drop to lower timeframes and look for price to raid levels at high-probability times. He gives no entry, stop or target numbers for either case.",
+      "src": "inferred",
+      "ref": "Built from heard [03:00]-[03:15], [05:00]-[05:45], [06:15] 'drop [down to the lower timeframes] and look for price [to] raid each one of these [at] high probability time[s]', and [06:30] 'start seeing the [4] hour [go] bear[ish] ... for prices dropping to one [of these]'. Levels are seen or inferred as in 'levels'. The 5,585 threshold for a '4h bearish close' is my own operationalization; he never says a number."
+    },
+    "other_markets": {
+      "value": "BTC daily: dropped from the ≈60-72k range to below the 56,533 line with a long lower wick, then last 57,853. He expects potential for more downside and a revisit of the 50,503-53,013 zone, citing previous monthly lows. NQ: no chart captured; watchlist NQ 20620 (+209.25, +1.03%); he says ES is a 'similar situation' to NQ, except a level is 'a little more recent'. YM 39695 (+59).",
+      "src": "heard",
+      "ref": "Heard: [00:30] '... bitcoin'; [00:45] '... good [pull]down and revisit this area ... previous monthly [lows]'; [01:00] 'looks likely that potential for even more downside here'; [04:00] 'on nasdaq'; [04:15] 'now moving [to ES] similar situation here'; [04:30] 'except for [the low] is going to be a little more recent'. Seen: #2/#3 BTC chart and box, and the watchlist rows in #2-#13."
+    }
+  },
+  "trades": [],
+  "no_trade_reason": "Weekly forecast recorded over the weekend (markets closed for ES). No position, position tool or fills are shown. He states he is waiting for 4h confirmation or for price to reach equilibrium before looking for trades during the coming week.",
+  "lessons_stated": [
+    {"value": "Stay bullish as long as there are no significant bearish closes on the 4h.", "src": "heard", "ref": "[03:00]-[03:15] 'as long as we don't see any significant [bearish] closes on four hour' (garbled)"},
+    {"value": "Only turn bearish after bearish confirmation on the 4h; until then, remain bullish and look for higher highs.", "src": "heard", "ref": "[05:30] '[bearish] confirmation on the [four] hour, until then i'm going to be still [bullish]'; [06:00] 'new higher highs' (garbled)"},
+    {"value": "Look to enter at equilibrium (0.5) of the 4h/1h range.", "src": "heard", "ref": "[05:45] 'right now for example ... looking for equilibrium'; seen fib with a 0.5 level on #9 (4h) and #10 (1h)"},
+    {"value": "After the higher-timeframe shift, drop to lower timeframes and look for price to raid levels at high-probability times.", "src": "heard", "ref": "[06:15] 'i'm going to drop out that the delivery and look for price range raise each one of these high probability time' (read as 'drop down to the lower timeframes and look for price to raid each of these at high-probability times'; uncertain)"}
+  ],
+  "quality_notes": "No trades, so there is no entry, stop or P&L to verify. The transcript is heavily garbled: 'bullish' and 'bearish' are mostly unrecognizable and had to be inferred from context. No NQ chart is visible, because scene #4 (00:58-05:00) contributes only its last frame, of ES. Zone edges and fib values are pixel estimates (±1.5 pts); only the line labels 5,585.75, 5,510.50 and 5,615.00, the legend OHLC and the BTC labels were read directly. The chart timezone is not visible (the webcam covers the lower right). The recording date (Sat 6 Jul 2024) is inferred from the file name and the last bars, not read from a clock."
+}

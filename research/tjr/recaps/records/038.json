@@ -1,0 +1,87 @@
+{
+  "video": {
+    "n": 38,
+    "file": "7_1-3_24.Market.Recap.Best.720p.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 12 sheets looked at. 15 full-size shots opened (#15, #17, #19, #21, #24, #26, #28, #32, #34, #35, #38, #40, #42, #43, #45). The first ~2 min are webcam only. Legends, x-axis dates and axis labels are readable. The transcript (78 lines) is very garbled. It gives the gist only, and some stretches ([00:00]-[04:45], [09:45]-[11:00], [13:00]-[15:30]) are nearly unusable. No Tuesday intraday chart was opened at full size.",
+    "duration_min": 21.8,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-07-01 to 2024-07-03 (Mon-Wed recap), recorded after the 2024-07-03 session",
+      "src": "seen",
+      "ref": "#15 02m15s ES 4h x-axis 'Mon 01 Jul '24 | Tue 02 Jul '24 | Wed 03 Jul '24'. #19/#21/#24/#26/#28/#32/#34/#35 'Mon 01 Jul '24'. #40 'Tue 02 Jul '24 09:00' / 'Wed 03 Jul '24 09:00'. #42/#43/#45 'Wed 03 Jul '24'. Matches the file name 7_1-3_24. Heard [20:30] 'tomorrow ... was a holiday' (4 Jul). The recording date is inferred."
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "ES 4h: range ≈5,505-5,580 from about 18 Jun to 1 Jul, then a breakout. ES 1h: Tue 2 Jul dipped to ≈5,503 (±2) and rallied to ≈5,569 (±2). Wed 3 Jul pushed to ≈5,596 (±1); last price 5,591.25. Mon 1 Jul ES 1m: NY-open high ≈5,539, selloff to ≈5,506.5 by ≈10:55, recovery to ≈5,537-5,539 by the afternoon. Wed NQ: broke above its pre-open range (20,207.25-20,295.75) to ≈20,340 by ≈11:00.",
+      "src": "inferred",
+      "ref": "Seen: legends 'S&P 500 E-mini Futures · 4h/1h/5/1 · CME' (#15/#40/#24/#19) and 'NASDAQ 100 E-mini Futures · 4h/15/1 · CME' (#38/#42/#43). Seen axis labels: 5,591.25 (#40), 20,207.25 / 20,295.75 (#42). Other prices are estimated from candle positions (ES ±1-2 pts, NQ ±3 pts)."
+    },
+    "timezone": {
+      "value": "ET (chart time)",
+      "src": "inferred",
+      "ref": "The Monday 1m chart marks 09:30 ('Mon 01 Jul '24 09:30', #21), and the big move starts there. The Wed NQ move also starts at the marked ≈09:30 line (#43/#45)."
+    },
+    "news": {
+      "value": "He mentions news on Tuesday and on the days reviewed, and a holiday tomorrow (4 Jul). No calendar was shown, so specific releases and times are unknown.",
+      "src": "heard",
+      "ref": "[05:00] 'there was news about my views on tuesday' ['there was news ... on Tuesday']; [14:00] 'is some news on this day i can be completely wrong'; [18:45] 'any news'; [20:30] 'a trademark was a holiday' ['tomorrow was a holiday']. Garbled."
+    },
+    "bias": {
+      "value": "Bullish all three days. He wanted longs: price should retrace to the equilibrium / discount of the range, take sell-side liquidity, then run to the highs (buy-side). For Tuesday he adds an SMT divergence on the higher timeframe as another bullish reason.",
+      "src": "heard",
+      "ref": "[05:15] 'i guess this will you be looking at long honestly'; [05:30] 'we're still we should be bullish'; [06:00] 'more than likely would abolish' ['would be bullish']; [13:30] 'looking for ... equilibrium'; [16:15] 'another reason why i am the polish would be ... the sea divers is on the high time' ['another reason I'm bullish: SMT divergence on the higher timeframe']; [19:45] 'within my ... bias'. Low confidence on wording."
+    },
+    "levels": {
+      "value": "ES Mon 1 Jul: 5,532.75 (dashed line in the grey zone above the 09:50 retrace); grey FVG box ≈5,528.5-5,530.2; 5,521.00 (pre-market low line from ≈05:00); 5,514.75 (red line, swing high broken ≈11:00); lows ≈5,507.5 (≈10:05) and ≈5,506.5 (≈10:55), circled; NY-open high ≈5,539 vs pre-market highs ≈5,537. NQ Wed 3 Jul: range 0 = 20,207.25, 1 = 20,295.75, 0.5 = 20,251.5 (computed); grey 15m imbalance 20,228.50 to ≈20,249 (±2).",
+      "src": "seen",
+      "ref": "Axis labels read: 5,532.75 and 5,521.00 (#19); 5,514.75 (#28/#32/#35); 20,207.25, 20,295.75, 20,228.50 (#42/#43). The box edges, lows and highs marked ≈ are inferred from candle positions (±0.5-1 ES, ±2 NQ)."
+    },
+    "conditions_stated": {
+      "value": "Testable long rule as he describes it: (1) bullish higher-timeframe bias; (2) price trades down into equilibrium/discount of the range and sweeps sell-side (a lower low below a prior low); (3) optional SMT divergence ES vs NQ; (4) a 1m break of structure up; (5) enter on the retrace into the 1m FVG, stop under the post-sweep low, target the day's high / buy-side liquidity. Wed: a 15m imbalance at equilibrium alone was not enough, because the price action was choppy and there was no sweep.",
+      "src": "inferred",
+      "ref": "Built from the Monday drawings (#26-#35: two circled lows, red BOS line 5,514.75, grey FVG, long position box) and heard [06:30] 'right to silence the liquidity your brain structure' ['sweep the liquidity, break structure'], [11:45] 'maybe you wanna wait until ... balance' ['equilibrium'], [16:15] SMT, [18:00] 'not even a suite of liquidity' ['not even a sweep of liquidity'], [19:15]-[19:30] 'fifteen minute imbalance ... looks great ... however this price action looks like shit'."
+    },
+    "hypothetical_setups_shown": {
+      "value": [
+        "Mon 1 Jul ES 1m SHORT (hindsight, no position box): the 09:3x high ≈5,539 took the pre-market highs ≈5,537 (sweep). Price dropped to ≈5,522, retraced at ≈09:50 to ≈5,534.5 into the grey zones (≈5,528.5-5,533), then fell through 5,521.00 to ≈5,509 (≈10:15) and ≈5,506.5 (≈10:55). He calls sweep + break of structure 'the most obvious trade', but seems to say he would not personally take it because his bias was bullish.",
+        "Mon 1 Jul ES 1m LONG (position tool drawn after the fact): two lows circled, the second (≈5,506.5) below the first (≈5,507.5). Break above the red 5,514.75 swing high ≈11:00. Entry 5,513.50 (grey label) ≈11:07. Stop ≈5,508 (±0.5; box bottom, no label), under the post-sweep higher low. Target first ≈5,519.5 (blue label, #32), then moved to 5,539.25 (blue label, #34/#35), about the day's high. Planned R ≈(5,539.25-5,513.50)/(5,513.50-5,508) ≈4.7 (inferred stop). After entry the low was ≈5,512.7, so the stop was not hit. Price reached ≈5,534 at ≈12:45, ≈5,537 at ≈14:18 and ≈5,539 (±1) near ≈15:55. Whether 5,539.25 traded is undeterminable. He calls it 'all in hindsight'.",
+        "Wed 3 Jul NQ 15m/1m LONG idea (not taken): a pre-open range 20,207.25-20,295.75 with a 15m imbalance 20,228.50-≈20,249 at/below the 0.5 (20,251.5). At ≈09:30 price jumped ≈20,213 to ≈20,264 and pulled back into the zone ≈20,235 (≈09:32-09:35). It held ≈20,247-20,249 into ≈10:25, then broke 20,296 ≈10:40 and reached ≈20,340 by ≈11:00. He says it looks great on paper but the price action was poor and he would not trade it."
+      ],
+      "src": "inferred",
+      "ref": "Seen: #19/#21/#24 (Mon short zones, labels 5,532.75, 5,521.00, dashed 09:30/09:50 lines); #26/#28/#32/#34/#35 (circled lows, red 5,514.75, grey 5,513.50 entry label, blue 5,539.25 target label, box ≈11:07-11:25); #42/#43/#45 (Wed NQ range labels, grey 15m zone, 20,228.50). Heard: [07:15] 'let's hypothetically say'; [08:30] 'me personally i probably wouldn't say it's great because i would have more ... bias'; [11:30] 'obviously all this in hindsight'; [12:00] 'you could very well just read it straight up' ['ride it straight up']; [19:30] 'i don't even think i'd ... trade'. Times and ≈ prices are from candle positions (±2 min; ES ±0.5-1, NQ ±2-3)."
+    }
+  },
+  "trades": [],
+  "no_trade_reason": "No trade is shown or clearly claimed as taken. He reviews Mon-Wed 1-3 Jul 2024 in hindsight: a Monday short and long drawn after the fact (the long with a TradingView position tool, entry 5,513.50 and target 5,539.25), a Tuesday bullish/SMT read and a Wednesday NQ idea he says he would not trade. No fills, broker panel or P&L are shown. Heard: [07:15] 'let's hypothetically say'; [11:30] 'obviously all this in hindsight'; [19:30] 'i don't even think i'd ... trade'. Two garbled lines could mean he traded ([02:45] 'go over our own trade in the past three days'; [18:30] 'i have gotten lost every single day this week', maybe 'longs' or 'losses'), but they are too garbled to count as a claim.",
+  "lessons_stated": [
+    {
+      "value": "Sweep of liquidity followed by a break of structure is the most obvious trade.",
+      "src": "heard",
+      "ref": "[06:30] 'right to silence the liquidity your brain structure this is probably the most obvious trauma would be' ['sweep the liquidity, break structure, the most obvious trade']. Medium-low confidence."
+    },
+    {
+      "value": "Don't take a setup against your bias; he would not rate the Monday short as great because he was bullish.",
+      "src": "heard",
+      "ref": "[08:30] 'me personally i probably wouldn't say it's great because i would have more ... bias'. Low confidence."
+    },
+    {
+      "value": "Entering late to get confirmation, or waiting for price to reach equilibrium, is acceptable; he stresses that the walkthrough is hindsight.",
+      "src": "heard",
+      "ref": "[11:30] 'just as late as this was to confirm this'; [11:45] 'maybe you wanna wait until this there's a balance' ['equilibrium']; 'obviously all this in hindsight'. Low confidence."
+    },
+    {
+      "value": "Look for a retrace to equilibrium after an extension.",
+      "src": "heard",
+      "ref": "[17:00] 'retrace i'm wanting equilibrium after it is extension'. Medium confidence."
+    },
+    {
+      "value": "A 15m imbalance at equilibrium 'looks great on paper', but if the price action is poor (choppy, no sweep of liquidity), don't trade it.",
+      "src": "heard",
+      "ref": "[18:00] 'not even a suite of liquidity' ['sweep of liquidity']; [19:15] 'fifteen minute imbalance but that looks great on solid however'; [19:30] 'this price action looks like shit ... i don't even think i'd ... trade'. Medium confidence."
+    }
+  ],
+  "quality_notes": "The main limit is that it is unclear whether any trade was really taken. The Monday long position box can't be tied to a fill or P&L, and the transcript frames the walkthrough as hindsight. The stop of that box has no label and is inferred (≈5,508 ±0.5), so its ≈4.7R is inferred. Whether the 5,539.25 target traded is undeterminable (price came within ≈1 pt). The transcript is badly garbled, especially [00:00]-[04:45] and the Tuesday section [12:30]-[16:00]. The Tuesday analysis rests on heard fragments plus ES 1h/NQ 4h views, so the Tuesday entry levels and the SMT pattern details are unknown. The timezone is inferred as ET. All ≈ prices come from candle positions."
+}
