@@ -1,8 +1,8 @@
 # TJR's model (learned from his videos)
 
 ## Evidence so far
-- Videos analyzed: 15 of 200. Trades recorded: 13 (7 wins, 4 losses, 2 unclear).
-- Average R where known (10 trades): +0.75.
+- Videos analyzed: 20 of 200. Trades recorded: 20 (12 wins, 5 losses, 3 unclear).
+- Average R where known (15 trades): +0.90.
 - Verified by fills or broker P&L: 0. Everything else is his drawings and words.
 - The bot does NOT trade this yet: it trades only after an intraday history test passes, and then only in Stage 2 paper trading.
 
@@ -84,12 +84,14 @@ from `trades.csv`. Nothing here is proven: the trades are unverified recap drawi
 
 | # | Hypothesis | Evidence so far | How to test |
 |---|---|---|---|
-| H1 | Trading only in the direction of the 4h+1h structure is the core filter | 8/8 trades went with the bias (batch 1) | Backtest the 5m entry model with and without the HTF-bias filter |
+| H1 | Trading only in the direction of the 4h+1h structure is the core filter | 20/20 trades went with the bias (batches 1–4) | Backtest the 5m entry model with and without the HTF-bias filter |
 | H2 | Entry = 5m BOS in the bias direction, then a retrace into the 5m FVG/IFVG from that leg, then entry on rejection | 8/8 described this way; sweep first in 5/8 | Code the entry exactly; run variants: (a) sweep required, (b) no sweep |
 | H3 | Stops just beyond the last 5m swing get wicked on noise; a buffer helps | 3 of 4 losses stopped by a few points or one spike before the move worked (Feb 21 ×2, Mar 22) | Compare stop = last swing vs. session extreme vs. swing + 0.5×ATR(5m) |
 | H4 | Targets = next HTF liquidity (prior 15m/1h/4h swing), not a fixed R | Planned R:R from 0.61 to 6.19 | Compare liquidity target vs fixed 1R/2R/3R, and a minimum-R filter |
-| H5 | The first ~90 minutes after the 9:30 ET open is his main window | 10 of 13 entries 09:20–10:30; 2 near 11:50; 1 at 15:00 | Split results by entry time bucket |
+| H5 | The first ~90 minutes after the 9:30 ET open is his main window | 13 of 20 entries 09:20–10:30; 3 at 11:00–12:00; 4 in the afternoon (14:23–15:00) | Split results by entry time bucket |
 | H6 | ES and NQ at the same time = one bet, twice the risk | 2 days with both; both lost together once | Treat same-direction ES+NQ as one position in sizing |
 | H7 | Red-news days are worse | Both Feb 21 losses on an FOMC-minutes day; Feb 22 (news-heavy) was a win; he sat out Mar 6, 7, 8, 12 (Powell, NFP, CPI) | Tag each session with red-impact US releases (CPI, NFP, FOMC, Powell, PPI); compare |
 | H8 | Two-step trigger: price reaches a pre-marked level (sweep or pullback into a zone), then a lower-timeframe close confirms (BOS/IFVG); a touch alone = no trade | Every plan in batch 2 was stated this way | Code both steps; compare with entering on the touch |
 | H9 | Entries inside an intraday range that already chopped for over an hour do worse | Mar 22 NQ short: entered mid-chop, stopped by one spike | Measure range width/touch count in the 60 min before entry; compare results |
+| H10 | Add-ons (a second entry while the first is open) do worse than first entries | May 6 NQ add-on lost; he says he shouldn't have | Compare first entries only vs allowing add-ons |
+| H11 | An ES/NQ SMT divergence at the sweep improves results | Apr 29 NQ long had SMT and won 2R | Tag sweeps where only one index made a new extreme; compare |
