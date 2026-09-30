@@ -80,7 +80,7 @@ def sell_all(positions: dict, prices: pd.Series, reason: str, tickers=None) -> l
 
 
 def desk_orders(strategy, now, scores: pd.Series, prices: pd.Series, broker, risk: RiskManager,
-                yesterday_equity, desk_cfg: dict, stops_only: bool = False) -> list:
+                yesterday_equity, desk_cfg: dict, stops_only: bool = False, no_buys: str = "") -> list:
     today = now.strftime("%Y-%m-%d")
     positions = broker.positions()
     equity = broker.equity(prices)
@@ -95,7 +95,7 @@ def desk_orders(strategy, now, scores: pd.Series, prices: pd.Series, broker, ris
         too_late = left <= desk_cfg["last_entry_minutes_before_close"]
     allowed, _ = risk.new_buys_allowed(equity, yesterday_equity)
     return decide_orders(scores, prices, positions, broker.buying_power(today), equity, strategy, risk,
-                         allow_new_buys=allowed and not too_late, stops_only=stops_only)
+                         allow_new_buys=allowed and not too_late and not no_buys, stops_only=stops_only)
 
 
 def execute(orders: list, broker, date: str) -> list:
@@ -171,8 +171,9 @@ def run_backtest(strategy, bars: dict, market: pd.DataFrame, cfg: dict, desk: st
 
 
 def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd.DataFrame, now,
-              desk_cfg: dict, stops_only: bool = False) -> dict:
-    """One moment of paper or live trading. stops_only: just check stop-losses."""
+              desk_cfg: dict, stops_only: bool = False, no_buys: str = "") -> dict:
+    """One moment of paper or live trading. stops_only: just check stop-losses.
+    no_buys: a reason not to open new trades now (e.g. a lesson from its own trades, see learning.py)."""
     mode = broker.mode
     today = now.strftime("%Y-%m-%d")
     prices = closes_table(bars).ffill().iloc[-1]
@@ -195,8 +196,12 @@ def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd
         allowed, why_not = risk.new_buys_allowed(equity, yesterday_equity)
         if not allowed and strategy.style == "swing":
             store.log(f"[{mode}] no new buys today: {why_not}")
+        if no_buys and store.get(f"{mode}_no_buys_logged") != today:        # once a day, not every 5 minutes
+            store.log(f"[{mode}] no new buys today: {no_buys}")
+            store.set(f"{mode}_no_buys_logged", today)
 
-    orders = desk_orders(strategy, now, scores, prices, broker, risk, yesterday_equity, desk_cfg, stops_only)
+    orders = desk_orders(strategy, now, scores, prices, broker, risk, yesterday_equity, desk_cfg, stops_only,
+                         no_buys)
     fills = execute(orders, broker, today)       # each fill is saved the moment it happens (broker.on_fill)
     if not orders and not stops_only and strategy.style == "swing":
         store.log(f"[{mode}] no trades today")

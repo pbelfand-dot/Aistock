@@ -1,0 +1,101 @@
+{
+  "video": {
+    "n": 14,
+    "file": "03_22_2024.Trade.Recap.Best.720p.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 12 sheets, 13 full-size shots (#15, #19, #24, #27, #28, #30, #31, #32, #34, #36, #40, #42, #45) and the transcript. The TradingView legends, axis labels and position-tool boxes could be read. The transcript is extremely garbled (pocketsphinx) and gives only fragments. Layout: 00:00-02:50 a webcam intro with no usable speech; 03:16-07:51 the NQ trade (15m/5m/1m); 07:58 NQ 4h; 08:08 the Forex Factory calendar; 08:13-12:38 the ES trade (5m/4h/15m/1m); about 13:00-16:13 a mastermind promotion. No broker panel, fills or P&L are shown.",
+    "duration_min": 16.2,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-03-22",
+      "src": "seen",
+      "ref": "#15 03m23s x-axis 'Fri 22 Mar '24 09:30' (NQ1! 15m); #32 08m13s and #42 11m51s x-axis 'Fri 22 Mar '24' (ES1!); #31 08m08s forexfactory.com/calendar?day=mar22.2024 'Today: Mar 22'; file name 03_22_2024."
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "Higher timeframe: NQ and ES 4h show a strong rally on 20-21 Mar, then lower 4h candles on Fri 22 Mar (NQ from about 18,700 down toward about 18,500). Intraday 22 Mar: a choppy range. NQ sold from about 18,580 before the open to a pre-market low of 18492.00 (about 08:30), rallied into a grey zone (about 18533.5-18570) by about 09:10-09:35, dropped to about 18,500 at about 09:46, spiked above 18,557 at about 10:03, chopped, then broke higher after about 13:00. ES ranged between about 5288 and 5306 all day.",
+      "src": "inferred",
+      "ref": "Seen legends: 'NASDAQ 100 E-mini Futures · 4h · CME' #30, '· 15 · CME' #15, '· 5 · CME' #19/#27/#28, '· 1 · CME' #24; 'S&P 500 E-mini Futures · 4h · CME' #34, '· 15' #36, '· 5 · CME' #32/#40, '· 1 · CME' #42/#45. Swing prices come from candle positions between axis labels (±2 NQ, ±0.5 ES); 18492.00, 18533.50, 5304.75 and 5288.25 are seen labels on drawn lines."
+    },
+    "news": {
+      "value": "Fri 22 Mar: 'Fed Chair Powell Speaks' at 9:00am, USD, high-impact (red) icon; it is the only event listed. The Forex Factory timezone isn't shown (the FF clock reads 9:10am). Both trades were entered after 9:00 chart time. No spoken comment on the news could be made out.",
+      "src": "seen",
+      "ref": "#31 08m08s forexfactory.com/calendar?day=mar22.2024: 'Fri Mar 22 | 9:00am | USD | [red] | Fed Chair Powell Speaks'."
+    },
+    "bias": {
+      "value": "Bearish on both. NQ: 'we were bearish', and he looked for confirmations to the downside after a raid and a move into an imbalance or equilibrium. ES: bearish after, as he says, a 4h candle closed below the 4h lows ('4h lows were intact until this 4h candle closed underneath the low'), with a raid to the downside expected.",
+      "src": "heard",
+      "ref": "[04:15] 'and we were bearish'; [04:45] 'operate down [bearish down?] ... looking for confidence [confirmations]'; [05:00] 'raid ... we have this imbalance'; [09:00] 'four hour lows they were intact until this four hour ... close underneath the low'; [10:00] 'four hours and lows raided ... shot to downside'. Garbled; my reading."
+    },
+    "levels": {
+      "value": "NQ: grey zone from about 18533.5 (bottom, seen label 18533.50) to about 18570 top, with a blue line at 18557.50 inside it; red lines at 18525.75 and 18524.50; lines at 18506.75 and 18492.00 (the pre-market low about 08:30); on 4h, a line at 18659.50. ES: grey zone about 5299.3-5307.5, with a blue line at 5300.75; lines at 5322.75, 5313.00/5311.75, 5304.75 (the high about 09:30), 5299.00, red 5297.00, 5292.25 and 5288.25.",
+      "src": "seen",
+      "ref": "Axis labels on #19/#24/#27/#28 (NQ) and #32/#34/#36/#40/#42/#45 (ES). The zone edges not carried by a label are estimated from their positions (inferred, ±3 NQ, ±0.5 ES)."
+    }
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-03-22", "src": "seen", "ref": "#24 06m20s x-axis 'Fri 22 Mar '24 09:30' (1m); #27 07m19s same (5m)"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#24 legend 'NASDAQ 100 E-mini Futures · 1 · CME', symbol box 'NQ1!'. Whether he traded NQ or MNQ isn't shown."},
+      "direction": {"value": "short", "src": "seen", "ref": "#24/#27/#28 position box: the dark-grey (stop) part sits above the entry and the blue (target) part below it. Heard [06:30] 'short position right here'."},
+      "timeframes": {"value": {"bias": "4h? (unclear)", "setup": "5m (grey zone, lows)", "entry": "1m"}, "src": "inferred", "ref": "He shows the 15m (#15), 5m (#19/#27/#28), 1m (#24) and 4h (#30). Heard [05:00] 'main focus is though for our [four hour?]' and [05:15] 'fireman time frame [lower time frame?]'. The mapping is my reading."},
+      "setup": {"value": "bearish bias -> retrace up into a grey HTF imbalance/equilibrium zone -> lower-timeframe break of structure down -> short, target the pre-market low", "src": "inferred", "ref": "The zone and box are seen on #19/#24/#27. Heard [05:00] 'raid ... we have this imbalance'; [05:30] 'price has gone into equilibrium'; [06:15] 'once we got [break of structure] right here'; [06:30] 'short position right here ... right on these highs'."},
+      "entry_conditions": [
+        {"value": "Bearish bias going into the session", "src": "heard", "ref": "[04:15] 'going into the house [session?] and we were bearish'"},
+        {"value": "A pre-market sell to a low of 18492.00 (about 08:30), then a retrace up into the grey zone (bottom 18533.50) by about 09:10-09:35", "src": "inferred", "ref": "#19 5m: the low aligns with the line labelled 18492.00; the zone bottom is labelled 18533.50; times are estimated from the x-axis (±5 min)"},
+        {"value": "Price reached the zone's 'equilibrium' (about 50% of the zone)", "src": "heard", "ref": "[05:30] 'an equilibrium price has gone into equilibrium'. The dashed midline in the zone is seen on #19/#24; its price isn't read"},
+        {"value": "A lower-timeframe break of structure to the downside before the entry", "src": "heard", "ref": "[06:15] 'once we got great shelter [break of structure] right here'; [06:00] 'down to the downside'. Which swing broke isn't identifiable"}
+      ],
+      "entry_time": {"value": "≈09:40 chart time (probably ET)", "src": "inferred", "ref": "#24 1m: box left edge x≈622 on an axis with 08:30 at 394 and 10:00 at 685 (3.23 px/min), so 09:40 ±2 min. #27 5m gives the same. ET assumed because he marks 09:30 as the open."},
+      "entry": {"value": 18523.25, "src": "inferred", "ref": "The box's entry edge lines up with the third small red axis label (partly hidden), read as ≈18523.25, below the red lines 18525.75/18524.50 (#27, #28). ±1."},
+      "stop": {"value": 18546.5, "src": "seen", "ref": "The top edge of the box's dark-grey part is at axis label 18546.50 (#24, #27 and #28)."},
+      "stop_rule": {"value": "Above the local swing high inside the grey zone (≈18546) formed just before the entry", "src": "inferred", "ref": "#27 5m: highs of about 18543-18546 around 09:15-09:35, just under the stop. Not stated intelligibly."},
+      "target": {"value": 18492.0, "src": "inferred", "ref": "The blue part's bottom edge lines up with the line labelled 18492.00 in #27 (07m19s) and #28 (07m46s). This fits the heard '[07:15] a profit was all set on these lows' and '[07:15] three four restored ratio' (1.34 R:R = (18523.25-18492)/(18546.5-18523.25) = 31.25/23.25). But in #24 (06m20s-06m40s, 1m) the blue bottom sits near 18508 ±2, so the box was apparently edited during the recap."},
+      "target_rule": {"value": "The pre-market low 18492 (sell-side liquidity)", "src": "heard", "ref": "[07:15] 'a profit was all set on these loans [lows]'"},
+      "exit": {"value": "stopped at ≈18546.5", "src": "inferred", "ref": "#24 1m / #27 5m: after the entry, price fell to ≈18500 ±2 at about 09:46 (18492 not reached), then a spike at about 10:03 went above 18557, through the stop. Heard [07:15]-[07:30] 'ended up getting [stopped?]'."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Not shown. If the heard -$500 is right, 23.25 pts of risk means about $21/pt (≈1 NQ or ≈11 MNQ). Unverified."},
+      "result": {"value": "loss", "src": "inferred", "ref": "Price went through the stop before reaching the 18492 target (seen box vs candles, #24/#27). Heard [04:00] 'tiny bit loss of five hundred bucks'."},
+      "r_multiple": {"value": -1.0, "src": "computed", "ref": "(entry-exit)/(stop-entry) = (18523.25-18546.5)/(18546.5-18523.25) = -1.0, assuming the exit was at the stop. Planned R:R 1.34 = 31.25/23.25."},
+      "claimed_pnl": {"value": "-$500", "src": "heard", "ref": "[04:00] 'tiny bit loss of five hundred bucks on this' (garbled)"},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "No broker panel, fills or P&L are shown; only a TradingView position box drawn after the fact."},
+      "mistakes": [
+        {"value": "Entered inside a choppy range (NQ chopped around the zone for hours); the stop sat just above local highs and was run by a single spike before the target", "src": "inferred", "ref": "#27/#28 price action; heard [06:15] 'chopping up and down like this'. He doesn't clearly label it a mistake."}
+      ],
+      "evidence_summary": "Seen: instrument, date, short box and stop 18546.50. Inferred: entry ≈18523.25 (partly hidden label), target 18492 (box edge, which changed between shots), entry time and stop-out from candles. Heard: bearish bias, 1.34 R:R and a -$500 loss."
+    },
+    {
+      "date": {"value": "2024-03-22", "src": "seen", "ref": "#42 11m51s x-axis 'Fri 22 Mar '24 09:30' (ES 1m); #40 same (5m)"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#40 legend 'S&P 500 E-mini Futures · 5 · CME', #42 '· 1 · CME', symbol box 'ES1!'. Whether he traded ES or MES isn't shown."},
+      "direction": {"value": "short", "src": "seen", "ref": "#32/#40/#42/#45 position box: the dark-grey stop part is above the entry and the blue target part below it."},
+      "timeframes": {"value": {"bias": "4h", "setup": "1h/15m zone", "entry": "1m/5m"}, "src": "inferred", "ref": "Heard [09:00]-[10:15] 'four hour ... close underneath the low'; [10:45] 'huge ... hourly imbalances'. He shows the 4h (#34), 15m (#36), 5m (#32/#40) and 1m (#42/#45)."},
+      "setup": {"value": "a 4h close below the 4h low -> retrace into the hourly imbalance/equilibrium grey zone (≈5299-5307.5) -> short below it", "src": "inferred", "ref": "Heard [09:00], [10:45] 'order block right there, we also have a huge hourly imbalance', [11:30] 'this equilibrium ... retrace'. The zone is seen on #36/#40/#42."},
+      "entry_conditions": [
+        {"value": "A 4h candle closed below the prior 4h low (the 4h lows had held until then)", "src": "heard", "ref": "[09:00] 'four hour lows they were intact until this four hour ... close underneath the low'. The ES 4h is shown on #34; the exact low isn't read"},
+        {"value": "Price retraced up into the grey zone (≈5299.3-5307.5, an 'hourly imbalance'/order block) and its equilibrium", "src": "inferred", "ref": "#36 15m and #42 1m: the zone and the retrace; the 09:30 high is 5304.75 (seen label) and there is a lower high of about 5302.5 at about 10:00. Heard [10:45], [11:30]"},
+        {"value": "He waited for a raid/move to the downside before the entry (the exact trigger isn't intelligible)", "src": "heard", "ref": "[11:00] 'while we were waiting for raid [to] the downside ... [break of structure]'"}
+      ],
+      "entry_time": {"value": "≈10:22 chart time (probably ET)", "src": "inferred", "ref": "#42 1m: box left edge x≈555 on an axis with 10:00 at 455 and 10:30 at 585 (4.33 px/min), so 10:23 ±2. #40 5m gives ≈10:20."},
+      "entry": {"value": 5296.25, "src": "seen", "ref": "The box's entry edge lines up with axis label 5296.25 (#40 11m35s, #42 11m51s)."},
+      "stop": {"value": 5300.0, "src": "seen", "ref": "The top of the dark-grey stop part lines up with axis label 5300.00 (#40, #42)."},
+      "stop_rule": {"value": "Just above the 1m swing high at ≈5300, at the bottom edge of the grey zone", "src": "inferred", "ref": "#42 1m: the retrace high about 10:20 ≈5300; zone bottom ≈5299.3."},
+      "target": {"value": null, "src": "inferred", "ref": "The box was changed during the recap. In #32 (08m13s) the blue bottom sits ≈5275 ±2 (planned ≈5.7R), and it runs off-screen below ≈5288 in #40/#42 (to 12m05s). In #45 (12m33s) the blue bottom is ≈5292.25, at a blue axis label 5292.25 and the 5292.25 low line (≈1.07R). Heard [12:00] '...all the way down here and a shave it off'."},
+      "target_rule": {"value": "Originally a lower low (≈5275, unclear); the recap later shows the 5292.25 line", "src": "inferred", "ref": "Box edges #32 vs #45; the 5292.25 black line is seen on #32/#36 (an earlier low)."},
+      "exit": {"value": "unknown; possibly ≈5292.25 (the edited box target)", "src": "inferred", "ref": "After the entry, price reached ≈5290 at about 11:00 (#42) and ≈5288.5-5289 at about 12:20 (#45), then traded above 5300 at about 13:00 (#45/#36). So 5292.25 was reached before the stop; ≈5275 never was. Heard [12:15] 'was one long bristled were ratio [one ... risk reward ratio?]'."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Not shown."},
+      "result": {"value": "unknown", "src": "inferred", "ref": "Probably a small win if he exited at the edited box level 5292.25 (+1.07R); a loss (-1R, stop hit about 13:00) if he held for the original ≈5275 target. The transcript can't settle it."},
+      "r_multiple": {"value": null, "src": "unknown", "ref": "Scenarios: exit 5292.25 gives (5296.25-5292.25)/(5300-5296.25) = +1.07; a stop-out gives -1.0. The original planned R was ≈(5296.25-5275)/3.75 ≈ 5.7."},
+      "claimed_pnl": {"value": "≈$500, sign unclear", "src": "heard", "ref": "[08:30] 'this was the second trade on the day of a hat on us and five hundred trade' (could be 'had a plus five hundred' or 'another five hundred loss'); [12:00] 'the other point five percent'."},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "No broker panel, fills or P&L are shown."},
+      "mistakes": [],
+      "evidence_summary": "Seen: instrument, date, short box, entry 5296.25 and stop 5300.00. Inferred: entry time, the path after the entry, and a target edited between shots (≈5275 to ≈5292.25). Heard (garbled): the 4h-close logic, the hourly imbalance and a $500 of unclear sign. Result unknown."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "For the ES short he waited for a 4h candle to close below the 4h lows; the lows 'were intact' until that close.", "src": "heard", "ref": "[09:00] 'four hour lows they were intact until this four hour ... close underneath the low'"},
+    {"value": "A raid of a level alone can look like a bullish reaction ('technically it is a bullish reaction'), but he gave weight to the 4h close below the lows instead.", "src": "heard", "ref": "[09:45] 'some people might see that ... we got raided ... technically it is a polish [bullish] reaction however i can see this here'; [10:00] 'a close ... four hours and lows raided ... shot to downside'. My paraphrase of fragments."},
+    {"value": "Enter after price retraces into the imbalance/equilibrium of the range, not on the initial move.", "src": "heard", "ref": "[05:30] 'price has gone into equilibrium'; [11:30] 'this equilibrium ... retrace'. My paraphrase."}
+  ],
+  "quality_notes": "1) The position boxes were redrawn during the recap: the NQ target edge is ≈18508 in #24 but 18492 in #27/#28, and the ES target edge is ≈5275 in #32 but ≈5292.25 in #45. So the boxes may not show the live orders; this is why the ES result is unknown. 2) The transcript is almost unusable; the P&L figures (-$500 NQ, $500 of unclear sign on ES) and the reasoning are fragments. 3) The NQ entry label is partly hidden (≈18523.25 ±1). 4) Entry and exit times are estimated from x-axis positions (±2-5 min); the chart timezone isn't shown (assumed ET). 5) Contract size and NQ vs MNQ / ES vs MES aren't shown."
+}

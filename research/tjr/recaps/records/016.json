@@ -1,0 +1,84 @@
+{
+  "video": {
+    "n": 16,
+    "file": "04_01_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 11 sheets, 12 full-size shots (#1, #7, #10, #11, #12, #16, #19, #20, #34, #37, #42, #44) and the transcript. TradingView legends, x-axis date labels and price-axis labels were readable (small axis labels checked with an enlarged crop of #7 and #19). No broker/order panel, fills or P&L are shown. The chart timezone is not displayed. The transcript (pocketsphinx) is extremely garbled and gives only fragments. Structure: 00:00-00:30 intro; 01:25-04:30 recap of one ES short taken Mon 1 Apr 2024 (1h, 15m, 5m, 1m charts); 04:45-07:40 BTC / altcoin analysis (BTCUSD 1D and 4h, TOTAL3 1W); 07:45-08:45 TOTAL 1D and outro.",
+    "duration_min": 8.9,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-04-01",
+      "src": "seen",
+      "ref": "#1 00m00s, #10 01m10s, #19 03m36s x-axis 'Mon 01 Apr '24 09:30'; file name 04_01_2024. Recorded the next day (inferred): [01:30] 'start out the trace it yesterday' ['the trade taken yesterday'], and the BTCUSD 1D legend on #34 (O69694 H69706 L65100 C65290, -6.33%) is a new daily candle after 1 Apr."
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "ES on Mon 1 Apr 2024: consolidated near 5325-5330 into the morning, then a 1h displacement down (around 07:00 chart time) left a 1h FVG at about 5317.3-5321.2. Price ranged about 5307-5316.5 from 07:30 to 09:45, wicked to about 5317 (above the 5316.50 line, into the bottom of the 1h FVG) around 09:40-09:45, then sold off hard from 10:00 to about 5294-5295 by about 10:35-11:00.",
+      "src": "inferred",
+      "ref": "Seen legends: 'S&P 500 E-mini Futures · 1h · CME' #12, '· 15 · CME' #11, '· 5 · CME' #1/#10/#16, '· 1 · CME' #19/#20. Seen axis labels 5325.00 (red, #12) and 5316.50 (black line, #1/#10/#19). The FVG edges, the ≈5317 wick and the ≈5294-5295 low are estimated from candle positions between axis labels (±0.5-1 pt)."
+    },
+    "news": {
+      "value": "ISM Manufacturing (PMI / Prices) on 1 Apr 2024 is mentioned; he appears to say the news wasn't very volatile. The standard release time is 10:00 ET. The chart's 10:00 bar is a large bearish displacement bar.",
+      "src": "heard",
+      "ref": "[02:45] 'i've said manufacturing in price rises yesterday it again though the news wasn't too volatile' read as 'ISM manufacturing prices yesterday ... the news wasn't too volatile'. The 10:00 ET release time is general knowledge, not seen in the video (no calendar shown)."
+    },
+    "bias": {
+      "value": "Bearish for the NY session: sell-side draw to the prior lows at 5300.50-5302.00, after price tapped the 1h FVG and took the high above 5316.50.",
+      "src": "inferred",
+      "ref": "Short position tool and target at the black lines 5302.00/5301.00/5300.50 (seen #7, #12). Heard [02:00] 'initially i had this hour later' ['this hourly (FVG)']; [02:15] 'fair value get take out the sides and then move down' read as 'fair value gap, take out the highs and then move down'."
+    },
+    "timezone": {
+      "value": "Chart time, probably ET (not displayed).",
+      "src": "inferred",
+      "ref": "His vertical dashed session line sits at the 09:30 x-axis label (#1, #10), and the large displacement bar is at 10:00, which matches the ISM release time. The TradingView clock/timezone isn't visible on any shot."
+    },
+    "levels": {
+      "value": "ES axis labels: 5325.00 (red, 1h); 5316.50 (black line, prior high about 07:45-08:15); 5313.50 (grey); 5311.75 and 5310.50 (red lines, purpose not stated); 5310.00 (grey); 5302.00, 5301.00, 5300.50 (black lines, prior lows that start at Thu 28 Mar bars on 1h); 5300.50 (blue, position target); 5294.50 (black line). Grey boxes: 1h FVG ≈5317.3-5321.2; 5m FVG 5311.75-5313.50 (its top edge matches the 5313.50 label, bottom matches the 5311.75 line). A range fib is drawn from ≈5315.8 (0) to ≈5304.6 (1), 0.5 ≈5310.2.",
+      "src": "seen",
+      "ref": "Axis labels on #1, #7 (enlarged crop: 5311.75, 5310.50, 5310.00, 5302.00, 5301.00, 5300.50 black, 5300.50 blue, 5294.50), #12, #19 (enlarged crop: 5316.50, 5313.50, 5311.75, 5310.50, 5310.00). Box edges without their own label, the fib anchors, and which swing each line marks are inferred from positions."
+    },
+    "other_markets": {
+      "value": "Crypto (04:45-07:40). BTCUSD (Bitstamp) at 65,290 on the day, -6.33%, after failing to push through the ≈72.5-74k grey zone (March highs). Marked levels: 69,000; 60,760 (swing low of about 20 Mar on 4h); 59,567 (bottom of a 1D grey zone ≈59.6-64k); a lower zone at about 51-53k. He expects BTC to take out the lows (60,760 or down into the 59,567-64k zone) as a consolidation shakeout rather than a weekly break of structure, and says a weekly BOS would scare him. TOTAL3 (market cap excl. BTC and ETH, 1W) at 704.248B: he expects the lows taken and a move into the 641.136B area (liquidating leveraged alt longs), with much higher later. Other TOTAL3 labels: 738.077B (green), 839.143B. TOTAL (1D) at 2.383T with a line at 3.009T (probably the 2021 all-time high). He says crypto hasn't reached all-time highs yet.",
+      "src": "inferred",
+      "ref": "Seen: #34 legend 'Bitcoin / U.S. Dollar · 1D · BITSTAMP' C65290 -4409 (-6.33%), labels 69000, 59567; #37 '· 4h · BITSTAMP' labels 69000, 60760, 59567, with a marker at the 'Wed 20 Mar '24' low; #42 'Crypto Total Market Cap Excluding BTC and ETH, $ · 1W · CRYPTOCAP' labels 839.143B, 738.077B, 704.248B, 641.136B; #44 'Crypto Total Market Cap, $ · 1D' labels 3.009T, 2.383T. Heard: [05:30] 'i do think the i go and see galaxies los ... take out these loans' ['take out these lows']; [06:30] 'i will be scared of the week the raid shelter on bitcoin' ['weekly break of structure']; [06:45] 'i don't think that's going to happen'; [07:00] 'take out the slows and end up hating on this price range ... six forty one'; [07:15] 'longs and leveraged loans ... liquidated'; [08:00] 'we haven't reached all time highs'. Zone edges are estimated from axis positions."
+    }
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-04-01", "src": "seen", "ref": "#19/#20 x-axis 'Mon 01 Apr '24 09:30'; #20 cursor 'Mon 01 Apr '24 10:53' at the position box's right edge."},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1! continuous)", "src": "seen", "ref": "#1 00m00s symbol 'ES1!', legend 'S&P 500 E-mini Futures · 5 · CME'."},
+      "direction": {"value": "short", "src": "seen", "ref": "#1/#10/#16/#19 position box: grey (risk) zone above the entry, blue (reward) zone below it."},
+      "timeframes": {"value": {"bias": "1h", "setup": "5m", "entry": "5m (also shown on 1m)"}, "src": "inferred", "ref": "1h FVG drawn on #12; the setup is drawn on 5m (#1/#10/#16); the same box is shown on 1m (#19/#20). Heard [03:00] 'break five minute' ['5-minute break of structure']; [02:00] 'fifteen minute' is mentioned, but no 15m drawing is visible (#11)."},
+      "setup": {"value": "1h FVG tap + sweep of the 5316.50 high -> 5m break of structure down -> sell the retrace into the 5m FVG / range equilibrium", "src": "inferred", "ref": "Drawings seen on #1/#10/#12/#16; the sequence is from candle positions. Heard fragments: [02:15] 'fair value get take out the sides and then move down'; [03:00] 'we saw a rise of the rooms without these guys break five minute'; [03:15] 'we also had equilibrium from these guys down to these lows'."},
+      "entry_conditions": [
+        {"value": "Price traded into the 1h FVG (≈5317.3-5321.2) and above the prior high marked 5316.50 (wick ≈5317) around 09:40-09:45 chart time", "src": "inferred", "ref": "5316.50 label seen #1/#10; 1h FVG box #12 and upper grey box #1; the wick height and time are estimated from candle positions (±0.5 pt, ±5 min)."},
+        {"value": "5m break of structure down: the 10:00 5m bar closed below the ≈5307-5308 swing lows of 09:00-09:30, to ≈5305.5", "src": "inferred", "ref": "Candle positions #10/#16. Heard [03:00] 'break five minute' as a 5m BOS. The exact swing that counts isn't marked."},
+        {"value": "The displacement left a 5m FVG at 5311.75-5313.50; price retraced up into it (high ≈5312.3) around 10:05-10:10", "src": "inferred", "ref": "Grey 5m box edges match the 5313.50 label and the 5311.75 line (#16/#19); the retrace high is estimated from #10/#16."},
+        {"value": "Entry at 5310.00, about the 0.5 (equilibrium) of the drawn range ≈5315.8-5304.6, i.e. selling from premium", "src": "inferred", "ref": "Fib box with 0 / 0.5 / 1 labels seen on #1/#10/#16/#19; heard [03:15] 'equilibrium from these guys down to these lows'. The anchors are estimated from positions."}
+      ],
+      "entry_time": {"value": "≈10:15-10:20 chart time (probably ET)", "src": "inferred", "ref": "The position box's left edge is at ≈10:14 on 5m (#16/#10) and ≈10:19 on 1m (#19/#20), estimated from x-axis spacing."},
+      "entry": {"value": 5310.0, "src": "seen", "ref": "#1/#7/#16/#19 grey axis label 5310.00 at the grey/blue boundary of the position box."},
+      "stop": {"value": 5313.5, "src": "seen", "ref": "#1/#16/#19/#20 grey axis label 5313.50 at the top of the position box's grey zone (which is also the top of the 5m FVG)."},
+      "stop_rule": {"value": "Above the 5m FVG (at its top, 5313.50)", "src": "inferred", "ref": "The stop level coincides with the top edge of the 5m FVG box (#16/#19). He doesn't state a stop rule intelligibly."},
+      "target": {"value": 5300.5, "src": "seen", "ref": "#7 enlarged axis crop: blue label 5300.50 at the bottom of the position box's blue zone; also matches the box bottom on #19."},
+      "target_rule": {"value": "Prior lows / sell-side liquidity at 5300.50-5302.00 (lines from Thu 28 Mar lows)", "src": "inferred", "ref": "Black lines 5302.00/5301.00/5300.50 seen #7/#12, starting at 28 Mar bars on 1h (#12). Heard [03:45] 'take profits were based on our leisure ... profit is our lives blows right here' read as 'take profit based on liquidity ... our lows right here'."},
+      "exit": {"value": "target hit (5300.50) at ≈10:36 chart time", "src": "inferred", "ref": "On 1m (#19) and 5m (#10), candles after the box start stay below 5313.50 and trade below the 5300.50 target at ≈10:36 (±3 min), reaching ≈5294.7 by ≈10:35-10:40. No fill or exit is shown. Heard [04:15] garbled: 'i've never actually extend like the prophets ... it by trade it right then and there' may mean he didn't extend the target."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "No size, contracts or account shown or intelligibly heard."},
+      "result": {"value": "win", "src": "inferred", "ref": "Price reached the 5300.50 target without first trading back to the 5313.50 stop (candles #10/#19). Assumes the 5310.00 entry filled; price passed through 5310.00 right at the box's start."},
+      "r_multiple": {"value": 2.71, "src": "computed", "ref": "(5310.00-5300.50)/(5313.50-5310.00) = 9.50/3.50 = 2.71, from the position-tool levels; assumes a fill at 5310.00 and an exit at the target."},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No P&L stated intelligibly or shown; title_claim is empty."},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "No broker/platform panel, fills or P&L shown anywhere in the video."},
+      "mistakes": [],
+      "evidence_summary": "Seen: instrument, date, short direction, entry 5310.00 / stop 5313.50 / target 5300.50 (position-tool axis labels) and the drawn levels. Inferred: timing, the sweep/BOS/FVG sequence, target hit and the win (from candles after the box). Heard only as fragments: setup rationale, liquidity target, ISM news. No execution mistakes were seen."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "Take profit at the lows (liquidity), i.e. the draw on sell-side liquidity", "src": "heard", "ref": "[03:45] 'take profits were based on our leisure ... profit is our lives blows right here' read as 'based on liquidity ... our lows right here'."},
+    {"value": "Look for the higher-timeframe (1h) FVG first, then refine the entry on the 15m/5m", "src": "heard", "ref": "[02:00] 'initially i had this hour later ... also went and joined free market to market these fifteen minute' ['hourly (FVG) ... fifteen-minute']. Garbled; low confidence."},
+    {"value": "He apparently doesn't extend targets: he took the trade off at the target 'right then and there'", "src": "heard", "ref": "[04:15] 'i've never actually extend like the prophets always tell their eyes ... it by trade it right then and there'. Very garbled; low confidence."},
+    {"value": "BTC: a weekly break of structure would be the scary (bearish) signal; a sweep of the recent lows inside consolidation is expected and has previously been bought", "src": "heard", "ref": "[05:45] 'every time we did here we see borrowers come out of it' ['buyers']; [06:30] 'i will be scared of the week the raid shelter on bitcoin' ['weekly break of structure']."}
+  ],
+  "quality_notes": "The transcript is almost unintelligible, so the setup logic (sweep -> 5m BOS -> 5m FVG/equilibrium) is reconstructed mostly from drawings and candle positions. Entry, stop and target are read from the position-tool axis labels. The roles are assigned by colour and box geometry (grey 5313.50/5310.00, blue 5300.50). The purpose of the red 5311.75/5310.50 lines is unknown. There are no fills or broker panel, so the fill, exit and result are inferred from later candles, and the chart timezone isn't displayed (ET inferred). Entry time is ±5 min from the box edge. The crypto section is directional commentary without trades."
+}

@@ -76,6 +76,20 @@ closed trades, the desk made money, won at least 1.2× what it lost, never dropp
 for your Setup settings (`~/AITrader/my_settings.json`) and your Schwab login (`~/AITrader/data/`).
 Only deleting the AITrader folder removes them.
 
+**It learns from its own trades.** Every finished trade (paper or real) is reviewed: which strategy
+bought it, how it ended, and what the market was like when it bought (the S&P 500 above or below its
+200-day average; calm or wild). From those reviews:
+- **Under 12 finished trades:** nothing changes. That's too few to tell skill from luck.
+- **A strategy losing so far:** it trades at **half size**.
+- **A strategy clearly losing over 30+ trades:** it's **paused**, and the journal says so.
+- **A market condition where its trades clearly lost (20+ trades):** no new buys while that
+  condition holds.
+- **It never gets bolder:** a winning streak doesn't raise the size.
+- **Every lesson is rechecked after each trade,** so a wrong one fades away.
+- **The lessons show in Research & plans** and go into the notes its local AI reads.
+- **Its price-predicting model keeps learning too,** re-training on new market data on its own
+  schedule.
+
 **Good faith violations (cash accounts, e.g. Schwab).** Buying with money from a sale that hasn't
 settled yet, then selling before it settles, is a good faith violation. Three in 12 months and Schwab
 limits the account to settled cash for 90 days. So in a cash account the bot **only ever spends

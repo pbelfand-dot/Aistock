@@ -1,0 +1,73 @@
+{
+  "video": {
+    "n": 15,
+    "file": "03_27_2024.Trade.Recap.Best.720p.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 12 sheets, 14 full-size shots (#1, #4, #6, #8, #12, #13, #14, #16, #17, #18, #19, #24, #31, #44; some were cropped and enlarged to read the axis labels) and the transcript. TradingView legends, axis labels, x-axis dates and the clock (bottom right, 'UTC-4' = ET) are readable. The transcript is very garbled and only gives fragments. Structure: 00:00-02:00 NQ trade recap on 5m/15m/1h/1m; 02:00-02:50 NQ 1h/4h context; 02:52-04:18 ES 1h/15m/5m analysis with no position drawn; 04:23-05:05 NQ 4h/15m, then the sign-off. Recorded about 10:18-10:23 ET on the same morning.",
+    "duration_min": 5.1,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-03-27",
+      "src": "seen",
+      "ref": "#1 00m00s x-axis 'Wed 27 Mar '24 09:30'; #31 ES x-axis 'Wed 27 Mar '24 09:30'; clock '10:18:00 (UTC-4)' (#1) to '10:22:46 (UTC-4)' (#44); file name 03_27_2024"
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "NQ 1h: after a strong rally around 20-21 Mar to about 18,700, price ranged roughly 18,400-18,650 until 27 Mar. On 27 Mar, NQ spiked at the 09:30 open to about 18,568 (±3), just above the 18562.75 line, then sold off hard to about 18,381 by about 10:00-10:15 ET. The 15m bar at 10:15 read O18411.50 H18436.25 L18409.75 C18413.75. ES on 5m also dropped after the open, from about 5289 to about 5273, then bounced to 5277-5280 by 10:21. The watchlist showed ES +0.2% and NQ -0.1% on the day.",
+      "src": "inferred",
+      "ref": "Legends seen: 'NASDAQ 100 E-mini Futures · 5 · CME' #1/#13/#14, '· 15 · CME' #8/#44, '· 1h · CME' #4/#24, '· 1 · CME' #17/#18; 'S&P 500 E-mini Futures · 5 · CME' #31. The #44 OHLC legend is seen. Swing prices and times are estimated from candle positions between axis labels (±3 pts)."
+    },
+    "news": {
+      "value": "None mentioned",
+      "src": "heard",
+      "ref": "No news event could be made out in the rough transcript. A 'Calendar | Forex Factory' browser tab is visible (#1) but is never opened in the video."
+    },
+    "bias": {
+      "value": "Bearish intraday. A buy-side raid at the open was followed by 15m and 5m breaks of structure to the downside. The drawn draws on liquidity sit below: 18470.50, 18439.25, 18414.75 and 18381.00 (prior swing lows).",
+      "src": "inferred",
+      "ref": "[02:45] 'we were bearish on the hour' (read as bearish on the 1h); [00:30] 'fifteen minute breaks up to the downside along with five minute break this is the downside' (read as 15m and 5m BOS down). The low lines are seen on #44 (15m): 18470.50 starts at about the 27 Mar 03:30 low and 18439.25 at about the 26 Mar 16:00 low; 18414.75 and 18381.00 are seen on #4/#44. The raid is inferred from the 09:30 wick above the 18562.75 line (#18/#44)."
+    },
+    "levels": {
+      "value": "NQ drawn lines: 18608.50, 18562.75 (26 Mar swing high, raided at 09:30), 18538.75, a grey 15m zone about 18511.75-18525.5 with a dashed midline at 18518.25 plus a blue line at 18514.25, 18500.00 (red), 18470.50, 18439.25, 18421.25 (red, top of a small grey zone about 18409-18421), 18414.75, 18381.00. ES 5m: 5289.00 (red), a grey zone about 5285.5-5287.5, 5281.50, 5280.00, 5278.75 (red), 5276.00.",
+      "src": "seen",
+      "ref": "Axis labels on #12/#16/#19/#44 (NQ) and #31 (ES). The rectangle's bottom edge reads 18512.00 at the crosshair on #8. The zone edges (±1) and the swing each line marks are inferred from their positions."
+    }
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-03-27", "src": "seen", "ref": "#17/#18 1m x-axis 'Wed 27 Mar '24 09:42' / '09:30'"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#1 legend 'NASDAQ 100 E-mini Futures · 5 · CME', symbol box 'NQ1!'"},
+      "direction": {"value": "short", "src": "seen", "ref": "Position box on #1/#12/#16/#17: grey (stop) part above the entry, blue (target) part below"},
+      "timeframes": {"value": {"bias": "1h", "setup": "15m + 5m", "entry": "1m (uncertain)"}, "src": "inferred", "ref": "[02:45] 'bearish on the hour'; [00:30]/[01:00] '15m and 5m break of structure'; [00:45] 'fifteen minute ... blocked' read as 15m order block. He shows 1m charts at 01:47-01:56 (#16-#18); [01:45] 'wait just one minute' is ambiguous."},
+      "setup": {"value": "NY-open raid of 18562.75 high -> 15m + 5m BOS down -> pullback into 15m order block (~18511.75-18525.5) -> short", "src": "inferred", "ref": "The transcript gist ([00:30]-[01:15]) combined with the chart path on #17/#18/#44"},
+      "entry_conditions": [
+        {"value": "At 09:30 ET, price spiked to about 18,568 (±3), above the 18562.75 line (26 Mar swing high), then reversed", "src": "inferred", "ref": "#18 1m wick high between the 18562.75 label and the chart top, at the dashed 09:30 line; the line's origin is on #44"},
+        {"value": "15m and 5m break of structure to the downside: by about 09:37, price fell through the zone low (about 18511.75) and 18500 to about 18488", "src": "heard", "ref": "[00:30] 'fifteen minute breaks up to the downside along with five minute break'; [01:00]-[01:15] 'look to get a fifteen minute break juncture in the five minute break structure'. The price path is inferred from #17."},
+        {"value": "The pullback tagged the bottom of the 15m order block: retrace high about 18513.5 around 09:47-09:49 ET", "src": "inferred", "ref": "#17 1m, candle high at about y325 against the 18514.25 label; zone bottom 18512.00 at the crosshair on #8; [00:45] 'fifteen minute ... blocked' read as 15m order block, 'where was that entry confluence'"},
+        {"value": "Short entry at 18489.25, below the retrace. The trigger was not stated; it may be a 1m break back below the pre-retrace low (about 18488).", "src": "inferred", "ref": "The entry sits at the pre-retrace 1m low on #17. [02:45] 'i was able to create an entry' read as 'I was able to get an entry'."}
+      ],
+      "entry_time": {"value": "~09:50 ET (±5 min)", "src": "inferred", "ref": "Left edge of the position box: #17 1m (09:00 at x343, 09:15 at x406, box at x555) and #14 5m (09:30 at x477, 10:35 at x592, box at x512). The chart clock reads UTC-4 = ET."},
+      "entry": {"value": 18489.25, "src": "seen", "ref": "A grey axis label at the box's grey/blue boundary on #1, #8, #12 and #16 (enlarged). From #17 (01:51) onward the label reads 18490.00 (#17/#18/#19/#44), so the box appears to have been edited or re-snapped during the recording."},
+      "stop": {"value": 18518.25, "src": "seen", "ref": "A grey axis label at the top of the box on #12/#16/#19 (enlarged); it matches the dashed midline of the 15m zone"},
+      "stop_rule": {"value": "Above the retrace high (about 18513.5), at the midline of the 15m order block", "src": "inferred", "ref": "Box top compared with the zone and the retrace high on #8/#17"},
+      "target": {"value": 18415.25, "src": "inferred", "ref": "The blue part of the box ends at about 18414.5-18415 by pixel (#12, #6 and #19 enlarged), matching the blue axis label 18415.25. An alternative is the red 18421.25 line, the top of a small grey zone that overlaps the box bottom; that was my first read on the unenlarged #13."},
+      "target_rule": {"value": "Just above the 18414.75 line (prior swing low = sell-side liquidity)", "src": "inferred", "ref": "The target sits 0.5 pts above the 18414.75 line on #44/#19"},
+      "exit": {"value": "Target hit (~18415.25); price continued to ~18381 by ~10:00-10:15 ET", "src": "inferred", "ref": "#17/#18 1m: after the entry, price falls straight down with no return toward 18518.25; #44 15m wick reaches the 18381.00 line and the 10:15 bar low is 18409.75. [02:00] 'finally taken off right here' may mean 'take profit right here', but that is unclear."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "No order panel or contract count shown or heard"},
+      "result": {"value": "win", "src": "inferred", "ref": "Price reached the box target before the stop. The stop 18518.25 was never retested after entry, since the highest post-entry price was about 18514 at most (#17). The result is not stated clearly in the transcript."},
+      "r_multiple": {"value": 2.55, "src": "inferred", "ref": "(18489.25-18415.25)/(18518.25-18489.25) = 74.00/29.00 = 2.55, from the box levels, assuming a full exit at target. With the later 18490.00 entry label, 74.75/28.25 = 2.65; with a target of 18421.25, 68/29 = 2.34."},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No $ figure stated or shown; title_claim is empty"},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "No broker or platform P&L, order or fill panel is visible in any opened shot; only a drawn TradingView position box, possibly drawn after the fact (the recording is about 10:18 ET, after the move)"},
+      "mistakes": [],
+      "evidence_summary": "Seen: date, NQ instrument, short box, entry 18489.25 and stop 18518.25 labels. Inferred: target ≈18415.25 (pixel/label match), entry time ≈09:50, win from the price path. Heard (garbled): 15m + 5m BOS, 15m order block, bearish on 1h."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "Wait for a 15m break of structure together with a 5m break of structure (here to the downside) before looking for the entry", "src": "heard", "ref": "[01:00]-[01:15] 'wait for ... and look to get a fifteen minute break juncture in the in the five minute break structure back to the outside [downside]'"},
+    {"value": "What he looks for: a break of structure, followed by a confluence (e.g. a 15m order block), and then an entry within that", "src": "heard", "ref": "[04:00] 'what i'm looking for is seen it a rate of structure [a break of structure] followed by a confluence and then within that'"},
+    {"value": "For a further short (ES/NQ, after 10:20), he would wait until both break structure to the downside, possibly on 15m, before looking for a setup. Low confidence.", "src": "heard", "ref": "[03:30] 'we broke five minutes of the outside [downside] on nasdaq ... we didn't break five minutes ...'; [03:45] 'he would have to wait for both ... to the downside for me to be able to actually look for a ... fifteen minute'. On ES 5m (#31), price had already traded below 5281.50/5280.00, so what 'didn't break' refers to is unclear."}
+  ],
+  "quality_notes": "The transcript is very garbled throughout; setup wording (order block, BOS) is reconstructed. There are no order, fill or P&L panels, and size is unknown. The position box may have been drawn after the move. Its entry label changed from 18489.25 (00:00-01:47) to 18490.00 (01:51 onward). The target edge is ambiguous: the blue 18415.25 label matches the box bottom by pixel, but it overlaps a grey zone topped by the red 18421.25 line. Entry time and trigger are estimated from the box's left edge, not stated. The ES segment (02:52-04:18) shows analysis only, with no position."
+}

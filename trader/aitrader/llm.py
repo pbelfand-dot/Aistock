@@ -22,7 +22,7 @@ def ask_local_llm(cfg: dict, prompt: str):
     request_body = {"model": llm["model"], "prompt": prompt, "stream": False}
     if llm.get("use_knowledge", True):                  # the owner's plan, safety rules, research, TJR notes
         from .knowledge import pack
-        request_body["system"] = pack()
+        request_body["system"] = pack(cfg)
         request_body["options"] = {"num_ctx": llm.get("context_tokens", 8192)}
     body = json.dumps(request_body).encode()
     request = urllib.request.Request(f"{llm['url'].rstrip('/')}/api/generate", data=body,
