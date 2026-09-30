@@ -1,11 +1,11 @@
 """
-ingest_video.py: turns a trading video into text + chart pictures, so its lessons can be studied.
+ingest_video.py: turns a trading video into chart pictures + what's said, so its lessons can be studied.
 
     python research/tjr/ingest_video.py path/to/video.mp4 [more videos...]
 
 For each video it writes research/tjr/raw/<name>/:
+  shots/, sheets/  a picture every time the chart changes, and the same four to a page (frames.py)
   transcript.txt   what's said, with [mm:ss] timestamps
-  frames/          a picture of the screen every 20 seconds (the charts)
 The raw folder is not committed: it's the video owner's content. Only our own notes
 (research/tjr/notes/) and the rulebook (research/tjr/RULES.md) go into the repo.
 
@@ -13,21 +13,17 @@ Speech to text: uses Whisper (accurate) when its model can be downloaded, otherw
 PocketSphinx (built in, works offline, rougher: good for the gist, weak on jargon).
 Needs: pip install imageio-ffmpeg pocketsphinx faster-whisper
 """
-import re
 import subprocess
 import sys
 from pathlib import Path
 
 import imageio_ffmpeg
 
-RAW = Path(__file__).resolve().parent / "raw"
+import frames
+
+RAW = frames.RAW
 RATE = 16000                      # 16 kHz mono: what speech models expect
-FRAME_EVERY = 20                  # seconds between chart pictures
 CHUNK = 15                        # seconds of audio per transcript line (offline engine)
-
-
-def slug(path: Path) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", path.stem.lower()).strip("-")[:60] or "video"
 
 
 def audio_pcm(video: Path) -> bytes:
@@ -35,14 +31,6 @@ def audio_pcm(video: Path) -> bytes:
     out = subprocess.run([ffmpeg, "-v", "error", "-i", str(video), "-vn", "-ac", "1", "-ar", str(RATE),
                           "-f", "s16le", "-"], capture_output=True, check=True)
     return out.stdout
-
-
-def save_frames(video: Path, folder: Path):
-    folder.mkdir(parents=True, exist_ok=True)
-    # Decode only keyframes (fast) and keep the first one after each FRAME_EVERY seconds.
-    keep = f"select='isnan(prev_selected_t)+gte(t-prev_selected_t\\,{FRAME_EVERY})',scale=1280:-2"
-    subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-skip_frame", "nokey", "-i", str(video),
-                    "-vf", keep, "-fps_mode", "vfr", "-q:v", "4", str(folder / "%04d.jpg")], check=True)
 
 
 def stamp(seconds: float) -> str:
@@ -72,9 +60,7 @@ def sphinx_lines(pcm: bytes):
 
 
 def ingest(video: Path) -> Path:
-    folder = RAW / slug(video)
-    folder.mkdir(parents=True, exist_ok=True)
-    save_frames(video, folder / "frames")
+    folder = frames.study(video)                                              # the chart pictures first (fast)
     try:
         lines, engine = whisper_lines(video), "whisper small.en (accurate)"
     except Exception as e:                                                    # model can't be downloaded here
@@ -82,8 +68,7 @@ def ingest(video: Path) -> Path:
         lines, engine = sphinx_lines(audio_pcm(video)), "pocketsphinx (offline, rough: check jargon against the frames)"
     header = f"# {video.name}\n# speech-to-text: {engine}\n"
     (folder / "transcript.txt").write_text(header + "\n".join(lines) + "\n")
-    frames = len(list((folder / "frames").glob("*.jpg")))
-    print(f"  {video.name}: {len(lines)} transcript lines, {frames} chart pictures -> {folder}")
+    print(f"  {video.name}: {len(lines)} transcript lines -> {folder / 'transcript.txt'}")
     return folder
 
 
