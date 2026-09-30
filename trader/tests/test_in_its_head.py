@@ -121,3 +121,33 @@ def test_the_report_is_written_once_after_the_close_and_the_study():
     assert "report" not in run.due_jobs(datetime(2026, 9, 29, 16, 30), set())          # study first
     assert "report" not in run.due_jobs(datetime(2026, 9, 29, 16, 30), done | {"report:2026-09-29"})
     assert "report" not in run.due_jobs(datetime(2026, 9, 29, 15, 0), done)
+
+
+def test_right_now_says_whether_it_is_testing_and_what_each_desk_is_doing(cfg, tmp_path):
+    from datetime import datetime
+    store = Store(dashboard.data_path(cfg, "aitrader.sqlite"))
+    at = lambda h, m, day=30: datetime(2026, 9, day, h, m)
+    r = dashboard._right_now(cfg, store, at(9, 37))
+    assert not r["ok"] and "isn't running" in r["headline"]                      # no autopilot yet
+
+    store.set("autopilot_heartbeat", at(9, 36).isoformat())
+    r = dashboard._right_now(cfg, store, at(9, 37))
+    assert r["ok"] and r["headline"].startswith("Testing now")
+    day, swing = [l for l in r["lines"] if l.startswith("Day")][0], [l for l in r["lines"] if l.startswith("Swing")][0]
+    assert "in its head" in day and "first trade is possible after 10:00am" in day
+    assert "decides at 3:45pm" in swing
+
+    store.set("autopilot_heartbeat", at(11, 0).isoformat())
+    store.set("study-day_thinking", {"time": "2026-09-30 10:55", "strategy": "opening_range_breakout",
+                                     "top": [{"ticker": "SOFI", "score": 1.0}]})
+    day = [l for l in dashboard._right_now(cfg, store, at(11, 1))["lines"] if l.startswith("Day")][0]
+    assert "checking every 5 minutes" in day and "Last check 10:55, top pick SOFI (1.00)" in day
+
+    store.set("autopilot_heartbeat", at(15, 35).isoformat())
+    assert "no new trades in the last 30 minutes" in " ".join(dashboard._right_now(cfg, store, at(15, 35))["lines"])
+    store.set("autopilot_heartbeat", at(16, 30).isoformat())
+    assert "closed for today" in dashboard._right_now(cfg, store, at(16, 30))["headline"]
+    store.set("autopilot_heartbeat", datetime(2026, 10, 3, 11, 0).isoformat())          # a Saturday
+    assert "closed today" in dashboard._right_now(cfg, store, datetime(2026, 10, 3, 11, 1))["headline"]
+    store.set("autopilot_heartbeat", at(12, 0).isoformat())
+    assert "hasn't checked in for 30 minutes" in dashboard._right_now(cfg, store, at(12, 30))["headline"]

@@ -219,6 +219,7 @@ def snapshot(cfg, store) -> dict:
         "journal": [{"ts": ts, "message": m} for ts, m in store.journal(60)][::-1],
         "scan": _scan(cfg),
         "reports": _reports(cfg),
+        "right_now": _right_now(cfg, store),
     }
 
 
@@ -229,6 +230,73 @@ def _reports(cfg) -> list:
         return recent_reports(cfg, 7)
     except OSError:
         return []
+
+
+def _right_now(cfg, store, now=None) -> dict:
+    """One glance: is Kestrel testing right now, and what is each desk doing or waiting for?"""
+    from datetime import time as dtime
+    from .market_hours import in_session, minutes_to_close, session_close
+    from .phases import mode_of
+    from .settlement import market_holidays
+    now = now or now_ny()
+    beat = store.get("autopilot_heartbeat")
+    minutes = (now - datetime.fromisoformat(beat)).total_seconds() / 60 if beat else None
+    running = minutes is not None and minutes < 12
+    trading_day = now.weekday() < 5 and now.date() not in market_holidays(now.year)
+    if not running:
+        headline = ("The autopilot isn't running, so nothing is being tested. Turn it on in Setup (step 2) "
+                    "and keep the Mac awake.") if minutes is None or minutes > 60 else \
+                   f"The autopilot hasn't checked in for {minutes:.0f} minutes (is the Mac asleep?)."
+    elif not trading_day:
+        headline = "The market is closed today. Kestrel picks up again on the next trading day."
+    elif now.time() < dtime(9, 30):
+        headline = "The market opens at 9:30am New York time; Kestrel is ready."
+    elif not in_session(now):
+        done = data_path(cfg, f"reports/after-market-{now:%Y-%m-%d}.md").exists()
+        headline = ("The market is closed for today. " + ("Today's after-market report is ready (Journal tab)."
+                    if done else "The after-market report comes about 25 minutes after the close."))
+    else:
+        headline = f"Testing now: the autopilot checked in {'just now' if minutes < 1 else f'{minutes:.0f} min ago'}."
+
+    lines = []
+    open_now = running and trading_day and in_session(now)
+    since_open = (now.hour * 60 + now.minute) - (9 * 60 + 30)
+    for desk in active_desks(cfg):
+        phase = current_phase(store, desk)
+        mode = mode_of(phase, desk)
+        account = {"study": "in its head", "paper": "paper", "live": "REAL money"}[mode.split("-")[0]]
+        thinking = store.get(f"{mode}_thinking") or {}
+        fills = store.fills(mode)
+        today_fills = int((fills["date"].astype(str).str[:10] == now.strftime("%Y-%m-%d")).sum()) if len(fills) else 0
+        last = (f" Last check {thinking['time'][-5:]}" + (f", top pick {thinking['top'][0]['ticker']} "
+                f"({thinking['top'][0]['score']:.2f})" if thinking.get("top") else "") + ".") \
+            if thinking.get("time", "").startswith(now.strftime("%Y-%m-%d")) else ""
+        trades = f" {today_fills} trade{'s' if today_fills != 1 else ''} today." if today_fills else ""
+        if store.get(f"halted:{desk}") and mode.split("-")[0] != "study":
+            doing = "paused: no new trades (stop-losses still work). Resume in Setup."
+        elif not open_now:
+            doing = ("decides at 3:45pm on trading days." if desk == "swing"
+                     else "trades between 10:00am and 3:30pm on trading days, and never holds overnight.")
+        elif desk == "swing":
+            decided = now.time() >= dtime(15, 45)
+            doing = ("decided for today." if decided else
+                     "decides at 3:45pm; until then it watches the stop-losses every 5 minutes.")
+        else:
+            close_in = minutes_to_close(now)
+            orb = (thinking.get("strategy") or (cfg["study"].get("in_its_head_strategy") or {}).get("day")
+                   or "opening_range_breakout") == "opening_range_breakout"
+            if since_open < 30 and orb:
+                doing = "measuring the opening range; its first trade is possible after 10:00am."
+            elif since_open < 15:
+                doing = "waiting out the first minutes after the open."
+            elif close_in <= cfg["desks"]["day"]["flatten_minutes_before_close"]:
+                doing = "selling everything before the close (day trades never stay overnight)."
+            elif close_in <= cfg["desks"]["day"]["last_entry_minutes_before_close"]:
+                doing = "no new trades in the last 30 minutes; it sells everything by 3:50pm."
+            else:
+                doing = "checking every 5 minutes."
+        lines.append(f"{desk.title()} desk ({account}): {doing}{last}{trades}")
+    return {"ok": running, "headline": headline, "lines": lines}
 
 
 def _scan(cfg) -> dict:
