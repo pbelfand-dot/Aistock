@@ -31,8 +31,10 @@ def pack(cfg: dict = None, max_chars: int = 24000) -> str:
     if cfg is not None:
         from .config import data_path
         from .learning import NOTE
-        own = data_path(cfg, NOTE)
-        if own.exists():
-            paths.append(own)
+        from .scanner import NOTE as LIST_NOTE
+        for name in (NOTE, LIST_NOTE):                  # what it learned, and the stocks it likes (with news)
+            own = data_path(cfg, name)
+            if own.exists():
+                paths.append(own)
     text = "\n\n".join(p.read_text().strip() for p in paths)
     return text if len(text) <= max_chars else text[:max_chars] + "\n\n[... notes cut here to fit ...]"

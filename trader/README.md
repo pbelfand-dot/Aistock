@@ -76,6 +76,25 @@ closed trades, the desk made money, won at least 1.2× what it lost, never dropp
 for your Setup settings (`~/AITrader/my_settings.json`) and your Schwab login (`~/AITrader/data/`).
 Only deleting the AITrader folder removes them.
 
+**It scans all US stocks every day, and reads the news.**
+- **When:** after the close, the autopilot looks at every tradable US stock and ETF. With Alpaca
+  keys it uses Alpaca's full list; without them, about 400 popular names.
+- **What makes the list:** $3+ a share, actively traded, and in an uptrend. The list is ranked by
+  the past year's rise, skipping the latest month: the one stock-picking method the research
+  supported.
+- **Where you see it:** Research & plans → *Stocks it likes*. Each stock shows when it joined, how
+  long it has stayed, and how it has done since.
+- **New listings** (under a year of history) go on a separate watch-only list.
+- **How the swing desk uses it:** it considers the top 15. Its own rules and budget still decide
+  every trade, and whole shares must fit the budget.
+- **News:** it reads headlines from Alpaca's news feed (Benzinga, free with your keys), or Yahoo's
+  without keys.
+  - A stock with **danger headlines** in the last 3 days (share offering, bankruptcy, trading halt,
+    delisting, fraud charges...) isn't bought.
+  - Headlines show next to each stock, and the local AI can explain them.
+  - **News never makes it buy.**
+- **Switch either off** in Setup → Settings.
+
 **It learns from its own trades.** Every finished trade (paper or real) is reviewed: which strategy
 bought it, how it ended, and what the market was like when it bought (the S&P 500 above or below its
 200-day average; calm or wild). From those reviews:

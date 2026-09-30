@@ -247,6 +247,9 @@ def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
         return f"{desk}: no prices today (market holiday?)"
 
     work_store = Store(":memory:") if dry_run else store     # a dry run saves nothing
+    from aitrader.scanner import danger_tickers
+    danger = danger_tickers(cfg)                              # danger headlines: not buying these for now
+    broker.blocked = frozenset(broker.blocked) | {t for t in danger if t not in broker.positions()}
     risk, change = learned(cfg, store, desk, broker.mode, strategy.name, market)
     result = run_cycle(work_store, broker, strategy, risk, bars, market, now,
                        cfg["desks"][desk], stops_only=stops_only, no_buys=change["no_buys"])
@@ -352,6 +355,8 @@ def due_jobs(now: datetime, done: set) -> list:
     after_close = datetime.combine(now.date(), session_close(now.date())) + timedelta(minutes=10)
     if now >= after_close and f"study:{today}" not in done:
         jobs.append("study")
+    if now >= after_close + timedelta(minutes=10) and f"scan:{today}" not in done:
+        jobs.append("scan")                                  # the daily all-stocks scan and news (scanner.py)
     return jobs
 
 
@@ -379,6 +384,11 @@ def run_job(job, cfg, store, data, now, done) -> str:
         if run_study(cfg, store, data):
             raise RuntimeError("study incomplete")      # not marked done, so it retries in 5 minutes
         return "study done for today"
+    if job == "scan":
+        from aitrader import scanner
+        summary = scanner.run(cfg, store, today)
+        store.log(f"[scan] {summary}")
+        return summary
     return ""
 
 

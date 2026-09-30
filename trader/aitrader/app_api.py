@@ -27,6 +27,7 @@ directly, like any Mac app runs a helper program.
 import argparse
 import contextlib
 import json
+import math
 import os
 import re
 import sys
@@ -337,6 +338,17 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         store.db.close()
 
 
+def plain_json(value):
+    """The page reads strict JSON: a missing number (NaN) or infinity becomes null instead of breaking it."""
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    if isinstance(value, dict):
+        return {k: plain_json(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [plain_json(v) for v in value]
+    return value
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="python -m aitrader.app_api")
     parser.add_argument("action", choices=[
@@ -353,7 +365,7 @@ def main(argv=None) -> int:
             result = handle(args.action, load_config(), args.demo, args.confirm, payload)
     except Exception as e:
         result = {"error": str(e) or type(e).__name__}
-    out.write(json.dumps(result, default=str))
+    out.write(json.dumps(plain_json(result), default=str, allow_nan=False))
     out.flush()
     return 0
 

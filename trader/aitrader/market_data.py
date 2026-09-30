@@ -40,7 +40,11 @@ class MarketData:
     def load(self, desk: str, extra=()):
         """Prices for one desk's watchlist (+ `extra` tickers, e.g. ones the bot still owns) + the benchmark."""
         interval = "5m" if desk == "day" else "1d"
-        wanted = list(dict.fromkeys(self.cfg["desks"][desk]["watchlist"] + list(extra)))
+        scanned = []
+        if desk == "swing":                          # the top of the daily all-stocks scan (scanner.py)
+            from .scanner import trade_candidates
+            scanned = trade_candidates(self.cfg)
+        wanted = list(dict.fromkeys(self.cfg["desks"][desk]["watchlist"] + scanned + list(extra)))
         tickers = list(dict.fromkeys(wanted + [self.cfg["benchmark"]]))
         bars = {}
         for t in tickers:

@@ -118,6 +118,25 @@ promotion:
   max_drawdown_pct: 10
   must_beat_benchmark: true
 
+# ---- The daily all-stocks scan (scanner.py) -------------------------------
+# After the close: every tradable US stock (Alpaca), or ~400 popular names without Alpaca keys.
+# Ranked by 12-month momentum, uptrends only. The swing desk also considers the top of the list.
+scanner:
+  enabled: true
+  top: 30                  # stocks on the list
+  new_listings: 5          # newly listed stocks (under a year of history): watch only
+  min_price: 3             # no penny stocks
+  min_dollar_volume: 5000000   # average $ traded per day (20 days): easy to get in and out
+  trade_top: 15            # the swing desk considers this many from the top of the list
+
+# ---- News (you can turn this off in Setup) ---------------------------------
+# Headlines from Alpaca's news feed (Benzinga; free with your Alpaca keys), or Yahoo without keys.
+# Used to AVOID buying a stock with danger headlines (share offering, bankruptcy, halt, delisting,
+# fraud...) and to explain things. News never makes it buy.
+news:
+  enabled: true
+  days: 3
+
 # ---- Optional local LLM (Ollama) for plain-English write-ups ----------------
 # It WRITES the plan. It does NOT decide trades.
 llm:
