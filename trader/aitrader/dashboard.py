@@ -243,7 +243,16 @@ def _right_now(cfg, store, now=None) -> dict:
     minutes = (now - datetime.fromisoformat(beat)).total_seconds() / 60 if beat else None
     running = minutes is not None and minutes < 12
     trading_day = now.weekday() < 5 and now.date() not in market_holidays(now.year)
-    if not running:
+    busy = store.get("autopilot_busy") or {}
+    names = {"morning": "the morning check-in", "day": "a day-desk check", "swing": "the swing decision",
+             "swing-stops": "a stop-loss check", "study": "the after-close study", "scan": "the stock scan",
+             "report": "the after-market report"}
+    if not running and busy.get("job"):
+        since = datetime.fromisoformat(busy["since"])
+        took = (now - since).total_seconds() / 60
+        headline = (f"The autopilot is busy with {names.get(busy['job'], busy['job'])} (since {since:%H:%M}, "
+                    f"{took:.0f} min)." + (" If it's stuck, it restarts itself after 30 minutes." if took > 10 else ""))
+    elif not running:
         headline = ("The autopilot isn't running, so nothing is being tested. Turn it on in Setup (step 2) "
                     "and keep the Mac awake.") if minutes is None or minutes > 60 else \
                    f"The autopilot hasn't checked in for {minutes:.0f} minutes (is the Mac asleep?)."

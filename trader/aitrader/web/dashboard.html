@@ -95,6 +95,7 @@
                  border: 1px solid transparent; border-radius: 6px; padding: 4px 6px; margin-left: -7px; max-width: 100%; }
   .acct-picker:hover, .acct-picker:focus { border-color: var(--axis); }
   .acct-picker option { color: #0b0b0b; background: #fff; }
+  .bad-text { color: var(--down); }
   .right-now { border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px;
                background: var(--surface); font-size: 14px; line-height: 1.45; }
   .right-now.warn { border-color: var(--warning); }
@@ -384,6 +385,7 @@
     <p class="ink2">Runs the bot in the background: it starts when you log in and restarts itself if it stops.
        Keep the Mac plugged in; closing the lid puts it to sleep.</p>
     <button class="primary" id="auto-toggle">Turn on</button>
+    <p class="ink2 bad-text" id="auto-problem" hidden></p>
   </section>
   <section class="setup-step">
     <h4><span class="num">3</span> What happens next <span class="tag" id="stage-state" hidden></span></h4>
@@ -999,7 +1001,9 @@ async function refreshSetup() {
   try {
     const s = await setupCall("setup-status");
     $("#keys-state").textContent = s.paper_keys ? "keys saved" : "not connected";
-    $("#auto-state").textContent = s.autopilot_on ? "on" : "off";
+    $("#auto-state").textContent = !s.autopilot_on ? "off" : s.autopilot_alive === false ? "on · not running" : "on";
+    $("#auto-problem").hidden = !(s.autopilot_on && s.autopilot_problem);
+    $("#auto-problem").textContent = s.autopilot_problem ? "Last problem: " + s.autopilot_problem : "";
     const t = $("#auto-toggle");
     t.textContent = s.autopilot_on ? "Turn off" : "Turn on";
     t.dataset.on = s.autopilot_on ? "1" : "";
