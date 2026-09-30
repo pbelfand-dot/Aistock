@@ -218,7 +218,17 @@ def snapshot(cfg, store) -> dict:
         "watchlist": [{"desk": d, **quote(cfg, t)} for d in active_desks(cfg) for t in cfg["desks"][d]["watchlist"]],
         "journal": [{"ts": ts, "message": m} for ts, m in store.journal(60)][::-1],
         "scan": _scan(cfg),
+        "reports": _reports(cfg),
     }
+
+
+def _reports(cfg) -> list:
+    """The last week of after-market reports (report.py), newest first."""
+    from .report import recent_reports
+    try:
+        return recent_reports(cfg, 7)
+    except OSError:
+        return []
 
 
 def _scan(cfg) -> dict:

@@ -95,6 +95,13 @@
                  border: 1px solid transparent; border-radius: 6px; padding: 4px 6px; margin-left: -7px; max-width: 100%; }
   .acct-picker:hover, .acct-picker:focus { border-color: var(--axis); }
   .acct-picker option { color: #0b0b0b; background: #fff; }
+  .report { padding: 0 16px 16px; line-height: 1.5; }
+  .report h3 { font-size: 17px; margin: 8px 0 12px; }
+  .report h4 { font-size: 15px; margin: 18px 0 6px; border-top: 1px solid var(--border); padding-top: 12px; }
+  .report p { margin: 6px 0; color: var(--ink-2); }
+  .report ul { margin: 4px 0 8px; padding-left: 20px; }
+  .report li { margin: 3px 0; }
+  .report code { font-size: 12px; background: var(--surface-2, rgba(127,127,127,.12)); padding: 1px 5px; border-radius: 4px; }
   .overview-label { color: var(--ink-2); font-size: 13px; margin-top: 6px; }
   .hero { font-size: 48px; font-weight: 600; line-height: 1.1; margin: 2px 0 4px; font-variant-numeric: tabular-nums; }
   .tiles { display: flex; gap: 12px; flex-wrap: wrap; flex: 1; justify-content: flex-end; }
@@ -316,6 +323,11 @@
 
   <!-- JOURNAL -->
   <section data-panel="journal" hidden>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-head"><h2>After-market report</h2><div class="spacer"></div>
+        <select id="report-day" class="tag" aria-label="Which day"></select></div>
+      <div class="report" id="report"></div>
+    </div>
     <div class="card journal"><div class="card-head"><h2>What the bot did, and why</h2></div><ul id="journal"></ul></div>
   </section>
 </main>
@@ -880,6 +892,38 @@ function lessonsView(l) {                                  // learning.py: more 
 }
 function renderJournal(s) {
   $("#journal").replaceChildren(...s.journal.map(j => el("li", {}, el("time", { text: j.ts.replace("T", " ") }), j.message)));
+  const reports = s.reports || [];
+  const pick = $("#report-day");
+  pick.hidden = !reports.length;
+  pick.replaceChildren(...reports.map(r => el("option", { value: r.date, text: r.date })));
+  if (!reports.some(r => r.date === state.reportDay)) state.reportDay = reports.length ? reports[0].date : null;
+  pick.value = state.reportDay || "";
+  const r = reports.find(x => x.date === state.reportDay);
+  $("#report").replaceChildren(...(r ? markdown(r.markdown)
+    : [el("div", { class: "empty", text: "The first report is written after today's close (the autopilot must be on)." })]));
+}
+function inline(text) {                                   // **bold** and `code`; everything else stays plain text
+  const parts = [], re = /\*\*(.+?)\*\*|`(.+?)`/g;
+  let last = 0, m;
+  while ((m = re.exec(text))) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    parts.push(m[1] ? el("strong", {}, ...inline(m[1])) : el("code", { text: m[2] }));
+    last = re.lastIndex;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+}
+function markdown(text) {                                 // the report's small subset: #, ##, - lists, paragraphs
+  const out = []; let list = null;
+  for (const line of text.split("\n")) {
+    if (line.startsWith("- ")) { if (!list) { list = el("ul"); out.push(list); } list.append(el("li", {}, ...inline(line.slice(2)))); continue; }
+    list = null;
+    if (!line.trim()) continue;
+    if (line.startsWith("# ")) out.push(el("h3", { text: line.slice(2) }));
+    else if (line.startsWith("## ")) out.push(el("h4", { text: line.slice(3) }));
+    else out.push(el("p", {}, ...inline(line)));
+  }
+  return out;
 }
 
 /* ---------------- tabs, theme, buttons ---------------- */
@@ -892,6 +936,7 @@ function setTab(t) {
 document.querySelectorAll(".tab").forEach(b => b.onclick = () => setTab(b.dataset.tab));
 document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => setTab(b.dataset.go));
 $("#account").onchange = (e) => { state.account = e.target.value; render(); };
+$("#report-day").onchange = (e) => { state.reportDay = e.target.value; render(); };
 $("#theme").onclick = () => {
   const dark = getComputedStyle(document.documentElement).colorScheme.includes("dark");
   document.documentElement.dataset.theme = dark ? "light" : "dark";

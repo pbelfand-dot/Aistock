@@ -29,6 +29,14 @@ code changes.
   win or lose, each day's % change, and the totals vs. the S&P 500. It works the same for all three
   accounts (pick one at the top of the Summary tab): *In its head* (pretend trades while a desk
   studies), *Paper* and *Real money*.
+- **After-market report** (top of the Journal tab), written about 25 minutes after each close. For each
+  desk it covers:
+  - what it traded and why, and how that went;
+  - what it was thinking: its top picks and why it didn't buy more;
+  - what it learned from its own trades;
+  - how the strategies it compares are doing;
+  - changes to its stock list, and what's next.
+  It's also saved in `~/AITrader/data/reports/`, and you can print it with `python run.py report`.
 - **View → Show Demo Data** shows it with made-up prices right away.
 - **Setup** (the button) connects Alpaca, switches the autopilot and says what's next.
 - **Kestrel → Setup Menu** (⌘,) opens the full Terminal menu (plans, real money, Schwab).

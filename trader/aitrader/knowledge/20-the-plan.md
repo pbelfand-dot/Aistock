@@ -28,6 +28,15 @@ exists for three accounts: "in its head" (a studying desk trades with pretend mo
 swing = momentum, day = opening range breakout), paper, and real money. After each close the
 journal gets one line per account with today's result and the running totals.
 
+**After-market report (every trading day, ~25 minutes after the close):** per desk, it covers:
+- what it traded and why, and the result;
+- its thinking at the last check: its top scores and why it didn't buy more;
+- its lessons;
+- how the strategies it compares are doing;
+- its stock-list changes, and what's next.
+When the local AI is on, it writes a short plain-English summary at the top, using only the
+report's facts. The report is saved as data/reports/after-market-<date>.md.
+
 **Where the code is now:** Stage 1 is a button. Otherwise each desk still goes study (30 days) →
 plan review → paper → live. Real money always needs the promotion rules to pass and the owner's
 typed confirmation.
