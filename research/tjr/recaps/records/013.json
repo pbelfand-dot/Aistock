@@ -1,0 +1,54 @@
+{
+  "video": {
+    "n": 13,
+    "file": "03_20_2024.Trade.Recap.Best.720p.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 11 sheets, 13 full-size shots (#1, #2, #4, #7, #8, #12, #13, #20, #29, #31, #33, #34, #42; some zoomed by cropping) and the transcript. TradingView legends, axis labels, the position-tool labels and the clock (bottom right, 'UTC-4' = ET) were readable. The transcript is very garbled (pocketsphinx) and only gives fragments. Recorded live about 10:29-10:34 ET on the trade day while the ES long was still open. 04:11-04:24 is a short ETHUSD 4h aside (no trade). 04:31-05:10 is an outro (@_TJRTrades text on the chart). No broker panel, order ticket or P&L panel appears.",
+    "duration_min": 5.2,
+    "title_claim": "",
+    "session_date": {"value": "2024-03-20", "src": "seen", "ref": "#1 00m00s x-axis cursor label 'Wed 20 Mar '24 09:30'; also #7, #12, #29, #42"}
+  },
+  "market_context": {
+    "regime": {"value": "4h: sideways range for about 2 weeks, with the top near 5257 (his drawn line 5257.25). 1h: rally from about 5193 (19 Mar) into the upper half of that range. On 20 Mar, price dipped after the 09:30 open to about 5235-5236.5, then rallied to 5247.75 by 10:32 ET.", "src": "seen", "ref": "#31 03m11s and #33 03m33s, 4h legend 'S&P 500 E-mini Futures · 4h · CME' with lines up to 5257.25. #33 legend for the 10:00 4h bar 'O5237.50 H5247.75 L5236.50'. #4 00m19s 1h chart: low near 5193 is inferred ±3 from candle position. Heard [03:15]-[03:30] 'break out of this little ... been ranging for ... the last two weeks' (read as: ranging on the 4h for two weeks)"},
+    "news": {"value": "Wed 20 Mar 2024 was an FOMC decision day (14:00 ET). He had a Forex Factory calendar tab open. What he said about news can't be read with confidence.", "src": "inferred", "ref": "The date is seen, and FOMC-on-this-date comes from the public calendar, not from the video. The browser tab 'Calendar | Forex Factory' is seen on every shot (e.g. #1). Transcript [04:00] 'they might buy us violent things' may be a news remark, but it's too garbled to use"},
+    "bias": {"value": "Bullish intraday. The draw on liquidity is the buy-side above: at first 5253.50 (a drawn level), later 5257.25 (the 4h range high). He says he wouldn't be surprised to see a breakout of the 4h range.", "src": "inferred", "ref": "From the long position tool (#1, #7) with its target first at 5253.50 (#7) and later at 5257.25 (#29, #33). Heard [03:00]-[03:15] 'i would not be surprised ... to break out of this little'"}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-03-20", "src": "seen", "ref": "#1 x-axis 'Wed 20 Mar '24'"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#1 legend 'S&P 500 E-mini Futures · 1 · CME'; symbol box 'ES1!'"},
+      "direction": {"value": "long", "src": "seen", "ref": "#1, #7, #13: long position tool (blue target zone above entry, grey stop zone below)"},
+      "timeframes": {"value": {"bias": "4h/1h", "setup": "5m", "entry": "1m"}, "src": "inferred", "ref": "He walks through the charts in this order: 4h (#2), 1h (#4, #7), 5m (#8, #12), 1m (#1, #13). Heard [01:15] 'one minute time frame'. Which timeframe he calls 'bias' vs 'setup' is not clearly stated"},
+      "setup": {"value": "after the NY open, a dip into the range equilibrium / sweep of a low near 5235-5236.5 -> 1m break of structure up (a displacement candle closes above the 1m range high near 5241.5) -> long at the close of that candle", "src": "inferred", "ref": "Seen: 1m/5m fib box 1/0.5/0 over about 5241.5/5239.0/5236.5 (#12, #13, #2) and the 10:23 1m candle closing at the entry level (#13). Heard: [00:30]-[00:45] 'the equilibrium ... we blew past', [01:00] 'we finally saw a raid', [01:45] 'structure to the upside ... confluence' (garbled). Which exact low was swept can't be identified"},
+      "entry_conditions": [
+        {"value": "Higher-timeframe context: price in the upper half of a 2-week 4h range with buy-side liquidity above (5253.50 / 5257.25)", "src": "inferred", "ref": "#31/#33 4h range and drawn lines; #20 1h lines at 5253.50 and 5252.25"},
+        {"value": "Pullback after 09:30 ET into the equilibrium (0.5 ≈ 5239.0) of the range ≈5236.5-5241.5, trading below it", "src": "inferred", "ref": "#12/#13 fib box levels 1/0.5/0; prices are estimated from the axis (±0.25). Heard [00:30]-[00:45] 'the equilibrium ... we blew past this'"},
+        {"value": "Sweep/raid of a prior low: the 5m low of the 10:00 bar is 5236.50, and 09:35-09:50 lows are around 5235.3-5235.6. Which liquidity was raided is unknown", "src": "inferred", "ref": "#12 5m legend at the 10:00 bar 'O5237.50 H5240.25 L5236.50 C5239.25' (seen) and his drawn line at 5236.50. Earlier lows estimated from candle positions (±0.5). Heard [01:00] 'we finally saw a raid'"},
+        {"value": "1m break of structure: the 10:23 ET 1m candle closes above the 1m range high (≈5241.5) at ≈5243.25", "src": "inferred", "ref": "#13 1m chart: the big bullish candle's body top sits on the 5243.25 entry label; the range high is estimated from the fib '1' line"}
+      ],
+      "entry_time": {"value": "≈10:24 ET (chart UTC-4) ±1 min", "src": "inferred", "ref": "#13 1m: the left edge of the position box is at about 10:24 on the x-axis (10:20 and 10:25 labels). In #34 the box appears to start around 10:20-10:23, so it may have been redrawn"},
+      "entry": {"value": 5243.25, "src": "seen", "ref": "#1 and #7 grey position-tool axis label '5243.25'"},
+      "stop": {"value": 5238.0, "src": "seen", "ref": "#1 and #7 grey axis label '5238.00'; #7 tool text 'Stop: 5.25 (0.10%)'"},
+      "stop_rule": {"value": "below the last 1m higher low (≈5238.75) before the breakout candle, and below the equilibrium (~5239.0)", "src": "inferred", "ref": "#13: the 10:21 wick low is estimated at ≈5238.75 from its position. He does not state the rule audibly"},
+      "target": {"value": 5257.25, "src": "seen", "ref": "Initial target 5253.50: #7 00m38s blue axis label '5253.50' and tool text 'Target: 10.25 (0.20%)'. By 02m56s it was moved to 5257.25: #29, #31, #33 and #42 blue axis label '5257.25', with the 5m box top at that level"},
+      "target_rule": {"value": "Buy-side liquidity. At first a drawn level at 5253.50 (a line extending from the 14 Mar area on the 1h). Later the 4h range-high line at 5257.25.", "src": "inferred", "ref": "#20 1h: lines at 5253.50/5252.25 start near the 14 Mar highs. #31/#33 4h: 5257.25 is the top line of the range. Planned R:R at first: tool 'Risk/Reward Ratio: 1.95' (#7). After the move: (5257.25-5243.25)/(5243.25-5238.00) = 14.00/5.25 = 2.67"},
+      "exit": {"value": "not exited on video; still open at 10:34 ET with last price 5244.75 (high so far ≈5247.75)", "src": "seen", "ref": "#42 04m49s clock '10:34:14 (UTC-4)', last price 5244.75. #33 4h legend H5247.75 at 10:32 ET. Heard [03:45] 'my position love running' (read as: position still running)"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Actual size isn't shown. The position tool reads 'Qty: 3.81' with 'Amount: 99000' at the stop and '101952.38' at the target. That is TradingView's calculator for a $100,000 account risking 1% ($1,000 / (5.25 pts x $50) = 3.81), not his real size"},
+      "result": {"value": "unknown", "src": "unknown", "ref": "The trade was open when the video ended (price between stop 5238.00 and target 5257.25). The outcome isn't shown or clearly stated"},
+      "r_multiple": {"value": null, "src": "unknown", "ref": "Realized R is unknown (trade open). Planned: 1.95R to 5253.50 (seen tool ratio), then 2.67R to 5257.25 (computed 14.00/5.25). Best open excursion during the video: (5247.75-5243.25)/5.25 = 0.86R"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No P&L amount stated or shown; title has no claim"},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "Only a TradingView drawing tool is shown (its middle label partly reads 'Closed P&... 5.25 ... Qty 3.81', a tool readout on 1h bars). There is no broker panel or fills, and the trade was still open"},
+      "mistakes": [
+        {"value": "Target widened while the trade was open: 5253.50 (1.95R) -> 5257.25 (2.67R)", "src": "seen", "ref": "#7 00m38s target 5253.50 vs #29 02m56s target 5257.25"},
+        {"value": "Possible risk issue: if still open into the afternoon, the position would carry through the 14:00 ET FOMC decision. Not known whether it did", "src": "inferred", "ref": "The trade is open at 10:34 ET (#42). FOMC date comes from the public calendar"}
+      ],
+      "evidence_summary": "Seen: instrument, date, direction, entry 5243.25, stop 5238.00, target 5253.50 -> 5257.25, open at 10:34 ET. Inferred: entry time, sweep/BOS sequence, stop and target rules. Heard (garbled): equilibrium, raid, 1m TF, position running. Result and P&L unknown."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "Entry comes after price trades into the equilibrium and raids liquidity, then breaks structure to the upside on the 1m (his confluence for the long)", "src": "heard", "ref": "[00:30]-[00:45] 'the equilibrium we blew past this ... we did have the equilibrium right there', [01:00] 'we finally saw a raid', [01:15] 'one minute time frame', [01:45] 'structure to the upside ... confluence' (heavily garbled, gist only)"},
+    {"value": "He expects a possible breakout of the 2-week 4h range toward/above ≈5257", "src": "heard", "ref": "[03:00]-[03:30] 'i would not be surprised ... to break out of this little ... been ranging for ... the last two weeks' (garbled)"}
+  ],
+  "quality_notes": "Main limit: the trade was still open when recording ended (10:34 ET), so result and R are unknown, and nothing later is shown. The transcript is nearly unusable: only fragments like 'equilibrium', 'raid', 'one minute', 'break out' survive, so his stated reasons are low confidence. Prices from the position tool and axis labels are reliable. The sweep level, range high/low (≈5241.5/5236.5) and entry time are estimated from candle positions. Actual size is unknown (the tool Qty is a calculator value). The target was changed mid-video."
+}
