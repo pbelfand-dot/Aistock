@@ -22,6 +22,9 @@ directly, like any Mac app runs a helper program.
   check-schwab                               tests the Schwab login (read-only)
   connect-claude < {"which": "code"|"desktop"}  lets Claude see the bot (and Schwab, read-only)
   start-stage1                               Stage 1: the swing desk paper trades momentum now (pretend money)
+  save-phone < {"token": ..}                 your phone: a private Telegram bot for alerts and commands (phone.py)
+  phone-test                                 sends your phone a test message
+  phone-screen-send                          sends your phone the link to the Kestrel screen (Tailscale)
 
 --demo works on the demo folder (data/demo) instead of your real data.
 """
@@ -70,7 +73,7 @@ def real_money_status(cfg, store) -> dict:
 # ---------------------------------------------------------------- the Setup screen
 PAPER_KEYS = ("ALPACA_PAPER_API_KEY", "ALPACA_PAPER_SECRET_KEY")
 STDIN_ACTIONS = {"save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
-                 "connect-claude"}                     # these read their details from stdin (never argv)
+                 "connect-claude", "save-phone"}                     # these read their details from stdin (never argv)
 
 NEXT_STEP = {
     "STUDY": "Studying: the bot watches the market and grades its strategies with no money involved. "
@@ -142,6 +145,33 @@ def save_schwab_keys(payload: dict) -> dict:
     write_env(env_file(), dict(zip(SCHWAB_KEYS, (app_key, secret, callback, account))))
     restart_autopilot()
     return {"message": "Schwab keys saved on this Mac only. Next: Open Schwab login."}
+
+
+def save_phone(cfg, payload: dict) -> dict:
+    """Saves the Telegram bot token (after checking it with Telegram) and makes a new pairing code."""
+    from . import phone
+    token = str(payload.get("token", "")).strip()
+    if not re.fullmatch(phone.TOKEN_PATTERN, token):
+        raise ValueError("That doesn't look like a Telegram bot token (it looks like 1234567890:AA...). "
+                         "Copy it from @BotFather.")
+    cfg["secrets"]["telegram_token"] = token
+    try:
+        bot = phone.call(cfg, "getMe")
+    except Exception as e:
+        raise ValueError(f"Telegram didn't accept that token ({e}). Copy it again from @BotFather.") from None
+    write_env(env_file(), {"TELEGRAM_BOT_TOKEN": token, "TELEGRAM_CHAT_ID": ""})     # a new bot: pair again
+    code = phone.pairing_code(cfg, new=True)
+    restart_autopilot()
+    return {"message": f"Saved on this Mac only. Now open @{bot.get('username')} in Telegram and send: /start {code}",
+            "bot": bot.get("username"), "code": code}
+
+
+def phone_test(cfg) -> dict:
+    from . import phone
+    if not phone.connected(cfg):
+        return {"ok": False, "text": "Not paired yet: send your bot /start and the pairing code first."}
+    ok = phone.send(cfg, "Kestrel test message: your phone is connected.")
+    return {"ok": ok, "text": "Sent. Check Telegram." if ok else "Couldn't reach Telegram. Is the Mac online?"}
 
 
 def check_schwab(cfg) -> dict:
@@ -272,7 +302,31 @@ def setup_status(cfg, store) -> dict:
             "prices_from": data_source(cfg), "paper_at": "Alpaca paper account" if uses_broker_paper(cfg)
             else "simulated on this Mac", "autopilot_on": mac_service.is_running(),
             "autopilot_seen": store.get("autopilot_heartbeat"), "can_autopilot": sys.platform == "darwin",
-            "desks": desks, "stage1": stage1}
+            "desks": desks, "stage1": stage1, "phone": phone_status(cfg)}
+
+
+def phone_status(cfg) -> dict:
+    from . import phone, phone_screen
+    from .scanner import is_on
+    has_token = bool(phone.token(cfg))
+    screen_on = is_on((cfg.get("phone") or {}).get("screen", False))
+    ip = phone_screen.tailscale_ip()
+    return {"token": has_token, "paired": phone.connected(cfg),
+            "code": phone.pairing_code(cfg) if has_token and not phone.connected(cfg) else None,
+            "screen": {"on": screen_on, "tailscale": bool(ip),
+                       "link": phone_screen.link(cfg) if screen_on and ip else None}}
+
+
+def phone_screen_send(cfg) -> dict:
+    """Sends the phone-screen link to your phone through Telegram (so you don't have to type it)."""
+    from . import phone, phone_screen
+    url = phone_screen.link(cfg)
+    if not url:
+        return {"ok": False, "text": "Tailscale isn't on for this Mac. Open the Tailscale app and log in."}
+    if not phone.connected(cfg):
+        return {"ok": False, "text": f"Pair Telegram first (step 5), or type this on your phone: {url}"}
+    ok = phone.send(cfg, f"Your Kestrel screen (open it, then Share -> Add to Home Screen):\n{url}")
+    return {"ok": ok, "text": "Sent to Telegram. Open it on your phone." if ok else "Couldn't reach Telegram."}
 
 
 def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payload: dict = None) -> dict:
@@ -307,6 +361,12 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         return check_schwab(cfg)
     if action == "connect-claude":
         return connect_claude(str((payload or {}).get("which", "")))
+    if action == "save-phone":
+        return save_phone(cfg, payload or {})
+    if action == "phone-test":
+        return phone_test(cfg)
+    if action == "phone-screen-send":
+        return phone_screen_send(cfg)
     if action in ("autopilot-on", "autopilot-off"):
         from . import mac_service
         from .config import ROOT
@@ -369,7 +429,8 @@ def main(argv=None) -> int:
     parser.add_argument("action", choices=[
         "snapshot", "pause", "kill", "demo-build", "update-policy", "setup-status", "save-keys", "check-keys",
         "autopilot-on", "autopilot-off", "resume", "save-settings", "save-live-keys", "save-schwab-keys",
-        "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude", "start-stage1"])
+        "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude", "start-stage1",
+        "save-phone", "phone-test", "phone-screen-send"])
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)

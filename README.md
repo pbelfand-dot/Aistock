@@ -37,6 +37,14 @@ code changes.
   - how the strategies it compares are doing;
   - changes to its stock list, and what's next.
   It's also saved in `~/AITrader/data/reports/`, and you can print it with `python run.py report`.
+- **Your phone** (Setup steps 5 and 6):
+  - **Telegram alerts and commands.** Your own private bot messages you every buy and sell, the
+    after-close results and the after-market report. Send it `/status`, `/trades`, `/report`,
+    `/pause`, `/resume`, or `/kill SELL EVERYTHING`. It only answers the phone you paired with the
+    code from Setup.
+  - **The Kestrel screen on your iPhone.** It works over Tailscale, a free private network between
+    your own devices. It's served only on the Mac's Tailscale address and needs Kestrel's access key.
+    Add it to your Home Screen and it opens like an app. Keys and settings stay on the Mac.
 - **View → Show Demo Data** shows it with made-up prices right away.
 - **Setup** (the button) connects Alpaca, switches the autopilot and says what's next.
 - **Kestrel → Setup Menu** (⌘,) opens the full Terminal menu (plans, real money, Schwab).

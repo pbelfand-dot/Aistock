@@ -17,6 +17,7 @@ SETTINGS = {
     "paper_cash": (("paper", "starting_cash"), (100, 1000000), "Paper (practice) money ($)"),
     "scan_all_stocks": (("scanner", "enabled"), ("on", "off"), "Scan all US stocks every day"),
     "read_news": (("news", "enabled"), ("on", "off"), "Let Kestrel read the news"),
+    "phone_screen": (("phone", "screen"), ("on", "off"), "Kestrel screen on your phone (Tailscale)"),
 }
 
 

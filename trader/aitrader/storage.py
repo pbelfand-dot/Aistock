@@ -66,12 +66,19 @@ class Store:
                             (key, json.dumps(value)))
 
     # ---- diary ------------------------------------------------------------
+    on_log = None                                       # e.g. phone alerts (phone.forwarder), set by the autopilot
+
     def log(self, message: str, echo: bool = True):
         ts = datetime.now().isoformat(timespec="seconds")
         with self.db:
             self.db.execute("INSERT INTO journal (ts, message) VALUES (?, ?)", (ts, message))
         if echo:
             print(f"[{ts}] {message}")
+        if self.on_log:
+            try:
+                self.on_log(message)
+            except Exception:                           # an alert must never stop the bot
+                pass
 
     def journal(self, limit: int = 15) -> list:
         rows = self.db.execute("SELECT ts, message FROM journal ORDER BY id DESC LIMIT ?", (limit,))

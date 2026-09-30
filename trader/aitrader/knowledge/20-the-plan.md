@@ -37,6 +37,13 @@ journal gets one line per account with today's result and the running totals.
 When the local AI is on, it writes a short plain-English summary at the top, using only the
 report's facts. The report is saved as data/reports/after-market-<date>.md.
 
+**The owner's phone:**
+- **Telegram (phone.py):** alerts for trades, the daily results, the after-market report and anything
+  urgent. It answers /status /trades /report /pause /resume, and `/kill SELL EVERYTHING` only with
+  that exact phrase.
+- **Tailscale (phone_screen.py):** the Kestrel screen, with watching and safety buttons only.
+- Keys and settings are never changed from the phone.
+
 **Where the code is now:** Stage 1 is a button. Otherwise each desk still goes study (30 days) →
 plan review → paper → live. Real money always needs the promotion rules to pass and the owner's
 typed confirmation.
