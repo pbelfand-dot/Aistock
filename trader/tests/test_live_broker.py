@@ -16,7 +16,7 @@ from aitrader.brokers.live import UNKNOWN_ID
 from fakes import HASH, FakeResp, FakeSchwab, make_broker, make_client
 
 
-@pytest.fixture(params=["schwab", "alpaca"])
+@pytest.fixture(params=["schwab", "alpaca", "webull"])
 def kind(request):
     return request.param
 
@@ -140,6 +140,8 @@ def test_shares_gone_with_an_unknown_stop_does_not_get_stuck(kind):
 
 
 def test_if_you_edit_the_bots_stop_in_schwab_it_uses_yours(kind):
+    if kind == "webull":
+        pytest.skip("Webull edits an order in place (same order, no 'replaced' copy): see the Webull test below")
     client = make_client(kind, held={"KO": 2})
     broker = broker_for(client)
     broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")    # stop 101
@@ -237,6 +239,10 @@ def test_emergency_exit_keeps_going_until_the_live_desk_is_really_flat(kind, cfg
     from aitrader.storage import Store
 
     client = make_client(kind, held={"KO": 2}, market_fills=False)
+    import aitrader.brokers.webull_broker as webull_broker
+    import aitrader.webull_api as webull_api
+    monkeypatch.setattr(webull_broker, "connect", lambda cfg, want: ("ACCT1", "tok"))
+    monkeypatch.setattr(webull_api, "call", client)
     monkeypatch.setattr(schwab_api, "get_client", lambda cfg: client)
     monkeypatch.setattr(schwab_api, "account_hash", lambda client, number: HASH)
     monkeypatch.setattr(alpaca_api, "trading_client", lambda cfg, paper: client)
@@ -359,3 +365,105 @@ def test_real_money_sale_that_would_be_a_violation_waits_for_settlement(kind):
     assert broker.submit(Order("KO", "SELL", 5, 9.0, "stop-loss", urgent=True), "2026-09-30") is None
     assert not [o for o in client.orders_n() if o["side"] == "SELL"]                  # nothing sent
     assert any("good faith violation" in n for n in notes)
+
+
+# ---------------------------------------------------------------- Webull specifics
+def test_webull_orders_carry_the_bots_tag_and_the_order_category():
+    from aitrader.brokers.webull_broker import TAG, WebullBroker
+    from aitrader.brokers import Ledger
+    client = make_client("webull")
+    broker = WebullBroker(Ledger(1000), {"secrets": {}}, "ACCT1", "tok", call=client, stop_loss_pct=7,
+                          fill_timeout_seconds=0, poll_seconds=0, cash_account=False, log=lambda m: None)
+    broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")
+    buy, stop = client.placed("LIMIT")[0], client.placed("STOP")[0]
+    assert buy["client_id"].startswith(TAG) and len(buy["client_id"]) == 32 and buy["client_id"].isalnum()
+    assert buy["webull"]["limit_price"] == "10.02" and buy["webull"]["quantity"] == "2"
+    assert buy["webull"]["market"] == "US" and buy["webull"]["entrust_type"] == "QTY"
+    assert stop["webull"]["order_type"] == "STOP_LOSS" and stop["webull"]["stop_price"] == "9.32"
+    assert client.headers_seen[0] == {"category": "US_STOCK"}
+    assert broker.positions()["KO"].stop_order_id == stop["client_id"]
+
+
+def test_webull_only_counts_the_bots_own_stops():
+    from aitrader.brokers.webull_broker import WebullBroker
+    from aitrader.brokers import Ledger
+    client = make_client("webull", held={"KO": 2})
+    client.add_your_own_order("STOP", "SELL", "KO", 2, stop=9.0)          # yours, placed in the Webull app
+    broker = WebullBroker(Ledger(1000), {"secrets": {}}, "ACCT1", "tok", call=client)
+    assert broker.gw.find_sell_stops("KO") == []
+    ours = broker.gw.place("stop_sell", "KO", 2, 9.3, gtc=True)
+    assert broker.gw.find_sell_stops("KO") == [ours]
+
+
+def test_if_you_edit_the_bots_stop_price_in_webull_it_keeps_using_it():
+    client = make_client("webull", held={"KO": 2})
+    broker = broker_for(client)
+    broker.submit(Order("KO", "BUY", 2, 10.0, "test"), "2026-10-01")     # stop 101
+    client.orders["101"]["n"]["stop"] = 9.0                             # you moved it in the app: same order
+    broker.reconcile("2026-10-02")
+    assert broker.positions()["KO"].stop_order_id == "101" and len(client.placed("STOP")) == 1
+
+
+def test_webull_trading_needs_the_right_keys_and_the_app_approval(cfg, monkeypatch):
+    from aitrader import webull_api
+    from aitrader.brokers.webull_broker import connect
+    with pytest.raises(RuntimeError, match="no keys yet"):
+        connect(cfg, "paper")
+    cfg["secrets"].update(webull_app_key="k" * 32, webull_app_secret="s" * 32, webull_env="paper")
+    with pytest.raises(RuntimeError, match="paper keys, but this needs real money keys"):
+        connect(cfg, "live")
+    monkeypatch.setattr(webull_api, "token_state", lambda cfg, create=True: {"status": "PENDING", "token": "t"})
+    with pytest.raises(RuntimeError, match="isn't approved in the Webull app"):
+        connect(cfg, "paper")
+    monkeypatch.setattr(webull_api, "token_state", lambda cfg, create=True: {"status": "NORMAL", "token": "t"})
+    monkeypatch.setattr(webull_api, "accounts", lambda cfg, token: [{"account_id": "A9", "account_number": "5MX1"}])
+    assert connect(cfg, "paper") == ("A9", "t")
+
+
+def test_paper_trading_can_happen_at_webull(cfg, tmp_path, monkeypatch):
+    import aitrader.brokers.webull_broker as webull_broker
+    import aitrader.webull_api as webull_api
+    import run
+    from aitrader.config import paper_broker
+    from aitrader.phases import Phase
+    from aitrader.storage import Store
+    assert paper_broker(cfg) == "local"                                  # no keys: simulated here
+    cfg["paper"]["broker"] = "webull"
+    assert paper_broker(cfg) == "local"                                  # asked for Webull, but no keys yet
+    cfg["secrets"].update(webull_app_key="k" * 32, webull_app_secret="s" * 32, webull_env="live")
+    assert paper_broker(cfg) == "local"                                  # real-money keys never paper trade
+    cfg["secrets"]["webull_env"] = "paper"
+    assert paper_broker(cfg) == "webull"
+    client = make_client("webull")
+    monkeypatch.setattr(webull_broker, "connect", lambda cfg, want: ("ACCT1", "tok") if want == "paper" else 1 / 0)
+    monkeypatch.setattr(webull_api, "call", client)
+    store = Store(tmp_path / "t.sqlite")
+    broker = run.open_broker(cfg, store, "day", Phase.PAPER)
+    assert type(broker).__name__ == "WebullBroker" and broker.mode == "paper-day"
+    broker.submit(Order("F", "BUY", 3, 12.0, "tjr_model score 1.00 >= 0.9"), "2026-10-01")
+    assert client.placed("LIMIT")[0]["symbol"] == "F" and store.fills("paper-day")["ticker"].tolist() == ["F"]
+
+
+def test_moving_paper_trading_waits_until_the_paper_positions_are_sold(cfg, tmp_path):
+    from aitrader import app_api
+    from aitrader.config import data_path
+    from aitrader.storage import Store
+    cfg["secrets"].update(webull_app_key="k" * 32, webull_app_secret="s" * 32, webull_env="paper")
+    store = Store(data_path(cfg, "aitrader.sqlite"))
+    store.set("paper-day_ledger", {"cash": 400, "unsettled": {}, "pending": [], "positions": {"F": {"qty": 3}}})
+    store.db.close()
+    with pytest.raises(ValueError, match="still holds paper positions"):
+        app_api.check_paper_move(cfg, "webull")
+    app_api.check_paper_move(cfg, "local")                                # same place (simulated): fine
+
+
+def test_real_money_at_webull_checks_webull_not_schwab(cfg, monkeypatch):
+    import aitrader.brokers.webull_broker as webull_broker
+    import aitrader.schwab_api as schwab_api
+    import run
+    asked = []
+    monkeypatch.setattr(webull_broker, "connect", lambda cfg, want: asked.append(want) or ("A1", "t"))
+    monkeypatch.setattr(schwab_api, "get_client", lambda cfg: 1 / 0)
+    cfg["broker"] = "webull"
+    run.prove_live_connection(cfg)
+    assert asked == ["live"]                                             # real-money keys, approved

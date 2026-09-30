@@ -1,4 +1,5 @@
-"""Webull: saving the keys, the in-app approval, and a read-only connection test (it never trades)."""
+"""Webull: saving the keys, the in-app approval, and the read-only connection test (it never places an order;
+the trading itself is tested in test_live_broker.py)."""
 from datetime import datetime, timezone
 
 import pytest
@@ -76,7 +77,7 @@ def test_webull_keys_are_saved_privately_then_you_approve_kestrel_in_the_webull_
     assert token_file.stat().st_mode & 0o777 == 0o600
     store = Store(tmp_path / "aitrader.sqlite")
     assert app_api.setup_status(cfg, store)["webull"] == {"keys": True, "account_id": False, "environment": "paper",
-                                                        "approval": "PENDING"}
+                                                        "approval": "PENDING", "trading": False}
 
     creates = webull.calls.count("/auth/tokens/create")
     assert app_api.handle("check-webull", cfg, payload={"poll": True})["waiting"]      # still waiting
@@ -84,6 +85,11 @@ def test_webull_keys_are_saved_privately_then_you_approve_kestrel_in_the_webull_
     done = app_api.handle("check-webull", cfg, payload={"poll": True})
     assert done["ok"] and "connected (read-only)" in done["text"] and "...1234 (CASH)" in done["text"]
     assert "cash $51.25" in done["text"] and "2 accounts" in done["text"]
+    assert "To paper trade here: Settings -> Paper trading happens at: Webull." in done["text"]
+    cfg["paper"]["broker"] = "webull"                                    # you picked Webull for paper trading
+    assert "Paper trading happens here." in webull_api.connect(cfg)["text"]
+    assert app_api.setup_status(cfg, store)["webull"]["trading"]
+    cfg["paper"]["broker"] = "auto"
     assert webull.calls.count("/auth/tokens/create") == creates           # polling never asked for a new approval
     assert app_api.setup_status(cfg, store)["webull"]["approval"] == "NORMAL"
 

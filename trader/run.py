@@ -34,7 +34,7 @@ import pandas as pd
 
 from aitrader.brokers import Ledger, Order, PaperBroker
 from aitrader.config import (active_desks, data_path, data_source, desk_capital, is_cash_account, load_config,
-                             uses_broker_paper)
+                             paper_broker, uses_broker_paper)
 from aitrader.engine import run_backtest, run_cycle
 from aitrader.market_data import MarketData
 from aitrader.market_hours import in_session, minutes_to_close, now_ny, session_close
@@ -145,7 +145,12 @@ def open_broker(cfg, store, desk, phase, dry_run=False, emergency=False):
         stop_good_till_cancel=(desk == "swing"),
         save=lambda: store.set(f"{mode}_ledger", ledger.to_dict()), log=store.log,
         on_fill=fill_recorder(store, mode, dry_run), poll_seconds=settings.get("poll_seconds", 2))
-    if cfg["broker"] == "alpaca":
+    where = cfg["broker"] if live else paper_broker(cfg)
+    if where == "webull":
+        from aitrader.brokers.webull_broker import WebullBroker, connect
+        account_id, token = connect(cfg, "live" if live else "paper")
+        broker = WebullBroker(ledger, cfg, account_id, token, **common)
+    elif where == "alpaca":
         from aitrader.alpaca_api import trading_client
         from aitrader.brokers.alpaca_broker import AlpacaBroker
         broker = AlpacaBroker(ledger, trading_client(cfg, paper=not live), **common)
@@ -371,6 +376,9 @@ def prove_live_connection(cfg):
     if cfg["broker"] == "alpaca":
         from aitrader.alpaca_api import trading_client
         trading_client(cfg, paper=False).get_account()
+    elif cfg["broker"] == "webull":
+        from aitrader.brokers.webull_broker import connect
+        connect(cfg, "live")                                # real-money keys, approved in the Webull app
     else:
         from aitrader.schwab_api import account_hash, get_client
         account_hash(get_client(cfg), cfg["secrets"]["account_number"])
@@ -665,7 +673,8 @@ def cmd_status(cfg, store, args):
           + ("" if p["ready"] else f" (still need: {', '.join(p['missing'])})"))
     beat = store.get("autopilot_heartbeat")
     print(f"  Autopilot last seen: {beat or 'never (start it: python run.py autopilot)'}")
-    paper_where = ("your Alpaca PAPER account" if uses_broker_paper(cfg)
+    paper_where = ({"alpaca": "your Alpaca PAPER account", "webull": "your Webull PAPER account"}[paper_broker(cfg)]
+                   if uses_broker_paper(cfg)
                    else "simulated on this laptop (add ALPACA_PAPER keys to use Alpaca's paper account)")
     print(f"  Broker: {cfg['broker']}  |  prices: {data_source(cfg)}  |  paper trading: {paper_where}")
     if cfg["broker"] == "schwab":
@@ -739,12 +748,15 @@ def cmd_check(cfg, store, args):
                           "-> new paper account) so paper feels like your real account. The bot caps itself either way.")
             except Exception as e:
                 print(f"\n{name}: PROBLEM {e!r}")
-    else:
+    elif cfg["broker"] == "schwab":
         try:
             prove_live_connection(cfg)
             print("\nSchwab: connected.")
         except Exception as e:
             print(f"\nSchwab: PROBLEM {e!r}")
+    from aitrader import webull_api
+    if webull_api.has_keys(cfg) or cfg["broker"] == "webull":
+        print("\n" + webull_api.connect(cfg)["text"])
 
 
 MENU = [

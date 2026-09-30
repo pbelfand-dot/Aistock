@@ -25,7 +25,9 @@
      trades, a profit factor of 1.15+, making money, and a better profit factor than random buys
      with the same stop and target.
    - Then the owner starts it: Setup -> Start Stage 2.
-3. **Real money:** $50 at Alpaca and $50 at Schwab. More only if it makes money.
+3. **Real money:** $50 at Alpaca and $50 at Schwab (Webull can be the real-money broker too, later).
+   More only if it makes money. Paper trading can run in Alpaca's or Webull's paper account, or be
+   simulated on the Mac (Setup -> Settings -> Paper trading happens at).
 
 **Pass rule the owner set (this is what `promote` checks):** over at least 30 trading days of
 paper trading, make money and beat SPY over the same days, without dropping more than 10% from

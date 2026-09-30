@@ -11,7 +11,8 @@ from .config import ROOT
 
 # name: (where it goes in config.yaml, what's allowed, plain-English label)
 SETTINGS = {
-    "broker": (("broker",), ("alpaca", "schwab"), "Broker for real money"),
+    "broker": (("broker",), ("alpaca", "schwab", "webull"), "Broker for real money"),
+    "paper_broker": (("paper", "broker"), ("auto", "alpaca", "webull", "local"), "Where paper trading happens"),
     "real_money_cap": (("live", "max_capital"), (10, 100000), "Most real money the bot may use ($)"),
     "account_type": (("live", "account_type"), ("auto", "cash", "margin"), "Account type"),
     "paper_cash": (("paper", "starting_cash"), (100, 1000000), "Paper (practice) money ($)"),

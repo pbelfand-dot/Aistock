@@ -64,8 +64,12 @@ code changes.
 - **Webull** (Setup → "Real money, Schwab, Webull and Claude"): paste the App Key and App Secret
   from Webull's API Management page once Webull approves your application, and pick **Paper** for
   Webull test-environment keys or **Real money** (Test Webull switches it if you pick wrong). Press **Test Webull**,
-  then approve Kestrel in the Webull app within 5 minutes. For now Kestrel only reads the account;
-  it doesn't trade at Webull.
+  then approve Kestrel in the Webull app within 5 minutes. To **paper trade at Webull**: Setup →
+  Settings → "Paper trading happens at: Webull" (needs the paper keys, approved). Real money at Webull
+  needs its real-money keys, "Broker for real money: Webull", and the same locks as Alpaca and Schwab
+  (paper results first, LIVE_TRADING_ENABLED, the typed OK). Every order is a limit order with a
+  resting stop, tagged "kst" so Kestrel never touches your own orders. Webull accounts are treated
+  as cash accounts (settled money only) unless you set the account type.
 - **Kestrel → Setup Menu** (⌘,) opens the full Terminal menu (plans, real money, Schwab).
 
 ![The Kestrel app (demo data)](docs/dashboard.png)
