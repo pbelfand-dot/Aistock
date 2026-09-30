@@ -32,7 +32,7 @@ def test_each_trade_shows_what_it_spent_what_it_got_back_and_win_or_loss():
     assert days[1]["change_pct"] == 1.0                                 # the first day vs the starting money
 
 
-def test_while_studying_both_desks_trade_in_their_head_and_report_it(cfg, tmp_path, monkeypatch):
+def test_while_studying_both_desks_trade_in_their_head_and_report_it(cfg, tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(run, "MarketData", FakeData)
     store = Store(tmp_path / "aitrader.sqlite")
     data = FakeData()
@@ -54,6 +54,11 @@ def test_while_studying_both_desks_trade_in_their_head_and_report_it(cfg, tmp_pa
     journal = " ".join(m for _, m in store.journal(2000))
     assert "[study-day] BUY" in journal and "(spent $" in journal
     assert "[study-day]" in journal and "today" in journal and "since the start" in journal   # the daily line
+
+    run.cmd_status(cfg, store, None)                                    # the Terminal status shows it too
+
+    printed = capsys.readouterr().out
+    assert "study-day: $" in printed and "since the start" in printed and ("WIN $" in printed or "LOSS $" in printed)
 
     snap_account = dashboard._account(cfg, store, "study")
     assert snap_account["active"] and snap_account["daily"] and snap_account["totals"]["days"] == 3

@@ -543,12 +543,20 @@ def cmd_status(cfg, store, args):
         card = forward_report(store, cfg) if desk == "swing" else day_forward_report(store)
         if len(card) and (desk == "day" or card["signals"].sum() > 0):
             print("  Study report card:\n    " + card.to_string().replace("\n", "\n    "))
-        for mode in (f"paper-{desk}", f"live-{desk}"):
+        from aitrader.report import trades as trade_list
+        for mode in (f"study-{desk}", f"paper-{desk}", f"live-{desk}"):      # in its head, paper, real
             curve = store.equity_curve(mode)
             if len(curve):
+                start = desk_capital(cfg, desk, mode.startswith("live"))
+                done = trade_list(store.fills(mode))
+                won = sum(1 for t in done if t["result"] == "win")
                 s = summarize(curve, store.fills(mode))
-                print(f"  {mode}: ${curve.iloc[-1]:,.2f}  return {s['total_return_pct']}%  trades "
-                      f"{s['num_closed_trades']}  win {s['win_rate_pct']}%  max drawdown {s['max_drawdown_pct']}%")
+                print(f"  {mode}: ${curve.iloc[-1]:,.2f} ({(curve.iloc[-1] / start - 1) * 100:+.2f}% since the start, "
+                      f"${curve.iloc[-1] - start:+,.2f})  trades {len(done)} ({won} won)  "
+                      f"max drawdown {s['max_drawdown_pct']}%")
+                for t in done[:5]:
+                    print(f"      {t['sold_on']} {t['ticker']}: spent ${t['spent']:,.2f}, got ${t['got_back']:,.2f}, "
+                          f"{t['result'].upper()} ${t['gain']:+,.2f} ({t['gain_pct']:+.1f}%)")
         print(f"  Next: {nxt[phase].format(desk=desk)}")
 
     print("\n  Recent journal:")
