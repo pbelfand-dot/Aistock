@@ -255,17 +255,8 @@ def after_market(cfg, store, today: str) -> str:
     from .options_flow import report_lines
     out += report_lines(store)
 
-    from .scanner import load_list
-    state = load_list(cfg)
-    if state.get("updated"):
-        joined = [r["symbol"] for r in state.get("liked", []) if r.get("first_listed") == today]
-        left = [s for s, h in state.get("history", {}).items() if h.get("left_on") == today]
-        danger = [f"{r['symbol']} ({', '.join(r['danger'])})" for r in state.get("liked", []) if r.get("danger")]
-        top = ", ".join(r["symbol"] for r in state.get("liked", [])[:10])
-        out += ["## Its stock list (the daily scan)", "",
-                f"- Top 10 by 12-month strength: {top or '--'} (updated {state['updated']})",
-                f"- New today: {', '.join(joined) or 'none'}; dropped off: {', '.join(left) or 'none'}",
-                f"- Danger news (won't buy): {', '.join(danger) or 'none'}", ""]
+    out += scan_lines(cfg, store, today)
+    out += in_play_lines(cfg, store, today)
 
     out += ["## Next", ""]
     for desk in active_desks(cfg):
@@ -274,6 +265,61 @@ def after_market(cfg, store, today: str) -> str:
             else "decides every 5 minutes and sells everything before the close"
         out.append(f"- {desk.title()} desk ({phase.replace('_', ' ').lower()}): {when}.")
     return "\n".join(out).rstrip() + "\n"
+
+
+def scan_lines(cfg, store, today: str) -> list:
+    """The daily scan of all US stocks: its list, and whether the scan is actually working."""
+    from .scanner import is_on, load_list, settings
+    if not is_on(settings(cfg)["enabled"]):
+        return ["## Its stock list (the daily scan)", "", "- The scan of all US stocks is off (Setup -> Settings).", ""]
+    state, status = load_list(cfg), store.get("scan_status") or {}
+    out = ["## Its stock list (the daily scan)", ""]
+    if status.get("error"):
+        out.append(f"- The last scan ({status.get('day')}, try {status.get('tries')}) FAILED: {status['error']}")
+    elif status.get("started") and not status.get("finished"):
+        out.append(f"- A scan started at {status['started'][11:16]} and is still running (or was cut short: it "
+                   "tries again).")
+    if not state.get("updated"):
+        out += ["- No stock list yet: the scan hasn't finished on this Mac, so the swing desk only picks from its "
+                "watchlist. It scans after each close (and in the morning if the evening scan didn't finish).", ""]
+        return out
+    joined = [r["symbol"] for r in state.get("liked", []) if r.get("first_listed") == today]
+    left = [s for s, h in state.get("history", {}).items() if h.get("left_on") == today]
+    danger = [f"{r['symbol']} ({', '.join(r['danger'])})" for r in state.get("liked", []) if r.get("danger")]
+    top = ", ".join(r["symbol"] for r in state.get("liked", [])[:10])
+    picks = ", ".join(r["symbol"] for r in (state.get("swing_picks") or [])[:10])
+    if status.get("finished") and status.get("summary"):
+        out.append(f"- Last scan ({status['day']} {status['finished'][11:16]}): {status['summary'].removeprefix('scan: ')}")
+    out += [f"- Top 10 by 12-month strength: {top or '--'} (updated {state['updated']})",
+            f"- The swing desk also considers (strongest it can afford): {picks or 'none'}",
+            f"- New today: {', '.join(joined) or 'none'}; dropped off: {', '.join(left) or 'none'}",
+            f"- Danger news (won't buy): {', '.join(danger) or 'none'}", ""]
+    return out
+
+
+def in_play_lines(cfg, store, today: str) -> list:
+    """Today's stocks in play (in_play.py), and whether trading them has gone better than the fixed list."""
+    from . import in_play
+    if not in_play.is_on(cfg):
+        return []
+    state = in_play.load(cfg)
+    out = ["## Stocks in play (the day desk's morning scan)", ""]
+    if state.get("day") == today:
+        names = ", ".join(f"{p['symbol']} ({p['rvol']}x usual volume)" for p in state.get("picks") or [])
+        out.append(f"- Today: {names or 'nothing unusual'} (of {state.get('checked', 0)} busy stocks checked)")
+        if state.get("skipped"):
+            out.append(f"- Skipped for danger news: {', '.join(state['skipped'])}")
+    else:
+        out.append("- No list today (it needs the evening scan's pool and Alpaca data); the day desk used its watchlist.")
+    history = store.get("in_play_history") or {}
+    for kind in ("study", "paper", "live"):
+        split = in_play.results(store.fills(f"{kind}-day"), history)
+        if split["in play"]["trades"] or (kind != "study" and split["fixed list"]["trades"]):
+            parts = [f"{name}: {g['trades']} trades, {g['won']} won, {signed(g['pnl'])}"
+                     for name, g in split.items() if g["trades"]]
+            out.append(f"- Day trades so far ({ACCOUNT_NAMES[kind]}): " + "; ".join(parts))
+    out.append("")
+    return out
 
 
 def write_after_market(cfg, store, today: str) -> str:

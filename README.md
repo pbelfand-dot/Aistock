@@ -55,6 +55,13 @@ code changes.
   facts), **Analyst** (what agrees and what conflicts), **Trader** (the tested strategy's orders),
   **Risk** (checks each buy) and **Reviewer** (after the close). The notes are in the after-market
   report. The rules still decide the trades.
+- **Scanning the market.** Every evening it checks all US stocks (a quick look at every one, then a
+  full year of prices for the actively traded ones). The swing desk considers the 30 strongest it can
+  afford. At 9:35am the day desk adds today's **stocks in play**: the busiest stocks whose first 5
+  minutes traded far more than usual (relative volume), minus any with danger news. The after-market
+  report says whether the scan worked, and whether day trades in stocks in play did better than the
+  fixed list. The day desk also compares the research version of the breakout (5-minute range, long
+  only).
 - **Options-gap watcher** (Research tab, testing only). After each close it flags stocks whose option
   bets disagree with the price (calls piling up while the price is flat, or the reverse), using
   Alpaca's free data, and grades each flag 5 days later against the S&P 500. It never trades.

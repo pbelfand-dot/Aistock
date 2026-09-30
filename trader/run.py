@@ -395,7 +395,7 @@ def schwab_login_warning(cfg):
 
 
 # ================================================================ autopilot
-ONCE_A_DAY = ("morning", "swing", "study", "options", "tjr", "report")
+ONCE_A_DAY = ("morning", "inplay", "swing", "study", "options", "tjr", "scan", "report")
 
 
 def due_jobs(now: datetime, done: set) -> list:
@@ -407,6 +407,8 @@ def due_jobs(now: datetime, done: set) -> list:
     if now.time() >= dtime(9, 25) and f"morning:{today}" not in done:
         jobs.append("morning")
     if in_session(now):
+        if dtime(9, 35) <= now.time() < dtime(9, 50) and f"inplay:{today}" not in done:
+            jobs.append("inplay")                            # today's stocks in play (in_play.py), before the day desk
         jobs.append("day")                                   # day desk: every 5 minutes
         if minutes_to_close(now) <= 15 and f"swing:{today}" not in done:
             jobs.append("swing")                             # swing desk: the daily decision
@@ -428,26 +430,60 @@ def due_jobs(now: datetime, done: set) -> list:
 
 
 SCAN_IN_BACKGROUND = True                               # tests run it inline
+SCAN_TRIES = 3                                          # a scan that keeps failing waits for the next day
 _scanning = None                                        # the running scan thread, if any
 
 
-def scan_in_background(cfg, store, today, why) -> str:
+def scan_running() -> bool:
+    return _scanning is not None and _scanning.is_alive()
+
+
+def scan_state(store, today, kind="evening") -> dict:
+    """Today's scan so far: {"tries", "started", "finished", "summary", "error"} ({} = not started)."""
+    state = store.get("scan_status") or {}
+    return state if state.get("day") == today and state.get("kind") == kind else {}
+
+
+def job_complete(job, store, today) -> bool:
+    """Most daily jobs are done once they ran. The scan runs in the background, so it's done only when it
+    finished (or failed SCAN_TRIES times); a scan cut short (the Mac restarted, an update) runs again."""
+    if job != "scan":
+        return True
+    state = scan_state(store, today)
+    return bool(state.get("finished")) or (not scan_running() and state.get("tries", 0) >= SCAN_TRIES)
+
+
+def scan_in_background(cfg, store, today, why, kind="evening") -> str:
     """The all-stocks scan can take many minutes (thousands of stocks). It runs in its own thread with its
-    own database connection, so trading, stop-losses and the check-ins never wait for it."""
+    own database connection, so trading, stop-losses and the check-ins never wait for it. Each try is
+    written down (scan_status), so the report can say when the list was last made, or why it wasn't."""
     import threading
     from aitrader import scanner
     global _scanning
-    if _scanning is not None and _scanning.is_alive():
+    if scan_running():
         return "scan: already running in the background"
+    state = scan_state(store, today, kind)
+    if state.get("finished"):
+        return ""
+    tries = state.get("tries", 0) + 1
+    if tries > SCAN_TRIES:
+        return f"scan: gave up for today after {SCAN_TRIES} tries ({state.get('error') or 'cut short'})"
+    store.set("scan_status", {"day": today, "kind": kind, "tries": tries,
+                              "started": now_ny().isoformat(timespec="minutes")})
     path = data_path(cfg, "aitrader.sqlite")
 
     def work():
         own = Store(path) if SCAN_IN_BACKGROUND else store
         own.on_log = store.on_log                           # phone alerts too
+        base = {"day": today, "kind": kind, "tries": tries}
         try:
-            own.log(f"[scan] {scanner.run(cfg, own, today)}")
-        except Exception as e:                               # the next scan tries again
-            own.log(f"[scan] failed ({e!r}); it runs again after the next close")
+            summary = scanner.run(cfg, own, today)
+            own.set("scan_status", {**base, "finished": now_ny().isoformat(timespec="minutes"), "summary": summary})
+            own.log(f"[scan] {summary}")
+        except Exception as e:                               # the autopilot tries again in 5 minutes
+            own.set("scan_status", {**base, "error": repr(e)[:300], "failed_at": now_ny().isoformat(timespec="minutes")})
+            again = "tries again in 5 minutes" if tries < SCAN_TRIES else "gave up until tomorrow"
+            own.log(f"[scan] failed (try {tries} of {SCAN_TRIES}: {e!r}); {again}")
         finally:
             if own is not store:
                 own.db.close()
@@ -460,13 +496,28 @@ def scan_in_background(cfg, store, today, why) -> str:
     return "scan started in the background"
 
 
+def last_weekday_before(day: str) -> str:
+    d = datetime.strptime(day, "%Y-%m-%d").date() - timedelta(days=1)
+    while d.weekday() >= 5:
+        d -= timedelta(days=1)
+    return d.isoformat()
+
+
 def first_scan(cfg, store, today):
-    """A new install has no stock list until the first after-close scan. Scan in the morning instead,
-    so the swing desk's first decision (3:45pm) already picks from all US stocks, not just the watchlist."""
+    """No stock list yet (a new install), or last evening's scan didn't finish (the Mac was asleep or
+    off): scan in the morning, so the swing desk's decision (3:45pm) picks from all US stocks, not just
+    its watchlist."""
     from aitrader import scanner
-    if not scanner.is_on(scanner.settings(cfg)["enabled"]) or scanner.load_list(cfg).get("liked"):
+    if not scanner.is_on(scanner.settings(cfg)["enabled"]):
         return
-    scan_in_background(cfg, store, today, "no stock list yet: scanning all US stocks (takes a while the first time)")
+    state = scanner.load_list(cfg)
+    if not state.get("updated"):
+        why = "no stock list yet: scanning all US stocks (takes a while the first time)"
+    elif state["updated"] < last_weekday_before(today):
+        why = f"the stock list is from {state['updated']} (last evening's scan didn't finish): scanning again"
+    else:
+        return
+    scan_in_background(cfg, store, today, why, kind="morning")
 
 
 def run_job(job, cfg, store, data, now, done) -> str:
@@ -486,6 +537,13 @@ def run_job(job, cfg, store, data, now, done) -> str:
             store.log(f"WARNING: {warning}")
         first_scan(cfg, store, today)
         return ""
+    if job == "inplay":
+        from aitrader import in_play
+        if "day" not in active_desks(cfg):
+            return ""
+        message = in_play.run(cfg, store, today)             # raises if the 9:30 bars aren't in yet: retries
+        store.log(f"[day] {message}")
+        return message
     if job == "day":
         return trade_desk(cfg, store, data, "day", now) if "day" in active_desks(cfg) else ""
     if job == "swing-stops":
@@ -652,7 +710,7 @@ def cmd_autopilot(cfg, store, args):
                 message = run_job(job, cfg, store, data, now, done)
                 if message:
                     print(f"[{now:%H:%M}] {message}")
-                if job in ONCE_A_DAY:
+                if job in ONCE_A_DAY and job_complete(job, store, today):
                     done.add(f"{job}:{today}")
             except Exception as e:                           # never crash; try again next cycle
                 store.log(f"autopilot: {job} failed: {e!r} (will retry in 5 minutes)")

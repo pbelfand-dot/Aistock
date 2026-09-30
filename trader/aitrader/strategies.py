@@ -122,6 +122,49 @@ class OpeningRangeBreakout(Strategy):
         return pd.DataFrame(out)
 
 
+def daily_atr(df: pd.DataFrame, days: int = 14) -> pd.Series:
+    """For 5-minute bars: the stock's average daily range (true range) over the previous `days` days,
+    known at the open of each day (today's own range isn't used), on every row of that day."""
+    day = session_day(df)
+    daily = df.groupby(day).agg(high=("high", "max"), low=("low", "min"), close=("close", "last"))
+    prev = daily["close"].shift(1)
+    true_range = pd.concat([daily["high"] - daily["low"], (daily["high"] - prev).abs(), (daily["low"] - prev).abs()],
+                           axis=1).max(axis=1)
+    atr = true_range.rolling(days).mean().shift(1)
+    return pd.Series(day.map(atr).to_numpy(), index=df.index, dtype=float)
+
+
+class OpeningRange5(Strategy):
+    """The research version of the opening-range breakout (Zarattini, Barbon & Aziz 2024, "A Profitable
+    Day Trading Strategy For The U.S. Equity Market"), long only. In their test (2016-2023, before
+    slippage) it made money on stocks in play and about nothing on all stocks; a 30-minute range did
+    much worse than 5 minutes. Their numbers were long AND short with borrowed money, so the bot's own
+    shadow trades decide whether it earns a place."""
+    name = "orb_5min"
+    style = "day"
+    description = ("The research version of the breakout, long only: the first 5 minutes set the range. If that "
+                   "first candle closed up, buy when the price breaks above its high; sell if it falls 10% of the "
+                   "stock's usual daily range (14-day ATR) below that high, otherwise hold to the close. One try "
+                   "per stock a day. It worked on stocks in play (unusual opening volume), not on random stocks.")
+    stop_atr = 0.10
+
+    def scores(self, bars, market, since=None):
+        out = {}
+        for ticker, df in bars.items():
+            day, minutes, close = session_day(df), minutes_since_open(df), df["close"]
+            first = minutes < 5
+            first_open = df["open"].where(first).groupby(day).transform("first")
+            first_close = df["close"].where(first).groupby(day).transform("first")
+            first_high = df["high"].where(first).groupby(day).transform("max")
+            stop = first_high - self.stop_atr * daily_atr(df)
+            stopped = (close < stop).astype(int).groupby(day).cummax().astype(bool)   # one try a day
+            score = pd.Series(0.5, index=df.index)
+            score[(close > first_high) & (first_close > first_open) & ~stopped] = 1.0
+            score[stopped] = 0.0
+            out[ticker] = score.mask(first | stop.isna())
+        return pd.DataFrame(out)
+
+
 class VwapReversion(Strategy):
     name = "vwap_reversion"
     style = "day"
@@ -167,8 +210,8 @@ def all_strategies(cfg: dict, style: str) -> list:
     brain = Brain(horizon=ai["horizon"], retrain_every=ai["retrain_every"], min_train=ai["min_train"],
                   intraday=True)
     from .tjr import TJRModel                            # Stage 2: TJR's model (tjr.py)
-    return [OpeningRangeBreakout(), VwapReversion(), AIModel("day", brain, ai["buy_above"], ai["sell_below"]),
-            TJRModel()]
+    return [OpeningRangeBreakout(), OpeningRange5(), VwapReversion(),
+            AIModel("day", brain, ai["buy_above"], ai["sell_below"]), TJRModel()]
 
 
 def get_strategy(name: str, cfg: dict, style: str) -> Strategy:

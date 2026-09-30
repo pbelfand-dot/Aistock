@@ -16,6 +16,7 @@ The swing desk also considers the top of the list (it still buys only what fits 
 """
 import json
 import math
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -81,33 +82,51 @@ def fetch_bars(cfg: dict, symbols: list, days: int) -> dict:
     return _yahoo_bars(symbols, days)
 
 
+CHUNK = 200                                   # symbols per request
+WAITS = (10, 30)                              # seconds to wait before trying a refused batch again
+_pause = time.sleep                           # tests don't wait
+
+
 def _alpaca_bars(cfg, symbols, days) -> dict:
+    """Thousands of stocks in batches. A batch Alpaca refuses (e.g. too many requests a minute on the free
+    plan) is tried again after a pause; if most batches still fail, the whole scan counts as failed and
+    the autopilot runs it again, instead of quietly making a list from a fraction of the market."""
     from alpaca.data.enums import Adjustment, DataFeed
     from alpaca.data.requests import StockBarsRequest
     from alpaca.data.timeframe import TimeFrame
 
     from .alpaca_api import data_client
-    client, out, error = data_client(cfg), {}, None
+    client, out, error, failed, batches = data_client(cfg), {}, None, 0, 0
     end = datetime.now(timezone.utc) - timedelta(minutes=20)          # the free plan's full-market data is delayed
-    for i in range(0, len(symbols), 400):
-        chunk = symbols[i:i + 400]
-        for feed in (DataFeed.SIP, DataFeed.IEX):                     # IEX if the full feed isn't allowed
-            try:
-                df = client.get_stock_bars(StockBarsRequest(
-                    symbol_or_symbols=chunk, timeframe=TimeFrame.Day, adjustment=Adjustment.ALL,
-                    start=end - timedelta(days=days), end=end, feed=feed)).df
+    for i in range(0, len(symbols), CHUNK):
+        if i:
+            _pause(0.5)                        # gentle on the free plan's 200 requests a minute (the day desk shares it)
+        chunk, df, batches = symbols[i:i + CHUNK], None, batches + 1
+        for wait in (0, *WAITS):
+            if wait:
+                _pause(wait)
+            for feed in (DataFeed.SIP, DataFeed.IEX):                 # IEX if the full feed isn't allowed
+                try:
+                    df = client.get_stock_bars(StockBarsRequest(
+                        symbol_or_symbols=chunk, timeframe=TimeFrame.Day, adjustment=Adjustment.ALL,
+                        start=end - timedelta(days=days), end=end, feed=feed)).df
+                    break
+                except Exception as e:
+                    df, error = None, e
+            if df is not None:
                 break
-            except Exception as e:
-                df, error = None, e
-        if df is None or df.empty:
+        if df is None:
+            failed += 1
+            continue
+        if df.empty:
             continue
         for sym, part in df.groupby(level="symbol"):
             part = part.droplevel("symbol")
             part.index = pd.DatetimeIndex(pd.to_datetime(part.index, utc=True).tz_convert("America/New_York")
                                           .tz_localize(None)).normalize()
             out[sym] = part[["open", "high", "low", "close", "volume"]]
-    if not out and error is not None:
-        raise RuntimeError(f"no prices from Alpaca: {error!r}")
+    if (not out and error is not None) or failed > batches / 2:
+        raise RuntimeError(f"Alpaca refused {failed} of {batches} batches of prices: {error!r}")
     return out
 
 
@@ -138,7 +157,11 @@ def score(bars: dict, cfg: dict) -> pd.DataFrame:
             continue
         price = float(close.iloc[-1])
         dollar_volume = float((df["close"] * df["volume"]).iloc[-20:].mean())
+        prev = close.shift(1)
+        true_range = pd.concat([df["high"] - df["low"], (df["high"] - prev).abs(), (df["low"] - prev).abs()],
+                               axis=1).max(axis=1)
         row = {"symbol": sym, "price": round(price, 2), "dollar_volume": round(dollar_volume),
+               "avg_volume": round(float(df["volume"].iloc[-14:].mean())), "atr": round(float(true_range.iloc[-14:].mean()), 2),
                "return_1m_pct": round((price / float(close.iloc[-22]) - 1) * 100, 1),
                "return_3m_pct": round((price / float(close.iloc[-64]) - 1) * 100, 1),
                "history_days": len(close), "new_listing": len(close) < 253}
@@ -160,6 +183,19 @@ def _ranked(table: pd.DataFrame) -> pd.DataFrame:
     if "momentum_pct" not in established:
         return established.iloc[0:0]
     return established.dropna(subset=["momentum_pct"]).sort_values("momentum_pct", ascending=False)
+
+
+def actively_traded(bars: dict, cfg: dict) -> list:
+    """From a quick look at the last few weeks: the stocks worth a full year of prices ($3+, traded enough)."""
+    s, out = settings(cfg), []
+    for sym, df in bars.items():
+        close = df["close"].dropna()
+        if close.empty:
+            continue
+        dollar_volume = float((df["close"] * df["volume"]).iloc[-20:].mean())
+        if float(close.iloc[-1]) >= s["min_price"] and dollar_volume >= s["min_dollar_volume"]:
+            out.append(sym)
+    return out
 
 
 def pick(table: pd.DataFrame, cfg: dict) -> tuple:
@@ -257,7 +293,8 @@ def load_list(cfg: dict) -> dict:
         return {}
 
 
-def update_list(cfg: dict, liked: list, newcomers: list, news: dict, today: str, picks: list = None) -> dict:
+def update_list(cfg: dict, liked: list, newcomers: list, news: dict, today: str, picks: list = None,
+                day_pool: list = None) -> dict:
     old = load_list(cfg)
     history = old.get("history", {})
     for rank, row in enumerate(liked, 1):
@@ -277,6 +314,7 @@ def update_list(cfg: dict, liked: list, newcomers: list, news: dict, today: str,
         row.update(news=items[:5], news_count=len(items), danger=danger(items))
     state = {"updated": today, "liked": liked, "new_listings": newcomers, "history": history,
              "swing_picks": [{k: r.get(k) for k in ("symbol", "price", "momentum_pct", "danger")} for r in picks],
+             "day_pool": day_pool or [],                 # busy stocks the day desk could trade (in_play.py)
              "held_news": {s: {"news": v[:5], "danger": danger(v)} for s, v in news.items()
                            if s not in {r["symbol"] for r in liked + newcomers + picks}}}
     path = data_path(cfg, LIST_FILE)
@@ -331,7 +369,11 @@ def run(cfg: dict, store, today: str, fetch=fetch_bars, get_news=fetch_news) -> 
     if not is_on(s["enabled"]):
         return "scan: off (Setup)"
     symbols = universe(cfg)
-    bars = fetch(cfg, symbols, 400)
+    recent = fetch(cfg, symbols, 45)                 # a quick look first (about 30 trading days) ...
+    if not recent:
+        raise RuntimeError(f"no prices came back for any of the {len(symbols)} stocks")
+    active = actively_traded(recent, cfg)
+    bars = fetch(cfg, active, 400) if active else {}  # ... then a full year only for the ones worth it
     table = score(bars, cfg)
     liked, newcomers = pick(table, cfg)
     picks = swing_picks(table, cfg)
@@ -344,8 +386,10 @@ def run(cfg: dict, store, today: str, fetch=fetch_bars, get_news=fetch_news) -> 
             news = get_news(cfg, wanted, int((cfg.get("news") or {}).get("days", 3)))
         except Exception as e:
             store.log(f"[scan] couldn't read the news ({e!r}); the list is made without it today")
-    state = update_list(cfg, liked, newcomers, news, today, picks)
+    from .in_play import pool
+    state = update_list(cfg, liked, newcomers, news, today, picks, day_pool=pool(table, cfg))
     flagged = [r["symbol"] for r in state["liked"] if r.get("danger")]
-    return (f"scan: {len(bars)} stocks checked, {int(table['tradeable'].sum()) if len(table) else 0} tradeable, "
-            f"{len(liked)} on the list (top: {', '.join(r['symbol'] for r in liked[:5]) or 'none'})"
+    return (f"scan: {len(recent)} stocks checked, {len(active)} actively traded, "
+            f"{len(liked)} on the list (top: {', '.join(r['symbol'] for r in liked[:5]) or 'none'}), "
+            f"{len(picks)} the swing desk can afford, {len(state['day_pool'])} busy enough for the day desk"
             + (f"; danger news, not buying: {', '.join(flagged)}" if flagged else ""))
