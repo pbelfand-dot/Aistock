@@ -1,0 +1,147 @@
+{
+  "video": {
+    "n": 20,
+    "file": "05_02_2024.Trade.Recap.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 8 sheets, 9 full-size shots (#18, #19, #21, #22, #25, #26, #27, #28, #29; enlarged crops of the axis on #27 and of the box on #21) and the transcript. TradingView legends, x-axis dates, the clock '(UTC-4)' and most position-box axis labels are readable. No broker/order panel, fills or P&L are shown. Structure: 00:00-01:45 face-cam intro (says he took two trades yesterday and is in one trade now); 01:48-04:06 recap of Thu 2 May NQ long, but that whole scene has only one captured frame (#19, NQ 4h), so its lower-timeframe charts were never visible; 04:12-06:45 today's (Fri 3 May) NQ analysis, which he passed on; 07:00-08:45 recap of the Thu 2 May ES long (#27, 15m); 08:45-11:36 today's live ES long (#28, #29). Transcript (pocketsphinx) is heavily garbled.",
+    "duration_min": 11.7,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-05-03",
+      "src": "seen",
+      "ref": "Recording day: #18/#22/#26/#29 x-axis 'Fri 03 May '24 09:30' marks today; the TradingView clock reads 12:35:30 (UTC-4) on #18 to 12:45:18 on #29. The recapped trades are from Thu 2 May 2024 (#21 1h and #27 15m x-axis 'Thu 02 May '24'; heard [01:15] 'we took two trades yesterday'). The file name 05_02_2024 matches the 2 May trades."
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "Thu 2 May: ES/NQ dropped at the 09:30 open (ES 15m low ≈5036), then trended up into the afternoon (ES ≈5090-5100 by ≈15:00 ET, ≈5110 after hours; NQ ≈17800 on a ≈16:00 1h spike). Fri 3 May: a large 08:30 ET 5m bar gapped both up (ES ≈5117→≈5150, NQ ≈17770→≈17920), highs shortly after the open (ES ≈5166, NQ ≈18050), a pullback to ≈11:00 (ES low ≈5127; NQ lows ≈17894, near the top of its gray HTF zone), then a recovery; NQ ranging ≈17950-18020 at 12:35-12:40 ET.",
+      "src": "inferred",
+      "ref": "Candle positions between axis labels on #27 (ES 15m), #21 (NQ 1h), #18/#22/#25 (NQ 5m), #26/#29 (ES 5m); ±2 pts ES, ±5-10 pts NQ. Times from x-axis spacing (±5-15 min)."
+    },
+    "news": {
+      "value": "None mentioned. Inferred: Fri 3 May 2024 was the US April jobs report (NFP, 08:30 ET), consistent with the huge 08:30 5m bar; 2 May was the day after the 1 May FOMC.",
+      "src": "inferred",
+      "ref": "No news is audible in the transcript. The 08:30 bar is seen on #18 (NQ 5m, 08:00 at x=115, 09:30 at x=260, bar at x=163) and #26 (ES 5m). The release dates are general knowledge, not shown in the video."
+    },
+    "bias": {
+      "value": "Bullish on both days for ES and NQ: 4h and 1h bullish; on 3 May price filled the first 1h fair value gap from the 08:30 impulse, then he looked for a 5m break of structure up. Draw: prior 5m highs (ES 5161.50 line).",
+      "src": "heard",
+      "ref": "[02:00] 'we're bullish ... hourly' (2 May NQ); [07:00] 'same exact situation ... polish [bullish] of the four hour'; [04:45] 'polish [bullish] on a four hour ... hourly' (3 May NQ); [09:30] 'today bullish on the four hour, really [hourly] bullish, we fill the first hour [hourly fair] value [gap]'. Draw: [10:15]-[10:30] 'the only take profit for the day is going to be right here ... will likely [get] back up to that'."
+    },
+    "timezone": {
+      "value": "Chart clock shows UTC-4 = US Eastern (EDT); all times below are ET.",
+      "src": "seen",
+      "ref": "#18 '12:35:30 (UTC-4)', #19 '12:37:48 (UTC-4)'."
+    },
+    "levels": {
+      "value": "ES (3 May): position 5148.50 / 5141.00 / 5161.50; green line 5161.50 (anchored at a ≈09:55 5m bar); red ray 5148.25. ES (2 May): position 5064.00 / 5047.00 / 5090.00; red line 5066.75; black line ≈5038 (low that was swept at the open, inferred). NQ (3 May): gray HTF zone ≈17771-17914 (dashed mid ≈17843) from the 08:30 impulse; line under the ≈10:25-11:10 lows with endpoints 17893.75 / 17896.75; red line 17945.75; 5m gray box ≈17952-17972 (mid ≈17962). NQ (2 May): target 17674.75; green line 17619.75 (starts at an earlier 1h wick high).",
+      "src": "seen",
+      "ref": "Axis labels read on #29/#28 (5161.50, 5148.50, 5148.25, 5141.00), #27 crop (5090.00, 5066.75, 5064.00 partly hidden, 5047.00), #22 (17945.75, 17896.75, 17893.75), #21 crop (17674.75, 17619.75). Box edges without labels (NQ zones, ≈5038) are inferred from positions between axis labels."
+    },
+    "skipped_setup_nq_2024_05_03": {
+      "value": "Passed on an NQ long on 3 May: 4h/1h bullish, 1h gap filled, 5m break of structure up, then price 'barely tapped' the 5m gray box (≈17952-17972) and he did not enter because price action was choppy / range-bound and he preferred the ES trade.",
+      "src": "heard",
+      "ref": "[05:30] 'we get another break up by the charger [break of structure]'; [05:45] 'we barely tapped into this ... my first thought would be to be right here'; [06:00] 'i just wasn't feeling it ... [did] the trade on [ES] ... would rather just ... only get one trade and have to win'; [06:15] 'my trade honestly would've been ... long'; [06:45] 'we're stuck [in] this range right now so i opted out ... [ES] gave me much better [price action]'. Box seen on #25."
+    }
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-05-02", "src": "seen", "ref": "#21 NQ 1h: the box sits just right of the x-axis label 'Thu 02 May '24 09:00'."},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#21 legend 'NASDAQ 100 E-mini Futures · 1h · CME', symbol 'NQ1!'. NQ vs MNQ not shown."},
+      "direction": {"value": "long", "src": "seen", "ref": "#21 position box: blue (target) part above, gray (stop) part below. Heard [08:00] 'take profits on nasdaq where i exited half of my position'."},
+      "timeframes": {"value": {"bias": "4h / 1h", "setup": "15m (breaker block, equilibrium)", "entry": "5m (BOS or bullish close)"}, "src": "heard", "ref": "[02:00] 'hourly'; [02:15] 'four hour ... fifteen minute time frame'; [02:30] 'breaker block ... equilibrium'; [02:45] 'wait for five minute break a church [break of structure]'. The 15m/5m charts for this trade were never captured (scene 01:54-04:06 has only #19, 4h)."},
+      "setup": {"value": "4h/1h bullish -> sweep of 1h lows -> retrace into 15m breaker block / equilibrium -> 5m BOS or bullish candle close out of it -> long", "src": "heard", "ref": "[02:00] 'swept out for our structure sort of hourly'; [02:30] 'breaker block ... equilibrium'; [02:45] 'two options: we need to wait for five minute break ... or ... wait for a [bullish close] ... we [got a] close out of it'. Paraphrase of garbled fragments."},
+      "entry_conditions": [
+        {"value": "4h and 1h bullish", "src": "heard", "ref": "[02:00] 'we're bullish ... hourly'; [02:15] 'this is a four hour'"},
+        {"value": "Price swept a prior 1h low before the entry (long lower wick on the ≈10:00 1h bar)", "src": "inferred", "ref": "#21 crop: 1h bar just before the box has a long lower wick; heard [02:00] 'swept out ... hourly'"},
+        {"value": "Retrace into a 15m breaker block / its equilibrium", "src": "heard", "ref": "[02:30] 'breaker block ... equilibrium'. Not visible on any captured frame."},
+        {"value": "Trigger: a 5m break of structure, or a bullish candle close out of the zone (he says he took the close)", "src": "heard", "ref": "[02:45] 'two options ... five minute break ... [or] polish [bullish] ... close out of it'"}
+      ],
+      "entry_time": {"value": "≈11:00 ET (±1 h)", "src": "inferred", "ref": "#21 1h: box left edge x≈371 vs the 09:00 label/line at x≈354, ≈9 px per 1h bar."},
+      "entry": {"value": 17524, "src": "inferred", "ref": "#21 crop: blue/gray boundary vs axis 17700/17650/17600 (≈1.6 pts/px) -> ≈17524 ±5. The entry/stop axis labels are hidden behind the webcam overlay."},
+      "stop": {"value": 17444, "src": "inferred", "ref": "#21 crop: bottom of gray part -> ≈17444 ±6."},
+      "stop_rule": {"value": null, "src": "unknown", "ref": "Not stated intelligibly for NQ; for ES the same day he says stops under the lows / equilibrium / breaker block ([07:45])."},
+      "target": {"value": 17674.75, "src": "seen", "ref": "#21 box top aligns with the blue axis label 17674.75 (also blue label on #19)."},
+      "target_rule": {"value": "Final exit at a 15m high; half taken off earlier (possibly at the green 17619.75 line, an earlier 1h wick high)", "src": "heard", "ref": "[03:15] 'my final full closure of my profit was based off this ... fifteen minutes ... here'; [08:00] 'exited half of my position here'. The 17619.75 partial level is my guess from the green line on #21, not stated."},
+      "exit": {"value": "half closed at an unshown level; remainder closed at a 15m high (price not shown)", "src": "heard", "ref": "[08:00] 'take profits on nasdaq where i exited half of my position'; [03:15] 'final full closure'. No fills shown."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Not shown or heard."},
+      "result": {"value": "win", "src": "inferred", "ref": "#21: after the box's left edge price rose to ≈17664+ (≈+140 pts) without trading near ≈17444; heard [01:15] 'we took two trades yesterday ... fire ... both of them'. Actual exit prices unseen."},
+      "r_multiple": {"value": null, "src": "unknown", "ref": "Realized R unknown (partial + runner, exit prices not shown). Planned R:R ≈1.9 = (17674.75-17524)/(17524-17444) = 150.75/80, inferred from box edges (range ≈1.7-2.2)."},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No dollar figure is audible or shown."},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "No broker panel, fills or P&L; only a TradingView position box."},
+      "mistakes": [
+        {"value": "none identified", "src": "inferred", "ref": "Nothing stated or visible; the trade's entry charts were not captured."}
+      ],
+      "evidence_summary": "Seen: instrument, date, long box, target 17674.75. Inferred: entry ≈17524 and stop ≈17444 from box edges (labels hidden), entry time ≈11:00, favorable move. Heard: bias, 15m breaker/equilibrium + 5m trigger, half-off partial, 'both trades' profitable."
+    },
+    {
+      "date": {"value": "2024-05-02", "src": "seen", "ref": "#27 ES 15m x-axis 'Thu 02 May '24 09:30'; box is right of it and left of 'Fri 03 May '24 00:15'."},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#27 legend 'S&P 500 E-mini Futures · 15 · CME', symbol 'ES1!'. ES vs MES not shown."},
+      "direction": {"value": "long", "src": "seen", "ref": "#27 position box: blue part above entry, gray part below."},
+      "timeframes": {"value": {"bias": "4h / 1h", "setup": "15m (breaker block, equilibrium)", "entry": "15m/5m bullish candle close (unclear which)"}, "src": "heard", "ref": "[07:00] 'four hour'; [07:15] 'the first hour [hourly] candle ... fifteen minutes'; [07:30] 'fifteen minute here push down ... break a blog [breaker block] entry on this equilibrium ... polish kindle close [bullish candle close] out of it'. Box drawn on 15m (#27)."},
+      "setup": {"value": "4h bullish -> open sell-off sweeps prior lows -> 15m breaker block / equilibrium -> bullish candle close out of it -> long, target pre-market high", "src": "heard", "ref": "[07:00] 'same exact situation ... come down here sweep ... lows ... polish [bullish] of the four hour'; [07:30] 'breaker block entry on this equilibrium ... bullish candle close out of it'; [08:30] 'pre market highs'."},
+      "entry_conditions": [
+        {"value": "4h (and 1h) bullish", "src": "heard", "ref": "[07:00] 'polish [bullish] of the four hour'; [07:30] 'the four hour in the hourly'"},
+        {"value": "The 09:30-10:00 drop swept prior lows (15m wick to ≈5036 through the black line ≈5038)", "src": "inferred", "ref": "#27 candle positions (5.6 px/pt); heard [07:00] 'come down here sweep ... lows'"},
+        {"value": "Retrace into a 15m breaker block / equilibrium", "src": "heard", "ref": "[07:30] 'break a blog [breaker block] entry on this equilibrium'"},
+        {"value": "Bullish candle close out of that zone", "src": "heard", "ref": "[07:30] 'we get a polish kindle close [bullish candle close] out of it'"}
+      ],
+      "entry_time": {"value": "≈11:45 ET (±15 min)", "src": "inferred", "ref": "#27 15m: box left edge x≈228; 09:30 line at x=167, 27 px/h (18:00 at 372, 21:00 at 453)."},
+      "entry": {"value": 5064.0, "src": "seen", "ref": "#27 crop: gray axis label 5064.00 (partly hidden by the 5061.75 crosshair label) at the blue/gray boundary."},
+      "stop": {"value": 5047.0, "src": "seen", "ref": "#27 crop: gray axis label 5047.00 at the box bottom."},
+      "stop_rule": {"value": "Below the lows, below equilibrium, below the breaker block", "src": "heard", "ref": "[07:45] 'stops underneath the slowest [lows] ... underneath equilibrium underneath to break up a lot [breaker block]'. He also says something about the stop being 'a little bit tighter ... played a little bit safer' (garbled)."},
+      "target": {"value": 5090.0, "src": "seen", "ref": "#27 crop: blue axis label 5090.00 at the box top."},
+      "target_rule": {"value": "Pre-market high (≈5088-5090)", "src": "inferred", "ref": "#27: pre-09:30 highs sit at ≈5088-5090, level with the box top; heard [08:30] 'taking full to profit off of these pre market highs'."},
+      "exit": {"value": "≈5090 target (price traded through it ≈14:30-15:00 ET); he says he closed the full ES position, exact fill not shown", "src": "inferred", "ref": "#27: candles at x≈300-316 reach ≈5096-5100 within the box span; max drawdown ≈5053-5055 (not the 5047 stop). Heard [08:00] 'to secure full final prophet [profit]'; [08:15] 'drawdown ... sweeping the lows one time'."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Not shown or heard."},
+      "result": {"value": "win", "src": "inferred", "ref": "Target reached before stop per #27 candles; heard [01:15] both trades yesterday profitable."},
+      "r_multiple": {"value": 1.53, "src": "computed", "ref": "(5090.00-5064.00)/(5064.00-5047.00) = 26/17 = 1.53, from the box labels; assumes fill at 5064.00 and exit at the target (his actual exit not shown)."},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No dollar figure audible or shown."},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "No broker panel, fills or P&L; only a TradingView position box."},
+      "mistakes": [
+        {"value": "none identified", "src": "inferred", "ref": "He took the drawdown back toward the lows without being stopped; nothing stated as a mistake."}
+      ],
+      "evidence_summary": "Seen: instrument, date, long box 5064/5047/5090. Inferred: entry time ≈11:45, sweep, target = pre-market high, target reached. Heard: bias, breaker/equilibrium + bullish close entry, stop rule, full close to lock profit."
+    },
+    {
+      "date": {"value": "2024-05-03", "src": "seen", "ref": "#29 x-axis 'Fri 03 May '24 09:30'; clock 12:45:18."},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#29 legend 'S&P 500 E-mini Futures · 5 · CME', symbol 'ES1!'. ES vs MES not shown."},
+      "direction": {"value": "long", "src": "seen", "ref": "#28/#29 position box: blue part above entry, gray part below. Heard [10:45] 'the trade I'm currently in'."},
+      "timeframes": {"value": {"bias": "4h / 1h", "setup": "1h FVG, 15m/5m confluence", "entry": "5m"}, "src": "heard", "ref": "[09:30] 'bullish on the four hour ... hourly ... first hour [hourly fair] value [gap] ... confluence of [15m] and five'; box drawn on 5m (#28, #29)."},
+      "setup": {"value": "4h/1h bullish -> fill of first 1h FVG -> first 5m BOS invalidated by a new low -> new 5m BOS up -> pullback toward equilibrium holds, bullish 5m close -> long", "src": "heard", "ref": "[09:30]-[10:00] 'we fill the first hour [hourly FVG] ... we end up taking out the lows ... invalidating that by coming back down here ... another move up ... for [break of] structure ... we didn't move down [to] equilibrium and [a] bullish candle out of that'. Paraphrase of garbled fragments."},
+      "entry_conditions": [
+        {"value": "4h and 1h bullish", "src": "heard", "ref": "[09:30] 'bullish on the four hour ... really [hourly] bullish'"},
+        {"value": "Price filled the first 1h fair value gap (the ≈11:00 pullback to ≈5127 after the 08:30 gap-up)", "src": "inferred", "ref": "Heard [09:30] 'we fill the first hour ... value'; the ≈5127 low around 11:00 is read from #26 (5130 at y=431, 5125 at y=465). The ES 1h FVG itself is never shown."},
+        {"value": "An earlier 5m break of structure failed when price took out the lows", "src": "heard", "ref": "[09:45] 'we end up taking out the slow [lows]'; [10:00] 'invalidating that by coming back down here'"},
+        {"value": "New 5m break of structure to the upside (rally from ≈5127 to ≈5148 by ≈11:40)", "src": "heard", "ref": "[10:00] 'another move up to the upside for restructure [break of structure]'; prices inferred from #26/#29"},
+        {"value": "Pullback held above equilibrium and a bullish 5m candle closed out of it", "src": "heard", "ref": "[10:00] 'we didn't move down the lane [into] equilibrium and goebbels kindle [bullish candle] out of that'"}
+      ],
+      "entry_time": {"value": "≈12:00 ET (±5 min)", "src": "inferred", "ref": "#29 box left edge x≈534 = x-axis 12:00 label (100 px/h); #26 same (box x≈677, 12:00 at x=676)."},
+      "entry": {"value": 5148.5, "src": "seen", "ref": "#28/#29 gray axis label 5148.50 at the blue/gray boundary."},
+      "stop": {"value": 5141.0, "src": "seen", "ref": "#28/#29 gray axis label 5141.00 at the box bottom."},
+      "stop_rule": {"value": "Below the invalidation point, the 'equilibrium low' (just under the ≈11:45 higher low ≈5141-5142)", "src": "heard", "ref": "[10:15] 'stops on to the validation [under the invalidation] ... which would be the equilibrium low'. The ≈5141-5142 low is inferred from #29 candles."},
+      "target": {"value": 5161.5, "src": "seen", "ref": "#29 blue axis label 5161.50 at box top, same price as the green line label 5161.50."},
+      "target_rule": {"value": "Single take-profit at a prior 5m high line (5161.50, anchored at a ≈09:55 bar), which he expects price to return to", "src": "heard", "ref": "[10:15] 'the only take profit for the day is going to be right here'; [10:30] 'will likely [come] back up to that'; [08:45] 'only have one take profit on a busy day'. Line anchor from #29 (x≈328, 100 px/h from 08:00 at x=135)."},
+      "exit": {"value": "open at recording (5153.25 at 12:45 ET, ≈+0.63R unrealized)", "src": "seen", "ref": "#29 last price 5153.25 at 12:45:18 (UTC-4); heard [11:00] 'hopefully [it] skid[s] to a profit'."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Not shown or heard."},
+      "result": {"value": "unknown", "src": "unknown", "ref": "Trade still open when the video ends; outcome not shown."},
+      "r_multiple": {"value": null, "src": "unknown", "ref": "Outcome unknown. Planned R:R = (5161.50-5148.50)/(5148.50-5141.00) = 13/7.5 = 1.73, which matches heard [10:45] 'one point seven three [risk reward] ratio'."},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "None stated."},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "No broker panel, fills or P&L; open position shown only as a TradingView box."},
+      "mistakes": [
+        {"value": "Possible risk issue: he says he is leaving for a flight while the position is open (unmanaged runner); he also calls today's price action choppy. Not stated as a mistake.", "src": "heard", "ref": "[11:00] 'i have to [go] for my flight and hopefully [it] skidded to a profit'; [10:30] 'super [choppy?] today' (garbled)."}
+      ],
+      "evidence_summary": "Seen: instrument, date, long box 5148.50/5141.00/5161.50, open price at 12:45. Computed: planned 1.73R (matches heard). Inferred: entry ≈12:00 ET, 1h-FVG fill at ≈5127. Heard: bias, setup sequence, stop/target rules. Result unknown."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "At the 15m breaker block/equilibrium there are two entry options: wait for a 5m break of structure, or wait for a bullish candle close out of the zone.", "src": "heard", "ref": "[02:45] 'two options we need to wait for five minute break a church [break of structure] ... or ... wait for a polish [bullish] ... close out of it'"},
+    {"value": "Scale out / lock in: he took half off NQ and closed ES fully so that even if the NQ runner came back and stopped him at break-even he was still in profit.", "src": "heard", "ref": "[08:00]-[08:15] 'exited half of my position ... to secure full final prophet so that regardless if nasdaq ... flipping back and stop me a break even'. Paraphrase."},
+    {"value": "If the price action doesn't look good, skip it; he'd rather take one trade and have it win. Stay out when price is stuck in a range.", "src": "heard", "ref": "[06:00] 'this price action doesn't look the best ... i would rather just ... only get one trade'; [06:45] 'we're stuck [in] this range right now so i opted out'"},
+    {"value": "Stop goes under the invalidation point (the equilibrium low).", "src": "heard", "ref": "[10:15] 'stops on to the validation for it which would be the equilibrium low'"},
+    {"value": "On a busy day, use only one take-profit.", "src": "heard", "ref": "[08:45] 'i honestly think all just only have one take profit on a busy day'"},
+    {"value": "A strong level (overnight high) held through the NY session on 2 May and only broke in the 3 May pre-market; he didn't expect price to push past it.", "src": "heard", "ref": "[03:30] 'didn't think [we'd] push bullish past this ... super strong level ... all the way through to the end of new york ... [pre]market today we [broke] right past it'; [08:30] same for ES."}
+  ],
+  "quality_notes": "1) The NQ 2 May recap (01:54-04:06) has only one captured frame (#19, 4h), so its 15m/5m setup is heard only; its entry (≈17524) and stop (≈17444) are estimated from 1h box edges (±5-6 pts) because the axis labels are hidden behind the webcam overlay. 2) Exits for both 2 May trades are not shown (NQ partial + runner; ES 'full close'); the ES 1.53R assumes exit at the box target, NQ realized R is unknown. 3) The 3 May ES trade was still open at 12:45 ET; outcome unknown. 4) Transcript is heavily garbled; no dollar P&L is audible; setups are paraphrased from fragments. 5) No broker panel; contract type/size (ES vs MES, NQ vs MNQ) unknown. 6) Entry times are estimated from box left edges (±5 min on 5m, ±15 min on 15m, ±1 h on 1h). 7) News (NFP on 3 May) is general knowledge, not mentioned in the video."
+}
