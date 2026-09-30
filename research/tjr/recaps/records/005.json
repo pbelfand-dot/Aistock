@@ -1,0 +1,53 @@
+{
+  "video": {
+    "n": 5,
+    "file": "02_26_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 8 sheets and the key full-size shots used (#1, #4, #7, #9, #10, #12, #14, #16, #18-#32). Legend, axis labels, position-tool labels and x-axis dates are readable. Transcript (41 lines) is almost entirely garbled: only a few phrases give the gist. No broker/P&L panel appears. The 5m position tool was drawn and edited live during the recap (stop and target moved), so its numbers are his illustration, not fills.",
+    "duration_min": 10.07,
+    "title_claim": "",
+    "session_date": {"value": "2024-02-26", "src": "seen", "ref": "#21 05m29s / #25 05m58s x-axis 'Mon 26 Feb '24'; file name 02_26_2024; Forex Factory #10 02m50s 'Today: Feb 26'"}
+  },
+  "market_context": {
+    "regime": {"value": "NQ 1h: Fri 23 Feb spike high (about 18,145) sold off to the 17,922 low. On Mon 26 Feb price rallied from the open to about 18,055-18,060, below the 18,064.25 line. From about 12:00 to 15:00 ET it ranged between 18,044.75 and about 17,981 (the fib 0/1 levels). It then broke down in the afternoon to about 17,938.", "src": "inferred", "ref": "#4 01m27s and #7 01m44s legend 'NASDAQ 100 E-mini Futures · 1h · CME'; #14 03m32s 1h lines 18064.25 / 18050.75 / 17922.00 (seen); #19 04m47s 5m fib drawn from 0 (18044.75) to 1 (about 17980.75, estimated from pixels); swing highs and lows estimated from candle positions between axis labels (±5)"},
+    "news": {"value": "Mon 26 Feb: New Home Sales (orange), actual 661K vs forecast 680K, previous 664K. FF shows it at 11:00am in its display timezone, which is ET+1, so 10:00 ET. Later in the week: Prelim GDP (Wed 28 Feb) and ISM Manufacturing PMI, Revised UoM Consumer Sentiment and Waller speaking (Fri 1 Mar).", "src": "seen", "ref": "#10 02m50s FF 'Mon Feb 26 11:00am USD New Home Sales 661K 680K 664K'; #29 08m53s FF 'Wed Feb 28 9:30am Prelim GDP q/q'; #30 09m10s FF 'Fri Mar 1 11:00am ISM Manufacturing PMI / Revised UoM Consumer Sentiment / ISM Manufacturing Prices, 11:15am FOMC Member Waller Speaks'. ET+1 is inferred: the FF clock read 9:07pm at 08m53s while the TradingView clock read 19:5x at 00m00s. Heard [02:45] 'we have new home sales'; heard [09:00] 'consumer confidence ... [GDP?] on wednesday ... [PCE?] on thursday' (garbled)"},
+    "bias": {"value": "bearish intraday: he shorts from the range equilibrium after the morning rally stalled below the highs; draw = the 17,922.00 low (sell-side liquidity)", "src": "inferred", "ref": "seen short position tools on 1h (#4, #9) and 5m (#21-#32); target dragged to the 17922.00 line (#25); heard [03:30] 'i want we are high time frame confirmation' and [03:45] 'fifteen minute ... break ... confirmation that we're going back but then sell', read as 'want HTF confirmation ... 15m break as confirmation, then sell'"}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-02-26", "src": "seen", "ref": "#24 05m54s x-axis 'Mon 26 Feb '24 09:30' marker; position box starts on 26 Feb"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#25 05m58s legend 'NASDAQ 100 E-mini Futures · 5 · CME', symbol box 'NQ1!'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#25 05m58s position tool: grey (risk) box above entry, blue (reward) box below; same on the 1h tool (#4 01m27s)"},
+      "timeframes": {"value": {"bias": "1h/4h", "setup": "15m", "entry": "5m"}, "src": "inferred", "ref": "he opens on 4h (#1) then 1h (#4-#15), 15m (#16-#18), then 5m (#19-#32) where the entry box is drawn; heard [03:45] 'fifteen minute ... confirmation'"},
+      "setup": {"value": "short at the equilibrium (0.5) of the 18,044.75-17,981 afternoon range after the morning rally stalled below the highs; 5m entry as price broke below the red line (about 18,014); target the 17,922 low", "src": "inferred", "ref": "seen fib 0/0.5/1 (#19), red line with label 18014.25 (#21), 1h entry at 0.5 = 18012.75 (#4 grey label); heard [04:45] '... was the equilibrium ... closer than the equilibrium'"},
+      "entry_conditions": [
+        {"value": "Price was back at the 50% (equilibrium) of the range from the 18,044.75 high to the about 17,981 low. The 1h position tool's entry sits on the 0.5 line at 18,012.75.", "src": "seen", "ref": "#4 01m27s 1h: grey box top on fib '0' (label 18044.75), entry on '0.5' (label 18012.75); #19 04m47s 5m fib 0 / 0.5 / 1"},
+        {"value": "15m confirmation (a 'break') before selling", "src": "heard", "ref": "[03:45] 'i wanna live fifteen minute sweetie break any confirmation that we're going back but then sell', read as 'I want a 15-minute ... break as confirmation ... then sell'; the exact 15m break level is not identified"},
+        {"value": "The 5m 15:00 candle closed at 18,013.75, just below the red line at 18,014.25 (a 5m low from about 14:40)", "src": "inferred", "ref": "#20 05m16s: he places the red line (crosshair 18014.00); hovered 15:00 bar legend 'O18016.50 H18018.50 L18006.50 C18013.75'; #21 axis label 18014.25; reading the line as a structure low is my inference"}
+      ],
+      "entry_time": {"value": "about 15:00-15:05 ET (close of the 15:00 5m bar)", "src": "inferred", "ref": "#24 05m54s: 5m box left edge sits on the x-axis '15:00'; #20 legend of the 15:00 bar closes at the entry price. Chart timezone read as ET because the 5m x-axis skips 17:00 (CME daily break 17:00-18:00 ET, #21) and there is a 09:30 open marker; no timezone label is visible"},
+      "entry": {"value": 18013.75, "src": "seen", "ref": "#21 05m29s / #24 05m54s / #25 05m58s grey axis label 18013.75 of the 5m position tool. The pre-existing 1h tool shows 18012.75 (#4, #9, #14)"},
+      "stop": {"value": 18046.75, "src": "seen", "ref": "#24 05m54s / #27 06m35s grey label 18046.75 at the box top; matches #25 'Risk/Reward Ratio: 2.78' (91.75/33.00). He moved it during the recap: the stop was 18060.25 at #21 05m29s-#22 05m45s. The 1h tool stop is 18044.75"},
+      "stop_rule": {"value": "just above the range high / fib 0 (18,044.75)", "src": "inferred", "ref": "1h tool stop = fib 0 = 18044.75 (#4); 5m final stop is 2 pts above it (#24)"},
+      "target": {"value": 17922.0, "src": "seen", "ref": "#25 05m58s 'Target: 91.75 (0.51%) 367', so 18013.75 - 91.75 = 17922.00; box bottom sits on the black line labelled 17922.00 (#1 00m00s); final state #28 08m45s / #32 09m43s box bottom on that line. The 1h tool's target is hidden behind the webcam"},
+      "target_rule": {"value": "prior low at 17,922.00 (sell-side liquidity: the Fri 23 Feb/overnight low line on 1h)", "src": "inferred", "ref": "#14 03m32s 1h line 17922.00 drawn from the low of the 23-25 Feb swing"},
+      "exit": {"value": "manual close at about 17,960 (±3) in the 16:00-16:40 ET consolidation, before the 17,922 target", "src": "inferred", "ref": "#26 06m06s: he boxes a small consolidation (labels 17965.75 / 17961.25) and drags the tool target up to it; #27 06m35s-08m40s: target label 17960.25; heard [06:30] 'close ... little consolidation ... i'm just gonna close the shit out of the', [01:45] 'i ended up closing out of'; at #28 08m45s the target is back at 17922"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "not stated legibly; 'Qty: 0.031' in #25 is a TradingView drawing-tool setting, not his position size"},
+      "result": {"value": "win", "src": "inferred", "ref": "After the 15:00 entry, price never went above about 18,021 (the stop is 18,046.75). It fell to about 17,938 (estimated from candles in #27/#28), so a manual close at the consolidation (heard) is in profit. The fill and exit are not seen"},
+      "r_multiple": {"value": 1.6, "src": "inferred", "ref": "(18013.75 - 17960.25)/(18046.75 - 18013.75) = 53.5/33.0 = 1.62. With the exit at the consolidation mid (about 17,963.5) it is 1.52. Against the 1h tool (18012.75/18044.75) it is 1.64. Against his original 18060.25 stop it is 1.15. Planned R:R shown = 2.78 (#25), but 17,922 was not reached by about 19:50 ET"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No $ figure is shown or clearly heard. [08:45] 'unfortunately i got ... two point eight' is too garbled to read as a claim (maybe the 2.78 R:R). The '#25 Open P&L: 59.25' and 'Amount: 736.72' are TradingView drawing-tool readouts, not account P&L"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "no broker/platform panel with fills or P&L appears anywhere in the video; only drawing tools"},
+      "mistakes": [
+        {"value": null, "src": "unknown", "ref": "No execution mistake can be determined. He exited early vs the 2.78R plan, but the 17,922 target was not reached on the day (low about 17,938), so closing early is not shown to be a mistake"}
+      ],
+      "evidence_summary": "Seen: NQ 5m short tool with entry 18013.75, stop 18046.75 and target 17922.00 (R:R label 2.78), plus the 1h tool at 18012.75/18044.75. Inferred: exit about 17,960 from the target he re-dragged to a consolidation and 'close' in the transcript, and the result from the candles. The tool was edited live; no fills were shown."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "Wants higher-timeframe confirmation before acting", "src": "heard", "ref": "[03:30] 'i want we are high time frame confirmation', read as 'I want higher time frame confirmation'"},
+    {"value": "Wait for a 15-minute break/confirmation, then sell", "src": "heard", "ref": "[03:45] 'i wanna live fifteen minute sweetie break any confirmation that we're going back but then sell'"},
+    {"value": "A super-systematic, easy-to-follow (copy-and-paste) strategy makes it easier to turn a profit because you think less", "src": "heard", "ref": "[07:30]-[07:45] 'it's the most copy and paste ... having a super systematic and easy to fall out ... a lot easier to turn a profit will because you don't think about ... as much'"}
+  ],
+  "quality_notes": "The transcript is nearly unusable (pocketsphinx garble throughout), so his reasoning, exit and any P&L are gist-level at best. He drew the 5m position tool live at about 05m25s and edited it: stop 18060.25 to 18046.75, then target 17989.50 to 17922.00 to 17960.25 and back to 17922.00. So entry, stop and target are his illustration, and the exit (about 17,960) and R (about 1.6) are inferred. A separate pre-existing 1h tool (18012.75/18044.75) differs slightly. The chart timezone (ET) is inferred, not labelled. No broker fills or P&L are shown."
+}

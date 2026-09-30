@@ -72,6 +72,23 @@ def test_the_app_asks_the_bot_directly_and_gets_json(filled, monkeypatch, capsys
     assert store.get("paper-swing_ledger")["positions"]                   # still owns its stock
 
 
+
+def test_the_app_updates_itself_only_while_no_real_money_is_involved(filled, monkeypatch, capsys):
+    cfg, store = filled
+    assert ask(monkeypatch, capsys, cfg, "update-policy") == {"real_money": False, "reasons": []}   # paper only
+
+    cfg["live_trading_enabled"] = True                                     # switched on in .env
+    assert ask(monkeypatch, capsys, cfg, "update-policy")["real_money"]
+    cfg["live_trading_enabled"] = False
+
+    set_phase(store, "day", Phase.LIVE, "test")                           # a desk trading real money
+    assert "day desk is trading real money" in ask(monkeypatch, capsys, cfg, "update-policy")["reasons"][0]
+    set_phase(store, "day", Phase.PAPER, "test")
+
+    store.set("live-swing_ledger", {"cash": 0, "unsettled": {}, "pending": [], "positions": {"AAA": {"qty": 1}}})
+    answer = ask(monkeypatch, capsys, cfg, "update-policy")                # still owns real shares
+    assert answer["real_money"] and "owns real shares" in answer["reasons"][0]
+
 # ---------------------------------------------------------------- what "paused" means
 @pytest.fixture
 def paused_desk(cfg, monkeypatch):

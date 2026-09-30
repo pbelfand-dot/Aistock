@@ -1,0 +1,114 @@
+{
+  "video": {
+    "n": 2,
+    "file": "02_20_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 12 sheets and ~25 of 47 full-size shots examined (crops/zooms of position-tool labels, axes, legends, x-axis). Transcript is very rough speech-to-text: usable for gist and timestamps; most numbers in it are garbled.",
+    "duration_min": 5.64,
+    "title_claim": "",
+    "session_date": {"value": "2024-02-20", "src": "seen", "ref": "#1 00m00s and #27 02m42s x-axis 'Tue 20 Feb '24 09:30'; file name 02_20_2024. Recorded next morning: #41 04m18s x-axis 'Wed 21 Feb '24', #46 04m55s Forex Factory 'Today: Feb 21', [00:00] 'my trades yesterday'"}
+  },
+  "market_context": {
+    "regime": {"value": "ES and NQ trending down on 1h/4h into 20 Feb. 5m on 20 Feb: sharp sell-off right after 09:30 ET, retrace up to ~11:00, second leg down to the day's low at the 12:35 ET candle, rebound in the afternoon", "src": "seen", "ref": "#3 00m08s ES 1h and #4 00m20s ES 4h (lower highs/lows 15-20 Feb); #9 00m54s / #10 00m58s ES 5m whole session; #31 03m11s NQ 5m; chart timezone '(UTC-5)' seen in #34 03m28s"},
+    "news": {"value": "No news mentioned or shown for 20 Feb. For the next day (21 Feb) he shows Forex Factory: USD FOMC Meeting Minutes, red impact, 3:00pm on the Forex Factory clock (FF clock read 9:10am while the chart clock read 08:09 UTC-5, so about 2:00pm ET)", "src": "seen", "ref": "#46 04m55s Forex Factory 'Today: Feb 21 ... Wed Feb 21 3:00pm USD FOMC Meeting Minutes'; #34 03m28s clock '08:09:02 (UTC-5)'; ET conversion inferred"},
+    "bias": {"value": "Bearish. 1h and 4h bearish. Draws on liquidity: ES 15m lows (lines at 4972.75 / 4971.25 / 4969.25); NQ hourly/4h lows (line at 17465.50)", "src": "heard", "ref": "[00:15] 'we were bearish on our [hourly] ... four hour'; [00:30] 'marked out the draw on liquidity ... hourly ... my main draws'; [01:30] 'fifteen minute lows'; [03:30] 'the hourly was there as well, I identified this as the draw on liquidity'. Lines seen: #17 01m35s / #18 01m44s ES 15m black labels 4972.75, 4971.25, 4969.25; #42 04m26s NQ black label 17465.50"}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-02-20", "src": "seen", "ref": "#27 02m42s x-axis 'Tue 20 Feb '24 09:30' / '11:25' with the position tool on that day"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#27 02m42s legend 'S&P 500 E-mini Futures · 5 · CME', symbol box 'ES1!'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#27 02m42s short position tool: stop zone above entry, 'Target: 22.00' zone below"},
+      "timeframes": {"value": {"bias": "1h/4h", "draw": "15m lows", "setup": "5m", "entry": "5m"}, "src": "heard", "ref": "[00:15] bearish on hourly/4h; [00:45] 'mainly it's a trade purely based off of five minute'; [01:30] 'fifteen minute lows'; charts seen: #3 1h, #4 4h, #17/#18 15m, #27 5m"},
+      "setup": {"value": "post-open 5m sell-off/BOS -> retrace toward bearish 5m FVG -> rejection candle -> short, target 15m lows", "src": "heard", "ref": "[01:00] 'market opened ... broke structure'; [01:15] 'fair value gap ... reject ... my first trade which ended up in a loss ... off that rejection candle' (rough reading)"},
+      "entry_conditions": [
+        {"value": "1h and 4h structure bearish", "src": "heard", "ref": "[00:15] 'we were bearish on our [hourly] ... four hour'; consistent with #3 1h and #4 4h charts"},
+        {"value": "right after the 09:30 open, price sold off hard and broke 5m structure to the downside", "src": "heard", "ref": "[01:00] 'market opened ... broke structure'; seen #14 01m23s: large bearish 5m candles from 09:30 (09:30 candle H 5009.25, #12 legend) down to ~4991"},
+        {"value": "the sell-off left bearish FVGs (gray boxes ~4997.75-5000.5 and ~4993.5-4996.5)", "src": "inferred", "ref": "#13 01m19s box edges converted with the axis scale (~19.6 px/pt), +/-0.25"},
+        {"value": "small retrace/rejection candles 09:40-09:55 wicking up toward the lower FVG; short on the 09:55 candle (close 4991.25)", "src": "inferred", "ref": "#14 01m23s: he puts the crosshair on 'Tue 20 Feb '24 09:55', legend O4991.50 C4991.25, axis 4991.25, while he describes the first trade; position box starts at the 09:55 bar (#12)"}
+      ],
+      "entry_time": {"value": "~09:55 ET (5m bar; chart timezone UTC-5)", "src": "inferred", "ref": "box left edge at 09:55 (#12 01m15s, x-axis 90 px/h); crosshair at 09:55 in #14; tz '(UTC-5)' #34"},
+      "entry": {"value": 4991.25, "src": "seen", "ref": "#13/#27 gray axis label 4991.25 at the tool's entry line; 4995.25 - 4991.25 = 4.00 matches the tool label 'Stop: 4.00'"},
+      "stop": {"value": 4995.25, "src": "seen", "ref": "#13/#27 gray axis label 4995.25 at the stop edge of the tool; tool 'Stop: 4.00 (0.08%) 16'"},
+      "stop_rule": {"value": "above the post-open rejection wicks, inside the ~4993.5-4996.5 FVG (near its midpoint ~4995)", "src": "inferred", "ref": "stop level vs FVG box and 09:40-09:50 wicks (~4993-4994.3) in #13/#14; rule not stated"},
+      "target": {"value": 4969.25, "src": "seen", "ref": "#17 01m35s / #18 01m44s blue target labels '4969.25' (two, one per ES tool); 4991.25 - 'Target: 22.00' (#27) = 4969.25"},
+      "target_rule": {"value": "15m swing lows (draw on liquidity); target at the lowest marked line 4969.25", "src": "heard", "ref": "[01:30] 'all these fifteen minute lows'; lines at 4972.75/4971.25/4969.25 seen on #17/#18 15m"},
+      "exit": {"value": "stopped at 4995.25, ~11:00 ET", "src": "seen", "ref": "#27 02m42s tool label 'Closed P&L: -4.00, Qty: 0.102, Risk/Reward Ratio: 5.5'. Time inferred: in #12 the 11:00 5m candle wicks to ~4997.5, through the stop; the 10:55 high is just below it"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "tool 'Qty: 0.102' comes from TradingView's position-tool account setting (stop 'Amount: 659.6' = 680 - 20.40 risk; target 'Amount: 792.2' = 680 + 112.2), not real contracts"},
+      "result": {"value": "loss", "src": "seen", "ref": "#27 'Closed P&L: -4.00'; heard [01:15] 'ended up in a loss', [01:30-01:45] 'we ended up getting stopped out'"},
+      "r_multiple": {"value": -1.0, "src": "computed", "ref": "short: (entry - exit)/(stop - entry) = (4991.25 - 4995.25)/(4995.25 - 4991.25) = -4.00/4.00 = -1.00. Planned R:R was 5.5 (tool label; 22.00/4.00)"},
+      "claimed_pnl": {"value": "a loss (no $ figure); day total claimed ~3R", "src": "heard", "ref": "[01:15] 'ended up in a loss'; [04:30] 'right around three or slightly above the three R day'"},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "only a TradingView long/short drawing tool is shown; no broker or platform fills or P&L panel"},
+      "mistakes": [
+        {"value": "none stated or clearly visible (plain stop-out)", "src": "inferred", "ref": "transcript at [01:45] is unintelligible about this trade"}
+      ],
+      "evidence_summary": "Seen: instrument, short, entry 4991.25, stop 4995.25, target 4969.25 (axis labels matching tool distances 4.00/22.00), Closed P&L -4.00. Inferred: entry ~09:55 ET, stop hit ~11:00 ET, FVG levels. Heard: setup reasoning."
+    },
+    {
+      "date": {"value": "2024-02-20", "src": "seen", "ref": "#30 02m55s x-axis 'Tue 20 Feb '24 09:30' / '12:15'"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#30 02m55s legend 'S&P 500 E-mini Futures · 5 · CME', symbol 'ES1!'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#30 02m55s short position tool, 'Target: 19.00' below entry"},
+      "timeframes": {"value": {"bias": "1h/4h", "draw": "15m lows", "setup": "5m", "entry": "5m"}, "src": "heard", "ref": "[02:15] 'the hourly still ... four hours ... hoping to see another five minute break juncture [BOS]'"},
+      "setup": {"value": "re-entry after stop-out: new 5m BOS down -> new bearish 5m FVG -> rejection -> short, same 15m-low target", "src": "heard", "ref": "[02:15]-[02:30] 'hoping to see another five minute break juncture ... then we end up getting a five minute break juncture and I'm getting a fair [value gap] ... rejection ... [entered off] that rejection' (rough reading)"},
+      "entry_conditions": [
+        {"value": "1h/4h still bearish after the first stop-out", "src": "heard", "ref": "[02:15] 'the hourly still ... four hours'"},
+        {"value": "new 5m break of structure down after the 11:00 high (~4997.5) and the 11:25 lower high (H 4994.25)", "src": "heard", "ref": "[02:15] 'we end up getting a five minute break juncture'; 11:25 candle O4993.25 H4994.25 L4991.50 C4993.75 seen in the #27 legend (crosshair 11:25); 11:00 high inferred from #12"},
+        {"value": "new bearish FVG ~4989.25-4991.50 (top = 11:25 candle low 4991.50)", "src": "inferred", "ref": "#13 01m19s box drawn from ~11:25, edges ~4991.5/4989.2 by axis scale; 11:25 low 4991.50 from the #27 legend"},
+        {"value": "rejection candle, then short at 4988.25 ~11:55 ET", "src": "inferred", "ref": "heard [02:30] 'rejection ... [entered] that rejection'; box start ~11:55 in #30 and #12"}
+      ],
+      "entry_time": {"value": "~11:55 ET (5m bar; chart timezone UTC-5)", "src": "inferred", "ref": "box left edge #30 x~517 (11:00 at x~467, ~54.5 px/h) and #12 x~638 (90 px/h): both ~11:55, +/-5 min"},
+      "entry": {"value": 4988.25, "src": "seen", "ref": "#13/#30 gray axis label 4988.25 at the tool's entry line; 4994.75 - 4988.25 = 6.50 matches 'Stop: 6.50'"},
+      "stop": {"value": 4994.75, "src": "seen", "ref": "#13/#30 gray axis label 4994.75; tool 'Stop: 6.50 (0.13%) 26'"},
+      "stop_rule": {"value": "2 ticks above the 11:25 5m lower high (4994.25)", "src": "inferred", "ref": "4994.75 vs 11:25 H 4994.25 (#27 legend); not stated"},
+      "target": {"value": 4969.25, "src": "seen", "ref": "#17/#18 blue target labels '4969.25'; 4988.25 - 'Target: 19.00' (#30) = 4969.25"},
+      "target_rule": {"value": "same 15m swing lows (line 4969.25)", "src": "inferred", "ref": "same target level as trade 1; 15m lines seen on #17/#18"},
+      "exit": {"value": "unknown. Target 4969.25 appears touched by the 12:35 ET candle (wick low ~4968.25 +/-0.5). The tool box ends with 'Open P&L: 18.50' (~4969.75), and he may have taken partials", "src": "inferred", "ref": "wick measured on #27, #28 and #30 (the 12:35 bar body closes ~4969.7, wick ~18 px = ~1.4 pt lower; the 4969.25 line in #28 sits between). #30 label 'Open P&L: 18.50, Qty: 0.063, Risk/Reward Ratio: 2.92'. [02:45] 'wanted to take part three [partials?] ... putting me on one ... one for one' is unclear"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "tool 'Qty: 0.063' is TradingView tool account sizing (stop Amount 659.6 = 680 - 20.40), not real size"},
+      "result": {"value": "win", "src": "inferred", "ref": "after entry, price fell to the target area without trading back to the 4994.75 stop (#28, #30); he presents it as the trade that recovered the loss [03:00]"},
+      "r_multiple": {"value": null, "src": "unknown", "ref": "Actual R is not determinable. Planned R:R 2.92 (tool label; 19.00/6.50). Full size held to target = +2.92R. Tool 'Open P&L' at the box end = 18.50/6.50 = +2.85R. Heard [03:00] 'ended up giving me around one point five or [R] on [the day]' (garbled; could be the realized R after partials or net of the -1R loss)"},
+      "claimed_pnl": {"value": "~1.5R (garbled); no $ figure", "src": "heard", "ref": "[03:00] 'on this ended up giving me around one point five or on gate'"},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "drawing tool only; no fills or broker P&L"},
+      "mistakes": [
+        {"value": "opened at the same time as the NQ short (~11:55 ET): correlated ES+NQ exposure on one idea (sizes unknown)", "src": "inferred", "ref": "box starts ~11:55 in #30 (ES) and #40/#42 (NQ)"}
+      ],
+      "evidence_summary": "Seen: instrument, short, entry 4988.25, stop 4994.75, target 4969.25 (labels match tool 6.50/19.00), R:R 2.92, Open P&L +18.50 at the box end. Inferred: entry ~11:55 ET, target touched by ~1 pt at 12:35, stop rule. Heard: ~1.5R (garbled). Actual exit/R unknown."
+    },
+    {
+      "date": {"value": "2024-02-20", "src": "seen", "ref": "#42 04m26s x-axis 'Tue 20 Feb '24 09:30' / '12:10'"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#42 04m26s legend 'NASDAQ 100 E-mini Futures · 5 · CME', symbol 'NQ1!'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#42 short position tool, 'Target: 79.25' below entry"},
+      "timeframes": {"value": {"bias": "1h/4h", "draw": "1h/4h lows", "setup": "5m", "entry": "5m"}, "src": "heard", "ref": "[03:30] 'the hourly was there as well ... draw on liquidity'; [04:15] 'these four hours ... those lows'; charts seen #34 NQ 4h, #35 NQ 1h, #42 NQ 5m"},
+      "setup": {"value": "5m BOS down -> bearish 5m FVG -> rejection at FVG -> short, target hourly/4h lows (no sweep first)", "src": "heard", "ref": "[03:15] 'fair value gap ... break juncture'; [04:00] 'structure ... fair value gap ... rejection ... all these lows' (rough reading)"},
+      "entry_conditions": [
+        {"value": "1h/4h bearish; draw = lows marked at 17465.50", "src": "heard", "ref": "[03:30] 'the hourly was there as well, I identified this as the draw on liquidity'; line at 17465.50 seen #42 axis and #31 (spans the whole chart)"},
+        {"value": "5m break of structure down: large bearish 11:30 candle after the ~17598 11:00 high and the lower highs of 11:15-11:25", "src": "inferred", "ref": "#40 04m01s geometry (axis ~2.47 px/pt); heard [03:15]/[04:00] 'break juncture'/'structure'"},
+        {"value": "bearish FVG ~17545-17562; price retraced into its lower edge (11:40 H 17552.50, 11:50 H 17547.50) and rejected (11:50 close 17524.75)", "src": "seen", "ref": "legends: #38 03m53s crosshair 11:40 'O17540.00 H17552.50 L17535.50 C17547.50'; #36/#40 crosshair 11:50 'O17543.50 H17547.50 L17524.00 C17524.75'. FVG bounds inferred from box pixels +/-1"},
+        {"value": "no liquidity sweep before entry (he took it anyway)", "src": "heard", "ref": "[03:30] 'I didn't necessarily get swept by this ... but again it doesn't [matter]'"}
+      ],
+      "entry_time": {"value": "~11:50-11:55 ET (chart timezone UTC-5)", "src": "inferred", "ref": "box starts at the 11:55 bar (#40 x~471, 60 px/h; #42 x~339, 65.5 px/h); he points at the 11:50 rejection candle in #36/#40"},
+      "entry": {"value": 17545.5, "src": "seen", "ref": "#42 gray axis label 17545.50 at the tool's entry; 17581.25 - 17545.50 = 35.75 matches 'Stop: 35.75'"},
+      "stop": {"value": 17581.25, "src": "seen", "ref": "#42 gray axis label 17581.25; tool 'Stop: 35.75 (0.20%) 143'"},
+      "stop_rule": {"value": "above the 11:15-11:25 5m lower highs (~17579-17581)", "src": "inferred", "ref": "#40 candle highs vs stop edge, +/-1 pt; not stated"},
+      "target": {"value": 17466.25, "src": "seen", "ref": "#42 blue axis label 17466.25; 17545.50 - 'Target: 79.25' = 17466.25"},
+      "target_rule": {"value": "just above the marked lows at 17465.50 (hourly/4h lows = draw on liquidity)", "src": "inferred", "ref": "target 0.75 above the black 17465.50 line (#42); heard [04:15] 'those lows ended up getting hit'"},
+      "exit": {"value": "target hit at 17466.25 (12:35 ET candle low 17452.50)", "src": "seen", "ref": "#39 03m57s crosshair 'Tue 20 Feb '24 12:35', legend 'O17494.50 H17495.00 L17452.50 C17454.50'; no bar between entry and 12:35 reached the stop (12:10 bar H 17493.00 in the #42 legend; #40 chart)"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "tool 'Qty: 0.029' is TradingView tool account sizing (stop Amount 659.6 = 680 - 20.40), not real size"},
+      "result": {"value": "win", "src": "seen", "ref": "12:35 low 17452.50 < target 17466.25 (#39); heard [04:15] 'those lows ended up getting hit'"},
+      "r_multiple": {"value": 2.22, "src": "computed", "ref": "(17545.50 - 17466.25)/(17581.25 - 17545.50) = 79.25/35.75 = 2.22; matches tool 'Risk/Reward Ratio: 2.22' and heard [04:15] 'two point two R'"},
+      "claimed_pnl": {"value": "2.2R; day total ~3R or slightly above; no $ figure", "src": "heard", "ref": "[04:15] 'giving me a ... two point two R'; [04:30] 'right around three or slightly above the three R day'"},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "drawing tool only ('Open P&L: 73.00' at the box end is a tool readout); no fills or broker P&L"},
+      "mistakes": [
+        {"value": "rule deviation: no liquidity sweep before entry (he says it didn't matter)", "src": "heard", "ref": "[03:30] 'I didn't necessarily get swept by this'"},
+        {"value": "taken at the same time as ES short #2: correlated exposure", "src": "inferred", "ref": "both boxes start ~11:55 ET (#30, #42)"}
+      ],
+      "evidence_summary": "Seen: instrument, short, entry 17545.50, stop 17581.25, target 17466.25 (labels match 35.75/79.25), R:R 2.22, 12:35 bar low 17452.50 hitting the target. Inferred: entry ~11:55 ET, FVG/stop rule. Heard: 2.2R, no sweep."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "The entry is based purely on the 5-minute chart, aiming at higher-timeframe liquidity (hourly/4h/15m lows)", "src": "heard", "ref": "[00:45] 'mainly it's a trade purely based off of five minute and I'm going after a ... higher time frame' (rough)"},
+    {"value": "After a stop-out, wait for another 5m break of structure (and FVG) before re-entering in the same direction", "src": "heard", "ref": "[02:15] 'I am hoping to see another five minute break juncture ... then we end up getting a five minute break juncture'"},
+    {"value": "A sweep is not strictly required if the draw on liquidity and structure line up", "src": "heard", "ref": "[03:30] 'I didn't necessarily get swept by this ... but again it doesn't [matter]' (garbled)"},
+    {"value": "FOMC minutes come late in the day (next day), so no reason to jump into the market early or prematurely", "src": "heard", "ref": "[05:00]-[05:30] 'we [have FOMC] minutes today ... pretty late into the day ... a reason for me to try and jump on the market earlier or prematurely' (garbled), while #46 shows the FF calendar"}
+  ],
+  "quality_notes": "Transcript is very garbled (pocketsphinx), so reasoning is only roughly heard. Prices are firm: gray/blue axis labels match the position-tool distances exactly. No broker fills or P&L panel. The tool 'Amount'/'Qty' values come from a hypothetical 680-unit account risking 20.40, not real P&L or size. The main limit is ES trade 2: the target was touched by only ~1 pt (from pixel measurement), and his stated R (~1.5, garbled, possibly after partials or net of the loss) conflicts with the planned 2.92R, so its actual R is unknown. His day total (~3R) is a claim. Entry times are +/-5 min (from box edges)."
+}

@@ -10,8 +10,9 @@ OLD="$(cat "$APP_HOME/VERSION" 2>/dev/null)"
 mkdir -p "$APP_HOME"
 
 if [ "$NEW" != "$OLD" ]; then
-  rm -rf "$APP_HOME/aitrader"
-  cp -R "$RES/trader/aitrader" "$APP_HOME/aitrader"
+  rm -rf "$APP_HOME/aitrader.new"                 # copy first, then swap: a running bot never sees half a copy
+  cp -R "$RES/trader/aitrader" "$APP_HOME/aitrader.new"
+  rm -rf "$APP_HOME/aitrader" && mv "$APP_HOME/aitrader.new" "$APP_HOME/aitrader"
   for f in run.py mcp_server.py requirements.txt README.md .env.example; do
     cp "$RES/trader/$f" "$APP_HOME/$f"
   done

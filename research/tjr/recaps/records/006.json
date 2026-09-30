@@ -1,0 +1,58 @@
+{
+  "video": {
+    "n": 6,
+    "file": "02_28_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 8 sheets, 30 full-size shots and the transcript. Position-tool labels, axis labels, legends and x-axis dates were readable when zoomed. The transcript is heavily garbled (pocketsphinx), so it gives only the gist. The 4h/1h views he describes for 28 Feb at 01:30-02:34 were not captured (shot #1 is the last frame of that scene and shows only the 5m chart). Chart timezone is not displayed (the bottom-right corner is covered by the webcam).",
+    "duration_min": 13.4,
+    "title_claim": "",
+    "session_date": {"value": "2024-02-28", "src": "seen", "ref": "#6 03m03s x-axis 'Wed 28 Feb '24 09:20' / 'Wed 28 Feb '24 10:40' on the position box. Recorded later: #18 05m08s Forex Factory header 'Yesterday: Feb 29', clock '7:46am'; #30 10m20s x-axis 'Fri 01 Mar '24' -> recorded Fri 2024-03-01 (inferred). 06:00-10:20 of the video also reviews Thu 29 Feb, when he took no trade."}
+  },
+  "market_context": {
+    "regime": {"value": "28 Feb, NQ: he calls 4h and 1h bearish. The 1h chart shows a sideways range of about 17,880-18,080 over 23-28 Feb, with a dip to about 17,850 on 28 Feb, then a rally above 18,080 on 29 Feb. On 5m, price chopped roughly 17,885-17,970 during the 28 Feb morning.", "src": "inferred", "ref": "heard [01:30] 'on wednesday and we were bearish on the four hour', [01:45] 'on the hourly ... we're [bearish]'; seen 1h legend 'NASDAQ 100 E-mini Futures · 1h · CME' #14 04m22s / #15 04m26s; ranges estimated from axis labels (±10)"},
+    "news": {"value": "No calendar was shown for 28 Feb. Around 05:00 he says 'G20' (garbled) as another reason to be happy getting out. The 29 Feb calendar (#18) lists Core PCE m/m and Unemployment Claims at 9:30am, Chicago PMI 10:45am, Pending Home Sales 11:00am, 'G20 Meetings Day 2', and FOMC Member Mester at 2:15pm. Those times are in Forex Factory's display timezone, which appears to be ET+1. So G20 day 1 = 28 Feb (inferred).", "src": "heard", "ref": "[05:00] 'another reason for that ... g twenty [05:15] is pretty much all throughout the day'; seen #18 05m08s forexfactory.com/calendar?day=feb29.2024. FF timezone = ET+1 is inferred from Core PCE's standard 8:30 ET release."},
+    "bias": {"value": "Bearish on 28 Feb (4h and 1h). Downside draw: the 1h lows marked by horizontal lines at 17872.50 and 17855.75.", "src": "inferred", "ref": "heard [01:30]-[02:15] bearish on 4h/hourly, 'looking for [shorts]'; seen #15 04m26s black axis labels 17872.50 / 17855.75 on horizontal lines drawn from 22 Feb; calling them 1h lows / liquidity is inferred (heard [04:30] 'these are the lows')"}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-02-28", "src": "seen", "ref": "#6 03m03s x-axis 'Wed 28 Feb '24 09:20'"},
+      "instrument": {"value": "NQ (NQ1!, E-mini Nasdaq-100 futures, front month)", "src": "seen", "ref": "#6 03m03s legend 'NASDAQ 100 E-mini Futures · 5 · CME', symbol box 'NQ1!'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#6 03m03s position tool: stop box (grey) above entry, target box (blue) below; heard [03:00] 'my entry short it right there'"},
+      "timeframes": {"value": {"bias": "4h + 1h", "setup": "5m", "entry": "5m shown (a lower entry timeframe was not shown or mentioned intelligibly)"}, "src": "inferred", "ref": "bias heard [01:30]-[01:45]; setup/entry: trade drawn on the 5m chart #5-#11 (legend '· 5 ·')"},
+      "setup": {"value": "bearish 4h/1h -> 5m break below the 17924.75 low -> pullback into a 5m zone 17927.25-17932.50 (likely a bearish FVG) -> short on rejection", "src": "inferred", "ref": "zone and line seen #5 02m50s (grey rectangle with axis labels 17932.50 / 17927.25, red line 17924.75); the FVG/BOS labels are my reading; heard [03:00] 'rally ... rejected ... my entry short'"},
+      "entry_conditions": [
+        {"value": "4h bias bearish", "src": "heard", "ref": "[01:30] 'we were bearish on the four hour'"},
+        {"value": "1h structure bearish", "src": "heard", "ref": "[01:45]-[02:00] 'on the hourly ... breakdown breakdown okay so [we're bearish]'"},
+        {"value": "5m candles closed below the red horizontal line at 17924.75, drawn from the ~08:50 candle, at about 09:05-09:10 (break of structure)", "src": "inferred", "ref": "#5 02m50s red axis label 17924.75; the ray starts at the ~08:50 bar; closes below the line are read from candle position (±2 pts)"},
+        {"value": "price pulled back up into the grey zone 17927.25-17932.50 (drawn from the 09:00 bar), wicked to about 17946, and was rejected", "src": "inferred", "ref": "zone edges seen #5 02m50s axis labels; wick high estimated (±3) from #8 03m24s; heard [03:00] 'we see a rally ... rejected'"},
+        {"value": "entered short at 17925.50, below the zone, at about 09:20, about 10 min before the 09:30 NY open", "src": "seen", "ref": "#6 03m03s grey axis label 17925.50 = position tool entry; x-axis label 'Wed 28 Feb '24 09:20' at the box's left edge"}
+      ],
+      "entry_time": {"value": "09:20 chart time (ET, inferred)", "src": "inferred", "ref": "seen: #6 x-axis label 09:20 at the box's left edge. Timezone inferred ET: on the 29 Feb ES 5m chart (#27 09m14s) the first big candle after a quiet overnight prints at 08:30 chart time, matching the 8:30 ET Core PCE/Claims release."},
+      "entry": {"value": 17925.50, "src": "seen", "ref": "#6 03m03s / #9 03m32s grey axis label 17925.50 of the position tool; consistent with 17958.00 - 32.50"},
+      "stop": {"value": 17958.00, "src": "seen", "ref": "#6 03m03s label 'Stop: 32.50 (0.18%) 130' and grey axis label 17958.00; the same in #7, #9, #12 and #15. Only #8 03m24s-03m28s briefly shows 'Stop: 24.50 (0.14%) 98' (=17950.00, R:R 0.81), so 17958 is taken as the stop."},
+      "stop_rule": {"value": "at the prior 5m highs (horizontal line at 17958.00, touched ~07:10 and ~08:30)", "src": "inferred", "ref": "stop equals the drawn black line 17958.00 (#3 02m42s, #5); heard [03:15] 'stops were all out here again as [at the] previous [highs]'"},
+      "target": {"value": 17905.75, "src": "seen", "ref": "#6 03m03s label 'Target: 19.75 (0.11%) 79' and blue axis label 17905.75. Later he drags the target to 17892.25 (#11 03m57s, #12) and to 17855.75 (#15 04m26s, tool then reads 'Closed P&L: -32.50', R:R 2.15), apparently to show that holding for the 1h lows would have been stopped out."},
+      "target_rule": {"value": null, "src": "unknown", "ref": "no level or rule for 17905.75 is stated intelligibly; it doesn't match a drawn line. He appears to have taken a quick fixed profit rather than the 1h lows (heard [04:00]-[05:00] 'get out ... very happy', 'very satisfied with just get[ting] out')"},
+      "exit": {"value": "target hit at 17905.75, about the 09:30 bar", "src": "inferred", "ref": "tool label 'Closed P&L: 19.75' (#6) and its path line reaching the target ~2 bars after entry (#8); 5m bars trade to ~17886 by ~09:45, before any bar exceeds 17958 (~11:00) (#9/#11). No fill or broker record is shown."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "tool shows 'Qty: 0.031' and 'Amount: 659.6'. These are drawing-tool account settings, not a position size; no contracts are stated."},
+      "result": {"value": "win", "src": "inferred", "ref": "position-tool outcome + chart path (see exit) + heard [04:00] 'get out again very happy'"},
+      "r_multiple": {"value": 0.61, "src": "computed", "ref": "(17925.50-17905.75)/(17958.00-17925.50) = 19.75/32.50 = 0.61; matches the tool's 'Risk/Reward Ratio: 0.61'. If the brief 17950 stop (#8) were the real one: 19.75/24.50 = 0.81."},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "no $ amount stated or shown; 'Closed P&L: 19.75' is points from the TradingView drawing tool; title claim empty"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "no broker or platform panel with fills or P&L; the only evidence is a hand-drawn position tool"},
+      "mistakes": [
+        {"value": "planned reward (19.75 pts) smaller than risk (32.50 pts): R:R 0.61", "src": "inferred", "ref": "computed from seen tool labels #6"}
+      ],
+      "evidence_summary": "Seen: instrument, 5m timeframe, date, entry 17925.50, stop 17958.00 and target 17905.75 from the position-tool and axis labels. Inferred: ET timezone, BOS/FVG reading, target hit ~09:30 and the win. Heard: bias, and that he got out happy. No fills or P&L shown."
+    }
+  ],
+  "no_trade_reason": null,
+  "lessons_stated": [
+    {"value": "Less is more: take only high-quality setups rather than many trades a day", "src": "heard", "ref": "[08:15] 'approach of less is more ... only take high quality [setups]'; [10:15] 'that mindset of less is more'"},
+    {"value": "Needs the confluence of 4h break, hourly structure and a 5m break in the bias direction before entering", "src": "heard", "ref": "[07:45] 'the confluence is needed to enter'; [09:00]-[09:15] 'we need a four hour break ... hourly ... five minute break'"},
+    {"value": "Ideally trades during the first hour after the market open; doesn't want to trade sideways, late-day markets", "src": "heard", "ref": "[09:30] 'market's moving sideways ideally i take my [trades] during' [09:45] 'the first hour [of] market [open]'; [12:45] 'it's too late in the day'"},
+    {"value": "Follow the same step-by-step process every time", "src": "heard", "ref": "[11:45]-[12:00] 'step by step process ... every single time'"},
+    {"value": "Thu 29 Feb, no trade: he waited until 10am (news), was busy most of the day, and the later long idea (NQ ~18045.75 around 13:30-13:45) needed a 50-pt stop or else got stopped out, so he passed", "src": "inferred", "ref": "heard [05:30] 'wait until ten am', [07:00] 'really busy much of the day', [12:30]-[12:45] 'didn't want to take that trade ... too late in the day'; seen #23 07m09s hypothetical long box 'Stop: 50.00 (0.28%)', R:R 1, and #24 07m25s 'Stop: 17.75 ... Closed P&L: -17.75, Risk/Reward Ratio: 2.82' (entry label 18045.75)"}
+  ],
+  "quality_notes": "One trade, reconstructed after the fact with TradingView's position tool; no fills, broker panel or $ P&L. He moved the tool during the recap (stop briefly 17950; target later dragged to 17892.25 and 17855.75), so 17905.75 is the stated exit only because it is the first configuration he presented and discussed. Chart timezone is not shown and ET is inferred. The 4h/1h reasoning for 28 Feb is heard only (those charts weren't captured). The transcript is badly garbled throughout, especially 03:15-05:15 (stop/target reasoning) and 07:15-08:15. The 29 Feb hypothetical long and the ES charts at 07:42-13:15 are analysis, not trades."
+}

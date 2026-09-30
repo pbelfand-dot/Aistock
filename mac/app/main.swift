@@ -7,6 +7,7 @@
 //
 // First launch (or after an update that needs new libraries): the Setup menu opens in Terminal to
 // install Python and the bot's libraries, and this window waits until that's done.
+// Updates: the app updates itself from its download page (updater.swift).
 import Cocoa
 import WebKit
 
@@ -79,6 +80,9 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
     var demoItem: NSMenuItem!
     var demo = false
     var waiting: Timer?
+    var autoUpdateItem: NSMenuItem!
+    var updateTimer: Timer?
+    var updating = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         buildMenus()
@@ -101,6 +105,7 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
             DispatchQueue.main.asyncAfter(deadline: .now() + 300) { print("SELF-TEST FAILED: timed out"); exit(1) }
         } else {
             installOrUpdate()
+            startUpdateChecks()
         }
         if botIsReady() {
             loadDashboard()
@@ -209,6 +214,11 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
         let app = NSMenu(title: "AI Trader")
         app.addItem(withTitle: "About AI Trader",
                     action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        app.addItem(withTitle: "Check for Updates…", action: #selector(checkForUpdatesNow), keyEquivalent: "").target = self
+        autoUpdateItem = app.addItem(withTitle: "Update Automatically (asks first when real money is on)",
+                                     action: #selector(toggleAutomaticUpdates), keyEquivalent: "")
+        autoUpdateItem.target = self
+        autoUpdateItem.state = updatesAutomatically ? .on : .off
         app.addItem(.separator())
         app.addItem(withTitle: "Setup Menu (keys, plans, autopilot)…",
                     action: #selector(openSetupMenu), keyEquivalent: ",").target = self
@@ -246,6 +256,10 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
         NSApp.mainMenu = main
         NSApp.windowsMenu = windowMenu
     }
+}
+
+if CommandLine.arguments.contains("--update-test") {      // the build machine's check (updater.swift)
+    exit(runUpdateTest())
 }
 
 let application = NSApplication.shared
