@@ -18,6 +18,7 @@ SETTINGS = {
     "scan_all_stocks": (("scanner", "enabled"), ("on", "off"), "Scan all US stocks every day"),
     "read_news": (("news", "enabled"), ("on", "off"), "Let Kestrel read the news"),
     "phone_screen": (("phone", "screen"), ("on", "off"), "Kestrel screen on your phone (Tailscale)"),
+    "lid_closed": (("mac", "lid_closed"), ("on", "off"), "Keep trading with the lid closed (plugged in)"),
 }
 
 

@@ -27,6 +27,8 @@ directly, like any Mac app runs a helper program.
   save-phone < {"token": ..}                 your phone: a private Telegram bot for alerts and commands (phone.py)
   phone-test                                 sends your phone a test message
   phone-screen-send                          sends your phone the link to the Kestrel screen (Tailscale)
+  lid-mode-on / lid-mode-off                 keep trading with the lid closed while plugged in (asks for the
+                                             Mac password once; see lid_mode.py)
 
 --demo works on the demo folder (data/demo) instead of your real data.
 """
@@ -362,7 +364,15 @@ def setup_status(cfg, store) -> dict:
             else "simulated on this Mac", "autopilot_on": service["on"], "autopilot_alive": service["running"],
             "autopilot_problem": autopilot_problem(store),
             "autopilot_seen": store.get("autopilot_heartbeat"), "can_autopilot": sys.platform == "darwin",
-            "desks": desks, "stage1": stage1, "phone": phone_status(cfg)}
+            "desks": desks, "stage1": stage1, "phone": phone_status(cfg), "lid": lid_status()}
+
+
+def lid_status() -> dict:
+    from . import lid_mode
+    try:
+        return lid_mode.status()
+    except Exception:
+        return {"can": False, "on": False}
 
 
 def webull_status(cfg) -> dict:
@@ -437,6 +447,9 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         return phone_test(cfg)
     if action == "phone-screen-send":
         return phone_screen_send(cfg)
+    if action in ("lid-mode-on", "lid-mode-off"):
+        from . import lid_mode
+        return lid_mode.turn_on() if action == "lid-mode-on" else lid_mode.turn_off()
     if action in ("autopilot-on", "autopilot-off"):
         from . import mac_service
         from .config import ROOT
@@ -445,8 +458,11 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         if action == "autopilot-on":
             mac_service.install(ROOT)
             return {"message": "Autopilot is ON: it runs in the background, starts when you log in and "
-                               "restarts itself. Keep the Mac plugged in and awake during market hours."}
+                               "restarts itself. Keep the Mac plugged in; to close the lid, turn on lid-closed mode "
+                               "just below."}
         mac_service.uninstall()
+        from . import lid_mode
+        lid_mode.release_if_on()                         # nothing manages the lid-closed lock without it
         return {"message": "Autopilot is OFF. Nothing new happens until you turn it back on."}
     if demo:
         cfg = demo_config(cfg)
@@ -500,7 +516,8 @@ def main(argv=None) -> int:
         "snapshot", "pause", "kill", "demo-build", "update-policy", "setup-status", "save-keys", "check-keys",
         "autopilot-on", "autopilot-off", "resume", "save-settings", "save-live-keys", "save-schwab-keys",
         "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude", "start-stage1",
-        "save-phone", "phone-test", "phone-screen-send", "save-webull-keys", "check-webull"])
+        "save-phone", "phone-test", "phone-screen-send", "save-webull-keys", "check-webull", "lid-mode-on",
+        "lid-mode-off"])
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)

@@ -189,10 +189,23 @@ messages are in `data/app.log`.
 
 ### Keep the Mac awake
 The bot only works while the Mac is **awake, online and plugged in**. The background autopilot
-already stops *idle* sleep, but **closing the lid still puts a MacBook to sleep**. So:
-- keep the lid **open** and the charger in, **or**
-- use clamshell mode (lid closed with an external monitor and power), **or**
-- use the free app **Amphetamine** with its closed-display option.
+already stops *idle* sleep, but **closing the lid puts a MacBook to sleep** unless you turn on:
+
+**Setup → 2. Autopilot → Keep trading with the lid closed.** It asks for your Mac password once.
+- **Plugged in:** the Mac stays awake with the lid closed, day and night. The autopilot keeps
+  trading. A closed, idle MacBook uses a few watts.
+- **On battery:** the Mac sleeps as usual. If the lid is closed, Kestrel puts it to sleep right away,
+  so it never runs hot in a bag.
+- **Backup:** it also sets a weekday 8:30am (New York time) wake-up in case the Mac fell asleep.
+  Wake-ups with the lid closed aren't guaranteed, so plugged in and awake is the dependable setup.
+- **What the password is for:** it adds one rule, `/etc/sudoers.d/kestrel-lid`, checked by `visudo`
+  first. The rule lets Kestrel run exactly `pmset -a disablesleep 1`, `pmset -a disablesleep 0` and
+  `pmset repeat cancel`, nothing else.
+- **Sleeping it yourself:** while it's on and plugged in, Apple menu → Sleep does nothing. Turn it off
+  first. Turning it off (or turning the autopilot off) lets the Mac sleep normally again.
+
+Other ways: keep the lid **open** with the charger in, or use clamshell mode (lid closed with an
+external monitor and power).
 
 On a MacBook also check **System Settings → Battery → Options → "Prevent automatic sleeping on
 power adapter when the display is off"**.

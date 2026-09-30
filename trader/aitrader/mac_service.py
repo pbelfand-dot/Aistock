@@ -5,7 +5,7 @@ Uses launchd, the Mac's built-in service manager:
   * starts the autopilot when you log in
   * restarts it if it ever crashes
   * the autopilot holds a `caffeinate -i` while it runs, so the Mac doesn't idle-sleep while it
-    works (closing the LID still sleeps a MacBook; see the README)
+    works (closing the LID still sleeps a MacBook, unless lid-closed mode is on: lid_mode.py)
 Its output goes to data/autopilot.log.
 """
 import os
