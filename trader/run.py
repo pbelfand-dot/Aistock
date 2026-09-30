@@ -465,6 +465,13 @@ def run_job(job, cfg, store, data, now, done) -> str:
         warning = schwab_login_warning(cfg)
         if warning:
             store.log(f"WARNING: {warning}")
+        try:                                            # keeps an approved Webull login from lapsing (15 idle days)
+            from aitrader.webull_api import keep_alive
+            warning = keep_alive(cfg)
+        except Exception as e:                          # never let Webull stop the day
+            warning = f"Webull: couldn't check the connection ({e})."
+        if warning:
+            store.log(f"WARNING: {warning}")
         first_scan(cfg, store, today)
         return ""
     if job == "day":

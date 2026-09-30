@@ -20,6 +20,8 @@ directly, like any Mac app runs a helper program.
   save-schwab-keys < {"app_key", ...}        Schwab app key/secret, callback address, account number
   schwab-login-start / schwab-login-finish   log in to Schwab: open the page, then paste the address you land on
   check-schwab                               tests the Schwab login (read-only)
+  save-webull-keys < {"app_key", ...}        Webull App Key/Secret and (optional) account ID
+  check-webull < {"poll": bool}              tests Webull (read-only); asks for the in-app approval if needed
   connect-claude < {"which": "code"|"desktop"}  lets Claude see the bot (and Schwab, read-only)
   start-stage1                               Stage 1: the swing desk paper trades momentum now (pretend money)
   save-phone < {"token": ..}                 your phone: a private Telegram bot for alerts and commands (phone.py)
@@ -73,7 +75,8 @@ def real_money_status(cfg, store) -> dict:
 # ---------------------------------------------------------------- the Setup screen
 PAPER_KEYS = ("ALPACA_PAPER_API_KEY", "ALPACA_PAPER_SECRET_KEY")
 STDIN_ACTIONS = {"save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
-                 "connect-claude", "save-phone"}                     # these read their details from stdin (never argv)
+                 "connect-claude", "save-phone", "save-webull-keys",
+                 "check-webull"}                                    # these read their details from stdin (never argv)
 
 NEXT_STEP = {
     "STUDY": "Studying: the bot watches the market and grades its strategies with no money involved. "
@@ -112,6 +115,7 @@ def write_env(path, updates: dict):
 
 LIVE_KEYS = ("ALPACA_LIVE_API_KEY", "ALPACA_LIVE_SECRET_KEY")
 SCHWAB_KEYS = ("SCHWAB_APP_KEY", "SCHWAB_APP_SECRET", "SCHWAB_CALLBACK_URL", "SCHWAB_ACCOUNT_NUMBER")
+WEBULL_KEYS = ("WEBULL_APP_KEY", "WEBULL_APP_SECRET", "WEBULL_ACCOUNT_ID")
 
 
 def _key(value, what: str, pattern=r"[A-Za-z0-9]{10,64}") -> str:
@@ -145,6 +149,42 @@ def save_schwab_keys(payload: dict) -> dict:
     write_env(env_file(), dict(zip(SCHWAB_KEYS, (app_key, secret, callback, account))))
     restart_autopilot()
     return {"message": "Schwab keys saved on this Mac only. Next: Open Schwab login."}
+
+
+def save_webull_keys(cfg, payload: dict) -> dict:
+    """Saves the Webull keys. Webull only lets Kestrel read the account once you approve it in the
+    Webull app (Test Webull asks for that). Nothing trades at Webull."""
+    from . import webull_api
+    app_key = _key(payload.get("app_key"), "Webull App Key", r"[A-Za-z0-9_+/=.-]{8,256}")
+    secret = _key(payload.get("app_secret"), "Webull App Secret", r"[A-Za-z0-9_+/=.-]{8,256}")
+    account = str(payload.get("account_id") or "").strip()
+    if account and not re.fullmatch(r"[A-Za-z0-9-]{4,40}", account):
+        raise ValueError("The account ID is letters and numbers (leave it empty if you have one Webull account).")
+    if app_key != cfg["secrets"].get("webull_app_key"):
+        webull_api.forget_token(cfg)                     # an approval belongs to the old key
+    write_env(env_file(), dict(zip(WEBULL_KEYS, (app_key, secret, account))))
+    for name, value in zip(("webull_app_key", "webull_app_secret", "webull_account_id"), (app_key, secret, account)):
+        cfg["secrets"][name] = value
+    restart_autopilot()
+    return {"message": "Webull keys saved on this Mac only. Next: Test Webull, then approve Kestrel in the Webull app."}
+
+
+def check_webull(cfg, payload: dict) -> dict:
+    """Read-only. poll=True (the Setup screen waiting for your approval) never asks for a new approval."""
+    from . import webull_api
+    if (payload or {}).get("poll"):
+        if not webull_api.has_keys(cfg):
+            return {"ok": False, "waiting": False, "text": "Webull: no keys yet."}
+        try:
+            status = webull_api.token_state(cfg, create=False).get("status")
+        except webull_api.WebullError as e:
+            return {"ok": False, "waiting": True, "text": f"Webull: {e}"}          # keep waiting: maybe offline
+        if status == "PENDING":
+            return {"ok": False, "waiting": True, "text": "Webull: waiting for your approval. " + webull_api.APPROVE}
+        if status != "NORMAL":
+            return {"ok": False, "waiting": False, "text": "Webull: the approval timed out (Webull allows 5 minutes). "
+                                                           "Press Test Webull to get a new one."}
+    return webull_api.connect(cfg)
 
 
 def save_phone(cfg, payload: dict) -> dict:
@@ -309,12 +349,19 @@ def setup_status(cfg, store) -> dict:
             "schwab": {"keys": bool(secrets["app_key"] and secrets["app_secret"]),
                        "days_left": token_days_left(cfg), "callback_url": secrets["callback_url"],
                        "account_number": bool(secrets["account_number"])},
+            "webull": webull_status(cfg),
             "gfv": gfv_status(cfg, store),
             "prices_from": data_source(cfg), "paper_at": "Alpaca paper account" if uses_broker_paper(cfg)
             else "simulated on this Mac", "autopilot_on": service["on"], "autopilot_alive": service["running"],
             "autopilot_problem": autopilot_problem(store),
             "autopilot_seen": store.get("autopilot_heartbeat"), "can_autopilot": sys.platform == "darwin",
             "desks": desks, "stage1": stage1, "phone": phone_status(cfg)}
+
+
+def webull_status(cfg) -> dict:
+    from . import webull_api
+    return {"keys": webull_api.has_keys(cfg), "account_id": bool(cfg["secrets"].get("webull_account_id")),
+            "approval": webull_api.load_token(cfg).get("status")}
 
 
 def phone_status(cfg) -> dict:
@@ -371,6 +418,10 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         return {"message": f"Logged in to Schwab. The login lasts {left:.0f} days; log in again before then."}
     if action == "check-schwab":
         return check_schwab(cfg)
+    if action == "save-webull-keys":
+        return save_webull_keys(cfg, payload or {})
+    if action == "check-webull":
+        return check_webull(cfg, payload or {})
     if action == "connect-claude":
         return connect_claude(str((payload or {}).get("which", "")))
     if action == "save-phone":
@@ -442,7 +493,7 @@ def main(argv=None) -> int:
         "snapshot", "pause", "kill", "demo-build", "update-policy", "setup-status", "save-keys", "check-keys",
         "autopilot-on", "autopilot-off", "resume", "save-settings", "save-live-keys", "save-schwab-keys",
         "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude", "start-stage1",
-        "save-phone", "phone-test", "phone-screen-send"])
+        "save-phone", "phone-test", "phone-screen-send", "save-webull-keys", "check-webull"])
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)
