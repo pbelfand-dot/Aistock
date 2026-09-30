@@ -48,7 +48,8 @@ code changes.
 - **View → Show Demo Data** shows it with made-up prices right away.
 - **Setup** (the button) connects Alpaca, switches the autopilot and says what's next.
 - **Webull** (Setup → "Real money, Schwab, Webull and Claude"): paste the App Key and App Secret
-  from Webull's API Management page once Webull approves your application. Press **Test Webull**,
+  from Webull's API Management page once Webull approves your application, and pick **Paper** for
+  Webull test-environment keys or **Real money** (Test Webull switches it if you pick wrong). Press **Test Webull**,
   then approve Kestrel in the Webull app within 5 minutes. For now Kestrel only reads the account;
   it doesn't trade at Webull.
 - **Kestrel → Setup Menu** (⌘,) opens the full Terminal menu (plans, real money, Schwab).

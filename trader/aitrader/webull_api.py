@@ -10,6 +10,10 @@ Webull's OpenAPI needs three things:
                         -> Check Now). It stays good as long as it's used at least every 15 days, so the
                         autopilot uses it once each morning.
 
+Paper vs real money: Webull's test ("paper") keys only work on its test server (api.sandbox.webull.com),
+and real-money keys only on api.webull.com. WEBULL_ENVIRONMENT says which (paper / live); if the keys
+belong to the other one, the connection test finds out and switches.
+
 Every request is signed with the App Secret (HMAC-SHA256) exactly the way Webull's own Python SDK
 (webull-openapi-python-sdk) signs it, so Kestrel doesn't need that package and its many dependencies.
 """
@@ -26,7 +30,9 @@ from urllib.parse import quote, urlencode
 
 from .config import data_path
 
-HOST = "api.webull.com"                             # Webull US
+HOSTS = {"live": "api.webull.com",                  # Webull US, real money
+         "paper": "api.sandbox.webull.com"}         # Webull US test environment ("paper")
+NAMES = {"live": "real money", "paper": "paper"}
 TOKEN_FILE = "webull_token.json"
 APPROVE = ("Approve Kestrel in the Webull app within 5 minutes: open Webull on your phone → Menu → Messages → "
            "OpenAPI Notifications → tap the newest message → Check Now → enter the text-message code. "
@@ -35,7 +41,15 @@ CASH_FIELDS = ("total_cash_balance", "cash_balance", "settled_cash", "total_cash
 
 
 class WebullError(RuntimeError):
-    pass
+    def __init__(self, text: str, status: int = None):
+        super().__init__(text)
+        self.status = status
+
+    @property
+    def keys_refused(self) -> bool:
+        """Webull didn't accept these keys (as opposed to being offline, or another problem)."""
+        text = str(self).lower()
+        return self.status in (401, 403) or any(w in text for w in ("credential", "app key", "appkey", "app_key"))
 
 
 def has_keys(cfg) -> bool:
@@ -43,8 +57,13 @@ def has_keys(cfg) -> bool:
     return bool(s.get("webull_app_key") and s.get("webull_app_secret"))
 
 
+def environment(cfg) -> str:
+    env = str(cfg["secrets"].get("webull_env") or "").strip().lower()
+    return env if env in HOSTS else "live"
+
+
 def signed_headers(app_key: str, app_secret: str, path: str, query: dict = None, body: dict = None,
-                   host: str = HOST, now: datetime = None, nonce: str = None) -> dict:
+                   host: str = HOSTS["live"], now: datetime = None, nonce: str = None) -> dict:
     """The x-* headers Webull checks: the same string-to-sign and HMAC-SHA256 as Webull's SDK."""
     headers = {"x-app-key": app_key,
                "x-timestamp": (now or datetime.now(timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -67,10 +86,12 @@ def _compact(body: dict) -> str:
     return json.dumps(body, ensure_ascii=False, separators=(",", ":"))
 
 
-def call(cfg, method: str, path: str, query: dict = None, body: dict = None, token: str = None, wait: float = 20):
+def call(cfg, method: str, path: str, query: dict = None, body: dict = None, token: str = None, wait: float = 20,
+         env: str = None):
     """One signed request to Webull; the answer as JSON. Raises WebullError with Webull's own message."""
     s = cfg["secrets"]
-    headers = signed_headers(s["webull_app_key"], s["webull_app_secret"], path, query, body)
+    host = HOSTS[env or environment(cfg)]
+    headers = signed_headers(s["webull_app_key"], s["webull_app_secret"], path, query, body, host=host)
     headers.update({"x-version": "v3", "x-webull-client-source": "sdk", "Accept": "application/json",
                     "User-Agent": "Kestrel (python)"})
     data = None
@@ -79,7 +100,7 @@ def call(cfg, method: str, path: str, query: dict = None, body: dict = None, tok
         headers["Content-Type"] = "application/json"
     if token:
         headers["x-access-token"] = token
-    url = f"https://{HOST}{path}" + (f"?{urlencode(query)}" if query else "")
+    url = f"https://{host}{path}" + (f"?{urlencode(query)}" if query else "")
     request = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
         with urllib.request.urlopen(request, timeout=wait) as resp:
@@ -90,7 +111,7 @@ def call(cfg, method: str, path: str, query: dict = None, body: dict = None, tok
         except ValueError:
             info = {}
         why = info.get("message") or info.get("error_code") or e.reason
-        raise WebullError(f"{why} (HTTP {e.code})") from None
+        raise WebullError(f"{why} (HTTP {e.code})", e.code) from None
     except urllib.error.URLError as e:
         raise WebullError(f"couldn't reach Webull ({e.reason}). Is the Mac online?") from None
     return json.loads(raw) if raw else {}
@@ -98,17 +119,19 @@ def call(cfg, method: str, path: str, query: dict = None, body: dict = None, tok
 
 # ---------------------------------------------------------------- the access token (owner-only file in data/)
 def load_token(cfg) -> dict:
+    """The saved approval for the current environment (a paper approval doesn't count for real money)."""
     path = data_path(cfg, TOKEN_FILE)
     try:
-        return json.loads(path.read_text()) if path.exists() else {}
+        saved = json.loads(path.read_text()) if path.exists() else {}
     except ValueError:
         return {}
+    return saved if saved.get("env", "live") == environment(cfg) else {}
 
 
 def save_token(cfg, state: dict):
     path = data_path(cfg, TOKEN_FILE)
     tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(json.dumps({k: state.get(k) for k in ("token", "expires", "status")}))
+    tmp.write_text(json.dumps({**{k: state.get(k) for k in ("token", "expires", "status")}, "env": environment(cfg)}))
     os.chmod(tmp, 0o600)
     tmp.replace(path)
 
@@ -187,14 +210,49 @@ def pick_account(cfg, found: list) -> dict:
     raise WebullError(f"account {wanted} isn't one of this key's accounts ({names}). Fix or clear the account number.")
 
 
+def use_environment(cfg, env: str):
+    """Remembers paper / live in .env (the keys belong to that server)."""
+    from .app_api import env_file, write_env
+    write_env(env_file(), {"WEBULL_ENVIRONMENT": env})
+    os.environ["WEBULL_ENVIRONMENT"] = env
+    cfg["secrets"]["webull_env"] = env
+
+
 def connect(cfg) -> dict:
-    """The read-only connection test: {"ok", "waiting", "text"}. Never trades."""
+    """The read-only connection test: {"ok", "waiting", "text"} (+ "switched_to"). Never trades.
+    If Webull refuses the keys, tries its other server once: paper keys pasted as real money (or the
+    reverse) then just work, and Kestrel remembers which they are."""
     if not has_keys(cfg):
         return {"ok": False, "waiting": False, "text": "Webull: no keys yet."}
+    first = environment(cfg)
+    try:
+        call(cfg, "GET", "/openapi/config")             # does this server know these keys?
+        return _connect(cfg)
+    except WebullError as e:
+        if not e.keys_refused:
+            return {"ok": False, "waiting": False, "text": f"Webull ({NAMES[first]}): {e}"}
+        refused = e
+    other = "paper" if first == "live" else "live"
+    try:
+        call(cfg, "GET", "/openapi/config", env=other)
+    except WebullError:
+        return {"ok": False, "waiting": False, "text": (
+            f"Webull said: {refused}. Its paper and real-money servers both refused these keys. Check that "
+            "(1) the App Key and App Secret aren't swapped and were copied whole, (2) Webull approved your API "
+            "application, and (3) they're the newest pair: generating keys again replaces the old ones.")}
+    use_environment(cfg, other)
+    result = _connect(cfg)
+    result["switched_to"] = other
+    result["text"] = f"These are {NAMES[other]} keys, so Kestrel uses Webull's {NAMES[other]} server. " + result["text"]
+    return result
+
+
+def _connect(cfg) -> dict:
+    name = NAMES[environment(cfg)]
     try:
         state = token_state(cfg)
         if state.get("status") != "NORMAL":
-            return {"ok": False, "waiting": True, "text": "Webull: keys accepted. " + APPROVE}
+            return {"ok": False, "waiting": True, "text": f"Webull ({name}): keys accepted. " + APPROVE}
         found = accounts(cfg, state["token"])
         account = pick_account(cfg, found)
         label = "..." + str(account.get("account_number") or account["account_id"])[-4:]
@@ -206,12 +264,12 @@ def connect(cfg) -> dict:
         except WebullError:
             pass
         return {"ok": True, "waiting": False,
-                "text": f"Webull: connected (read-only). Account {label}" + (f" ({kind})" if kind else "")
+                "text": f"Webull ({name}): connected (read-only). Account {label}" + (f" ({kind})" if kind else "")
                         + (f", cash ${cash:,.2f}" if cash is not None else "")
                         + (f"; {len(found)} accounts on this key" if len(found) > 1 else "")
                         + ". Kestrel doesn't trade at Webull yet."}
     except WebullError as e:
-        return {"ok": False, "waiting": False, "text": f"Webull: {e}"}
+        return {"ok": False, "waiting": False, "text": f"Webull ({name}): {e}"}
 
 
 def keep_alive(cfg) -> str:

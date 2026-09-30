@@ -115,7 +115,7 @@ def write_env(path, updates: dict):
 
 LIVE_KEYS = ("ALPACA_LIVE_API_KEY", "ALPACA_LIVE_SECRET_KEY")
 SCHWAB_KEYS = ("SCHWAB_APP_KEY", "SCHWAB_APP_SECRET", "SCHWAB_CALLBACK_URL", "SCHWAB_ACCOUNT_NUMBER")
-WEBULL_KEYS = ("WEBULL_APP_KEY", "WEBULL_APP_SECRET", "WEBULL_ACCOUNT_ID")
+WEBULL_KEYS = ("WEBULL_APP_KEY", "WEBULL_APP_SECRET", "WEBULL_ACCOUNT_ID", "WEBULL_ENVIRONMENT")
 
 
 def _key(value, what: str, pattern=r"[A-Za-z0-9]{10,64}") -> str:
@@ -160,10 +160,14 @@ def save_webull_keys(cfg, payload: dict) -> dict:
     account = str(payload.get("account_id") or "").strip()
     if account and not re.fullmatch(r"[A-Za-z0-9-]{4,40}", account):
         raise ValueError("The account ID is letters and numbers (leave it empty if you have one Webull account).")
+    env = str(payload.get("environment") or "paper").strip().lower()
+    if env not in webull_api.HOSTS:
+        raise ValueError("Pick Paper or Real money for the Webull keys.")
     if app_key != cfg["secrets"].get("webull_app_key"):
         webull_api.forget_token(cfg)                     # an approval belongs to the old key
-    write_env(env_file(), dict(zip(WEBULL_KEYS, (app_key, secret, account))))
-    for name, value in zip(("webull_app_key", "webull_app_secret", "webull_account_id"), (app_key, secret, account)):
+    values = (app_key, secret, account, env)
+    write_env(env_file(), dict(zip(WEBULL_KEYS, values)))
+    for name, value in zip(("webull_app_key", "webull_app_secret", "webull_account_id", "webull_env"), values):
         cfg["secrets"][name] = value
     restart_autopilot()
     return {"message": "Webull keys saved on this Mac only. Next: Test Webull, then approve Kestrel in the Webull app."}
@@ -184,7 +188,10 @@ def check_webull(cfg, payload: dict) -> dict:
         if status != "NORMAL":
             return {"ok": False, "waiting": False, "text": "Webull: the approval timed out (Webull allows 5 minutes). "
                                                            "Press Test Webull to get a new one."}
-    return webull_api.connect(cfg)
+    result = webull_api.connect(cfg)
+    if result.get("switched_to"):
+        restart_autopilot()                              # so the autopilot uses the right Webull server too
+    return result
 
 
 def save_phone(cfg, payload: dict) -> dict:
@@ -361,7 +368,7 @@ def setup_status(cfg, store) -> dict:
 def webull_status(cfg) -> dict:
     from . import webull_api
     return {"keys": webull_api.has_keys(cfg), "account_id": bool(cfg["secrets"].get("webull_account_id")),
-            "approval": webull_api.load_token(cfg).get("status")}
+            "environment": webull_api.environment(cfg), "approval": webull_api.load_token(cfg).get("status")}
 
 
 def phone_status(cfg) -> dict:
