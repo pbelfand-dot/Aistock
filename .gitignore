@@ -18,3 +18,6 @@ frontend/dist/
 trader/data/
 .pytest_cache/
 /dist/
+
+# TJR research: raw transcripts and frames are the video owner's content
+research/tjr/raw/

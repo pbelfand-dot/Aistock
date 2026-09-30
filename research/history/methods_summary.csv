@@ -1,0 +1,24 @@
+method,kind,final_$,per_year_%,worst_drop_%,sharpe,2011-17_per_year_%,2018-26_per_year_%,2018-26_sharpe,turnover_x_per_year,years_beat_SPY
+Hold SPY (benchmark),fund,7906,14.0,33.7,0.86,13.5,14.4,0.81,0.0,0
+Hold QQQ (Nasdaq 100),fund,15207,18.9,35.1,0.94,17.2,20.0,0.89,0.0,13
+Hold RSP (equal-weight S&P 500),fund,5662,11.6,39.0,0.71,13.0,10.5,0.62,0.0,6
+"SPY trend, daily 200-day rule",fund,4180,9.5,21.7,0.83,9.4,9.5,0.78,9.4,6
+"QQQ trend, daily 200-day rule",fund,6363,12.5,27.0,0.81,8.7,15.4,0.9,8.3,8
+"SPY trend, monthly 10-month rule",fund,3419,8.1,27.7,0.68,9.7,6.8,0.57,3.5,5
+Dual momentum (SPY / world / bonds),fund,2571,6.2,39.1,0.46,7.5,5.1,0.37,4.2,4
+"Sector rotation, top 3",fund,5916,12.0,29.7,0.76,11.7,12.1,0.7,6.7,6
+"Sector rotation, top 3 + trend filter",fund,3013,7.3,24.0,0.59,8.5,6.2,0.5,8.7,4
+SPY dip-buying (RSI 2),fund,1566,2.9,15.0,0.46,2.6,3.2,0.5,35.4,2
+"Fund momentum, top 3 of all funds",fund,5994,12.1,43.1,0.54,2.0,20.5,0.73,8.7,5
+"Fund momentum, top 3 + trend filter",fund,5478,11.4,40.2,0.55,8.3,13.7,0.6,10.5,5
+"All stocks in the list, equal weight (survivor yardstick)",stocks,12818,17.6,38.6,0.99,19.4,16.0,0.84,0.7,13
+"Stock momentum, top 10",stocks,210666,40.5,44.2,1.22,32.4,46.8,1.21,7.4,15
+"Stock momentum, top 20",stocks,101663,34.1,40.6,1.2,24.4,42.2,1.26,7.3,15
+"Stock momentum, top 10 + trend filter",stocks,61690,29.9,33.4,1.08,35.1,25.5,0.88,9.5,10
+"Stock momentum, top 10, without the 10 biggest winners",stocks,86761,32.8,44.0,1.07,23.6,40.2,1.11,7.3,12
+"Stock momentum, top 10, without the 25 biggest winners",stocks,99132,33.9,40.6,1.13,23.7,42.4,1.19,7.6,13
+"Low-volatility stocks, 20",stocks,5439,11.4,33.1,0.87,14.7,8.9,0.64,4.7,5
+"Bot trend rule, its watchlist",fund+stocks,1274,1.6,15.5,0.27,2.6,0.7,0.14,14.6,2
+"Bot dip rule, its watchlist",fund+stocks,1119,0.7,11.9,0.21,1.9,-0.2,-0.03,15.1,3
+"Bot trend rule, all stocks",stocks,36760,25.7,33.2,1.0,25.5,25.7,0.9,15.8,12
+"Bot dip rule, all stocks",stocks,5289,11.2,41.6,0.69,12.5,9.9,0.58,104.7,6
