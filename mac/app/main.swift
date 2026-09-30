@@ -16,7 +16,9 @@ let appHome = URL(fileURLWithPath: env["AITRADER_HOME"] ?? NSHomeDirectory() + "
 let python = URL(fileURLWithPath: env["AITRADER_PYTHON"] ?? appHome.path + "/.venv/bin/python")
 let selfTest = CommandLine.arguments.contains("--self-test")      // the build machine's check
 let bridgeActions: Set<String> = ["snapshot", "pause", "kill", "demo-build", "setup-status", "save-keys",
-                                   "check-keys", "autopilot-on", "autopilot-off", "resume"]
+                                   "check-keys", "autopilot-on", "autopilot-off", "resume", "save-settings",
+                                   "save-live-keys", "save-schwab-keys", "schwab-login-start", "schwab-login-finish",
+                                   "check-schwab", "connect-claude"]
 
 /// Python and the bot's libraries are installed, and match this version of the app.
 func botIsReady() -> Bool {
@@ -155,6 +157,14 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
         if action == "open-menu" { openSetupMenu(); replyHandler("{}", nil); return }
         if action == "app-version" { replyHandler("{\"version\": \"\(currentVersion())\"}", nil); return }
         if action == "check-updates" { checkForUpdates(userAsked: true); replyHandler("{}", nil); return }
+        if action == "open-url" {                        // e.g. the Schwab login page, in your browser
+            guard let text = body["url"] as? String, let url = URL(string: text), url.scheme == "https" else {
+                replyHandler(nil, "not a web address"); return
+            }
+            NSWorkspace.shared.open(url)
+            replyHandler("{}", nil)
+            return
+        }
         guard bridgeActions.contains(action) else { replyHandler(nil, "unknown action"); return }
         var args = [action]
         if body["demo"] as? Bool == true { args.append("--demo") }

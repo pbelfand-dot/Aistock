@@ -11,6 +11,7 @@ pytest.importorskip("schwab")
 pytest.importorskip("alpaca")
 
 from aitrader.brokers import Order
+from aitrader.brokers.base import Fill
 from aitrader.brokers.live import UNKNOWN_ID
 from fakes import HASH, FakeResp, FakeSchwab, make_broker, make_client
 
@@ -334,3 +335,27 @@ def test_paper_phase_trades_inside_the_alpaca_paper_account(cfg, tmp_path, monke
     assert broker.ledger.cash == 5000                                       # swing desk's half of the paper money
     cfg["paper"]["use_broker_paper"] = False
     assert not isinstance(run.open_broker(cfg, Store(tmp_path / "u.sqlite"), "swing", Phase.PAPER), AlpacaBroker)
+
+
+# ---------------------------------------------------------------- good faith violations (cash accounts)
+def test_real_money_cash_account_never_rebuys_with_unsettled_sale_money(kind):
+    client = make_client(kind, cash=1000.0)
+    broker = broker_for(client, cash=100, cash_account=True, stop_loss_pct=None)
+    assert broker.submit(Order("KO", "BUY", 9, 10.0, "buy"), "2026-10-09")            # settled money
+    assert broker.submit(Order("KO", "SELL", 9, 10.0, "sell"), "2026-10-09")
+    buys_before = len([o for o in client.placed("LIMIT") if o["side"] == "BUY"])
+    assert broker.submit(Order("PEP", "BUY", 9, 10.0, "buy"), "2026-10-12") is None   # Columbus Day: not settled
+    assert len([o for o in client.placed("LIMIT") if o["side"] == "BUY"]) == buys_before
+    assert broker.submit(Order("PEP", "BUY", 9, 10.0, "buy"), "2026-10-13")            # settled
+
+
+def test_real_money_sale_that_would_be_a_violation_waits_for_settlement(kind):
+    notes = []
+    client = make_client(kind, cash=1000.0)
+    broker = broker_for(client, cash=0, cash_account=True, stop_loss_pct=None, log=notes.append)
+    broker.ledger.cash, broker.ledger.unsettled = 100.0, {"2026-10-01": 100.0}
+    broker._book(Fill("2026-09-30", "KO", "BUY", 5, 10.0, "bought with unsettled money"))
+    client.held["KO"] = 5
+    assert broker.submit(Order("KO", "SELL", 5, 9.0, "stop-loss", urgent=True), "2026-09-30") is None
+    assert not [o for o in client.orders_n() if o["side"] == "SELL"]                  # nothing sent
+    assert any("good faith violation" in n for n in notes)

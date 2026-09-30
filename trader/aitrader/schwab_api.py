@@ -11,6 +11,7 @@ there's no way to extend it. About once a week you MUST run:
 If you forget, the bot can't trade (it fails safe; it does NOT trade blindly).
 """
 import json
+import os
 import time
 
 from .config import data_path
@@ -39,6 +40,51 @@ def login(cfg, manual: bool = False):
     flow(s["app_key"], s["app_secret"], s["callback_url"], str(new_path))
     new_path.replace(token_path)
     print(f"Logged in. Token saved to {token_path}. It expires in {TOKEN_LIFETIME_DAYS} days.")
+
+
+LOGIN_STATE = "schwab_login_pending.json"
+LOGIN_WINDOW_MINUTES = 15
+
+
+def login_start(cfg) -> str:
+    """Step 1 of logging in from the app: the Schwab login page to open in your browser."""
+    import schwab
+    s = _check_secrets(cfg)
+    ctx = schwab.auth.get_auth_context(s["app_key"], s["callback_url"])
+    path = data_path(cfg, LOGIN_STATE)
+    path.write_text(json.dumps({"callback_url": ctx.callback_url, "authorization_url": ctx.authorization_url,
+                                "state": ctx.state, "started": time.time()}))
+    os.chmod(path, 0o600)
+    return ctx.authorization_url
+
+
+def login_finish(cfg, received_url: str) -> float:
+    """Step 2: after you log in, your browser lands on your callback address (the page itself won't load;
+    that's expected). That full address carries a one-time code; this trades it for a 7-day login."""
+    import schwab
+    s = _check_secrets(cfg)
+    path = data_path(cfg, LOGIN_STATE)
+    if not path.exists():
+        raise RuntimeError("Press 'Open Schwab login' first.")
+    saved = json.loads(path.read_text())
+    if time.time() - saved["started"] > LOGIN_WINDOW_MINUTES * 60:
+        path.unlink()
+        raise RuntimeError("That login took too long. Press 'Open Schwab login' again.")
+    received_url = received_url.strip()
+    if not received_url.startswith(saved["callback_url"]) or "code=" not in received_url:
+        raise ValueError(f"Paste the whole address from your browser's address bar after logging in: it starts "
+                         f"with {saved['callback_url']} and contains code=.")
+    ctx = schwab.auth.AuthContext(saved["callback_url"], saved["authorization_url"], saved["state"])
+    token_path, new_path = data_path(cfg, TOKEN_FILE), data_path(cfg, "schwab_token.new.json")
+
+    def write(token, *args, **kwargs):
+        new_path.write_text(json.dumps(token))
+        os.chmod(new_path, 0o600)
+
+    schwab.auth.client_from_received_url(s["app_key"], s["app_secret"], ctx, received_url, write)
+    new_path.replace(token_path)                              # the old login stays until the new one works
+    path.unlink()
+    return token_days_left(cfg)
 
 
 def get_client(cfg):

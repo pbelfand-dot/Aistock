@@ -122,6 +122,17 @@ def broker_account() -> str:
 
 @server.tool()
 @quiet
+def knowledge(topic: str = "") -> str:
+    """The bot's background notes: the owner's plan, the safety rules (incl. good faith violations),
+    what 16 years of history showed, and what TJR's videos taught. Empty topic = the list."""
+    from aitrader import knowledge as notes
+    if not topic:
+        return "Notes: " + ", ".join(notes.topics()) + ". Ask for one by name, or 'all'."
+    return notes.pack() if topic == "all" else notes.read(topic)
+
+
+@server.tool()
+@quiet
 def pause_trading(reason: str) -> str:
     """Pause ALL desks: no new trades until the user resumes in the app menu. Nothing is sold now;
     stop-losses keep protecting open positions, and the day desk still sells before the close

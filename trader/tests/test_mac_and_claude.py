@@ -33,7 +33,8 @@ def test_claude_can_look_and_pause_but_never_trade(config_file):
     import mcp_server
     names = {t.name for t in asyncio.run(mcp_server.server.list_tools())}
     assert names == {"bot_status", "journal", "trading_plan", "positions", "performance", "broker_account",
-                     "pause_trading"}
+                     "pause_trading", "knowledge"}
+    assert "10-safety-rules" in mcp_server.knowledge() and "good faith" in mcp_server.knowledge("10-safety-rules")
     assert "=== KESTREL ===" in mcp_server.bot_status()
     assert "All desks paused" in mcp_server.pause_trading("test")
     assert "PAUSED by Claude" in mcp_server.journal(5)
@@ -127,3 +128,39 @@ def test_connect_claude_code_without_the_cli_prints_commands(config_file, monkey
     monkeypatch.setattr(claude_setup, "CLAUDE_CLI_PLACES", [])
     message = claude_setup.connect_claude_code(Path("/Users/me/AITrader"), run=None, which=lambda name: None)
     assert "claude mcp add --scope user ai-trader --" in message
+
+
+def test_updates_never_touch_your_keys_settings_or_logins(tmp_path):
+    """Your keys (.env), app settings (my_settings.json) and Schwab login (data/) live in ~/AITrader,
+    outside the app. An update replaces the app and the bot's code, never those files, and an older
+    copy of the app never rolls the bot back."""
+    import shutil
+    apps = {}
+    for version in ("1.0.1", "1.0.2"):
+        out = subprocess.run(["bash", str(REPO / "mac" / "build_app.sh"), version], capture_output=True, text=True,
+                             env={**os.environ, "AITRADER_NO_COMPILE": "1"})
+        assert out.returncode == 0, out.stderr
+        apps[version] = tmp_path / version
+        shutil.copytree(REPO / "dist" / "Kestrel.app", apps[version] / "Kestrel.app")
+    subprocess.run(["rm", "-rf", str(REPO / "dist")])
+    home = tmp_path / "home"
+    home.mkdir()
+
+    def open_app(version):                              # what the app does each time it opens
+        script = apps[version] / "Kestrel.app" / "Contents" / "Resources" / "install.sh"
+        subprocess.run(["bash", str(script)], env={**os.environ, "HOME": str(home)}, check=True, capture_output=True)
+
+    bot = home / "AITrader"
+    open_app("1.0.1")
+    (bot / ".env").write_text("ALPACA_PAPER_API_KEY=PKMYKEY123456789\nALPACA_PAPER_SECRET_KEY=" + "s" * 40 + "\n")
+    (bot / "my_settings.json").write_text('{"real_money_cap": 50}')
+    (bot / "data").mkdir(exist_ok=True)
+    (bot / "data" / "schwab_token.json").write_text('{"creation_timestamp": 1, "token": {}}')
+    mine = {p: (bot / p).read_text() for p in (".env", "my_settings.json", "data/schwab_token.json")}
+
+    open_app("1.0.2")                                    # an update
+    assert (bot / "VERSION").read_text().strip() == "1.0.2"
+    assert {p: (bot / p).read_text() for p in mine} == mine
+    open_app("1.0.1")                                    # an older copy of the app opens: no rollback
+    assert (bot / "VERSION").read_text().strip() == "1.0.2"
+    assert {p: (bot / p).read_text() for p in mine} == mine

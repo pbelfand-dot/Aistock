@@ -208,3 +208,89 @@ def test_demo_runs_the_real_code_and_never_touches_your_data(cfg, tmp_path, monk
     paper = ask(monkeypatch, capsys, cfg, "snapshot", "--demo")["accounts"]["paper"]
     assert paper["value"] == paper["cash"]            # sold out: the headline value is just the cash
     assert not (tmp_path / "aitrader.sqlite").exists()
+
+
+# ---------------------------------------------------------------- Setup: real money, Schwab, settings (for later)
+def _stdin(monkeypatch, payload):
+    import io
+    monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps(payload)))
+
+
+def test_settings_you_change_in_the_app_survive_updates_and_bad_values_are_refused(filled, tmp_path, monkeypatch, capsys):
+    from aitrader import app_api, user_settings
+    from aitrader.config import load_config
+    cfg, store = filled
+    monkeypatch.setattr(user_settings, "settings_file", lambda: tmp_path / "my_settings.json")
+    monkeypatch.setattr(app_api, "restart_autopilot", lambda: False)
+    _stdin(monkeypatch, {"broker": "schwab", "real_money_cap": "50", "account_type": "cash"})
+    assert "stay when the app updates" in ask(monkeypatch, capsys, cfg, "save-settings")["message"]
+    fresh = load_config()                                                    # config.yaml + your settings
+    assert fresh["broker"] == "schwab" and fresh["live"]["max_capital"] == 50 and fresh["live"]["account_type"] == "cash"
+
+    _stdin(monkeypatch, {"real_money_cap": "5", "broker": "alpaca"})         # below the $10 floor: nothing saved
+    assert "between" in ask(monkeypatch, capsys, cfg, "save-settings")["error"]
+    assert load_config()["broker"] == "schwab"
+    (tmp_path / "my_settings.json").write_text('{"broker": "robinhood", "real_money_cap": 75}')   # edited by hand
+    fresh = load_config()
+    assert fresh["broker"] == "alpaca" and fresh["live"]["max_capital"] == 75  # the bad one ignored, not half-applied
+
+
+def test_real_money_keys_and_schwab_keys_are_saved_privately(filled, tmp_path, monkeypatch, capsys):
+    from aitrader import app_api
+    cfg, store = filled
+    env = tmp_path / ".env"
+    env.write_text("LIVE_TRADING_ENABLED=false\n")
+    monkeypatch.setattr(app_api, "env_file", lambda: env)
+    monkeypatch.setattr(app_api, "restart_autopilot", lambda: False)
+
+    _stdin(monkeypatch, {"key_id": "PKABCDEFGHIJ123456", "secret": "s" * 40})
+    assert "PAPER key" in ask(monkeypatch, capsys, cfg, "save-live-keys")["error"]
+    _stdin(monkeypatch, {"key_id": "AKABCDEFGHIJ123456", "secret": "s" * 40})
+    assert "Nothing trades real money" in ask(monkeypatch, capsys, cfg, "save-live-keys")["message"]
+    assert "ALPACA_LIVE_API_KEY=AKABCDEFGHIJ123456" in env.read_text()
+    assert "LIVE_TRADING_ENABLED=false" in env.read_text()                   # saving keys never switches it on
+
+    _stdin(monkeypatch, {"app_key": "A" * 32, "app_secret": "B" * 16, "callback_url": "https://127.0.0.1:8182/"})
+    assert "no slash at the end" in ask(monkeypatch, capsys, cfg, "save-schwab-keys")["error"]
+    _stdin(monkeypatch, {"app_key": "A" * 32, "app_secret": "B" * 16, "callback_url": "https://127.0.0.1:8182",
+                         "account_number": "12345678"})
+    assert "Open Schwab login" in ask(monkeypatch, capsys, cfg, "save-schwab-keys")["message"]
+    text = env.read_text()
+    assert f"SCHWAB_APP_KEY={'A' * 32}" in text and "SCHWAB_ACCOUNT_NUMBER=12345678" in text
+    assert env.stat().st_mode & 0o777 == 0o600
+
+
+def test_schwab_login_from_the_app_open_the_page_then_paste_where_you_landed(filled, monkeypatch, capsys):
+    pytest.importorskip("schwab")
+    import schwab
+    cfg, store = filled
+    cfg["secrets"].update(app_key="A" * 32, app_secret="B" * 16, callback_url="https://127.0.0.1:8182")
+    _stdin(monkeypatch, {"url": "https://127.0.0.1:8182/?code=abc"})
+    assert "first" in ask(monkeypatch, capsys, cfg, "schwab-login-finish")["error"]      # step 1 wasn't done
+
+    url = ask(monkeypatch, capsys, cfg, "schwab-login-start")["url"]
+    assert url.startswith("https://api.schwabapi.com/v1/oauth/authorize") and "state=" in url
+    _stdin(monkeypatch, {"url": "https://google.com/?code=abc"})
+    assert "address bar" in ask(monkeypatch, capsys, cfg, "schwab-login-finish")["error"]
+
+    def fake_exchange(api_key, secret, ctx, received, write):              # Schwab's server, pretend
+        assert "code=abc" in received and ctx.callback_url == "https://127.0.0.1:8182"
+        import time
+        write({"creation_timestamp": int(time.time()), "token": {"refresh_token": "r"}})
+    monkeypatch.setattr(schwab.auth, "client_from_received_url", fake_exchange)
+    _stdin(monkeypatch, {"url": "https://127.0.0.1:8182/?code=abc&session=x"})
+    answer = ask(monkeypatch, capsys, cfg, "schwab-login-finish")
+    assert "Logged in to Schwab" in answer.get("message", answer)
+    status = ask(monkeypatch, capsys, cfg, "setup-status")
+    assert 6.9 < status["schwab"]["days_left"] <= 7
+
+
+def test_setup_shows_good_faith_violations_and_cash_rules(filled, monkeypatch, capsys):
+    from aitrader.brokers import Ledger
+    cfg, store = filled
+    cfg["broker"], cfg["live"]["account_type"] = "schwab", "auto"
+    ledger = Ledger(50)
+    ledger.gfv_events = ["2020-01-02", __import__("datetime").date.today().isoformat()]
+    store.set("live-day_ledger", ledger.to_dict())
+    gfv = ask(monkeypatch, capsys, cfg, "setup-status")["gfv"]
+    assert gfv == {"cash_rules": True, "violations": 1, "limit": 3}          # only the last 12 months count

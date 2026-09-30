@@ -4,6 +4,7 @@ recaps.py: turns the Trade Recap videos (a GitHub release, 42 GB) into study fol
     python research/tjr/recaps.py inventory            # list the release's videos -> recaps/inventory.csv
     python research/tjr/recaps.py prepare 1 2 3 4 5    # these inventory numbers: download, pictures, transcript
     python research/tjr/recaps.py table                # rebuild recaps/trades.csv from recaps/records/*.json
+    python research/tjr/recaps.py knowledge            # refresh the bot's TJR knowledge (trader/aitrader/knowledge)
 
 Each video gets raw/recaps/<NNN>/ (not committed: it's the video owner's content):
   info.json        name, size, duration, resolution, what the title claims
@@ -255,6 +256,34 @@ def table():
     print(f"{len(out)} rows -> {OUT / 'trades.csv'}")
 
 
+# ------------------------------------------------------------------ the bot's knowledge pack
+KNOWLEDGE = HERE.parent.parent / "trader" / "aitrader" / "knowledge" / "40-tjr-playbook.md"
+
+
+def knowledge():
+    """What the videos taught so far, for the bot's local AI (and Claude): the rulebook, the living
+    hypotheses and the honest status of the evidence. Shipped with the next app update."""
+    rows = list(csv.DictReader(open(OUT / "trades.csv"))) if (OUT / "trades.csv").exists() else []
+    trades = [r for r in rows if r["trade"] != "none"]
+    videos = len({r["n"] for r in rows})
+    verified = sum(1 for r in trades if r["pnl_verified"].lower().startswith("yes"))
+    results = [r["result"].split(" [")[0] for r in trades]
+    rs = [float(r["r_multiple"]) for r in trades if r["r_multiple"] not in ("", "None")]
+    rules = (HERE / "RULES.md").read_text().split("\n", 1)[1]          # drop the file's own title
+    hypotheses = (OUT / "HYPOTHESES.md").read_text().split("\n", 1)[1]
+    status = (f"- Videos analyzed: {videos} of 200. Trades recorded: {len(trades)} "
+              f"({results.count('win')} wins, {results.count('loss')} losses, "
+              f"{len(trades) - results.count('win') - results.count('loss')} unclear).\n"
+              + (f"- Average R where known ({len(rs)} trades): {sum(rs) / len(rs):+.2f}.\n" if rs else "")
+              + f"- Verified by fills or broker P&L: {verified}. Everything else is his drawings and words.\n"
+              "- The bot does NOT trade this yet: it trades only after an intraday history test passes, and "
+              "then only in Stage 2 paper trading.\n")
+    KNOWLEDGE.write_text("# TJR's model (learned from his videos)\n\n## Evidence so far\n" + status
+                         + "\n## The rulebook (draft)\n" + rules.strip() + "\n\n## What seems to drive wins and "
+                         "losses (hypotheses to test)\n" + hypotheses.strip() + "\n")
+    print(f"wrote {KNOWLEDGE} ({len(KNOWLEDGE.read_text().split())} words)")
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit(__doc__)
@@ -265,5 +294,7 @@ if __name__ == "__main__":
         prepare([int(x) for x in sys.argv[2:]])
     elif cmd == "table":
         table()
+    elif cmd == "knowledge":
+        knowledge()
     else:
         sys.exit(__doc__)

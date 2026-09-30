@@ -22,6 +22,10 @@ class PaperBroker(Broker):
         self.cash_account = cash_account
 
     def submit(self, order: Order, date: str):
+        hold = self.gfv_hold(order, date)
+        if hold:                                      # a good faith violation: wait for the money to settle
+            self.note(hold)
+            return None
         if order.side == "BUY":
             price = order.price * (1 + self.slippage)
             affordable = math.floor((self.buying_power(date) - self.commission) / price)

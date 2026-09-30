@@ -21,3 +21,6 @@ trader/data/
 
 # TJR research: raw transcripts and frames are the video owner's content
 research/tjr/raw/
+
+# the settings you change in the app (kept on your Mac)
+trader/my_settings.json

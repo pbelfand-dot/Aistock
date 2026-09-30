@@ -31,7 +31,8 @@ from datetime import datetime, time as dtime, timedelta
 import pandas as pd
 
 from aitrader.brokers import Ledger, Order, PaperBroker
-from aitrader.config import active_desks, data_path, data_source, desk_capital, load_config, uses_broker_paper
+from aitrader.config import (active_desks, data_path, data_source, desk_capital, is_cash_account, load_config,
+                             uses_broker_paper)
 from aitrader.engine import run_backtest, run_cycle
 from aitrader.market_data import MarketData
 from aitrader.market_hours import in_session, minutes_to_close, now_ny, session_close
@@ -112,11 +113,12 @@ def open_broker(cfg, store, desk, phase, dry_run=False, emergency=False):
     live = phase == Phase.LIVE
     saved = store.get(f"{mode}_ledger")
     ledger = Ledger.from_dict(saved) if saved else Ledger(desk_capital(cfg, desk, live))
-    cash_account = cfg["live"]["account_type"] == "cash"
+    cash_account = is_cash_account(cfg)                     # cash accounts: never spend unsettled money
     if not broker_backed(cfg, phase):                        # paper, simulated on this laptop
         broker = PaperBroker(ledger, cfg["paper"]["slippage_pct"], cfg["paper"]["commission_per_trade"],
                              mode=mode, cash_account=cash_account)
         broker.on_fill = fill_recorder(store, mode, dry_run)
+        broker.note = lambda message: store.log(f"[{mode}] {message}")
         return broker
 
     # Real money: several locks must all be open (except for an emergency sell-off).
@@ -173,7 +175,7 @@ def sell_everything(broker, prices, today, reason, store):
     for ticker, pos in broker.positions().items():
         price = prices.get(ticker)
         price = pos.avg_cost if price is None or pd.isna(price) else float(price)
-        broker.submit(Order(ticker, "SELL", pos.qty, price, reason, urgent=True), today)
+        broker.submit(Order(ticker, "SELL", pos.qty, price, reason, urgent=True, emergency=True), today)
         order_working = any(p["ticker"] == ticker for p in broker.ledger.pending)
         if ticker in broker.positions() and not order_working:
             store.log(f"!!! {ticker} is not sold yet; the bot keeps trying every 5 minutes. You can also sell it in Schwab.")

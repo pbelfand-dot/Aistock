@@ -84,7 +84,14 @@ class LiveBroker(Broker):
             self.log(f"!!! {order.side} {order.ticker}: {self.gw.name} error {e!r}; will retry next cycle")
             return None
 
+    def note(self, message: str):
+        self.log(message)
+
     def _submit(self, order: Order, date: str):
+        hold = self.gfv_hold(order, date)
+        if hold:                                      # a good faith violation: wait for the money to settle
+            self.log(f"[{self.mode}] {hold}")
+            return None
         if self._busy(order.ticker):
             self.log(f"[{self.mode}] {order.ticker}: an earlier order is still open; waiting for it")
             return None

@@ -188,6 +188,12 @@
   .checks .ok { color: var(--up); font-weight: 700; } .checks .bad { color: var(--down); font-weight: 700; }
   .next-desk { font-size: 13px; margin: 4px 0 8px; }
   #autopilot { cursor: pointer; }
+  .setup-more { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px; }
+  .setup-more > summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
+  .setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 14px; }
+  .setup-step select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--axis);
+                       background: var(--surface); color: var(--ink); margin: 4px 0 10px; font: inherit; }
+  .setup-step h4 .muted { font-weight: 400; font-size: 12px; }
   [hidden] { display: none !important; }
   .loading { opacity: .6; transition: opacity .2s; }
 
@@ -331,6 +337,59 @@
     <div id="next-steps" class="ink2"></div>
     <button id="resume" hidden>Resume trading</button>
   </section>
+  <section class="setup-step">
+    <h4><span class="num">4</span> Good faith violation protection <span class="tag" id="gfv-state"></span></h4>
+    <p class="ink2" id="gfv-text"></p>
+  </section>
+  <details class="setup-more" id="setup-later">
+    <summary>Real money, Schwab and Claude (for later)</summary>
+    <section class="setup-step">
+      <h4>Settings <span class="muted">(kept when the app updates)</span></h4>
+      <div class="setup-grid">
+        <label>Broker for real money<select id="set-broker"><option value="alpaca">Alpaca</option>
+          <option value="schwab">Charles Schwab</option></select></label>
+        <label>Most real money the bot may use ($)<input id="set-cap" inputmode="decimal"></label>
+        <label>Account type<select id="set-acct"><option value="auto">Automatic (Schwab = cash rules)</option>
+          <option value="cash">Cash: settled money only</option><option value="margin">Margin</option></select></label>
+        <label>Paper (practice) money ($)<input id="set-paper" inputmode="decimal"></label>
+      </div>
+      <div class="setup-row"><button id="save-settings">Save settings</button></div>
+    </section>
+    <section class="setup-step">
+      <h4>Charles Schwab <span class="tag" id="schwab-state"></span></h4>
+      <p class="ink2">From <a href="https://developer.schwab.com">developer.schwab.com</a> → your app: the App Key,
+         the Secret, and the callback address exactly as you registered it.</p>
+      <div class="setup-grid">
+        <label>App Key<input id="sw-key" autocomplete="off" spellcheck="false"></label>
+        <label>Secret<input id="sw-secret" type="password" autocomplete="off"></label>
+        <label>Callback address<input id="sw-callback" spellcheck="false" placeholder="https://127.0.0.1:8182"></label>
+        <label>Account number (only if you have several)<input id="sw-acct" inputmode="numeric"></label>
+      </div>
+      <div class="setup-row"><button id="save-schwab">Save Schwab keys</button></div>
+      <p class="ink2">Log in about once a week (Schwab's limit is 7 days): <strong>1.</strong> Open Schwab login, sign in
+         and approve. <strong>2.</strong> Your browser ends on a page that won't load; that's expected. Copy that page's
+         whole address and paste it here.</p>
+      <div class="setup-row"><button class="primary" id="schwab-login">Open Schwab login</button></div>
+      <label>The address you landed on<input id="sw-landed" spellcheck="false" placeholder="https://127.0.0.1:8182/?code=…"></label>
+      <div class="setup-row"><button id="schwab-finish">Finish login</button><button id="schwab-test">Test Schwab</button></div>
+      <ul class="checks" id="schwab-results" aria-live="polite"></ul>
+    </section>
+    <section class="setup-step">
+      <h4>Alpaca real-money keys <span class="tag" id="live-state"></span></h4>
+      <p class="ink2">Only needed once a desk earns real money. Saving them turns nothing on: real money still needs
+         a typed confirmation in the full Setup menu.</p>
+      <div class="setup-grid">
+        <label>Live Key ID<input id="live-key" autocomplete="off" spellcheck="false" placeholder="AK…"></label>
+        <label>Live Secret<input id="live-secret" type="password" autocomplete="off"></label>
+      </div>
+      <div class="setup-row"><button id="save-live">Save real-money keys</button></div>
+    </section>
+    <section class="setup-step">
+      <h4>Connect Claude</h4>
+      <p class="ink2">Lets Claude see the bot (and your Schwab account, read-only) and pause it. It can't trade.</p>
+      <div class="setup-row"><button id="claude-code">Claude Code</button><button id="claude-desktop">Claude Desktop</button></div>
+    </section>
+  </details>
   <p class="muted" style="font-size:12px">Approving plans, real money and Schwab stay in the full Setup menu (Terminal),
      where each big step needs a typed confirmation.</p>
   <div class="dlg-actions">
@@ -731,6 +790,25 @@ async function refreshSetup() {
       el("strong", { text: `${cap(d.desk)} desk (${d.phase.replace("_", " ").toLowerCase()}): ` }),
       d.exiting ? "Emergency stop: still selling. " : d.halted ? "Paused. " : "", d.next)));
     $("#resume").hidden = !s.desks.some(d => d.halted);
+    const g = s.gfv;
+    $("#gfv-state").textContent = g.cash_rules ? `on · ${g.violations} of ${g.limit}` : "not needed";
+    $("#gfv-text").textContent = g.cash_rules
+      ? `On: the bot only spends settled money (sale money waits one business day; bank holidays counted), so it `
+        + `never causes a good faith violation. Violations in the last 12 months: ${g.violations} `
+        + `(at ${g.limit}, Schwab limits the account to settled cash for 90 days).`
+      : "Your real-money broker is Alpaca, which covers unsettled money itself, so good faith violations don't "
+        + "apply. Switch the broker to Schwab (or the account type to Cash) and the bot spends settled money only.";
+    const set = s.settings;
+    if (!$("#setup-later").dataset.filled) {                     // don't overwrite what you're typing
+      $("#set-broker").value = set.broker; $("#set-cap").value = set.real_money_cap;
+      $("#set-acct").value = set.account_type; $("#set-paper").value = set.paper_cash;
+      $("#sw-callback").value = s.schwab.callback_url || "";
+      $("#setup-later").dataset.filled = "1";
+    }
+    const sw = s.schwab;
+    $("#schwab-state").textContent = !sw.keys ? "not set up" : sw.days_left == null ? "keys saved · not logged in"
+      : sw.days_left <= 0 ? "login expired" : `logged in · ${sw.days_left.toFixed(1)} days left`;
+    $("#live-state").textContent = s.live_keys ? (s.live_enabled ? "saved · real money switched ON" : "saved") : "none";
     return s;
   } catch (e) { $("#next-steps").textContent = e.message; return null; }
 }
@@ -770,6 +848,34 @@ $("#resume").onclick = async () => {
   await refreshSetup(); load();
 };
 $("#open-menu").onclick = () => call("open-menu").catch(e => notify(e.message, true));
+const schwabChecks = (items) => $("#schwab-results").replaceChildren(...items.map(c => el("li", {},
+  el("span", { class: c.ok == null ? "muted" : c.ok ? "ok" : "bad", text: c.ok == null ? "…" : c.ok ? "✓" : "✗" }), c.text)));
+async function setupAction(button, action, payload, after) {
+  button.disabled = true;
+  try {
+    const r = await setupCall(action, payload === undefined ? {} : { input: JSON.stringify(payload) });
+    if (after) await after(r); else notify(r.message);
+  } catch (e) { notify(e.message, true); }
+  finally { button.disabled = false; await refreshSetup(); load(); }
+}
+$("#save-settings").onclick = (e) => setupAction(e.target, "save-settings", {
+  broker: $("#set-broker").value, real_money_cap: $("#set-cap").value,
+  account_type: $("#set-acct").value, paper_cash: $("#set-paper").value });
+$("#save-schwab").onclick = (e) => setupAction(e.target, "save-schwab-keys", {
+  app_key: $("#sw-key").value, app_secret: $("#sw-secret").value, callback_url: $("#sw-callback").value,
+  account_number: $("#sw-acct").value }, async (r) => { $("#sw-key").value = ""; $("#sw-secret").value = ""; notify(r.message); });
+$("#schwab-login").onclick = (e) => setupAction(e.target, "schwab-login-start", undefined, async (r) => {
+  await call("open-url", { url: r.url });
+  schwabChecks([{ ok: null, text: "Sign in on the Schwab page that just opened, then paste the address you land on." }]);
+});
+$("#schwab-finish").onclick = (e) => setupAction(e.target, "schwab-login-finish", { url: $("#sw-landed").value },
+  async (r) => { $("#sw-landed").value = ""; schwabChecks([{ ok: true, text: r.message }]); });
+$("#schwab-test").onclick = (e) => setupAction(e.target, "check-schwab", undefined, async (r) => schwabChecks([r]));
+$("#save-live").onclick = (e) => setupAction(e.target, "save-live-keys", {
+  key_id: $("#live-key").value, secret: $("#live-secret").value },
+  async (r) => { $("#live-key").value = ""; $("#live-secret").value = ""; notify(r.message); });
+$("#claude-code").onclick = (e) => setupAction(e.target, "connect-claude", { which: "code" });
+$("#claude-desktop").onclick = (e) => setupAction(e.target, "connect-claude", { which: "desktop" });
 $("#check-updates").onclick = () => call("check-updates").catch(e => notify(e.message, true));
 $("#do-pause").onclick = async () => {
   $("#dlg-pause").close();

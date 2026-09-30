@@ -3,6 +3,7 @@ config.py: loads your settings.
 
   config.yaml  normal settings (safe to share)
   .env         secrets (Schwab keys), never shared or committed
+  my_settings.json  the settings you change in the app (kept across updates; see user_settings.py)
 """
 import os
 from pathlib import Path
@@ -34,6 +35,8 @@ def load_config(path=None) -> dict:
     cfg["live_trading_enabled"] = os.environ.get("LIVE_TRADING_ENABLED", "").strip().lower() == "true"
     cfg.setdefault("data_dir", str(DATA_DIR))
     cfg.setdefault("broker", "alpaca")
+    from .user_settings import apply                    # your choices from the app (my_settings.json)
+    apply(cfg)
     check_config(cfg)
     return cfg
 
@@ -67,6 +70,14 @@ def check_config(cfg: dict):
         raise ValueError("desks budget_pct add up to more than 100%.")
     if cfg.get("broker", "alpaca") not in ("alpaca", "schwab"):
         raise ValueError("broker must be alpaca or schwab.")
+
+
+def is_cash_account(cfg: dict) -> bool:
+    """Cash-account rules (only settled money is spent: no good faith violations). "auto": Schwab = cash
+    (the safe assumption: in a margin account these rules only cost a day's wait), Alpaca = margin (Alpaca
+    lends the unsettled money itself, so there are no good faith violations there)."""
+    kind = cfg["live"].get("account_type", "auto")
+    return kind == "cash" or (kind == "auto" and cfg.get("broker", "alpaca") == "schwab")
 
 
 def active_desks(cfg: dict) -> list:
