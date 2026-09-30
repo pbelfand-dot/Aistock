@@ -191,6 +191,7 @@
   .setup-step .num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent-wash); color: var(--ink);
                      display: inline-grid; place-items: center; font-size: 12px; font-weight: 700; }
   .setup-step p { margin: 4px 0 8px; font-size: 13px; }
+  .lid-row { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
   .setup-step label { display: block; font-size: 13px; color: var(--ink-2); }
   .setup-step input { margin: 4px 0 10px; }
   .setup-row { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -383,9 +384,16 @@
   <section class="setup-step">
     <h4><span class="num">2</span> Autopilot <span class="tag" id="auto-state"></span></h4>
     <p class="ink2">Runs the bot in the background: it starts when you log in and restarts itself if it stops.
-       Keep the Mac plugged in; closing the lid puts it to sleep.</p>
+       Keep the Mac plugged in.</p>
     <button class="primary" id="auto-toggle">Turn on</button>
     <p class="ink2 bad-text" id="auto-problem" hidden></p>
+    <div class="lid-row" id="lid-row" hidden>
+      <p class="ink2"><strong>Keep trading with the lid closed</strong> <span class="tag" id="lid-state"></span><br>
+         While it's plugged in, the Mac stays awake with the lid closed. On battery it sleeps as usual (closed, right
+         away), so it never runs hot in a bag. Asks for your Mac password once. While it's on and plugged in,
+         Apple menu → Sleep does nothing; turn this off first.</p>
+      <div class="setup-row"><button id="lid-toggle">Turn on</button></div>
+    </div>
   </section>
   <section class="setup-step">
     <h4><span class="num">3</span> What happens next <span class="tag" id="stage-state" hidden></span></h4>
@@ -1026,6 +1034,13 @@ async function refreshSetup() {
     t.dataset.on = s.autopilot_on ? "1" : "";
     t.classList.toggle("primary", !s.autopilot_on);
     t.disabled = !s.can_autopilot;
+    const lid = s.lid || {};
+    $("#lid-row").hidden = !lid.can;
+    $("#lid-state").textContent = !lid.on ? "off" : !lid.allowed ? "on · needs your Mac password again"
+      : lid.plugged_in ? (lid.awake ? "on · plugged in · stays awake closed" : "on · plugged in · starting")
+      : "on · on battery · sleeps when closed";
+    $("#lid-toggle").textContent = lid.on ? "Turn off" : "Turn on";
+    $("#lid-toggle").dataset.on = lid.on ? "1" : "";
     $("#next-steps").replaceChildren(...s.desks.map(d => el("p", { class: "next-desk" },
       el("strong", { text: `${cap(d.desk)} desk (${d.phase.replace("_", " ").toLowerCase()}): ` }),
       d.exiting ? "Emergency stop: still selling. " : d.halted ? "Paused. " : "", d.next)));
@@ -1129,6 +1144,7 @@ async function setupAction(button, action, payload, after) {
   } catch (e) { notify(e.message, true); }
   finally { button.disabled = false; await refreshSetup(); load(); }
 }
+$("#lid-toggle").onclick = (e) => setupAction(e.target, e.target.dataset.on ? "lid-mode-off" : "lid-mode-on");
 $("#save-phone").onclick = (e) => {
   const token = $("#phone-token").value.trim();
   if (!token) { notify("Paste the bot token from @BotFather first.", true); return; }

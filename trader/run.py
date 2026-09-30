@@ -542,6 +542,16 @@ def start_phone(cfg, store):
     threading.Thread(target=phone.listen, args=(cfg, lambda: Store(path)), daemon=True, name="phone").start()
 
 
+def start_lid_mode(cfg):
+    """Lid-closed mode (lid_mode.py): awake with the lid closed on the charger, asleep on battery."""
+    if sys.platform != "darwin":
+        return
+    import threading
+    from aitrader import lid_mode
+    path = data_path(cfg, "aitrader.sqlite")
+    threading.Thread(target=lid_mode.watch, args=(lambda: Store(path),), daemon=True, name="lid-mode").start()
+
+
 STUCK_MINUTES = 30                                      # a job taking longer than this = stuck: restart
 
 
@@ -611,6 +621,7 @@ def cmd_autopilot(cfg, store, args):
     start_phone(cfg, store)
     progress = {"t": time.monotonic(), "job": None}
     start_watchdog(cfg, progress)
+    start_lid_mode(cfg)
     store.log("Autopilot started. Keep the laptop awake and online (Ctrl+C stops it).")
     while True:
         now = now_ny()

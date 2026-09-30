@@ -255,7 +255,8 @@ def _right_now(cfg, store, now=None) -> dict:
     elif not running:
         headline = ("The autopilot isn't running, so nothing is being tested. Turn it on in Setup (step 2) "
                     "and keep the Mac awake.") if minutes is None or minutes > 60 else \
-                   f"The autopilot hasn't checked in for {minutes:.0f} minutes (is the Mac asleep?)."
+                   (f"The autopilot hasn't checked in for {minutes:.0f} minutes (is the Mac asleep? To keep "
+                    "trading with the lid closed, turn on lid-closed mode in Setup, step 2).")
     elif not trading_day:
         headline = "The market is closed today. Kestrel picks up again on the next trading day."
     elif now.time() < dtime(9, 30):

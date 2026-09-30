@@ -47,6 +47,9 @@ code changes.
     Add it to your Home Screen and it opens like an app. Keys and settings stay on the Mac.
 - **View → Show Demo Data** shows it with made-up prices right away.
 - **Setup** (the button) connects Alpaca, switches the autopilot and says what's next.
+- **Lid closed** (Setup → 2. Autopilot → "Keep trading with the lid closed"): while plugged in, the
+  Mac stays awake with the lid closed and keeps trading. On battery it sleeps as usual, so it never
+  runs hot in a bag. It asks for your Mac password once.
 - **Webull** (Setup → "Real money, Schwab, Webull and Claude"): paste the App Key and App Secret
   from Webull's API Management page once Webull approves your application, and pick **Paper** for
   Webull test-environment keys or **Real money** (Test Webull switches it if you pick wrong). Press **Test Webull**,
