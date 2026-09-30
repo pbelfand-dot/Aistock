@@ -37,7 +37,7 @@ def is_on(value) -> bool:
 
 def settings(cfg: dict) -> dict:
     s = {"enabled": True, "top": 30, "new_listings": 5, "min_price": 3.0, "min_dollar_volume": 5_000_000,
-         "trade_top": 15}
+         "trade_top": 30}
     s.update(cfg.get("scanner") or {})
     return s
 
@@ -152,20 +152,48 @@ def score(bars: dict, cfg: dict) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def _ranked(table: pd.DataFrame) -> pd.DataFrame:
+    """Tradeable, established, uptrending stocks, strongest 12-month momentum first."""
+    ok = table[table["tradeable"]]
+    uptrend = ok["uptrend"].fillna(False).astype(bool) if "uptrend" in ok else pd.Series(False, index=ok.index)
+    established = ok[(~ok["new_listing"].astype(bool)) & uptrend]
+    if "momentum_pct" not in established:
+        return established.iloc[0:0]
+    return established.dropna(subset=["momentum_pct"]).sort_values("momentum_pct", ascending=False)
+
+
 def pick(table: pd.DataFrame, cfg: dict) -> tuple:
     """(the list, the new-listings watch list), best first."""
     s = settings(cfg)
     if table.empty:
         return [], []
     ok = table[table["tradeable"]]
-    uptrend = ok["uptrend"].fillna(False).astype(bool) if "uptrend" in ok else pd.Series(False, index=ok.index)
-    established = ok[(~ok["new_listing"].astype(bool)) & uptrend]
-    if "momentum_pct" in established:
-        established = established.dropna(subset=["momentum_pct"]).sort_values("momentum_pct", ascending=False)
-    else:
-        established = established.iloc[0:0]
     newcomers = ok[ok["new_listing"]].sort_values("return_3m_pct", ascending=False)
-    return (_records(established.head(int(s["top"]))), _records(newcomers.head(int(s["new_listings"]))))
+    return (_records(_ranked(table).head(int(s["top"]))), _records(newcomers.head(int(s["new_listings"]))))
+
+
+def swing_price_limit(cfg: dict) -> float:
+    """The most one share can cost for the swing desk (whole shares, one position's budget)."""
+    from .config import desk_capital
+    from .risk import RiskManager
+    if "swing" not in (cfg.get("desks") or {}):
+        return float("inf")
+    return RiskManager.for_desk(cfg, "swing").max_share_price(desk_capital(cfg, "swing", False))
+
+
+def day_tickers(cfg: dict) -> set:
+    return set(((cfg.get("desks") or {}).get("day") or {}).get("watchlist") or [])
+
+
+def swing_picks(table: pd.DataFrame, cfg: dict) -> list:
+    """What the swing desk considers: the strongest stocks it can afford a whole share of, skipping the
+    day desk's stocks (a stock is on one desk only). With more positions each share must cost less, so
+    picking from the whole ranking (not just the top of the list) keeps enough strong candidates."""
+    if table.empty:
+        return []
+    ranked = _ranked(table)
+    ranked = ranked[(ranked["price"] <= swing_price_limit(cfg)) & ~ranked["symbol"].isin(day_tickers(cfg))]
+    return _records(ranked.head(int(settings(cfg)["trade_top"])))
 
 
 def _records(frame: pd.DataFrame) -> list:
@@ -229,7 +257,7 @@ def load_list(cfg: dict) -> dict:
         return {}
 
 
-def update_list(cfg: dict, liked: list, newcomers: list, news: dict, today: str) -> dict:
+def update_list(cfg: dict, liked: list, newcomers: list, news: dict, today: str, picks: list = None) -> dict:
     old = load_list(cfg)
     history = old.get("history", {})
     for rank, row in enumerate(liked, 1):
@@ -243,12 +271,14 @@ def update_list(cfg: dict, liked: list, newcomers: list, news: dict, today: str)
     for sym, h in history.items():                                    # dropped off the list today
         if h.get("last_listed") != today and not h.get("left_on"):
             h["left_on"] = today
-    for row in liked + newcomers:
+    picks = picks or []
+    for row in liked + newcomers + picks:
         items = news.get(row["symbol"], [])
         row.update(news=items[:5], news_count=len(items), danger=danger(items))
     state = {"updated": today, "liked": liked, "new_listings": newcomers, "history": history,
+             "swing_picks": [{k: r.get(k) for k in ("symbol", "price", "momentum_pct", "danger")} for r in picks],
              "held_news": {s: {"news": v[:5], "danger": danger(v)} for s, v in news.items()
-                           if s not in {r["symbol"] for r in liked + newcomers}}}
+                           if s not in {r["symbol"] for r in liked + newcomers + picks}}}
     path = data_path(cfg, LIST_FILE)
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(json.dumps(state, indent=1, default=str))
@@ -258,17 +288,22 @@ def update_list(cfg: dict, liked: list, newcomers: list, news: dict, today: str)
 
 
 def trade_candidates(cfg: dict) -> list:
-    """The top of the list, for the swing desk to consider (its own rules and budget still decide)."""
+    """The swing desk's picks from the scan (its own rules and budget still decide). Older lists without
+    picks: the top of the list. Never the day desk's stocks."""
     s = settings(cfg)
     if not is_on(s["enabled"]):
         return []
-    return [r["symbol"] for r in load_list(cfg).get("liked", [])[:int(s["trade_top"])]]
+    state = load_list(cfg)
+    rows = state["swing_picks"] if state.get("swing_picks") is not None else state.get("liked", [])
+    day = day_tickers(cfg)
+    return [r["symbol"] for r in rows if r["symbol"] not in day][:int(s["trade_top"])]
 
 
 def danger_tickers(cfg: dict) -> dict:
     """{symbol: [danger words]} from the latest scan: these aren't bought for now."""
     state = load_list(cfg)
-    out = {r["symbol"]: r["danger"] for r in state.get("liked", []) + state.get("new_listings", []) if r.get("danger")}
+    out = {r["symbol"]: r["danger"] for r in state.get("liked", []) + state.get("new_listings", [])
+           + state.get("swing_picks", []) if r.get("danger")}
     out.update({s: v["danger"] for s, v in state.get("held_news", {}).items() if v.get("danger")})
     return out
 
@@ -299,16 +334,17 @@ def run(cfg: dict, store, today: str, fetch=fetch_bars, get_news=fetch_news) -> 
     bars = fetch(cfg, symbols, 400)
     table = score(bars, cfg)
     liked, newcomers = pick(table, cfg)
+    picks = swing_picks(table, cfg)
     held = sorted({t for d in cfg["desks"] for t in (store.get(f"paper-{d}_ledger") or {}).get("positions", {})}
                   | {t for d in cfg["desks"] for t in (store.get(f"live-{d}_ledger") or {}).get("positions", {})})
-    wanted = sorted({r["symbol"] for r in liked + newcomers} | set(held))
+    wanted = sorted({r["symbol"] for r in liked + newcomers + picks} | set(held))
     news = {}
     if news_on(cfg) and wanted:
         try:
             news = get_news(cfg, wanted, int((cfg.get("news") or {}).get("days", 3)))
         except Exception as e:
             store.log(f"[scan] couldn't read the news ({e!r}); the list is made without it today")
-    state = update_list(cfg, liked, newcomers, news, today)
+    state = update_list(cfg, liked, newcomers, news, today, picks)
     flagged = [r["symbol"] for r in state["liked"] if r.get("danger")]
     return (f"scan: {len(bars)} stocks checked, {int(table['tradeable'].sum()) if len(table) else 0} tradeable, "
             f"{len(liked)} on the list (top: {', '.join(r['symbol'] for r in liked[:5]) or 'none'})"

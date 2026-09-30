@@ -45,8 +45,10 @@ desks:
     budget_pct: 50         # $500 of the $1,000
     watchlist: [XLF, XLE, XLU, XLP, KRE, SCHD, KO, BAC, WFC, PFE, CSCO, VZ]
     risk:
-      max_open_positions: 3
-      max_position_pct: 34     # % of this desk's money in any one stock
+      # 8 stocks, not 3: in the bot's own backtest (2011-2026) momentum with 8-10 holdings traded ~3x
+      # as often as with 3, made about the same, and had a smaller worst drop (-42..-47% vs -57%).
+      max_open_positions: 8
+      max_position_pct: 12.5   # % of this desk's money in any one stock (so a share can cost up to ~$62)
       stop_loss_pct: 7         # sell if a position falls 7% below what we paid
       daily_loss_limit_pct: 3  # desk down 3% today -> no new buys today
       max_drawdown_pct: 15     # desk down 15% from its best day -> KILL SWITCH
@@ -55,12 +57,16 @@ desks:
   day:                     # in and out the SAME day; decides every 5 minutes; never holds overnight
     enabled: true
     budget_pct: 50
-    watchlist: [SOFI, F, INTC, AAL, SNAP, RIVN, NIO, T]
+    # Liquid stocks that move a lot within a day (the second row: $500M+ traded a day, 3-6% daily
+    # range, under $160 a share, as of Sep 2026). More stocks = more breakouts to trade.
+    # (Tickers that are also yes/no words, like "ON", must be in quotes, or they're read as true/false.)
+    watchlist: [SOFI, F, INTC, AAL, SNAP, RIVN, NIO, T,
+                HPE, ORCL, SHOP, "ON", RBLX, HPQ, PCG, FCX]
     last_entry_minutes_before_close: 30    # no new trades in the last 30 minutes
     flatten_minutes_before_close: 10       # sell everything 10 minutes before the close
     risk:
-      max_open_positions: 2
-      max_position_pct: 50
+      max_open_positions: 3
+      max_position_pct: 33
       stop_loss_pct: 2         # day trades get a much tighter stop
       daily_loss_limit_pct: 3
       max_drawdown_pct: 15
@@ -140,7 +146,8 @@ scanner:
   new_listings: 5          # newly listed stocks (under a year of history): watch only
   min_price: 3             # no penny stocks
   min_dollar_volume: 5000000   # average $ traded per day (20 days): easy to get in and out
-  trade_top: 15            # the swing desk considers this many from the top of the list
+  trade_top: 30            # the swing desk considers the 30 strongest stocks it can afford (whole shares)
+                           # (enough for its 8 slots: it buys from the top 20% of what it considers)
 
 # ---- News (you can turn this off in Setup) ---------------------------------
 # Headlines from Alpaca's news feed (Benzinga; free with your Alpaca keys), or Yahoo without keys.
