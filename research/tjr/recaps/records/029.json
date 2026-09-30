@@ -1,0 +1,87 @@
+{
+  "video": {
+    "n": 29,
+    "file": "06_03_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 9 sheets, 14 full-size shots (#1, #2, #3, #6, #8, #10, #12, #14, #19, #22, #30, #31, #32, #36) and the transcript. Every chart is NQ1! (legend 'NASDAQ 100 E-mini Futures · 1 / 5 / 4h · CME'); ES appears only in the watchlist. Axis labels, x-axis date/time and position-tool tooltips are readable on the desktop shots; the chart time-zone label is hidden behind the webcam overlay. Phone shots (#13-#16, #25-#26) show a blurry, synced TradingView mobile chart (phone clock 11:17 = desktop clock in #12) and add no independent evidence. No broker panel, fills or account P&L shown (browser tabs 'Logged Out | TradeStation' and 'TradeStation | Client Center' are never opened). Transcript (pocketsphinx) is very garbled. Structure: 00:00-02:30 4h context + Forex Factory news; 02:30-03:00 a pre-news 'would have been' short (not taken); 03:00-07:00 first trade (1m); 07:00-11:54 second trade (5m context, 1m entry); 12:00-13:34 wrap-up.",
+    "duration_min": 13.6,
+    "title_claim": "",
+    "session_date": {"value": "2024-06-03", "src": "seen", "ref": "#3 00m46s, #6 02m42s, #31 10m54s x-axis 'Mon 03 Jun '24'; #2 00m19s Forex Factory 'Today: Jun 3' (forexfactory.com/calendar?day=jun3.2024); file name 06_03_2024. Chart clock 11:11-11:18 during recording (#1, #12), i.e. recorded late morning the same day."}
+  },
+  "market_context": {
+    "regime": {"value": "NQ 4h: sharp drop Fri 31 May to ≈18,240 (wick), then a strong rally into Mon 3 Jun to ≈18,750s. NQ 1m/5m on 3 Jun: pushed to a high ≈18,755-18,758 around 09:46-09:47, dropped to ≈18,650 by ≈10:08, ranged ≈18,650-18,712 until ≈10:30, then sold off to ≈18,567 by ≈11:00 and bounced to ≈18,618 by 11:17 (chart time, likely ET).", "src": "inferred", "ref": "#1 00m00s 4h (axis 18,360-18,880; lows/highs estimated ±10); #3 00m46s legend H 18,755.50 on the 09:46 candle; #12 05m34s and #31 10m54s 1m candles vs axis labels 18,704.00/18,650.25/18,588.50/18,560.00 (±3); #36 12m18s 5m, last price 18,618.00."},
+    "news": {"value": "Mon 3 Jun 2024 (USD): 9:45am Final Manufacturing PMI (actual 51.3, forecast 50.9, previous 50.9); 10:00am ISM Manufacturing PMI (forecast 49.8, previous 49.2) and ISM Manufacturing Prices (forecast 60.0, previous 60.9). The 10:00 actuals are not visible. He says he waits for news before trading.", "src": "seen", "ref": "#2 00m19s Forex Factory calendar Jun 3 (red-folder 9:45am and 10:00am items). Heard [00:30] 'i always wait for news to come out' and [00:45] 'i waited for that come out' read as waiting for the 10am release."},
+    "bias": {"value": "Bearish intraday: 4h 'severely overbought', he wanted price to retrace into the equilibrium (50%) of the range and possibly go long only later; draw on liquidity = the lows below / equilibrium.", "src": "heard", "ref": "[01:00] 'we were severely over bought here and a four hour and i want to see the equilibrium of these range'; [01:30] 'fifty percent'; [01:45] 'i wanna see us home into the equilibrium ... and eventually go along' read as 'into equilibrium and eventually go long'; [02:45] 'targets would have been the slows down here' read as 'the lows down here'."},
+    "timezone": {"value": "chart time, probably ET", "src": "inferred", "ref": "Time-zone label hidden by webcam; red x-axis session marker at '09:30' on every 1m/5m chart (#3, #6, #31) matches the NY cash open."},
+    "levels": {"value": "Intraday range drawn 0/0.5/1: 0.5 (equilibrium) = 18,704.00 (range ≈18,755 high to ≈18,652 low, ±3); horizontal lines/labels at 18,729.00, 18,694.25 (red line, purpose not stated), 18,657.75, 18,650.25, 18,588.50, 18,580.25; 5m FVG gray zone ≈18,697-18,727 around equilibrium.", "src": "seen", "ref": "Axis labels in #8 03m01s, #12 05m34s, #22 09m08s, #30 10m37s, #31 10m54s; '0.5' marker of the range tool sits at the 18,704.00 label in #12 and #19. Range high/low and FVG bounds estimated from pixel position (±3)."},
+    "hypothetical_setup_pre_news": {"value": "Not taken: NQ 1m short drawn at ≈09:49, entry 18,731.00, stop 18,768.00 (37 pts), target 18,694.00 (37 pts), R:R 1; tool shows 'Closed P&L: 37.00' (target reached before the box end at 10:10). He says it 'would have been' a good entry but he waited for the 10:00 news.", "src": "seen", "ref": "#6 02m42s tooltips 'Stop: 37.00 (0.20%) 148', 'Closed P&L: 37.00 ... Risk/Reward Ratio: 1', 'Target: 37.00 (0.20%) 148'; axis labels 18,768.00 / 18,731.00 / 18,694.00 at the box edges; box right edge 'Mon 03 Jun 24 10:10'; left edge ≈09:49 inferred from x-axis. Heard [02:30] 'what a good entry stops the law' / [02:45] 'targets would have been the slows' read as 'would have been a good entry, stop above the high, targets the lows'."}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-06-03", "src": "seen", "ref": "#10 05m16s / #12 05m34s x-axis 'Mon 03 Jun '24'"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#10, #12 legend 'NASDAQ 100 E-mini Futures · 1 · CME'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#10/#12 position box: gray (stop) zone above, blue (target) zone below"},
+      "timeframes": {"value": {"bias": "4h", "setup": "5m", "entry": "1m"}, "src": "inferred", "ref": "4h bias heard [01:00]; 5m FVG/equilibrium shown in #8; box drawn on the 1m chart (#10, #12)."},
+      "setup": {"value": "after the 10:00 ISM release, short from the 5m bearish FVG / premium of the morning range within the 'macro' time window", "src": "heard", "ref": "[05:00] 'as a macro ... so we make his move that is my first' read as 'in the macro ... that is my first [entry]'; [05:30] 'the first train ... short ... is within a macro' read as 'first trade, short, within a macro'. Garbled; FVG/equilibrium part inferred from #8/#12 drawings."},
+      "entry_conditions": [
+        {"value": "4h overbought; bias for a retrace down into range equilibrium", "src": "heard", "ref": "[01:00]-[01:45], see market_context.bias"},
+        {"value": "wait until the 10:00 ET news is out before entering", "src": "heard", "ref": "[00:30]-[00:45]; entry ≈10:01 is right after the 10:00 ISM release (#2)"},
+        {"value": "price had displaced down from the ≈18,755 high (09:46-09:50), leaving 5m bearish FVGs ≈18,697-18,746", "src": "inferred", "ref": "#8 03m01s 5m gray FVG boxes; #12 1m candles"},
+        {"value": "entry inside the 'macro' time window (exact window not stated)", "src": "heard", "ref": "[05:30] 'is within a macro'"}
+      ],
+      "entry_time": {"value": "≈10:01 (chart time, probably ET)", "src": "inferred", "ref": "Box left edge vs x-axis: #10 (09:45 at x579, 10:00 at x641, box at x645) and #12 (10:00 at x458, box at x465); ±1 min."},
+      "entry": {"value": 18676.25, "src": "inferred", "ref": "Axis label 18,676.25 sits exactly at the box's gray/blue boundary in #10 (y≈422) and #12 (y≈349); no tooltip shown."},
+      "stop": {"value": 18729.0, "src": "inferred", "ref": "Top of the box's gray zone aligns with axis label 18,729.00 (#10 y≈278, #12 y≈233); = 52.75 pts risk. No tooltip."},
+      "stop_rule": {"value": "above the 18,729 line / top of the 5m FVG (stated rule not audible)", "src": "inferred", "ref": "#8 5m FVG top at the 18,729.00 line"},
+      "target": {"value": 18617.0, "src": "seen", "ref": "Blue-highlighted axis label 18,617.00 at the box bottom in #12 05m34s. In the earlier scene #10 05m16s the same box ended at blue label 18,638.25; which target he actually used is unknown."},
+      "target_rule": {"value": null, "src": "unknown", "ref": "Not audible; heard only that targets are 'the lows down here' [02:45] for the earlier idea."},
+      "exit": {"value": null, "src": "unknown", "ref": "No 'Closed P&L' tooltip; box ends at 10:15 (#12) / ≈10:27 (#10) before price reached the target (≈10:47). Heard [06:30] 'my first entry there but then it grow over a little bit need to see that exited' and [06:45] 'stop 'em up near ... end up working' - may mean it went against him and he exited/was stopped, but too garbled to tell."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Not stated or shown."},
+      "result": {"value": "unknown", "src": "inferred", "ref": "Price path (#12): fell to ≈18,651 by ≈10:08, rallied to ≈18,711 (±3) by ≈10:25 (below the 18,729 box stop), then fell through 18,617 by ≈10:47. So the drawn box would have survived and reached either target if held, but his actual exit is unknown and the transcript hints at an early exit."},
+      "r_multiple": {"value": null, "src": "unknown", "ref": "Planned R from the box: (18,676.25-18,617.00)/(18,729.00-18,676.25) = 59.25/52.75 = 1.12 (or 38.00/52.75 = 0.72 with the #10 target 18,638.25). Actual R unknown because exit unknown."},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No $ amount stated or shown."},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "Only a TradingView drawing; no broker panel, fills or account P&L."},
+      "mistakes": [
+        {"value": "he may call this entry poor ('shitty little ...')", "src": "heard", "ref": "[05:15] 'first turn this this was a shitty little' read as 'first trade, this was a shitty little [entry]'; object of the phrase not audible"},
+        {"value": "≈35 pts (≈0.66R) adverse move against the entry before the move down", "src": "inferred", "ref": "#12: entry 18,676.25, post-entry high ≈18,711 (±3) at ≈10:25"}
+      ],
+      "evidence_summary": "Seen: NQ 1m short box, date, target label 18,617.00 (18,638.25 in earlier scene). Inferred: entry 18,676.25 / stop 18,729.00 by label alignment, ≈10:01 entry. Heard (garbled): it was his 'first' trade, in a 'macro'. Exit/result unknown."
+    },
+    {
+      "date": {"value": "2024-06-03", "src": "seen", "ref": "#31 10m54s x-axis 'Mon 03 Jun '24 10:31'"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#31 legend 'NASDAQ 100 E-mini Futures · 1 · CME'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#31 tooltip 'Stop: 20.50' above entry, 'Target: 93.25' below; blue zone below entry"},
+      "timeframes": {"value": {"bias": "4h", "setup": "5m / 1m range equilibrium", "entry": "1m"}, "src": "inferred", "ref": "4h bias [01:00]; 5m range with 0.5 at 18,704 (#19 07m13s); box on 1m (#31); heard [11:00] 'given one minute and for confirmation downside' read as '1m confirmation to the downside'."},
+      "setup": {"value": "retrace up into the equilibrium (18,704) / 1m-5m FVGs of the morning range -> 1m break of structure down -> short", "src": "heard", "ref": "[09:00] 'we fell [filled] this imbalance ... equilibrium in they're just looking for confirmation'; [09:15] 'already breaking structure on one' read as '1m break of structure'; [09:30] 'i need more [confirmation]'; [11:00] 'one minute ... confirmation downside ... in equilibrium ... confluence'."},
+      "entry_conditions": [
+        {"value": "intraday bias bearish (4h overbought, draw to lower lows)", "src": "heard", "ref": "[01:00]-[01:45]; [09:30] 'bias ... lower for sure'"},
+        {"value": "price retraced into the range equilibrium 18,704 / gray FVG zone ≈18,697-18,727 (reached ≈18,711 at ≈10:25)", "src": "inferred", "ref": "#22 09m08s and #30 10m37s: range 0.5 at 18,704.00 label, candles into the gray zone"},
+        {"value": "1m close below the most recent 1m swing low (BOS) after the tap of equilibrium", "src": "heard", "ref": "[09:15] 'breaking structure on one'; [11:00] 'one minute ... confirmation downside'"},
+        {"value": "entry near the lower 1m FVG ≈18,672-18,687 after a lower high ≈18,699-18,701", "src": "inferred", "ref": "#22 1m gray box around the 18,673.25 crosshair; #31 candles just before entry (±3)"}
+      ],
+      "entry_time": {"value": "≈10:31 (chart time, probably ET)", "src": "inferred", "ref": "#31 box left edge at the crosshair whose x-axis label reads 'Mon 03 Jun '24 10:31'; box right edge label '11:04'."},
+      "entry": {"value": 18681.75, "src": "seen", "ref": "#31/#30/#32 axis label 18,681.75 at the box entry line; consistent with tooltips: 18,681.75+20.50 = 18,702.25 and 18,681.75-93.25 = 18,588.50, both shown as axis labels."},
+      "stop": {"value": 18702.25, "src": "seen", "ref": "#31 tooltip 'Stop: 20.50 (0.11%) 82, Amount: 659.6'; axis label 18,702.25"},
+      "stop_rule": {"value": "just above the 1m lower high formed before entry (≈18,700), a little below the 18,704 equilibrium", "src": "inferred", "ref": "#31 candles before 10:31 top out ≈18,699-18,701 (±3); rule not audible"},
+      "target": {"value": 18588.5, "src": "seen", "ref": "#31 tooltip 'Target: 93.25 (0.50%) 373, Amount: 772.8'; axis label 18,588.50"},
+      "target_rule": {"value": "just above a lower horizontal line at 18,580.25 (likely a prior low); rule not stated", "src": "inferred", "ref": "#31 horizontal lines/labels 18,588.50 and 18,580.25; no explanation audible"},
+      "exit": {"value": "target 18,588.50 reached on the tool at ≈10:55; his actual exit not shown", "src": "seen", "ref": "#31 tooltip 'Closed P&L: 93.25, Qty: 0.05, Risk/Reward Ratio: 4.55'; lows cross 18,588.50 ≈10:52-10:58 (inferred from x-axis). Heard [11:15] 'then close everything out', [11:30] 'i'll just play it safe', [11:45] 'take a profit' - may mean he took profit, not necessarily at the tool target."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Tool 'Qty: 0.05' is a drawing default, not a real size; no size stated."},
+      "result": {"value": "win", "src": "seen", "ref": "#31 position tool shows 'Closed P&L: 93.25' (target hit before box end 11:04). Real fill/exit not verified."},
+      "r_multiple": {"value": 4.55, "src": "computed", "ref": "(18,681.75-18,588.50)/(18,702.25-18,681.75) = 93.25/20.50 = 4.55; matches tooltip 'Risk/Reward Ratio: 4.55'. Assumes he held to the drawn target."},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No $ figure stated or shown. [11:30] 'one of four are on the day today' might be an R tally for the day but is unreadable."},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "Only a TradingView position tool; no broker panel, fills or account P&L."},
+      "mistakes": [],
+      "evidence_summary": "Seen: NQ 1m short box with tooltip (stop 20.50, target 93.25, R:R 4.55, Closed P&L 93.25), entry/stop/target axis labels, date, ≈10:31 entry. Heard: equilibrium + 1m BOS confirmation, 'play it safe'/'take profit'. Actual exit and size not shown."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "He always waits for the news release to come out before trading; prefers to trade after it.", "src": "heard", "ref": "[00:30] 'i always wait for news to come out ok this is it news that i'm against trading okay i just preferred straight after'"},
+    {"value": "The pre-news short (stop above the high, targets the lows) would have been a good entry, but he waited for news.", "src": "heard", "ref": "[02:30]-[03:00] 'what a good entry stops the law ... targets would have been the slows down here ... was waiting for news'"},
+    {"value": "When the 4h is overbought, look for price to retrace into the equilibrium (50%) of the range.", "src": "heard", "ref": "[01:00]-[01:45]"},
+    {"value": "Inside equilibrium, wait for 1m confirmation (break of structure) before entering; he skipped an earlier 1m break because he wanted more confirmation.", "src": "heard", "ref": "[09:00] 'just looking for confirmation'; [09:15]-[09:30] 'already breaking structure on one ... but i didn't want to get ... i need more [confirmation]'; [11:00]"},
+    {"value": "Play it safe and take profit.", "src": "heard", "ref": "[11:30] 'i'll just play it safe'; [11:45] 'take a profit that's it'"}
+  ],
+  "quality_notes": "Transcript is very garbled, so the reasons, trade-1 exit and any R/P&L tally are mostly unreadable. Trade 1 has no tooltip: entry/stop come from axis-label alignment and its target changed between scenes (18,638.25 vs 18,617.00); its result is unknown. Trade 2 prices are internally consistent (labels + tooltip), but all results are TradingView drawings, not fills. No broker panel, so nothing is verified. Chart time zone hidden (probably ET). The 09:49 pre-news short in #6 is a hindsight 'would have been' example, not a trade. Pixel-estimated prices ±3 pts (1m/5m), ±10 pts (4h)."
+}
