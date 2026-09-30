@@ -94,6 +94,23 @@ jobs:
           test "$(version "$OLD")" = "1.0.${{ github.run_number }}"
           codesign --verify --strict "$OLD"
           ls -a "$T"
+          # macOS won't let the app replace itself (simulated: the app is locked). The bot must still update.
+          B="$RUNNER_TEMP/blocked"; rm -rf "$B"; mkdir -p "$B/home"
+          cp -R "dist/AI Trader.app" "$B/AI Trader.app"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.0" -c "Set :CFBundleVersion 1.0.0" "$B/AI Trader.app/Contents/Info.plist"
+          codesign --force --sign - "$B/AI Trader.app"
+          chflags uchg "$B/AI Trader.app"
+          set +e
+          HOME="$B/home" AITRADER_HOME="$B/home/AITrader" AITRADER_UPDATE_FEED="file://$PWD/dist/latest.json" \
+            "$B/AI Trader.app/Contents/MacOS/AITrader" --update-test
+          code=$?
+          set -e
+          chflags nouchg "$B/AI Trader.app"
+          test "$code" = 3                                                     # "blocked, bot updated"
+          test "$(version "$B/AI Trader.app")" = "1.0.0"                       # the old window stayed
+          test "$(cat "$B/home/AITrader/VERSION")" = "1.0.${{ github.run_number }}"   # the bot is new
+          test "$(cat "$B/home/AITrader/data/update-result")" = "blocked 1.0.${{ github.run_number }}"
+          ls -a "$B"
 
       - name: Keep the self-test screenshot
         if: always()

@@ -9,7 +9,23 @@ NEW="$(cat "$RES/VERSION")"
 OLD="$(cat "$APP_HOME/VERSION" 2>/dev/null)"
 mkdir -p "$APP_HOME"
 
-if [ "$NEW" != "$OLD" ]; then
+# Is version $1 newer than $2? (1.0.14 > 1.0.9; nothing installed yet = yes; test builds: any change)
+newer() {
+  local IFS=. i x y
+  local -a a=($1) b=($2)
+  [ -z "$2" ] && return 0
+  for ((i = 0; i < ${#a[@]} || i < ${#b[@]}; i++)); do
+    x=${a[i]:-0}; y=${b[i]:-0}
+    if ! [[ $x =~ ^[0-9]+$ && $y =~ ^[0-9]+$ ]]; then [ "$1" != "$2" ]; return; fi
+    if ((10#$x > 10#$y)); then return 0; fi
+    if ((10#$x < 10#$y)); then return 1; fi
+  done
+  return 1
+}
+
+# Only a NEWER bot is copied in: an older copy of the app (for example one macOS wouldn't let the
+# updater replace) never rolls the bot back.
+if newer "$NEW" "$OLD"; then
   rm -rf "$APP_HOME/aitrader.new"                 # copy first, then swap: a running bot never sees half a copy
   cp -R "$RES/trader/aitrader" "$APP_HOME/aitrader.new"
   rm -rf "$APP_HOME/aitrader" && mv "$APP_HOME/aitrader.new" "$APP_HOME/aitrader"

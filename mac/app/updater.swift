@@ -103,7 +103,7 @@ func cannotReplace(_ app: URL) -> String? {
     if app.pathExtension != "app" { return "It isn't running as an app." }
     if versionNumbers(currentVersion()) == nil { return "This is a test build (version \(currentVersion()))." }
     if app.path.contains("/AppTranslocation/") {
-        return "macOS is running it from a temporary copy. Drag AI Trader into your Applications folder and open it from there."
+        return "macOS is running it from a temporary copy. Drag the app into your Applications folder and open it from there."
     }
     if !FileManager.default.isWritableFile(atPath: app.deletingLastPathComponent().path) {
         return "It can't write to the folder it's in (\(app.deletingLastPathComponent().path)). Move it to your Applications folder."
@@ -122,8 +122,9 @@ func checkLatest() throws -> UpdateInfo? {
 }
 
 /// Downloads the new app next to this one and checks it thoroughly. Returns where it is.
+/// (Its file name may differ from this one's: the app can be renamed by an update.)
 func downloadAndVerify(_ update: UpdateInfo, replacing app: URL) throws -> URL {
-    let staging = app.deletingLastPathComponent().appendingPathComponent(".AI Trader update \(update.version)")
+    let staging = app.deletingLastPathComponent().appendingPathComponent(".app update \(update.version)")
     let files = FileManager.default
     try? files.removeItem(at: staging)
     try files.createDirectory(at: staging, withIntermediateDirectories: true)
@@ -133,44 +134,64 @@ func downloadAndVerify(_ update: UpdateInfo, replacing app: URL) throws -> URL {
         try? files.removeItem(at: staging)
         throw UpdateError("The download didn't match its fingerprint (sha256), so it wasn't installed.")
     }
-    let zipFile = staging.appendingPathComponent("AITrader-mac.zip")
+    let zipFile = staging.appendingPathComponent("update.zip")
     try zipData.write(to: zipFile)
     try runTool("/usr/bin/ditto", ["-x", "-k", zipFile.path, staging.path])
     try? files.removeItem(at: zipFile)
-    let newApp = staging.appendingPathComponent("AI Trader.app")
+    let apps = ((try? files.contentsOfDirectory(at: staging, includingPropertiesForKeys: nil)) ?? [])
+        .filter { $0.pathExtension == "app" }
+    guard apps.count == 1, let newApp = apps.first else {
+        try? files.removeItem(at: staging)
+        throw UpdateError("The download doesn't contain exactly one app.")
+    }
     let info = NSDictionary(contentsOf: newApp.appendingPathComponent("Contents/Info.plist"))
     guard info?["CFBundleShortVersionString"] as? String == update.version,
           info?["CFBundleIdentifier"] as? String == Bundle.main.bundleIdentifier else {
         try? files.removeItem(at: staging)
-        throw UpdateError("The downloaded app isn't the expected AI Trader \(update.version).")
+        throw UpdateError("The downloaded app isn't the expected version \(update.version) of this app.")
     }
     try runTool("/usr/bin/codesign", ["--verify", "--strict", newApp.path])
     _ = try? runTool("/usr/bin/xattr", ["-dr", "com.apple.quarantine", newApp.path])
     return newApp
 }
 
-/// Puts the new app in place of the old one once the old one has quit (pid), then opens it.
+/// Where the swap script leaves its result ("ok 1.0.15" or "blocked 1.0.15") for the next launch.
+let updateResultFile = appHome.appendingPathComponent("data/update-result")
+
+/// Once the old app has quit (pid), puts the new one in its place and opens it.
+/// If macOS won't let it replace the app (no Apple developer ID, so its "App Management" protection
+/// may apply), it still updates the bot (its code lives in ~/AITrader) and reopens the old window.
 /// pid 0 = don't wait (the build machine's test); wait = run it now and return when done.
-func swapIn(_ newApp: URL, replacing app: URL, afterQuit pid: Int32, relaunch: Bool, wait: Bool) throws {
+func swapIn(_ newApp: URL, replacing app: URL, version: String, afterQuit pid: Int32, relaunch: Bool, wait: Bool) throws {
     let script = """
     #!/bin/bash
-    # AI Trader update: wait for the old app to quit, put the new one in its place, open it.
-    OLD="$1"; NEW="$2"; PID="$3"; RELAUNCH="$4"
+    # App update: wait for the old app to quit, put the new one in its place, open it.
+    OLD="$1"; NEW="$2"; PID="$3"; RELAUNCH="$4"; RESULT="$5"; VERSION="$6"
+    DEST="$(dirname "$OLD")/$(basename "$NEW")"
     while [ "$PID" != "0" ] && kill -0 "$PID" 2>/dev/null; do sleep 0.2; done
+    mkdir -p "$(dirname "$RESULT")"
     rm -rf "$OLD.previous"
-    if mv "$OLD" "$OLD.previous" && mv "$NEW" "$OLD"; then
+    if [ "$DEST" != "$OLD" ]; then rm -rf "$DEST"; fi
+    if mv "$OLD" "$OLD.previous" 2>/dev/null && mv "$NEW" "$DEST" 2>/dev/null; then
       rm -rf "$OLD.previous" "$(dirname "$NEW")"
-    elif [ ! -d "$OLD" ] && [ -d "$OLD.previous" ]; then
-      mv "$OLD.previous" "$OLD"
+      echo "ok $VERSION" > "$RESULT"
+      OPEN="$DEST"
+    else
+      if [ ! -d "$OLD" ] && [ -d "$OLD.previous" ]; then mv "$OLD.previous" "$OLD"; fi
+      bash "$NEW/Contents/Resources/install.sh"          # the bot's new code still goes in
+      rm -rf "$(dirname "$NEW")"
+      echo "blocked $VERSION" > "$RESULT"
+      OPEN="$OLD"
     fi
-    if [ "$RELAUNCH" = "yes" ]; then open -g "$OLD"; fi
+    if [ "$RELAUNCH" = "yes" ]; then open -g "$OPEN"; fi
     exit 0
     """
-    let scriptURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("aitrader-update.sh")
+    let scriptURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("app-update.sh")
     try script.write(to: scriptURL, atomically: true, encoding: .utf8)
     let process = Process()
     process.executableURL = URL(fileURLWithPath: "/bin/bash")
-    process.arguments = [scriptURL.path, app.path, newApp.path, String(pid), relaunch ? "yes" : "no"]
+    process.arguments = [scriptURL.path, app.path, newApp.path, String(pid), relaunch ? "yes" : "no",
+                         updateResultFile.path, version]
     try process.run()
     if wait { process.waitUntilExit() }
 }
@@ -187,6 +208,7 @@ func realMoneyReasons() -> [String] {
 }
 
 /// The build machine's test: an older copy of the app updates itself to the new build.
+/// Exit 0 = the app was replaced; 3 = macOS-style block, but the bot was updated; 1 = failed.
 func runUpdateTest() -> Int32 {
     let app = Bundle.main.bundleURL
     do {
@@ -194,11 +216,21 @@ func runUpdateTest() -> Int32 {
         guard let update = try checkLatest() else { throw UpdateError("no version newer than \(currentVersion())") }
         print("real money involved: \(realMoneyReasons())")
         let newApp = try downloadAndVerify(update, replacing: app)
-        try swapIn(newApp, replacing: app, afterQuit: 0, relaunch: false, wait: true)
-        let installed = NSDictionary(contentsOf: app.appendingPathComponent("Contents/Info.plist"))?["CFBundleShortVersionString"]
-        guard installed as? String == update.version else { throw UpdateError("found \(installed ?? "nothing") after the swap") }
-        print("UPDATE-TEST: OK \(currentVersion()) -> \(update.version)")
-        return 0
+        try? FileManager.default.removeItem(at: updateResultFile)
+        try swapIn(newApp, replacing: app, version: update.version, afterQuit: 0, relaunch: false, wait: true)
+        let result = (try? String(contentsOf: updateResultFile, encoding: .utf8))?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? "no result"
+        let placed = app.deletingLastPathComponent().appendingPathComponent(newApp.lastPathComponent)
+        let installed = NSDictionary(contentsOf: placed.appendingPathComponent("Contents/Info.plist"))?["CFBundleShortVersionString"]
+        if result == "ok \(update.version)" && installed as? String == update.version {
+            print("UPDATE-TEST: OK \(currentVersion()) -> \(update.version) at \(placed.lastPathComponent)")
+            return 0
+        }
+        if result == "blocked \(update.version)" {
+            print("UPDATE-TEST: BLOCKED (app kept at \(currentVersion())); bot updated to \(update.version)")
+            return 3
+        }
+        throw UpdateError("unexpected result: \(result), installed \(installed ?? "nothing")")
     } catch {
         print("UPDATE-TEST FAILED: \(error.localizedDescription)")
         return 1
@@ -210,7 +242,38 @@ extension AppController {
         UserDefaults.standard.object(forKey: "autoUpdate") as? Bool ?? true
     }
 
+    /// After an update: say if macOS kept the old app (the bot itself was updated either way).
+    func reportLastUpdate() {
+        guard let result = try? String(contentsOf: updateResultFile, encoding: .utf8) else { return }
+        try? FileManager.default.removeItem(at: updateResultFile)
+        let parts = result.split(separator: " ").map(String.init)
+        logUpdate("last update: \(result.trimmingCharacters(in: .whitespacesAndNewlines))")
+        guard parts.first == "blocked", parts.count > 1 else {
+            UserDefaults.standard.removeObject(forKey: "blockedVersion")
+            return
+        }
+        UserDefaults.standard.set(parts[1], forKey: "blockedVersion")
+        let alert = NSAlert()
+        alert.messageText = "The bot was updated to \(parts[1]); this window wasn't"
+        alert.informativeText = "macOS didn't let the app replace itself in your Applications folder (it has no paid "
+            + "Apple developer ID). The bot's own code was updated, so trading already uses \(parts[1]).\n\n"
+            + "To let the window update too: System Settings → Privacy & Security → App Management → turn this app on. "
+            + "Or download the new version and drag it into Applications."
+        alert.addButton(withTitle: "Open App Management")
+        alert.addButton(withTitle: "Download")
+        alert.addButton(withTitle: "Later")
+        switch alert.runModal() {
+        case .alertFirstButtonReturn:
+            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AppBundles")!)
+        case .alertSecondButtonReturn:
+            NSWorkspace.shared.open(URL(string: "https://github.com/pbelfand-dot/Aistock/releases/latest")!)
+        default:
+            break
+        }
+    }
+
     func startUpdateChecks() {
+        reportLastUpdate()
         DispatchQueue.main.asyncAfter(deadline: .now() + 20) { [weak self] in self?.checkForUpdates(userAsked: false) }
         updateTimer = Timer.scheduledTimer(withTimeInterval: 24 * 3600, repeats: true) { [weak self] _ in
             self?.checkForUpdates(userAsked: false)
@@ -236,7 +299,7 @@ extension AppController {
         let app = Bundle.main.bundleURL
         if let problem = cannotReplace(app) {
             logUpdate("can't update itself: \(problem)")
-            if userAsked { tell("AI Trader can't update itself from here", problem) }
+            if userAsked { tell("The app can't update itself from here", problem) }
             return
         }
         updating = true
@@ -245,8 +308,13 @@ extension AppController {
                 guard let update = try checkLatest() else {
                     DispatchQueue.main.async {
                         self.updating = false
-                        if userAsked { self.tell("You're up to date", "AI Trader \(currentVersion()) is the newest version.") }
+                        if userAsked { self.tell("You're up to date", "Version \(currentVersion()) is the newest.") }
                     }
+                    return
+                }
+                if !userAsked && UserDefaults.standard.string(forKey: "blockedVersion") == update.version {
+                    logUpdate("\(update.version): macOS blocked replacing the app last time; not retrying on its own")
+                    DispatchQueue.main.async { self.updating = false }
                     return
                 }
                 let reasons = realMoneyReasons()
@@ -271,8 +339,8 @@ extension AppController {
 
     func confirm(_ update: UpdateInfo, _ reasons: [String]) -> Bool {
         let alert = NSAlert()
-        alert.messageText = "AI Trader \(update.version) is available (you have \(currentVersion()))"
-        var text = "Installing takes a few seconds. AI Trader restarts, and the bot switches to the new version."
+        alert.messageText = "Version \(update.version) is available (you have \(currentVersion()))"
+        var text = "Installing takes a few seconds. The app restarts, and the bot switches to the new version."
         if !reasons.isEmpty {
             text += "\n\nReal money is involved: " + reasons.joined(separator: "; ")
                 + ". That's why it's asking instead of updating by itself."
@@ -287,7 +355,7 @@ extension AppController {
         DispatchQueue.global(qos: .utility).async {
             do {
                 let newApp = try downloadAndVerify(update, replacing: app)
-                try swapIn(newApp, replacing: app, afterQuit: getpid(), relaunch: true, wait: false)
+                try swapIn(newApp, replacing: app, version: update.version, afterQuit: getpid(), relaunch: true, wait: false)
                 logUpdate("installing \(update.version) (was \(currentVersion())); restarting")
                 DispatchQueue.main.async { NSApp.terminate(nil) }
             } catch {
@@ -296,7 +364,7 @@ extension AppController {
                     self.updating = false
                     if userAsked {
                         self.tell("The update didn't install",
-                                  "\(error.localizedDescription) AI Trader keeps running version \(currentVersion()).")
+                                  "\(error.localizedDescription) The app keeps running version \(currentVersion()).")
                     }
                 }
             }
