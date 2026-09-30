@@ -175,6 +175,9 @@ def _desk_section(cfg, store, desk, kind, today) -> list:
                 f"It held {thinking['holding']} of {thinking['max_positions']} positions with "
                 f"{_money(thinking.get('cash'))} cash."
                 + (f" Not buying more because: {thinking['why_no_buys']}." if thinking.get("why_no_buys") else ""), ""]
+    from .agents import notes_lines, settings as team_settings
+    if team_settings(cfg)["enabled"]:
+        out += notes_lines(cfg, store, desk, mode, today, narrate=bool((cfg.get("llm") or {}).get("enabled")))
     ledger = store.get(f"{mode}_ledger") or {}
     positions = ledger.get("positions", {})
     if positions:
@@ -249,6 +252,9 @@ def after_market(cfg, store, today: str) -> str:
             out.append(f"- **{desk} / {s.name}**: {score}. {s.description}")
     out.append("")
 
+    from .options_flow import report_lines
+    out += report_lines(store)
+
     from .scanner import load_list
     state = load_list(cfg)
     if state.get("updated"):
@@ -278,7 +284,8 @@ def write_after_market(cfg, store, today: str) -> str:
     text = after_market(cfg, store, today)
     summary = ask_local_llm(cfg, "You are Kestrel, the owner's trading bot. In under 120 words, using ONLY the "
                                  "facts in this report (never invent numbers), tell the owner what you traded "
-                                 "today and why, how it went, and what you'll watch tomorrow.\n\n" + text)
+                                 "today and why (follow the team's notes: Scout, Analyst, Trader, Risk, "
+                                 "Reviewer), how it went, and what you'll watch tomorrow.\n\n" + text)
     if summary:
         title, rest = text.split("\n", 1)
         text = f"{title}\n\n## In plain English\n\n{summary.strip()}\n{rest}"

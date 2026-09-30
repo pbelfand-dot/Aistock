@@ -295,7 +295,7 @@ def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
     broker.blocked = frozenset(broker.blocked) | {t for t in danger if t not in broker.positions()}
     risk, change = learned(cfg, store, desk, broker.mode, strategy.name, market)
     result = run_cycle(work_store, broker, strategy, risk, bars, market, now,
-                       cfg["desks"][desk], stops_only=stops_only, no_buys=change["no_buys"])
+                       cfg["desks"][desk], stops_only=stops_only, no_buys=change["no_buys"], cfg=cfg)
     if dry_run:
         return f"{desk}: dry run finished; nothing was saved or sent"
     if result["kill_switch"] and in_head:                    # pretend money: sell, note it, start the count again
@@ -387,7 +387,7 @@ def schwab_login_warning(cfg):
 
 
 # ================================================================ autopilot
-ONCE_A_DAY = ("morning", "swing", "study", "report")
+ONCE_A_DAY = ("morning", "swing", "study", "options", "report")
 
 
 def due_jobs(now: datetime, done: set) -> list:
@@ -407,6 +407,8 @@ def due_jobs(now: datetime, done: set) -> list:
     after_close = datetime.combine(now.date(), session_close(now.date())) + timedelta(minutes=10)
     if now >= after_close and f"study:{today}" not in done:
         jobs.append("study")
+    if now >= after_close + timedelta(minutes=5) and f"options:{today}" not in done:
+        jobs.append("options")                               # the options-gap watcher (options_flow.py)
     if now >= after_close + timedelta(minutes=10) and f"scan:{today}" not in done:
         jobs.append("scan")                                  # the daily all-stocks scan and news (scanner.py)
     if (now >= after_close + timedelta(minutes=15) and f"study:{today}" in done
@@ -490,6 +492,9 @@ def run_job(job, cfg, store, data, now, done) -> str:
             raise RuntimeError("study incomplete")      # not marked done, so it retries in 5 minutes
         report_days(cfg, store, today)
         return "study done for today"
+    if job == "options":
+        from aitrader.options_flow import run as watch_options
+        return watch_options(cfg, store, data, today)
     if job == "report":
         from aitrader.report import write_after_market
         write_after_market(cfg, store, today)

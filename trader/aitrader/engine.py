@@ -175,7 +175,7 @@ def run_backtest(strategy, bars: dict, market: pd.DataFrame, cfg: dict, desk: st
     return result
 
 
-def remember_thinking(store, mode, now, strategy, risk, scores, prices, broker, orders, why_no_buys):
+def remember_thinking(store, mode, now, strategy, risk, scores, prices, broker, orders, why_no_buys, team=None):
     """What it was thinking at this decision, for the after-market report (report.py): its top picks,
     what it did, and why it didn't buy more. The latest one is kept, plus each decision that traded."""
     positions = broker.positions()
@@ -188,6 +188,7 @@ def remember_thinking(store, mode, now, strategy, risk, scores, prices, broker, 
                 for t, v in top.items()],
         "holding": len(positions), "max_positions": risk.max_open_positions, "cash": round(broker.cash(), 2),
         "why_no_buys": why_no_buys,
+        "team": team,                                   # the agents' notes on this decision (agents.py)
         "orders": [{"side": o.side, "ticker": o.ticker, "qty": o.qty, "price": round(float(o.price), 2),
                     "reason": o.reason} for o in orders],
     }
@@ -200,9 +201,10 @@ def remember_thinking(store, mode, now, strategy, risk, scores, prices, broker, 
 
 
 def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd.DataFrame, now,
-              desk_cfg: dict, stops_only: bool = False, no_buys: str = "") -> dict:
+              desk_cfg: dict, stops_only: bool = False, no_buys: str = "", cfg: dict = None) -> dict:
     """One moment of paper or live trading. stops_only: just check stop-losses.
-    no_buys: a reason not to open new trades now (e.g. a lesson from its own trades, see learning.py)."""
+    no_buys: a reason not to open new trades now (e.g. a lesson from its own trades, see learning.py).
+    cfg: when given, the team (agents.py) looks at the orders before they go."""
     mode = broker.mode
     today = now.strftime("%Y-%m-%d")
     prices = closes_table(bars).ffill().iloc[-1]
@@ -231,12 +233,22 @@ def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd
 
     orders = desk_orders(strategy, now, scores, prices, broker, risk, yesterday_equity, desk_cfg, stops_only,
                          no_buys)
+    team = None
+    if cfg is not None and not stops_only:
+        from .agents import review_orders, settings as team_settings
+        if team_settings(cfg)["enabled"]:
+            from .options_flow import gaps_today
+            try:
+                orders, team = review_orders(cfg, orders, scores, prices, broker, bars, gaps_today(store), strategy,
+                                             risk.max_open_positions)
+            except Exception as e:                  # the notes must never block a trade (above all, a stop-loss)
+                team = {"error": f"the team couldn't write its notes ({e!r}); the orders went ahead unchanged"}
     fills = execute(orders, broker, today)       # each fill is saved the moment it happens (broker.on_fill)
     if not stops_only:
         why = no_buys or ("" if allowed else why_not)
         if not why and strategy.style == "day" and minutes_to_close(now) <= desk_cfg["last_entry_minutes_before_close"]:
             why = f"no new day trades in the last {desk_cfg['last_entry_minutes_before_close']} minutes before the close"
-        remember_thinking(store, mode, now, strategy, risk, scores, prices, broker, orders, why)
+        remember_thinking(store, mode, now, strategy, risk, scores, prices, broker, orders, why, team)
     if not orders and not stops_only and strategy.style == "swing":
         store.log(f"[{mode}] no trades today")
 
