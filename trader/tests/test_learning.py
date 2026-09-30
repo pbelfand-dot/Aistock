@@ -60,7 +60,7 @@ def test_a_market_condition_is_only_avoided_with_enough_evidence():
     rows = []
     for i, day in enumerate(days[250::6][:70]):
         below = up[days.get_loc(day)] < pd.Series(up).rolling(200).mean().iloc[days.get_loc(day)]
-        r = -1.5 if below else 3.0                     # wins overall, loses in a falling market
+        r = (-1.5 if below else 3.0) + 0.3 * np.sin(i)  # wins overall, loses in a falling market
         rows.append({"date": day.strftime("%Y-%m-%d"), "ticker": f"T{i}", "side": "BUY", "qty": 1, "price": 100.0,
                      "realized_pnl": 0.0, "reason": "momentum score 0.7 >= 0.56"})
         rows.append({"date": (day + pd.offsets.BDay(2)).strftime("%Y-%m-%d"), "ticker": f"T{i}", "side": "SELL",
@@ -82,3 +82,10 @@ def test_the_local_ai_reads_what_it_learned(cfg):
     data_path(cfg, learning.NOTE).write_text(learning.note({"swing": lessons}))
     text = knowledge.pack(cfg)
     assert "What I learned from my own trades" in text and "momentum" in text
+
+
+def test_losing_the_same_amount_every_time_is_clear_evidence_not_none():
+    lessons = learning.review(fills_from([-1.0] * 35))
+    assert lessons["strategies"]["momentum"]["t"] == -99.0 and lessons["strategies"]["momentum"]["status"] == "paused"
+    import json
+    json.loads(json.dumps(lessons))                                  # stays plain JSON for the app

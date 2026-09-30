@@ -81,7 +81,17 @@ def _card(returns: list) -> dict:
     sd = math.sqrt(sum((r - mean) ** 2 for r in returns) / (n - 1)) if n > 1 else 0.0
     return {"trades": n, "win_rate": round(100 * sum(r > 0 for r in returns) / n, 1) if n else None,
             "avg_return_pct": round(mean, 2), "shrunk_pct": round(sum(returns) / (n + PRIOR_TRADES), 3),
-            "t": round(mean / (sd / math.sqrt(n)), 2) if n > 1 and sd > 0 else 0.0}
+            "t": _t_stat(mean, sd, n)}
+
+
+def _t_stat(mean: float, sd: float, n: int) -> float:
+    """How many standard errors the average is from zero. Identical results every time (no spread) are
+    the clearest evidence there is, not "no evidence": capped at +/-99 so it stays plain JSON."""
+    if n < 2:
+        return 0.0
+    if sd < 1e-9:
+        return 0.0 if abs(mean) < 1e-12 else math.copysign(99.0, mean)
+    return round(max(-99.0, min(99.0, mean / (sd / math.sqrt(n)))), 2)
 
 
 def review(fills: pd.DataFrame, market: pd.DataFrame = None) -> dict:
