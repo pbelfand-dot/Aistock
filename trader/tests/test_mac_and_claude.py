@@ -33,7 +33,7 @@ def test_claude_can_look_and_pause_but_never_trade(config_file):
     import mcp_server
     names = {t.name for t in asyncio.run(mcp_server.server.list_tools())}
     assert names == {"bot_status", "journal", "trading_plan", "positions", "performance", "broker_account",
-                     "pause_trading", "knowledge"}
+                     "pause_trading", "knowledge", "after_market_report"}
     assert "10-safety-rules" in mcp_server.knowledge() and "good faith" in mcp_server.knowledge("10-safety-rules")
     assert "=== KESTREL ===" in mcp_server.bot_status()
     assert "All desks paused" in mcp_server.pause_trading("test")

@@ -14,6 +14,7 @@ run.py: the ONE file you run.
     python run.py plan            after the study month: write each desk's trading plan
     python run.py approve-plan    you read a plan and say yes -> that desk starts paper trading
     python run.py start-stage1    Stage 1 now: the swing desk paper trades momentum (skips the study month)
+    python run.py report          the after-market report: what it traded today, why, and what's next
     python run.py promote         paper results good enough? -> you confirm -> that desk trades real money
     python run.py kill            EMERGENCY: cancel orders, sell everything the bot owns, stop
     python run.py resume          un-halt after a kill (after you've looked into what happened)
@@ -99,7 +100,8 @@ def fill_recorder(store, mode, dry_run=False):
         if f.side == "SELL":
             cost = amount - f.realized_pnl                  # what those shares cost
             pct = f", {f.realized_pnl / cost * 100:+.1f}%" if cost > 0 else ""
-            money = f" (got ${amount:,.2f}; {'WIN' if f.realized_pnl > 0 else 'LOSS' if f.realized_pnl < 0 else 'even'} ${f.realized_pnl:+.2f}{pct})"
+            pnl = f"{'-' if f.realized_pnl < 0 else '+'}${abs(f.realized_pnl):,.2f}"
+            money = f" (got ${amount:,.2f}; {'WIN' if f.realized_pnl > 0 else 'LOSS' if f.realized_pnl < 0 else 'even'} {pnl}{pct})"
         else:
             money = f" (spent ${amount:,.2f})"
         line = f"[{mode}] {f.side} {f.qty} {f.ticker} @ ${f.price:.2f}{money}: {f.reason}"
@@ -385,7 +387,7 @@ def schwab_login_warning(cfg):
 
 
 # ================================================================ autopilot
-ONCE_A_DAY = ("morning", "swing", "study")
+ONCE_A_DAY = ("morning", "swing", "study", "report")
 
 
 def due_jobs(now: datetime, done: set) -> list:
@@ -407,6 +409,9 @@ def due_jobs(now: datetime, done: set) -> list:
         jobs.append("study")
     if now >= after_close + timedelta(minutes=10) and f"scan:{today}" not in done:
         jobs.append("scan")                                  # the daily all-stocks scan and news (scanner.py)
+    if (now >= after_close + timedelta(minutes=15) and f"study:{today}" in done
+            and f"report:{today}" not in done):
+        jobs.append("report")                                # the after-market report (report.py)
     return jobs
 
 
@@ -449,6 +454,10 @@ def run_job(job, cfg, store, data, now, done) -> str:
             raise RuntimeError("study incomplete")      # not marked done, so it retries in 5 minutes
         report_days(cfg, store, today)
         return "study done for today"
+    if job == "report":
+        from aitrader.report import write_after_market
+        write_after_market(cfg, store, today)
+        return f"after-market report for {today} written"
     if job == "scan":
         from aitrader import scanner
         summary = scanner.run(cfg, store, today)
@@ -551,12 +560,13 @@ def cmd_status(cfg, store, args):
                 done = trade_list(store.fills(mode))
                 won = sum(1 for t in done if t["result"] == "win")
                 s = summarize(curve, store.fills(mode))
+                gain = curve.iloc[-1] - start
                 print(f"  {mode}: ${curve.iloc[-1]:,.2f} ({(curve.iloc[-1] / start - 1) * 100:+.2f}% since the start, "
-                      f"${curve.iloc[-1] - start:+,.2f})  trades {len(done)} ({won} won)  "
+                      f"{'-' if gain < 0 else '+'}${abs(gain):,.2f})  trades {len(done)} ({won} won)  "
                       f"max drawdown {s['max_drawdown_pct']}%")
                 for t in done[:5]:
                     print(f"      {t['sold_on']} {t['ticker']}: spent ${t['spent']:,.2f}, got ${t['got_back']:,.2f}, "
-                          f"{t['result'].upper()} ${t['gain']:+,.2f} ({t['gain_pct']:+.1f}%)")
+                          f"{t['result'].upper()} {'-' if t['gain'] < 0 else '+'}${abs(t['gain']):,.2f} ({t['gain_pct']:+.1f}%)")
         print(f"  Next: {nxt[phase].format(desk=desk)}")
 
     print("\n  Recent journal:")
@@ -608,6 +618,7 @@ MENU = [
     ("Stop the background autopilot", "service-off"),
     ("Backtest: how would each strategy have done?", "backtest"),
     ("Write the trading plans (after the study month)", "plan"),
+    ("After-market report: what it traded today and why", "report"),
     ("Start Stage 1: paper trade the momentum method now (no study month)", "start-stage1"),
     ("Approve a plan (starts paper trading)", "approve-plan"),
     ("Promote a desk to REAL money", "promote"),
@@ -802,6 +813,14 @@ def cmd_start_stage1(cfg, store, args):
         print(e)
 
 
+def cmd_report(cfg, store, args):
+    """Prints the after-market report (today's is written now if the autopilot hasn't yet)."""
+    from aitrader.report import recent_reports, write_after_market
+    day = args.date or now_ny().strftime("%Y-%m-%d")
+    found = [r for r in recent_reports(cfg, 60) if r["date"] == day]
+    print(found[0]["markdown"] if found else write_after_market(cfg, store, day))
+
+
 def cmd_promote(cfg, store, args):
     data = None
     for desk in pick_desks(cfg, args):
@@ -905,6 +924,7 @@ def main(argv=None, cfg=None, store=None):
         sub.add_parser(name).add_argument("--desk", choices=["swing", "day"], help=desk_help)
     sub.add_parser("kill")
     sub.add_parser("start-stage1")
+    sub.add_parser("report").add_argument("--date", help="YYYY-MM-DD (default: today)")
     sub.add_parser("schwab-login").add_argument("--manual", action="store_true",
                                                 help="print a login link instead of opening a browser")
     args = parser.parse_args(argv)
@@ -913,7 +933,7 @@ def main(argv=None, cfg=None, store=None):
     store = store or Store(data_path(cfg, "aitrader.sqlite"))
     commands = {"menu": cmd_menu, "dashboard": cmd_dashboard, "autopilot": cmd_autopilot, "status": cmd_status, "check": cmd_check, "study": cmd_study, "trade": cmd_trade,
                 "backtest": cmd_backtest, "plan": cmd_plan, "approve-plan": cmd_approve_plan,
-                "start-stage1": cmd_start_stage1,
+                "start-stage1": cmd_start_stage1, "report": cmd_report,
                 "promote": cmd_promote, "kill": cmd_kill, "resume": cmd_resume, "schwab-login": cmd_schwab_login}
     try:
         commands[args.command](cfg, store, args)

@@ -101,8 +101,196 @@ def day_line(store, mode: str, start_value: float, today: str) -> str:
     todays = [t for t in done if t["sold_on"] == today]
     won = sum(1 for t in done if t["result"] == "win")
     text = (f"[{mode}] {today}: value ${value:,.2f}, today {(value / prev - 1) * 100:+.2f}% "
-            f"(${value - prev:+,.2f}); since the start {(value / start_value - 1) * 100:+.2f}% "
-            f"(${value - start_value:+,.2f}); {len(done)} trades finished, {won} won, {len(done) - won} didn't")
+            f"({signed(value - prev)}); since the start {(value / start_value - 1) * 100:+.2f}% "
+            f"({signed(value - start_value)}); {len(done)} trades finished, {won} won, {len(done) - won} didn't")
     if todays:
-        text += "; today: " + ", ".join(f"{t['ticker']} {t['gain_pct']:+.1f}% (${t['gain']:+,.2f})" for t in todays)
+        text += "; today: " + ", ".join(f"{t['ticker']} {t['gain_pct']:+.1f}% ({signed(t['gain'])})" for t in todays)
     return text
+
+
+# ---------------------------------------------------------------- the after-market report
+ACCOUNT_NAMES = {"study": "in its head (pretend money while it studies)", "paper": "paper (practice money)",
+                 "live": "REAL MONEY"}
+
+
+def _money(x):
+    return "--" if x is None else f"${x:,.2f}"
+
+
+def signed(x) -> str:
+    """+$12.30 / -$4.10 (not $-4.10)."""
+    return f"{'-' if x < 0 else '+'}${abs(x):,.2f}"
+
+
+def _fill_line(f, spent_by_ticker) -> str:
+    amount = float(f.qty) * float(f.price)
+    if f.side == "BUY":
+        return f"- BUY {int(f.qty)} {f.ticker} @ ${float(f.price):.2f} (spent ${amount:,.2f}): {f.reason}"
+    pnl = float(f.realized_pnl or 0)
+    cost = amount - pnl
+    verdict = "WIN" if pnl > 0 else "LOSS" if pnl < 0 else "even"
+    pct = f", {pnl / cost * 100:+.1f}%" if cost > 0 else ""
+    return (f"- SELL {int(f.qty)} {f.ticker} @ ${float(f.price):.2f} (got back ${amount:,.2f}; "
+            f"{verdict} {signed(pnl)}{pct}): {f.reason}")
+
+
+def _desk_section(cfg, store, desk, kind, today) -> list:
+    from .config import desk_capital
+    from .dashboard import quote
+    mode = f"{kind}-{desk}"
+    start = desk_capital(cfg, desk, kind == "live")
+    curve = store.equity_curve(mode)
+    fills = store.fills(mode)
+    todays = fills[fills["date"].astype(str).str[:10] == today] if len(fills) else fills
+    thinking = store.get(f"{mode}_thinking") or {}
+    out = [f"## {desk.title()} desk: {ACCOUNT_NAMES[kind]}", ""]
+    if thinking.get("strategy"):
+        from .strategies import all_strategies
+        desc = next((s.description for s in all_strategies(cfg, desk) if s.name == thinking["strategy"]), "")
+        out += [f"**Strategy: `{thinking['strategy']}`.** {desc} It buys at a score of "
+                f"{thinking['buy_above']:.2f} or more and sells below {thinking['sell_below']:.2f}.", ""]
+    if len(curve):
+        value = float(curve.iloc[-1])
+        before = curve[curve.index < pd.Timestamp(today)]
+        prev = float(before.iloc[-1]) if len(before) else start
+        out += [f"**Result:** value {_money(value)}; today {(value / prev - 1) * 100:+.2f}% ({signed(value - prev)}); "
+                f"since the start {(value / start - 1) * 100:+.2f}% ({signed(value - start)}).", ""]
+    out.append("**What it did today:**")
+    if len(todays):
+        out += [_fill_line(f, {}) for f in todays.itertuples(index=False)]
+    else:
+        why = thinking.get("why_no_buys") or ""
+        fresh = [t for t in thinking.get("top") or [] if not t["owned"]]
+        if not why and thinking.get("holding", 0) >= thinking.get("max_positions", 99):
+            why = f"all {thinking['max_positions']} position slots were full"
+        elif not why and fresh and fresh[0]["score"] < thinking.get("buy_above", 1):
+            why = (f"nothing new scored high enough (the best it didn't own was {fresh[0]['ticker']} at "
+                   f"{fresh[0]['score']:.2f}; it needs {thinking['buy_above']:.2f})")
+        out.append(f"- No trades. {why[:1].upper() + why[1:] if why else ''}".rstrip())
+    out.append("")
+    if thinking.get("top"):
+        picks = ", ".join(f"{t['ticker']} {t['score']:.2f}" + (" (owns it)" if t["owned"] else "")
+                          for t in thinking["top"][:8])
+        out += [f"**Its thinking at the last check ({thinking['time'][-5:]}):** top scores: {picks}. "
+                f"It held {thinking['holding']} of {thinking['max_positions']} positions with "
+                f"{_money(thinking.get('cash'))} cash."
+                + (f" Not buying more because: {thinking['why_no_buys']}." if thinking.get("why_no_buys") else ""), ""]
+    ledger = store.get(f"{mode}_ledger") or {}
+    positions = ledger.get("positions", {})
+    if positions:
+        stop_pct = cfg["desks"][desk]["risk"]["stop_loss_pct"]
+        out.append("**Holding overnight:**")
+        for t, p in positions.items():
+            last = quote(cfg, t)["last"]
+            gain = f", now {_money(last)} ({(last / p['avg_cost'] - 1) * 100:+.1f}%)" if last else ""
+            out.append(f"- {t}: {p['qty']} shares bought {p['opened_on']} at {_money(p['avg_cost'])}{gain}; "
+                       f"stop-loss {_money(p['avg_cost'] * (1 - stop_pct / 100))}")
+        out.append("")
+    lessons = store.get(f"lessons:{desk}") or {}
+    cards = lessons.get("strategies") or {}
+    if cards and lessons.get("mode") == mode:
+        out.append("**What it has learned from its own trades:**")
+        out += [f"- {name}: {card['status']} ({card['why']})" for name, card in cards.items()]
+        if lessons.get("avoid"):
+            out.append(f"- Not buying in: {', '.join(lessons['avoid'])}")
+        out.append("")
+    done = trades(fills)
+    if done:
+        won = sum(1 for t in done if t["result"] == "win")
+        out += [f"**All finished trades so far:** {len(done)}, {won} won, {len(done) - won} didn't; "
+                f"together {signed(sum(t['gain'] or 0 for t in done))}.", ""]
+    return out
+
+
+def after_market(cfg, store, today: str) -> str:
+    """The end-of-day report: the market, what each desk traded and why, what it was thinking, what it
+    learned, how the strategies it compares are doing, changes to its stock list, and what's next."""
+    from .config import active_desks
+    from .dashboard import _price_history, quote
+    from .learning import conditions
+    from .phases import current_phase, mode_of
+    out = [f"# After-market report: {pd.Timestamp(today):%A, %B %d, %Y}", ""]
+
+    bench = cfg["benchmark"]
+    q = quote(cfg, bench)
+    daily, _ = _price_history(cfg, bench)
+    mood = ""
+    if daily is not None and len(daily) >= 200:
+        row = conditions(daily).iloc[-1]
+        mood = "; ".join(v for v in row.values if isinstance(v, str))
+    if q["last"] is not None:
+        out += [f"**The market:** {bench} closed at {_money(q['last'])}"
+                + (f" ({q['change_pct']:+.2f}% today)" if q["change_pct"] is not None else "")
+                + (f"; {mood}." if mood else "."), ""]
+
+    for desk in active_desks(cfg):
+        current = mode_of(current_phase(store, desk), desk).split("-")[0]
+        for kind in MODES:
+            fills = store.fills(f"{kind}-{desk}")
+            traded_today = len(fills) and (fills["date"].astype(str).str[:10] == today).any()
+            if kind == current or traded_today:
+                out += _desk_section(cfg, store, desk, kind, today)
+
+    out += ["## The strategies it compares (the study)", ""]
+    from .strategies import all_strategies
+    from .study import day_forward_report, forward_report
+    swing_card, day_card = forward_report(store, cfg), day_forward_report(store)
+    for desk in active_desks(cfg):
+        card = swing_card if desk == "swing" else day_card
+        for s in all_strategies(cfg, desk):
+            row = card.loc[s.name].to_dict() if len(card) and s.name in card.index else {}
+            if desk == "swing":
+                score = (f"{int(row.get('signals') or 0)} graded buy ideas, hit rate "
+                         f"{row.get('hit_rate_pct') if row.get('hit_rate_pct') is not None else '--'}%, edge "
+                         f"{row.get('edge_pct') if row.get('edge_pct') is not None else '--'}%") if row else "not graded yet"
+            else:
+                score = (f"{int(row.get('num_closed_trades') or 0)} shadow trades, return "
+                         f"{row.get('total_return_pct', '--')}%, win rate {row.get('win_rate_pct', '--')}%") if row else "no shadow trades yet"
+            out.append(f"- **{desk} / {s.name}**: {score}. {s.description}")
+    out.append("")
+
+    from .scanner import load_list
+    state = load_list(cfg)
+    if state.get("updated"):
+        joined = [r["symbol"] for r in state.get("liked", []) if r.get("first_listed") == today]
+        left = [s for s, h in state.get("history", {}).items() if h.get("left_on") == today]
+        danger = [f"{r['symbol']} ({', '.join(r['danger'])})" for r in state.get("liked", []) if r.get("danger")]
+        top = ", ".join(r["symbol"] for r in state.get("liked", [])[:10])
+        out += ["## Its stock list (the daily scan)", "",
+                f"- Top 10 by 12-month strength: {top or '--'} (updated {state['updated']})",
+                f"- New today: {', '.join(joined) or 'none'}; dropped off: {', '.join(left) or 'none'}",
+                f"- Danger news (won't buy): {', '.join(danger) or 'none'}", ""]
+
+    out += ["## Next", ""]
+    for desk in active_desks(cfg):
+        phase = current_phase(store, desk).value
+        when = "decides at 3:45pm ET and checks stop-losses every 5 minutes" if desk == "swing" \
+            else "decides every 5 minutes and sells everything before the close"
+        out.append(f"- {desk.title()} desk ({phase.replace('_', ' ').lower()}): {when}.")
+    return "\n".join(out).rstrip() + "\n"
+
+
+def write_after_market(cfg, store, today: str) -> str:
+    """Writes data/reports/after-market-<day>.md (plus a plain-English summary from the local AI when
+    it's on) and notes it in the journal. Returns the report."""
+    from .config import data_path
+    from .llm import ask_local_llm
+    text = after_market(cfg, store, today)
+    summary = ask_local_llm(cfg, "You are Kestrel, the owner's trading bot. In under 120 words, using ONLY the "
+                                 "facts in this report (never invent numbers), tell the owner what you traded "
+                                 "today and why, how it went, and what you'll watch tomorrow.\n\n" + text)
+    if summary:
+        title, rest = text.split("\n", 1)
+        text = f"{title}\n\n## In plain English\n\n{summary.strip()}\n{rest}"
+    path = data_path(cfg, f"reports/after-market-{today}.md")
+    path.write_text(text)
+    store.log(f"After-market report for {today} is ready (Journal tab; {path.name})")
+    return text
+
+
+def recent_reports(cfg, days: int = 7) -> list:
+    """The latest after-market reports, newest first: [{"date", "markdown"}]."""
+    from .config import data_path
+    folder = data_path(cfg, "reports/x").parent
+    files = sorted(folder.glob("after-market-*.md"), reverse=True)[:days]
+    return [{"date": f.stem.replace("after-market-", ""), "markdown": f.read_text()} for f in files]

@@ -91,6 +91,21 @@ def positions() -> str:
 
 @server.tool()
 @quiet
+def after_market_report(date: str = "") -> str:
+    """The end-of-day report: what each desk traded and why, what it was thinking (its top picks and why it
+    didn't buy more), what it learned, how the strategies it compares are doing, and what's next.
+    date: YYYY-MM-DD (default: the latest)."""
+    from aitrader.report import recent_reports
+    cfg, _ = _open()
+    reports = recent_reports(cfg, 60)
+    for r in reports:
+        if not date or r["date"] == date:
+            return r["markdown"]
+    return "No after-market report yet (the autopilot writes one after each close)."
+
+
+@server.tool()
+@quiet
 def performance() -> str:
     """Scorecard for each desk: in its head (while studying), paper and live. Return, drawdown, win
     rate, profit factor, plus the last 20 finished trades (spent, got back, gain $ and %, win/loss)."""

@@ -57,8 +57,19 @@ def test_while_studying_both_desks_trade_in_their_head_and_report_it(cfg, tmp_pa
 
     run.cmd_status(cfg, store, None)                                    # the Terminal status shows it too
 
+    last_day = days[2].strftime("%Y-%m-%d")
+    text = report.write_after_market(cfg, store, last_day)                # the after-market report
+    assert text.startswith("# After-market report")
+    assert "## Day desk: in its head" in text and "## Swing desk: in its head" in text
+    assert "**Strategy: `opening_range_breakout`.**" in text and "**What it did today:**" in text
+    assert "**Its thinking at the last check" in text and "top scores:" in text
+    assert "## The strategies it compares" in text and "day / vwap_reversion" in text and "## Next" in text
+    assert (tmp_path / "reports" / f"after-market-{last_day}.md").exists()
+    assert report.recent_reports(cfg)[0]["date"] == last_day
+    assert any("After-market report" in m for _, m in store.journal(5))
+
     printed = capsys.readouterr().out
-    assert "study-day: $" in printed and "since the start" in printed and ("WIN $" in printed or "LOSS $" in printed)
+    assert "study-day: $" in printed and "since the start" in printed and ("WIN +$" in printed or "LOSS -$" in printed)
 
     snap_account = dashboard._account(cfg, store, "study")
     assert snap_account["active"] and snap_account["daily"] and snap_account["totals"]["days"] == 3
@@ -101,3 +112,12 @@ def test_paper_and_real_money_get_the_same_report(cfg, tmp_path, monkeypatch):
         a = dashboard._account(cfg, store, kind)
         assert a["trades"][0]["gain"] == 10.0 and a["trades"][0]["gain_pct"] == 10.0 and a["trades"][0]["result"] == "win"
         assert a["totals"]["wins"] == 1 and a["totals"]["spent_total"] == 100.0 and len(a["daily"]) == 2
+
+
+def test_the_report_is_written_once_after_the_close_and_the_study():
+    from datetime import datetime
+    done = {"study:2026-09-29"}
+    assert "report" in run.due_jobs(datetime(2026, 9, 29, 16, 30), done)
+    assert "report" not in run.due_jobs(datetime(2026, 9, 29, 16, 30), set())          # study first
+    assert "report" not in run.due_jobs(datetime(2026, 9, 29, 16, 30), done | {"report:2026-09-29"})
+    assert "report" not in run.due_jobs(datetime(2026, 9, 29, 15, 0), done)

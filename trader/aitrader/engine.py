@@ -170,6 +170,30 @@ def run_backtest(strategy, bars: dict, market: pd.DataFrame, cfg: dict, desk: st
     return result
 
 
+def remember_thinking(store, mode, now, strategy, risk, scores, prices, broker, orders, why_no_buys):
+    """What it was thinking at this decision, for the after-market report (report.py): its top picks,
+    what it did, and why it didn't buy more. The latest one is kept, plus each decision that traded."""
+    positions = broker.positions()
+    top = scores.dropna().sort_values(ascending=False).head(8)
+    price = lambda t: None if t not in prices or pd.isna(prices[t]) else round(float(prices[t]), 2)
+    thinking = {
+        "time": now.strftime("%Y-%m-%d %H:%M"), "strategy": strategy.name,
+        "buy_above": strategy.buy_above, "sell_below": strategy.sell_below,
+        "top": [{"ticker": t, "score": round(float(v), 3), "price": price(t), "owned": t in positions}
+                for t, v in top.items()],
+        "holding": len(positions), "max_positions": risk.max_open_positions, "cash": round(broker.cash(), 2),
+        "why_no_buys": why_no_buys,
+        "orders": [{"side": o.side, "ticker": o.ticker, "qty": o.qty, "price": round(float(o.price), 2),
+                    "reason": o.reason} for o in orders],
+    }
+    store.set(f"{mode}_thinking", thinking)
+    if orders:
+        day = now.strftime("%Y-%m-%d")
+        saved = store.get(f"{mode}_decisions") or {}
+        items = saved.get("items", []) if saved.get("date") == day else []
+        store.set(f"{mode}_decisions", {"date": day, "items": (items + [thinking])[-30:]})
+
+
 def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd.DataFrame, now,
               desk_cfg: dict, stops_only: bool = False, no_buys: str = "") -> dict:
     """One moment of paper or live trading. stops_only: just check stop-losses.
@@ -203,6 +227,11 @@ def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd
     orders = desk_orders(strategy, now, scores, prices, broker, risk, yesterday_equity, desk_cfg, stops_only,
                          no_buys)
     fills = execute(orders, broker, today)       # each fill is saved the moment it happens (broker.on_fill)
+    if not stops_only:
+        why = no_buys or ("" if allowed else why_not)
+        if not why and strategy.style == "day" and minutes_to_close(now) <= desk_cfg["last_entry_minutes_before_close"]:
+            why = f"no new day trades in the last {desk_cfg['last_entry_minutes_before_close']} minutes before the close"
+        remember_thinking(store, mode, now, strategy, risk, scores, prices, broker, orders, why)
     if not orders and not stops_only and strategy.style == "swing":
         store.log(f"[{mode}] no trades today")
 
