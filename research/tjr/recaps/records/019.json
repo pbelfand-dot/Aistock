@@ -1,0 +1,69 @@
+{
+  "video": {
+    "n": 19,
+    "file": "04_30_2024.Trade.Recap.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 9 sheets, 14 full-size shots (#1, #3, #4, #6, #8, #10, #11, #14, #15, #16, #17, #18, #19, #23) and the transcript. TradingView legends, x-axis dates, the chart clock '(UTC-4)' and price-axis labels were readable. No position tool, order panel, fills or P&L appear anywhere. The transcript (pocketsphinx) is very garbled: it gives the gist and some key words but few usable numbers. Structure: 00:00-00:49 intro (traveling to Disneyland; didn't post yesterday because of a wedding); 00:49-04:26 recap of Tue 30 Apr 2024 on ES (4h, 15m) and NQ (4h, 15m, 5m), no trade; 04:30-08:40 live look at Wed 1 May 2024 before FOMC on ES (1h, 5m) and NQ (5m, 1h), no trade; 08:47-11:28 crypto charts (BTCUSD 1h/1W/1D, ETHUSD 1D, ETHBTC 1W, TOTAL 1W) with emotional commentary on the BTC drop; 12:06-12:51 face-cam outro asking viewers to follow him on Twitter.",
+    "duration_min": 12.9,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-04-30",
+      "src": "seen",
+      "ref": "#3/#8/#11 x-axis 'Tue 30 Apr '24 09:30' (the recap day); file name 04_30_2024. Recorded on Wed 1 May 2024 at about 11:23-11:35 chart time (inferred): chart clock '11:23:28 (UTC-4)' on #1 to '11:33:25' on #23, with live bars up to ≈11:30 on 'Wed 01 May '24' charts (#14, #15, #18). Heard [00:15] 'trade recap from yesterday that i was unable to close because i was at a wedding' ['unable to post']."
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "Tue 30 Apr: both indices sold off hard through the NY session. ES went from ≈5,140 around 09:45 ET through the marked 4h lows 5118.75 (≈11:00), 5104.50 (≈12:15) and 5090.75 (≈15:30) to ≈5,058 into the close. NQ tagged the 17791.25 low at ≈08:30, rallied to ≈17,896 by ≈10:00, fell back to ≈17,835 around 10:25, bounced to ≈17,880 around 10:45, then broke through 17842.50 and 17791.25 (≈11:05) and fell to ≈17,470 by ≈16:15. Wed 1 May (live to ≈11:30 ET, pre-FOMC): a range with lower highs. ES made ≈5,038 at ≈06:20, ≈5,062 at ≈09:30, ≈5,044.5 at ≈10:00, ≈5,059.5 at ≈10:45 and ≈5,044 at ≈11:05. NQ made 17412.00 at 06:30, ≈17,518 at ≈09:25-09:35, ≈17,426 at ≈10:10, ≈17,506 at ≈10:55, and the 11:00 1h bar low was 17412.25.",
+      "src": "inferred",
+      "ref": "Seen: legends 'S&P 500 E-mini Futures · 4h/15/5/1h · CME' (#1, #3, #18, #19), 'NASDAQ 100 E-mini Futures · 4h/15/5/1h · CME' (#6, #4, #8/#10/#11/#14/#15, #16/#17). Axis labels 5118.75, 5104.50, 5090.75 (#1, #3), 17791.25, 17842.50, 17896.00 (#11) and 17412.00 (#15, #16). #16 legend for the current 11:00 1h bar: O17487.25 H17493.00 L17412.25 C17451.25. Watchlist at 11:23 ET 1 May (#1): ES1! 5050.25 -16.75, NQ1! 17446.25 -125.00. All other prices and times are estimated from candle positions (±2-3 pts ES, ±5-15 pts NQ, ±10-15 min)."
+    },
+    "news": {
+      "value": "30 Apr: Consumer Confidence at about 10:00 ET. He says it didn't affect the market much and was 'actually bullish news', which surprised him (garbled). 1 May: FOMC later in the day. He didn't trade because of it and expected little movement until the release, which was still pending when he recorded (≈11:30 ET). The FOMC time (14:00 ET) isn't shown or heard.",
+      "src": "heard",
+      "ref": "[03:00] 'we had consumer confidence come out at around' / [03:15] 'ten am and they didn't really affect the market too much it was actually polish news which again surprise me'. [04:30] 'i didn't take a train today because there is a form see' ['didn't take a trade today because there is FOMC']; [05:30] 'my guess is market is not going to move much until apple and see' ['until FOMC']; [07:45] 'i know has been paid yet' ['FOMC hasn't been released yet', low confidence]."
+    },
+    "bias": {
+      "value": "30 Apr: bullish going into the open. He wanted a 4h low swept for longs; the 4h was bullish while the 1h was bearish, so he looked to the 15m. That never gave enough confluence, and price sold off instead. 1 May: bearish. He wanted sells from the hourly into the open, targeting the sell-side liquidity at the morning lows (NQ 17412.00, ES ≈5,038). An hourly break of structure down would open lower hourly lows (NQ ≈17,300-17,320 from 25 Apr; he points near ES 5034.00).",
+      "src": "heard",
+      "ref": "[00:45] 'i actually expected polish this yesterday ... coming in a market open we're polish' ['expected bullish']; [01:00] 'looking for this for our low to be swept on that was my main target'; [01:45] 'the four hour was bullish that the hourly was bare ... fifteen minute time frame'. [05:00] 'focus on the four hour ... gonna be looking for sells on the hourly coming in a market over' ['into market open']; [07:30] 'targets would just be the strong liquidity' ['sell-side liquidity']; [08:00] 'if we can get an hourly rate church of the downside ... even lower lows'. Target levels seen as line/crosshair labels on #15, #17 and #19."
+    },
+    "timezone": {
+      "value": "Chart time is UTC-4 (= US Eastern daylight time, ET).",
+      "src": "seen",
+      "ref": "Chart clock '11:23:28 (UTC-4)' on #1 (and on every chart shot); the 09:30 session line matches the NY open."
+    },
+    "levels": {
+      "value": "ES: 5142.25, 5118.75, 5104.50, 5090.75 (black lines; from their start points they look like late-April 4h swing lows/highs, all traded through on 30 Apr); 5051.50 (red line, from ≈08:40 on 1 May); a grey box ≈5,053-5,055 from ≈11:05 on 1 May (probably an FVG). NQ: 17920.25, 17910.75, 17896.00, 17875.00 (highs above the 29-30 Apr range); 17842.50 (red, ≈ the 50% of 17791.25-17896.00, = 17,843.6); 17791.25 (the ≈15:45 29 Apr low, tagged by the 08:30 flush on 30 Apr); 17491.25 (red, from ≈08:45 on 1 May); 17412.00 (1 May 06:30 low, line anchored there). Crosshair-only readings (not drawn levels): ES 5133.00, 5047.50, 5034.00; NQ 17882.50, 17863.25, 17855.50, 17465.25, 17436.00, 17321.25.",
+      "src": "seen",
+      "ref": "Axis labels on #1, #3 (ES 30 Apr), #4, #6, #8, #10, #11 (NQ 30 Apr), #14, #15, #16, #17 (NQ 1 May), #18, #19 (ES 1 May). The 17412.00 anchor time 'Wed 01 May '24 06:30' is shown in blue on the x-axis of #15 with the anchor circle at that low. What each line marks, where it starts, the box edges and the 50% match are inferred from positions."
+    },
+    "conditions_stated": {
+      "value": [
+        "30 Apr long plan (not taken): 4h bullish, 1h bearish, so use the 15m. Price swept a low (NQ tagged 17791.25 at ≈08:30), then made a 15m break of structure up at the open, then retraced to equilibrium (≈17842.50). He then waited for a 5m (or 15m) break of structure up for entry. He judged the confluence not good enough, and price instead broke down after ≈10:45.",
+        "1 May short plan (not taken, FOMC day): higher timeframe bearish. At the NY open price ran the morning highs (NQ ≈17,518, ES ≈5,062), then made a 15m break of structure down. Wait for price to retrace into a 15m breaker aligned with an FVG (his 'unicorn model'; NQ red 17491.25, ES red 5051.50 / grey box ≈5,053-5,055) or an order block. Enter on a 5m break of structure down. Target the sell-side liquidity at the morning lows (NQ 17412.00; ES ≈5,038). Stop placement not stated.",
+        "An hourly break of structure down on 1 May would open lower hourly lows (NQ ≈17,300-17,320, the 25 Apr low area; ES near 5034.00)."
+      ],
+      "src": "inferred",
+      "ref": "Assembled from heard fragments: [01:45] 'fifteen minute break' at market open; [02:30] 'come down ... equilibrium ... respect equilibrium'; [02:45] 'five minute time frame just waiting for five minute break structure'; [05:15] 'we swept up these ... highs ... we got a fifteen minute break charger' ['break of structure']; [06:15] 'we have a breaker aligned with the affair ... like to call that the unicorn model' ['aligned with the FVG']; [07:00]-[07:30] 'order block ... breaker ... fifteen ... confluence ... five minute wait for ... break of shutters' ['5-minute break of structure']; [07:30] 'targets would just be the strong liquidity' ['sell-side liquidity']. Matched to the levels and candle positions seen on #11, #14, #15, #17, #18, #19. By ≈11:15 ET on 1 May, NQ had fallen to 17412.25 (#16 legend), within 0.25 of the 17412.00 target, after retracing to ≈17,506 at ≈10:55 (seen/estimated). This is an observation, not a trade."
+    },
+    "other_markets": {
+      "value": "Crypto on 1 May: BTCUSD (Bitstamp 1D) at 56,979, -6.02%, having fallen through the bottom (59,567) of the grey zone ≈59.6-64k. Marked BTC levels: 69,000, 62,332, 60,760 (red), 59,567, and a lower grey zone ≈50.5-53k; the crosshair was at 55,030. He is visibly alarmed, and says (garbled) that he is holding crypto, that weekly structure hasn't broken yet, and asks viewers to follow his portfolio on Twitter. He gives no trade or plan for crypto. ETHUSD was ≈2,886 (-4.2%) on the watchlist.",
+      "src": "inferred",
+      "ref": "Seen #23: legend 'Bitcoin / U.S. Dollar · 1D · BITSTAMP' O60611 H60786 L56500 C56979 -3653 (-6.02%); labels 69000, 62332, 60760, 59567, 55030 (crosshair). The zone edges are estimated. Heard: [08:45] 'put her down six percent today'; [10:45] 'at least teeth hasn't broken week the church' ['hasn't broken weekly structure', low confidence]; [11:45] 'holding and holding'; [12:00] 'look up to your tweets on twitter find my entire portfolio'. ETH, ETHBTC and TOTAL were viewed on sheets only (#22, #24-#27); their small labels weren't relied on."
+    }
+  },
+  "trades": [],
+  "no_trade_reason": "No trade on either day, and no position tool, fills or P&L appear. 30 Apr: he expected bullish and looked for longs, but says the setup didn't give enough confluence; he adds, garbled, that he now wishes he had traded. 1 May: he didn't trade because of FOMC, and walks through the short he would have considered (see market_context.conditions_stated). Heard: [01:15]-[01:30] 'nasdaq offered me a little bit more of an interesting set up ... i'd never ended up taking'; [03:00] 'it just wasn't [enough] confluence ... for me to place any trades'; [04:15] 'i didn't take a train ... now i wish i did'; [04:30] 'i didn't really see anything from yesterday ... i didn't take a train today because there is a form see' ['a trade ... FOMC']. He also says he is traveling and won't trade tomorrow ([00:00]).",
+  "lessons_stated": [
+    {"value": "When the 4h is bullish but the 1h is bearish, drop to the 15m timeframe for structure", "src": "heard", "ref": "[01:45] 'the four hour was bullish that the hourly was bare shelves killed around fifteen minute time frame'. Garbled; moderate confidence."},
+    {"value": "Entry trigger: wait for a 5-minute break of structure (after 15m confluence such as a breaker or order block)", "src": "heard", "ref": "[02:45] 'five minute time frame just waiting for five minute break structure'; [07:15] 'looking for fifteen ... confluence ... breaker ... or her blog [order block] ... five minute wait for' / [07:30] 'break of shutters'."},
+    {"value": "No trade without enough confluence", "src": "heard", "ref": "[03:00] 'it just wasn't that hot hi of the confluence ... for me to place any trades'."},
+    {"value": "Doesn't trade on FOMC day; expects little movement before the release", "src": "heard", "ref": "[04:30] 'i didn't take a train today because there is a form see'; [05:30] 'market is not going to move much until apple and see'."},
+    {"value": "A breaker aligned with an FVG is what he calls the 'unicorn model'", "src": "heard", "ref": "[06:15] 'we have a breaker aligned with the affair right ... like to call that the unicorn model'."},
+    {"value": "Targets are the sell-side liquidity (the lows)", "src": "heard", "ref": "[07:30] 'the targets would just be the strong liquidity' ['sell-side liquidity'], with the crosshair on the lows (#15 17412.00)."},
+    {"value": "An hourly break of structure to the downside would open lower lows", "src": "heard", "ref": "[08:00] 'if we can get an hourly rate church of the downside ... getting even lower lows like down over here'; crosshair near the 25 Apr hourly low on #17."}
+  ],
+  "quality_notes": "No trades, so no entry/stop/target or P&L to verify. The main limit is the transcript: it is badly garbled, so the setup sequence and the 'conditions' come from fragments matched to chart drawings; for example, 30 Apr is unclear on whether the 4h low was his entry sweep or his target. The 1 May plan has no stated stop or entry price and was recorded before FOMC, so its outcome after 11:30 ET isn't shown. Prices other than axis/legend labels are estimated from candle positions (±2-3 ES pts, ±5-15 NQ pts, ±10-15 min). Several labels are crosshair readings, not drawn levels, and are marked as such. The crypto section (≈4 min) is emotional commentary with no testable plan."
+}

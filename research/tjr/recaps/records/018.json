@@ -1,0 +1,73 @@
+{
+  "video": {
+    "n": 18,
+    "file": "04_29_2024.Trade.Recap.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 9 sheets, 13 full-size shots (#1, #3, #6, #8, #13, #14, #15, #17, #22, #24, #28, #31, #32) and the transcript. TradingView legends, x-axis dates and the position-tool axis labels were readable. No broker/order panel, fills or P&L are shown. The TradingView clock reads 11:01:33 on #1 and 11:08:17 on #34, but its timezone suffix is cut off. His internet dropped at 02:02-02:06 (#9 'You Are Not Connected to the Internet', #10 loading). The transcript (pocketsphinx) is heavily garbled. Structure: 00:00-02:00 NQ 4h/1h/15m context; 02:10-03:10 NQ 1m/5m and ES 5m/1h/1m (SMT); 03:15-04:40 the NQ long explained on 1m/5m; 04:40-06:50 ES 1m on screen during outro and mastermind promo.",
+    "duration_min": 6.8,
+    "title_claim": "",
+    "session_date": {"value": "2024-04-29", "src": "seen", "ref": "#1 00m00s x-axis 'Mon 29 Apr '24 09:30'; file name 04_29_2024. Recorded the same day at ≈11:01-11:08 chart clock (#1, #34). Heard [00:00] 'trade recap from today'."}
+  },
+  "market_context": {
+    "regime": {
+      "value": "NQ was trending up on 4h/1h, from the 24-25 Apr lows into the 29 Apr premarket. At the 09:30 open it spiked to ≈17948 (≈09:33), then dropped ≈118 pts to the 17830.50 line (low ≈09:54). It V-recovered to ≈17915 by ≈10:33 and drifted back to ≈17862 by 11:05.",
+      "src": "inferred",
+      "ref": "Seen legends 'NASDAQ 100 E-mini Futures · 4h · CME' #3, '· 1h' #6, '· 15' #8, '· 5' #13/#31, '· 1' #1/#22/#24/#28. Seen label 17830.50 (#1/#22/#24). Other prices and times are estimated from candle positions (±1-2 pts, ±2 min). Heard [00:00] 'bullish on a four hour coming in a market open'; [00:15] 'also bullish on the hourly'."
+    },
+    "news": {"value": "None mentioned; no calendar shown.", "src": "heard", "ref": "No news words in the transcript; no economic calendar on any shot."},
+    "bias": {
+      "value": "Bullish. 4h and 1h were bullish into the open, and the open sold off into the 4h lows (17830.50) as a liquidity sweep. The draw on liquidity was back up to the pre-open lows / NY-open breaking point at ≈17904.",
+      "src": "heard",
+      "ref": "[00:00]/[00:15] 'bullish on a four hour ... bullish on the hourly coming in a market open'; [01:00] 'we also swept out of these ... four hour lows'; [02:00] 'we came down and we took a [the] four hour low'; [02:15] 'marked out [higher] timeframe draws on liquidity ... these four hour lows'. The upside target is seen as position-tool label 17904.00 (#1/#28)."
+    },
+    "timezone": {"value": "Chart time, probably ET (suffix not visible).", "src": "inferred", "ref": "The 09:30 session line matches the start of the big opening move. The last 1m candle on #1 (≈11:01) matches the TradingView clock '11:01:33'. The timezone label is cut off at the screen edge."},
+    "levels": {
+      "value": "NQ axis labels: 17922.75 (black line, purpose not stated); 17904.25 (black line through the 08:27-09:20 pre-open 1m lows); 17904.00 (blue, target); 17867.00 (grey, entry); 17848.50 (grey, stop); 17830.50 (black line = the '4h lows' he refers to; it also sits at a 26 Apr 1h swing low). A dark-grey 1m box with a dashed midline spans ≈17848.5-17858.4 from ≈09:50 (his 1m order block). ES: 5147.00 line (1h range highs from 26 Apr, #15/#17/#32), 5146.00 line (#32), and a drawn rising line under the ES 09:43-09:54 1m lows.",
+      "src": "seen",
+      "ref": "Axis labels on #1, #6, #22, #24, #28 (NQ) and #15, #17, #32 (ES). The OB box edges, the line origins and what each line marks are inferred from positions."
+    },
+    "opening_gap": {"value": "He says price filled an opening gap on the drop, probably the Friday 26 Apr close vs Sunday 28 Apr open gap (≈17840-17855). The gap edges aren't drawn.", "src": "heard", "ref": "[01:00] 'in two on the opening gap break here fill that' read as 'into the opening gap ... filled that'. The gap location is inferred from the 15m chart (#8) only; low confidence."}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-04-29", "src": "seen", "ref": "#22 x-axis 'Mon 29 Apr '24 09:30' and cursor 'Mon 29 Apr '24 09:57'; #24 cursor '10:14'."},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1! continuous)", "src": "seen", "ref": "#1 00m00s symbol 'NQ1!', legend 'NASDAQ 100 E-mini Futures · 1 · CME'."},
+      "direction": {"value": "long", "src": "seen", "ref": "#1/#22/#24/#28/#31 position box: blue (reward) zone above the 17867.00 entry, grey (risk) zone below it. Heard [02:45] 'to get into the little long trade right here'."},
+      "timeframes": {"value": {"bias": "4h/1h", "setup": "5m", "entry": "1m"}, "src": "inferred", "ref": "Heard [00:00]/[00:15] 4h and hourly bullish; [03:30] 'one minute ... close of a break here'; [03:45] 'waited for the five minute break'. The position box is drawn on 1m (#1/#22/#24) and also shows on 5m (#13/#31)."},
+      "setup": {"value": "4h/1h bullish -> NY-open sell-off sweeps the 4h lows (17830.50) with an ES/NQ SMT -> 1m/5m break of structure up -> long on the retrace, stop under the 1m order block, target the pre-open lows / breaking point (≈17904)", "src": "inferred", "ref": "Assembled from the drawings (#1/#22/#24/#28) and heard fragments [01:00]-[04:30]."},
+      "entry_conditions": [
+        {"value": "4h and 1h trend bullish coming into the 09:30 open", "src": "heard", "ref": "[00:00] 'bullish on a four hour coming in a market open'; [00:15] 'also bullish on the hourly'. Consistent with the 4h/1h up-legs seen on #3/#6."},
+        {"value": "The NY-open drop traded down to the 17830.50 line (his '4h lows'); NQ low ≈17830.5 at ≈09:54, taking out its own ≈09:43 low (≈17832.5)", "src": "inferred", "ref": "Label 17830.50 seen (#22/#24). Lows and times are estimated from candle positions (±0.5 pt, ±1 min). Whether price traded below 17830.50 or only touched it can't be resolved. Heard [02:00] 'we took a [the] four hour low'."},
+        {"value": "SMT divergence: ES made a higher 1m low (≈5138.0 at ≈09:54 vs ≈5136.8 at ≈09:43, rising line drawn) while NQ made a lower low", "src": "inferred", "ref": "ES 1m #17 (legend 'S&P 500 E-mini Futures · 1 · CME') and ES 5m #14 show the drawn rising line under the lows. Levels are estimated from positions (±0.5 pt). Heard [02:45] '[SMT] divergence ... i don't really use it that much but ... cause you to get into the little long trade'."},
+        {"value": "Price was inside an hourly zone (possibly an hourly order block/breaker) at the low", "src": "heard", "ref": "[03:00] 'also being within a hour leve or lottery here it is down move and also an hour the breakers this up move', read as 'within an hourly [order block?] ... and an hourly breaker'. Too garbled to define; not seen drawn."},
+        {"value": "Bullish break of structure: a 1m close above the ≈17868 swing high between the two lows (≈10:00), and per him a 5m break of structure. He missed the ideal entry on the 1m break close.", "src": "inferred", "ref": "Heard [03:30] 'one minute if the close of a break here ideally this would have been my entry ... but i didn't get back in time'; [03:45] 'waited for the five minute break'. The ≈17868 swing high is estimated from #22 (±1.5 pt). The 5m swing that broke isn't identifiable on #13/#31."},
+        {"value": "Entry on the retrace back down to 17867.00 at ≈10:03, just after the break (above the drawn 1m OB box ≈17848.5-17858.4)", "src": "inferred", "ref": "Heard [03:45] 'we just came back down into this one minute [order block] ... what would be a five minute [order block]'. The box left edge and the retrace low ≈17866-17867 are estimated from #22/#24. Price did not reach the drawn OB box before the entry."}
+      ],
+      "entry_time": {"value": "≈10:03 chart time (probably ET)", "src": "inferred", "ref": "The position box's left edge sits at ≈10:03 on 1m in both #22 (09:30 label x=466, 10:15 x=716) and #24 (09:30 x=205, 10:14 cursor x=459); ±2 min."},
+      "entry": {"value": 17867.0, "src": "seen", "ref": "Grey axis label 17867.00 at the grey/blue boundary of the position box (#1, #22, #24, #28, #31)."},
+      "stop": {"value": 17848.5, "src": "seen", "ref": "Grey axis label 17848.50 at the bottom of the grey risk zone (#22, #24); the zone bottom lines up with the bottom of the dark-grey 1m OB box."},
+      "stop_rule": {"value": "Below the 1m order block (box bottom)", "src": "heard", "ref": "[04:00] 'then i just bought my stops underneath this [...]' read as 'put my stops underneath this [order block]'. The stop level matches the OB box bottom as seen on #22/#24."},
+      "target": {"value": 17904.0, "src": "seen", "ref": "Blue axis label 17904.00 at the top of the blue reward zone (#1, #6, #13, #28, #31), 0.25 below the 17904.25 black line."},
+      "target_rule": {"value": "The 'major breaking point' where the open sold off: the 17904.25 line at the pre-open 1m lows, which he also calls a 5m order block / 5m break of structure level", "src": "heard", "ref": "[04:00]-[04:15] 'my take profit was [just] this like major breaking point you could call it a five minute [order block] ... you could say this five minute break [of structure]'. The line through the 08:27-09:20 lows is seen on #28."},
+      "exit": {"value": "target hit (17904.00) at ≈10:20 chart time", "src": "inferred", "ref": "The darker-blue fill of the position box ends at ≈10:20 (#24), and the 1m highs reach the 17904 line at ≈10:20-10:22 (#1/#28). After ≈10:03, candles stay above ≈17866 until then, far above the 17848.50 stop. No fill or exit is shown."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "No size, contracts or account shown or heard."},
+      "result": {"value": "win", "src": "inferred", "ref": "Price reached 17904.00 without trading back to 17848.50 first (#1/#24/#28). Assumes the 17867.00 entry filled; the retrace low sits at ≈17866-17867, so the fill is marginal (±1 pt)."},
+      "r_multiple": {"value": 2.0, "src": "computed", "ref": "(17904.00-17867.00)/(17867.00-17848.50) = 37.00/18.50 = 2.00, from the position-tool labels; assumes a fill at entry and an exit at the target. Heard [04:30] 'super simple [one to two / two to one] risk reward ratio' agrees."},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No P&L stated or shown; title_claim is empty."},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "No broker/platform panel, fills or P&L shown anywhere in the video."},
+      "mistakes": [
+        {"value": "Late entry: he missed the ideal entry on the 1m break-of-structure close and entered on a later retrace", "src": "heard", "ref": "[03:30] 'ideally this would have been my entry on but i didn't get back in time'; [04:00] 'i would like to have a better [entry] on this'."}
+      ],
+      "evidence_summary": "Seen: instrument, date, long direction, entry 17867.00 / stop 17848.50 / target 17904.00 (position-tool labels) and the 17830.50/17904.25 lines. Inferred: entry ≈10:03, target hit ≈10:20, the win, the sweep/SMT/BOS sequence from candles. Heard: HTF bias, 4h-low sweep, SMT, stop and target rules (garbled)."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "Mark the higher-timeframe draws on liquidity (the most recent 4h lows) and look to buy after they are taken when the 4h/1h are bullish", "src": "heard", "ref": "[02:15] 'we are marked out [higher] timeframe draws on liquidity these are the most [recent] four hour lows'; [00:00]-[00:15] 4h/hourly bullish."},
+    {"value": "SMT divergence (ES vs NQ) is an additional confluence, though he says he doesn't use it much and may make a video on spotting it", "src": "heard", "ref": "[02:45] 'somewhat of a [SMT] ... maybe make a video on that on how to spot the [SMT] but divergence i don't really use it that much'."},
+    {"value": "The ideal entry is on the close of the 1m break of structure; if missed, wait for the 5m break and a retrace into the 1m/5m order block", "src": "heard", "ref": "[03:30]-[03:45] 'one minute if the close of a break here ideally this would have been my entry ... waited for the five minute break ... came back down into this one minute or what ... five minute [order block]'. Garbled; low confidence."},
+    {"value": "Stop goes under the order block; target is the major breaking point (5m OB / BOS level); 2:1 reward-to-risk", "src": "heard", "ref": "[04:00]-[04:30] 'my stops underneath this ... take profit was [just] this like major breaking point ... super simple [two to one] risk reward ratio'."},
+    {"value": "He passed on a second possible trade to keep it to one trade for the day. The second setup isn't identified.", "src": "heard", "ref": "[04:30]-[04:45] 'could've taken this [other] trade but decided not to just because i figured ... rather [have] one trade for the day'. It isn't clear which chart he means (#31 NQ 5m / #32 ES 1m were on screen)."}
+  ],
+  "quality_notes": "The transcript is heavily garbled, so the setup logic (4h-low sweep, SMT, 1m/5m BOS, OB retrace) is reconstructed from fragments plus drawings. The 'hourly' confluence at [03:00] and the opening gap at [01:00] can't be pinned down. Entry, stop and target come from the position-tool axis labels. There are no fills or broker panel, so the fill, exit time and result are inferred from later candles; the entry fill is marginal (retrace low ≈ entry). The chart timezone isn't displayed (ET inferred). The second trade he says he skipped is unidentified. His internet dropped at 02:02-02:06."
+}
