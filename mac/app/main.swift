@@ -1,4 +1,4 @@
-// AI Trader.app: a real Mac app window for the bot.
+// Kestrel.app (formerly "AI Trader"): a real Mac app window for the bot.
 //
 // The window shows the dashboard (aitrader/web/dashboard.html) with Apple's WebKit, the same engine
 // as Safari, but inside this app: no browser and no web server. When the page needs data or a button
@@ -74,7 +74,7 @@ let setupPage = """
 body { font: 15px/1.5 -apple-system, system-ui, sans-serif; margin: 0; display: grid; place-items: center;
        height: 100vh; background: #0b2a4a; color: #fff; text-align: center; }
 p { color: #b9c8da; max-width: 460px; }
-</style></head><body><div><h2>Setting up AI Trader</h2>
+</style></head><body><div><h2>Setting up Kestrel</h2>
 <p>The first time (and after some updates), the Setup window in Terminal installs Python and the bot's
 libraries. It takes about 2 minutes. This window opens your dashboard as soon as it's done.</p></div>
 </body></html>
@@ -104,7 +104,7 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1280, height: 860),
                           styleMask: [.titled, .closable, .miniaturizable, .resizable],
                           backing: .buffered, defer: false)
-        window.title = "AI Trader"
+        window.title = "Kestrel"
         window.minSize = NSSize(width: 420, height: 560)
         window.contentView = web
         window.center()
@@ -208,7 +208,7 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
         if selfTest { return }
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        process.arguments = ["-a", "Terminal", appHome.appendingPathComponent("AI Trader Menu.command").path]
+        process.arguments = ["-a", "Terminal", appHome.appendingPathComponent("Kestrel Menu.command").path]
         try? process.run()
     }
 
@@ -225,8 +225,8 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
     func buildMenus() {
         let main = NSMenu()
 
-        let app = NSMenu(title: "AI Trader")
-        app.addItem(withTitle: "About AI Trader",
+        let app = NSMenu(title: "Kestrel")
+        app.addItem(withTitle: "About Kestrel",
                     action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
         app.addItem(withTitle: "Check for Updates…", action: #selector(checkForUpdatesNow), keyEquivalent: "").target = self
         autoUpdateItem = app.addItem(withTitle: "Update Automatically (asks first when real money is on)",
@@ -237,9 +237,9 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
         app.addItem(withTitle: "Setup Menu (keys, plans, autopilot)…",
                     action: #selector(openSetupMenu), keyEquivalent: ",").target = self
         app.addItem(.separator())
-        app.addItem(withTitle: "Hide AI Trader", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
-        app.addItem(withTitle: "Quit AI Trader", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
-        main.addItem(withTitle: "AI Trader", action: nil, keyEquivalent: "").submenu = app
+        app.addItem(withTitle: "Hide Kestrel", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        app.addItem(withTitle: "Quit Kestrel", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        main.addItem(withTitle: "Kestrel", action: nil, keyEquivalent: "").submenu = app
 
         let edit = NSMenu(title: "Edit")                     // so copy and paste work in the window
         edit.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")

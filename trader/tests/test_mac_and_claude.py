@@ -34,7 +34,7 @@ def test_claude_can_look_and_pause_but_never_trade(config_file):
     names = {t.name for t in asyncio.run(mcp_server.server.list_tools())}
     assert names == {"bot_status", "journal", "trading_plan", "positions", "performance", "broker_account",
                      "pause_trading"}
-    assert "=== AI TRADER ===" in mcp_server.bot_status()
+    assert "=== KESTREL ===" in mcp_server.bot_status()
     assert "All desks paused" in mcp_server.pause_trading("test")
     assert "PAUSED by Claude" in mcp_server.journal(5)
 
@@ -81,25 +81,25 @@ def test_the_mac_app_builds(tmp_path):
     out = subprocess.run(["bash", str(REPO / "mac" / "build_app.sh"), "9.9.9"], capture_output=True, text=True,
                          env={**os.environ, "AITRADER_NO_COMPILE": "1"})
     assert out.returncode == 0, out.stderr
-    archive = REPO / "dist" / "AITrader-mac.zip"
+    archive = REPO / "dist" / "Kestrel-mac.zip"
     try:
         with zipfile.ZipFile(archive) as z:
             names = set(z.namelist())
-            launcher = z.getinfo("AI Trader.app/Contents/MacOS/AITrader")
+            launcher = z.getinfo("Kestrel.app/Contents/MacOS/AITrader")
             assert (launcher.external_attr >> 16) & 0o111, "launcher must stay executable"
-            plist = plistlib.loads(z.read("AI Trader.app/Contents/Info.plist"))
+            plist = plistlib.loads(z.read("Kestrel.app/Contents/Info.plist"))
         assert plist["CFBundleExecutable"] == "AITrader" and plist["CFBundleShortVersionString"] == "9.9.9"
         assert plist["LSRequiresNativeExecution"] is True                    # no Rosetta prompt
         assert plist["CFBundleIconFile"] == "AppIcon" and plist["CFBundleIdentifier"] == "com.aitrader.app"
-        for f in ("install.sh", "AI Trader Menu.command", "AppIcon.icns", "VERSION"):
-            assert f"AI Trader.app/Contents/Resources/{f}" in names
+        for f in ("install.sh", "Kestrel Menu.command", "AppIcon.icns", "VERSION"):
+            assert f"Kestrel.app/Contents/Resources/{f}" in names
         for f in ("run.py", "mcp_server.py", "config.yaml", "requirements.txt", ".env.example",
                   "aitrader/web/dashboard.html", "aitrader/app_api.py"):
-            assert f"AI Trader.app/Contents/Resources/trader/{f}" in names
+            assert f"Kestrel.app/Contents/Resources/trader/{f}" in names
         assert not any("/.env" == n[-5:] for n in names), "never ship anyone's keys"
         # What installed apps read to update themselves: this version and the zip's exact fingerprint.
         manifest = json.loads((REPO / "dist" / "latest.json").read_text())
-        assert manifest == {"version": "9.9.9", "zip": "AITrader-mac.zip",
+        assert manifest == {"version": "9.9.9", "zip": "Kestrel-mac.zip",
                             "sha256": hashlib.sha256(archive.read_bytes()).hexdigest()}
     finally:
         subprocess.run(["rm", "-rf", str(REPO / "dist")])

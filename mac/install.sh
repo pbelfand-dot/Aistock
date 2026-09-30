@@ -1,7 +1,7 @@
 #!/bin/bash
-# Run by "AI Trader.app" each time it opens (quick): copies this version of the bot into ~/AITrader.
+# Run by "Kestrel.app" each time it opens (quick): copies this version of the bot into ~/AITrader.
 # Your keys (.env), data (data/) and a backup of your settings are kept.
-# Installing Python and the libraries happens in the Setup menu (AI Trader Menu.command), which the
+# Installing Python and the libraries happens in the Setup menu (Kestrel Menu.command), which the
 # app opens in Terminal only when needed.
 RES="$(cd "$(dirname "$0")" && pwd)"
 APP_HOME="$HOME/AITrader"
@@ -34,7 +34,7 @@ if newer "$NEW" "$OLD"; then
   done
   if [ -f "$APP_HOME/config.yaml" ] && ! cmp -s "$RES/trader/config.yaml" "$APP_HOME/config.yaml"; then
     cp "$APP_HOME/config.yaml" "$APP_HOME/config.yaml.before-$NEW"
-    echo "AI Trader was updated to $NEW and its settings (config.yaml) were reset to the new defaults. Your previous settings are saved in config.yaml.before-$NEW if you want to copy anything back." > "$APP_HOME/.config_note"
+    echo "Kestrel was updated to $NEW and its settings (config.yaml) were reset to the new defaults. Your previous settings are saved in config.yaml.before-$NEW if you want to copy anything back." > "$APP_HOME/.config_note"
   fi
   cp "$RES/trader/config.yaml" "$APP_HOME/config.yaml"
   [ -f "$APP_HOME/.env" ] || cp "$RES/trader/.env.example" "$APP_HOME/.env"
@@ -42,8 +42,9 @@ if newer "$NEW" "$OLD"; then
   touch "$APP_HOME/.restart_autopilot"      # a running background autopilot must switch to the new code
 fi
 
-cp "$RES/AI Trader Menu.command" "$APP_HOME/AI Trader Menu.command"
-chmod +x "$APP_HOME/AI Trader Menu.command"
+cp "$RES/Kestrel Menu.command" "$APP_HOME/Kestrel Menu.command"
+chmod +x "$APP_HOME/Kestrel Menu.command"
+rm -f "$APP_HOME/AI Trader Menu.command"          # the menu's name before the app was renamed
 # These are the bot's own files: clear the "downloaded from the internet" flag so they can run.
 xattr -dr com.apple.quarantine "$APP_HOME" 2>/dev/null
 

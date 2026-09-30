@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds dist/AITrader-mac.zip containing "AI Trader.app": a real Mac app (a Swift program showing
+# Builds dist/Kestrel-mac.zip containing "Kestrel.app": a real Mac app (a Swift program showing
 # the dashboard with Apple's WebKit) plus the bot's code. Compiling needs a Mac with Xcode's tools;
 # GitHub builds it on a Mac for every update.
 # Usage: bash mac/build_app.sh 1.0.7
@@ -7,7 +7,7 @@
 set -euo pipefail
 VERSION="${1:-dev}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP="$ROOT/dist/AI Trader.app"
+APP="$ROOT/dist/Kestrel.app"
 rm -rf "$ROOT/dist"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/trader"
 
@@ -15,7 +15,7 @@ cd "$ROOT/trader"
 cp -R aitrader run.py mcp_server.py config.yaml requirements.txt README.md .env.example "$APP/Contents/Resources/trader/"
 find "$APP" -name "__pycache__" -type d -prune -exec rm -rf {} +
 
-cp "$ROOT/mac/install.sh" "$ROOT/mac/AI Trader Menu.command" "$ROOT/mac/AppIcon.icns" "$APP/Contents/Resources/"
+cp "$ROOT/mac/install.sh" "$ROOT/mac/Kestrel Menu.command" "$ROOT/mac/AppIcon.icns" "$APP/Contents/Resources/"
 sed "s/__VERSION__/$VERSION/g" "$ROOT/mac/Info.plist" > "$APP/Contents/Info.plist"
 echo "$VERSION" > "$APP/Contents/Resources/VERSION"
 
@@ -29,18 +29,19 @@ else
   lipo -create -output "$APP/Contents/MacOS/AITrader" "$ROOT/dist/AITrader-arm64" "$ROOT/dist/AITrader-x86_64"
   rm "$ROOT/dist/AITrader-arm64" "$ROOT/dist/AITrader-x86_64"
 fi
-chmod +x "$APP/Contents/MacOS/AITrader" "$APP/Contents/Resources/install.sh" "$APP/Contents/Resources/AI Trader Menu.command"
+chmod +x "$APP/Contents/MacOS/AITrader" "$APP/Contents/Resources/install.sh" "$APP/Contents/Resources/Kestrel Menu.command"
 
 cd "$ROOT/dist"
 if command -v codesign >/dev/null; then
   # A basic ("ad-hoc") signature: Apple Silicon Macs only run signed programs. (A paid Apple
   # developer ID would also skip the "Open Anyway" step.)
-  codesign --force --sign - "AI Trader.app"
-  ditto -c -k --keepParent "AI Trader.app" AITrader-mac.zip
+  codesign --force --sign - "Kestrel.app"
+  ditto -c -k --keepParent "Kestrel.app" Kestrel-mac.zip
 else
-  zip -qry AITrader-mac.zip "AI Trader.app"
+  zip -qry Kestrel-mac.zip "Kestrel.app"
 fi
 # What the app's updater reads (published next to the zip): the version and the zip's fingerprint.
-SHA="$( (command -v shasum >/dev/null && shasum -a 256 AITrader-mac.zip || sha256sum AITrader-mac.zip) | cut -d' ' -f1)"
-printf '{"version": "%s", "zip": "AITrader-mac.zip", "sha256": "%s"}\n' "$VERSION" "$SHA" > latest.json
-echo "Built $ROOT/dist/AITrader-mac.zip (version $VERSION)"
+SHA="$( (command -v shasum >/dev/null && shasum -a 256 Kestrel-mac.zip || sha256sum Kestrel-mac.zip) | cut -d' ' -f1)"
+printf '{"version": "%s", "zip": "Kestrel-mac.zip", "sha256": "%s"}\n' "$VERSION" "$SHA" > latest.json
+cp Kestrel-mac.zip AITrader-mac.zip          # the same file under the old name, so old download links still work
+echo "Built $ROOT/dist/Kestrel-mac.zip (version $VERSION)"

@@ -131,7 +131,7 @@ def pause_trading(reason: str) -> str:
         store.set(f"halted:{desk}", True)
     store.log(f"PAUSED by Claude at your request: {reason}")
     return ("All desks paused: no new trades. Nothing was sold now; stop-losses still protect open positions "
-            "and the day desk still sells before the close. Resume from the AI Trader menu ('Resume').")
+            "and the day desk still sells before the close. Resume from the app's Setup screen ('Resume trading').")
 
 
 if __name__ == "__main__":

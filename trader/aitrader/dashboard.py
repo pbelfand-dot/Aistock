@@ -1,5 +1,5 @@
 """
-dashboard.py: what the AI Trader app's window shows, a brokerage-style view of your accounts.
+dashboard.py: what the Kestrel app's window shows, a brokerage-style view of your accounts.
 
 snapshot() gathers it all in one go: account value vs. the S&P 500, positions,
 activity, each desk's phase, study report card and plan, the watchlist, and the
