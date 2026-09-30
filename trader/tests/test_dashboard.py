@@ -89,6 +89,58 @@ def test_the_app_updates_itself_only_while_no_real_money_is_involved(filled, mon
     answer = ask(monkeypatch, capsys, cfg, "update-policy")                # still owns real shares
     assert answer["real_money"] and "owns real shares" in answer["reasons"][0]
 
+
+# ---------------------------------------------------------------- the Setup screen in the app
+def test_setup_screen_saves_paper_keys_privately_and_refuses_live_ones(filled, tmp_path, monkeypatch, capsys):
+    import io
+    from aitrader import app_api
+    cfg, store = filled
+    env = tmp_path / ".env"
+    env.write_text("# my keys\nALPACA_PAPER_API_KEY=\nSCHWAB_APP_KEY=abc\nLIVE_TRADING_ENABLED=false\n")
+    monkeypatch.setattr(app_api, "env_file", lambda: env)
+    monkeypatch.setattr(app_api, "restart_autopilot", lambda: False)
+
+    def save(key_id, secret):
+        monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps({"key_id": key_id, "secret": secret})))
+        return ask(monkeypatch, capsys, cfg, "save-keys")
+
+    assert "Saved on this Mac only" in save(" PKABCDEFGHIJ123456 ", "s" * 40)["message"]
+    text = env.read_text()
+    assert "ALPACA_PAPER_API_KEY=PKABCDEFGHIJ123456\n" in text and f"ALPACA_PAPER_SECRET_KEY={'s' * 40}" in text
+    assert "# my keys" in text and "SCHWAB_APP_KEY=abc" in text              # everything else kept
+    assert env.stat().st_mode & 0o777 == 0o600                              # only you can read it
+
+    assert "LIVE (real money) key" in save("AKABCDEFGHIJ123456", "s" * 40)["error"]
+    assert "error" in save("PK12", "s" * 40)                                 # too short: a bad copy-paste
+    assert "error" in save("PKABCDEFGHIJ\nLIVE_TRADING_ENABLED=true", "s" * 40)
+    assert "LIVE_TRADING_ENABLED=false" in env.read_text() and "PKABCDEFGHIJ123456" in env.read_text()
+
+
+def test_setup_screen_says_what_is_next_and_can_resume(filled, monkeypatch, capsys):
+    from aitrader import mac_service
+    cfg, store = filled
+    monkeypatch.setattr(mac_service, "is_running", lambda: False)
+    status = ask(monkeypatch, capsys, cfg, "setup-status")
+    assert status["autopilot_on"] is False
+    swing = next(d for d in status["desks"] if d["desk"] == "swing")
+    assert swing["phase"] == "PAPER" and "Paper trading" in swing["next"]
+
+    ask(monkeypatch, capsys, cfg, "pause")
+    assert all(d["halted"] for d in ask(monkeypatch, capsys, cfg, "setup-status")["desks"])
+    assert ask(monkeypatch, capsys, cfg, "resume")["message"].startswith("Resumed")
+    assert not any(store.get(f"halted:{d}") for d in cfg["desks"])
+
+
+def test_setup_screen_checks_prices_and_says_when_keys_are_missing(filled, monkeypatch, capsys):
+    from aitrader import market_data
+    cfg, store = filled
+    cfg["secrets"].update(alpaca_paper_key="", alpaca_paper_secret="")
+    frame = pd.DataFrame({"close": [101.5]}, index=pd.to_datetime(["2026-09-25"]))
+    monkeypatch.setattr(market_data.MarketData, "history", lambda self, *a, **k: frame)
+    result = ask(monkeypatch, capsys, cfg, "check-keys")
+    assert result["prices"]["ok"] and "$101.50" in result["prices"]["text"]
+    assert not result["paper"]["ok"] and "no keys yet" in result["paper"]["text"]
+
 # ---------------------------------------------------------------- what "paused" means
 @pytest.fixture
 def paused_desk(cfg, monkeypatch):
