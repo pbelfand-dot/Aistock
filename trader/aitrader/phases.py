@@ -36,7 +36,10 @@ def set_phase(store, desk: str, phase: Phase, reason: str):
 
 
 def mode_of(phase: Phase, desk: str) -> str:
-    """The name the bot files trades under, e.g. 'paper-swing' or 'live-day'."""
+    """The name the bot files trades under, e.g. 'study-day', 'paper-swing' or 'live-day'.
+    'study' = trading in its head while the desk studies (pretend money, simulated on this Mac)."""
+    if phase in (Phase.STUDY, Phase.PLAN_REVIEW):
+        return f"study-{desk}"
     return f"{'live' if phase == Phase.LIVE else 'paper'}-{desk}"
 
 

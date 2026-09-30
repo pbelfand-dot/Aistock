@@ -47,6 +47,7 @@ from aitrader.strategies import all_strategies, get_strategy
 from aitrader.study import day_forward_report, forward_report, study_day, study_swing
 
 TRADING = (Phase.PAPER, Phase.LIVE)
+IN_ITS_HEAD = (Phase.STUDY, Phase.PLAN_REVIEW)      # studying desks trade in their head (pretend, on this Mac)
 
 
 # ================================================================ helpers
@@ -94,8 +95,14 @@ def load_desk(cfg, store, data, desk, keep=(), live=False):
 def fill_recorder(store, mode, dry_run=False):
     """Saves each fill to the database and journal the moment it happens."""
     def record(f):
-        pnl = f" (P&L ${f.realized_pnl:+.2f})" if f.side == "SELL" else ""
-        line = f"[{mode}] {f.side} {f.qty} {f.ticker} @ ${f.price:.2f}{pnl}: {f.reason}"
+        amount = f.qty * f.price
+        if f.side == "SELL":
+            cost = amount - f.realized_pnl                  # what those shares cost
+            pct = f", {f.realized_pnl / cost * 100:+.1f}%" if cost > 0 else ""
+            money = f" (got ${amount:,.2f}; {'WIN' if f.realized_pnl > 0 else 'LOSS' if f.realized_pnl < 0 else 'even'} ${f.realized_pnl:+.2f}{pct})"
+        else:
+            money = f" (spent ${amount:,.2f})"
+        line = f"[{mode}] {f.side} {f.qty} {f.ticker} @ ${f.price:.2f}{money}: {f.reason}"
         if dry_run:
             print(f"[DRY RUN] {line}")
             return
@@ -182,6 +189,27 @@ def sell_everything(broker, prices, today, reason, store):
             store.log(f"!!! {ticker} is not sold yet; the bot keeps trying every 5 minutes. You can also sell it in Schwab.")
 
 
+def close_in_head(cfg, store, desk):
+    """A desk leaving the study: sell what it holds in its head at the last known price (pretend
+    money), so its "in its head" record ends cleanly instead of freezing with open positions."""
+    mode = f"study-{desk}"
+    saved = store.get(f"{mode}_ledger")
+    if not saved or not saved.get("positions"):
+        return
+    try:
+        from aitrader.dashboard import quote
+        broker = open_broker(cfg, store, desk, Phase.STUDY)
+        prices = pd.Series({t: quote(cfg, t)["last"] for t in broker.positions()}, dtype=float)
+        today = now_ny().strftime("%Y-%m-%d")
+        sell_everything(broker, prices, today,
+                        f"in its head: the {desk} desk moved on to paper trading; closed at the last price", store)
+        save_broker(store, broker)
+        left = sum(p.qty * p.avg_cost for p in broker.positions().values())
+        store.record_equity(mode, today, broker.cash() + left, broker.cash())
+    except Exception as e:                                   # never block moving up
+        store.log(f"[{mode}] couldn't close the pretend positions ({e!r}); they stay in the record")
+
+
 def finish_if_flat(store, desk, broker, reason):
     """After an emergency stop a desk stays HALTED and keeps selling until it owns nothing and has
     no open orders. Only then does a LIVE desk drop back to PAPER."""
@@ -219,6 +247,11 @@ def continue_exit(cfg, store, data, desk, now) -> str:
 def trade_desk(cfg, store, data, desk, now, stops_only=False, dry_run=False, anyway=False) -> str:
     """One trading moment for one desk. Returns a one-line summary."""
     phase = current_phase(store, desk)
+    if phase in IN_ITS_HEAD and cfg["study"].get("in_its_head", True):
+        if not anyway and not in_session(now):
+            return f"{desk}: market closed"
+        with trading_lock(cfg):                             # pretend money: pauses don't apply
+            return _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
     if phase not in TRADING:
         return f"{desk}: not trading yet (phase {phase.value})"
     anyway = anyway and phase == Phase.PAPER                 # never for real money
@@ -238,8 +271,15 @@ def trade_desk(cfg, store, data, desk, now, stops_only=False, dry_run=False, any
         return _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
 
 
+def head_strategy(cfg, desk) -> str:
+    """The method a studying desk trades in its head (config.yaml: study.in_its_head_strategy)."""
+    return (cfg["study"].get("in_its_head_strategy") or {}).get(desk) or \
+        {"swing": "momentum", "day": "opening_range_breakout"}[desk]
+
+
 def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway) -> str:
-    strategy = get_strategy(load_plan(cfg, desk)["strategy"], cfg, desk)
+    in_head = phase in IN_ITS_HEAD
+    strategy = get_strategy(head_strategy(cfg, desk) if in_head else load_plan(cfg, desk)["strategy"], cfg, desk)
     broker = open_broker(cfg, store, desk, phase, dry_run=dry_run)
     bars, market = load_desk(cfg, store, data, desk, keep=set(broker.positions()), live=phase == Phase.LIVE)
     if not bars:
@@ -256,6 +296,15 @@ def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
                        cfg["desks"][desk], stops_only=stops_only, no_buys=change["no_buys"])
     if dry_run:
         return f"{desk}: dry run finished; nothing was saved or sent"
+    if result["kill_switch"] and in_head:                    # pretend money: sell, note it, start the count again
+        sell_everything(broker, result["prices"], now.strftime("%Y-%m-%d"),
+                        "kill switch (in its head): down too far from its best day", store)
+        save_broker(store, broker)
+        store.set(f"{broker.mode}_peak_equity", None)
+        store.log(f"[{broker.mode}] KILL SWITCH (in its head): value ${result['equity']:,.2f} was more than "
+                  f"{cfg['desks'][desk]['risk']['max_drawdown_pct']}% below its best ${result['peak']:,.2f}; "
+                  "sold everything (pretend) and carries on")
+        return f"{desk} [{broker.mode}]: kill switch in its head"
     if result["kill_switch"]:
         emergency_stop(cfg, store, desk, broker, result["prices"], now.strftime("%Y-%m-%d"),
                        f"kill switch: desk value ${result['equity']:,.2f} is more than "
@@ -398,6 +447,7 @@ def run_job(job, cfg, store, data, now, done) -> str:
                 protect_live(cfg, store, desk)
         if run_study(cfg, store, data):
             raise RuntimeError("study incomplete")      # not marked done, so it retries in 5 minutes
+        report_days(cfg, store, today)
         return "study done for today"
     if job == "scan":
         from aitrader import scanner
@@ -405,6 +455,19 @@ def run_job(job, cfg, store, data, now, done) -> str:
         store.log(f"[scan] {summary}")
         return summary
     return ""
+
+
+def report_days(cfg, store, today):
+    """After the close: one journal line per account that traded (in its head, paper, real)."""
+    from aitrader.report import MODES, day_line
+    for desk in active_desks(cfg):
+        for kind in MODES:
+            try:
+                line = day_line(store, f"{kind}-{desk}", desk_capital(cfg, desk, kind == "live"), today)
+            except Exception as e:                           # a report must never stop the study
+                line = f"[{kind}-{desk}] couldn't write today's summary ({e!r})"
+            if line:
+                store.log(line)
 
 
 def process_alive(pid) -> bool:
@@ -688,6 +751,7 @@ def cmd_approve_plan(cfg, store, args):
         if input(f"Type YES to start paper trading the {desk} desk: ").strip() != "YES":
             print("Not approved.")
             continue
+        close_in_head(cfg, store, desk)
         reset_paper(store, desk)
         set_phase(store, desk, Phase.PAPER, "plan approved by you")
 
@@ -707,6 +771,7 @@ def start_stage1(cfg, store) -> str:
         raise ValueError(f"The {desk} desk is trading real money; Stage 1 is paper only.")
     with trading_lock(cfg):
         plan = stage1_plan(cfg, trade_candidates(cfg))
+        close_in_head(cfg, store, desk)
         reset_paper(store, desk)
         store.set(f"lessons:{desk}", None)
         store.set("stage", 1)

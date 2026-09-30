@@ -84,6 +84,10 @@ study:
   min_calendar_days: 30    # "a month of analyzing"
   min_study_days: 20       # ...and at least this many trading days studied
   horizon_days: 5          # swing opinions are graded 5 trading days later
+  # While a desk studies it also trades "in its head": pretend money, simulated on this Mac, the
+  # same rules as paper trading. Every trade and the daily results show up in the app (Trades tab).
+  in_its_head: true
+  in_its_head_strategy: {swing: momentum, day: opening_range_breakout}
 
 # ---- The local AI model (one per desk) -------------------------------------
 ai:

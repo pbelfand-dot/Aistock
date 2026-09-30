@@ -25,7 +25,9 @@ It learns only from the past, and a test proves it can't peek at future prices.
 ```
  1. STUDY  (≥30 days)      Swing: every strategy writes down an opinion on each stock daily,
                            graded 5 days later. Day: every strategy "shadow trades" each day
-                           with pretend money. No orders at all.
+                           with pretend money. No orders at all. Each desk also trades "in its
+                           head" (swing: momentum, day: opening range breakout; config.yaml
+                           study.in_its_head), and the app's Trades tab reports every trade.
           │  menu: Write the trading plans
           ▼
  2. PLAN_REVIEW            Backtests every strategy on years of history, adds the study month,

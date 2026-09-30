@@ -131,19 +131,35 @@ def _account(cfg, store, kind: str) -> dict:
     closed = [a["realized_pnl"] for a in activity if a["side"] == "SELL" and a["realized_pnl"] is not None]
     stats = summarize(total) if len(total) else None
     activity.sort(key=lambda a: (a["date"], a["id"]), reverse=True)
+
+    # The trade report (report.py): every finished trade, each day's change, and the totals.
+    from .report import daily as daily_rows, totals as totals_row, trades as trade_rows
+    done = sorted((t for d in active_desks(cfg) for t in trade_rows(store.fills(f"{kind}-{d}"), d)),
+                  key=lambda t: t["sold_on"], reverse=True)
+    holding = [{"desk": p["desk"], "ticker": p["ticker"], "qty": p["qty"], "bought_on": p["opened_on"],
+                "spent": _num(p["avg_cost"] * p["qty"]), "value": p["market_value"], "gain": p["gain"],
+                "gain_pct": p["gain_pct"]} for p in positions]
+    start_value = sum(desk_capital(cfg, d, live) for d in active_desks(cfg))
+    bench = series.get("benchmark") or []
+    bench = [b for b in bench if b is not None]
+    bench_ret = (bench[-1] / bench[0] - 1) * 100 if len(bench) >= 2 and bench[0] else None
     return {
         "kind": kind,
         "active": any(d["started"] for d in desks.values()),
         "value": _num(value), "cash": _num(cash),
         "day_change": _num(value - prev) if prev else None,
         "day_change_pct": _num((value / prev - 1) * 100) if prev else None,
-        "total_return_pct": _num((value / start - 1) * 100) if start else None,
+        "total_return_pct": _num((value / start_value - 1) * 100) if start and start_value else None,   # vs the starting money
         "max_drawdown_pct": stats["max_drawdown_pct"] if stats else None,
         "closed_trades": len(closed),
         "win_rate_pct": _num(sum(1 for c in closed if c > 0) / len(closed) * 100, 1) if closed else None,
         "desks": desks, "dates": dates, "series": series,
         "positions": sorted(positions, key=lambda p: -(p["market_value"] or 0)),
         "activity": activity[:300],
+        "trades": done[:300],
+        "holding": holding,
+        "daily": daily_rows(total, start_value)[:400] if len(total) else [],
+        "totals": totals_row(done, holding, start_value, value, bench_ret, days=int(len(total))),
     }
 
 
@@ -198,7 +214,7 @@ def snapshot(cfg, store) -> dict:
         "autopilot": {"last_seen": beat, "minutes_ago": minutes},
         "study": progress,
         "desks": [_desk_info(cfg, store, d) for d in active_desks(cfg)],
-        "accounts": {"paper": _account(cfg, store, "paper"), "live": _account(cfg, store, "live")},
+        "accounts": {kind: _account(cfg, store, kind) for kind in ("study", "paper", "live")},
         "watchlist": [{"desk": d, **quote(cfg, t)} for d in active_desks(cfg) for t in cfg["desks"][d]["watchlist"]],
         "journal": [{"ts": ts, "message": m} for ts, m in store.journal(60)][::-1],
         "scan": _scan(cfg),
