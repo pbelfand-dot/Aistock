@@ -75,11 +75,11 @@ def trading_plan(desk: str = "swing") -> str:
 @server.tool()
 @quiet
 def positions() -> str:
-    """What the bot owns right now, per desk, in paper and live (from its own checkbook)."""
+    """What the bot owns right now, per desk: in its head (while studying), paper and live."""
     cfg, store = _open()
     out = {}
     for desk in active_desks(cfg):
-        for mode in (f"paper-{desk}", f"live-{desk}"):
+        for mode in (f"study-{desk}", f"paper-{desk}", f"live-{desk}"):
             ledger = store.get(f"{mode}_ledger")
             if ledger:
                 out[mode] = {"cash": round(ledger["cash"], 2),
@@ -92,15 +92,19 @@ def positions() -> str:
 @server.tool()
 @quiet
 def performance() -> str:
-    """Scorecard for each desk's paper and live trading: return, drawdown, win rate, profit factor."""
+    """Scorecard for each desk: in its head (while studying), paper and live. Return, drawdown, win
+    rate, profit factor, plus the last 20 finished trades (spent, got back, gain $ and %, win/loss)."""
+    from aitrader.report import trades
     cfg, store = _open()
     out = {}
     for desk in active_desks(cfg):
-        for mode in (f"paper-{desk}", f"live-{desk}"):
+        for mode in (f"study-{desk}", f"paper-{desk}", f"live-{desk}"):
             curve = store.equity_curve(mode)
             if len(curve):
-                out[mode] = {"value_now": round(float(curve.iloc[-1]), 2), **summarize(curve, store.fills(mode))}
-    return json.dumps(out, indent=2, default=str) if out else "No paper or live trading yet."
+                fills = store.fills(mode)
+                out[mode] = {"value_now": round(float(curve.iloc[-1]), 2), **summarize(curve, fills),
+                             "last_trades": trades(fills, desk)[:20]}
+    return json.dumps(out, indent=2, default=str) if out else "No trading yet (in its head, paper or live)."
 
 
 @server.tool()

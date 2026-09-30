@@ -227,6 +227,7 @@
 <nav class="tabs" role="tablist">
   <button class="tab" role="tab" data-tab="summary">Summary</button>
   <button class="tab" role="tab" data-tab="positions">Positions</button>
+  <button class="tab" role="tab" data-tab="trades">Trades</button>
   <button class="tab" role="tab" data-tab="activity">Activity</button>
   <button class="tab" role="tab" data-tab="research">Research &amp; plans</button>
   <button class="tab" role="tab" data-tab="journal">Journal</button>
@@ -276,6 +277,27 @@
   <section data-panel="positions" hidden>
     <div class="card"><div class="card-head"><h2>Positions</h2><span class="muted" id="positions-note"></span></div>
       <div class="table-scroll" id="positions-full"></div></div>
+  </section>
+
+  <!-- TRADES: every trade, each day, and the totals (the same for in its head, paper and real) -->
+  <section data-panel="trades" hidden>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-head"><h2 id="trades-title">How it's doing</h2><span class="muted" id="trades-note"></span></div>
+      <div class="tiles" id="trade-totals" style="padding:4px 16px 16px; justify-content:flex-start"></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-head"><h2>Finished trades</h2><div class="spacer"></div>
+        <div class="seg" id="result-filter" role="group" aria-label="Wins or losses"></div></div>
+      <div class="table-scroll" id="trades-done"></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-head"><h2>Still holding</h2></div>
+      <div class="table-scroll" id="trades-open"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Day by day</h2></div>
+      <div class="table-scroll" id="trades-daily"></div>
+    </div>
   </section>
 
   <!-- ACTIVITY -->
@@ -422,7 +444,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, v); } catch {} },
 };
 
-const state = { snap: null, account: null, tab: "summary", range: "3M", side: "all", desk: "all", table: false,
+const state = { snap: null, account: null, tab: "summary", range: "3M", side: "all", desk: "all", result: "all", table: false,
                 demo: false, building: false, notice: null };
 const theme = store.get("aitrader-theme");
 if (theme) document.documentElement.dataset.theme = theme;
@@ -479,7 +501,8 @@ function showBanner(text, error) {
 /* ---------------- render ---------------- */
 function render() {
   const s = state.snap;
-  if (!state.account) state.account = s.accounts.live.active ? "live" : "paper";
+  if (!state.account) state.account = s.accounts.live.active ? "live" : s.accounts.paper.active ? "paper"
+                                    : s.accounts.study.active ? "study" : "paper";
   const a = s.accounts[state.account];
   const n = state.notice && state.notice.until > Date.now() ? state.notice : null;
   if (n) showBanner(n.text, n.error);
@@ -488,6 +511,7 @@ function render() {
 
   const sel = $("#account");
   sel.replaceChildren(
+    el("option", { value: "study", text: "In its head (while studying)" }),
     el("option", { value: "paper", text: "Paper account (practice money)" }),
     el("option", { value: "live", text: "Live account (real money)", disabled: s.accounts.live.active ? null : "" }));
   sel.value = state.account;
@@ -501,7 +525,7 @@ function render() {
                        : m == null ? "⚠ Autopilot off" : `⚠ Autopilot last seen ${Math.round(m)} min ago` }));
   $("#autopilot").title = running ? "The autopilot is running" : "The autopilot isn't running: turn it on in Setup";
 
-  renderSummary(s, a); renderPositions(a); renderActivity(a); renderResearch(s); renderJournal(s);
+  renderSummary(s, a); renderPositions(a); renderTrades(a); renderActivity(a); renderResearch(s); renderJournal(s);
   $("#footer").textContent = `Updated ${new Date(s.generated_at).toLocaleTimeString()} · refreshes every 30 seconds · ` +
     `broker: ${cap(s.broker)} · prices: ${s.prices} · Not financial advice.`;
 }
@@ -510,7 +534,9 @@ function renderSummary(s, a) {
   $("#acct-label").textContent = "Account value";
   $("#hero").textContent = money(a.value);
   const dc = $("#daychange");
-  if (!a.active) dc.textContent = state.account === "paper"
+  if (!a.active && state.account === "study") dc.textContent = "Trading in its head starts with the autopilot's next "
+      + "market-hours check while a desk is studying. Pretend money, simulated on this Mac.";
+  else if (!a.active) dc.textContent = state.account === "paper"
       ? (s.study.ready ? "The study month is done: write the plans from the full Setup menu (Setup → Full Setup menu)."
                        : `Not trading yet: the bot is studying (day ${s.study.calendar_days} of 30).`)
       : "No desk trades real money yet. That only happens after paper trading proves itself.";
@@ -716,6 +742,61 @@ function renderPositions(a) {
 }
 function segmented(box, options, current, onPick) {
   box.replaceChildren(...options.map(([value, label]) => { const b = el("button", { "aria-pressed": String(current === value), text: label }); b.onclick = () => onPick(value); return b; }));
+}
+function renderTrades(a) {
+  const t = a.totals || {};
+  const names = { study: "In its head (pretend money while studying)", paper: "Paper account (practice money)", live: "Real money" };
+  $("#trades-title").textContent = names[state.account] || "How it's doing";
+  $("#trades-note").textContent = t.days ? `${t.days} trading day${t.days === 1 ? "" : "s"}` : "";
+  const tile = (label, value, cls, title) => el("div", { class: "tile", title: title || null },
+    el("div", { class: "label", text: label }), el("div", { class: "value " + (cls || ""), text: value }));
+  const vs = t.benchmark_return_pct == null ? "--" : `${pct(t.return_pct)} vs ${pct(t.benchmark_return_pct)}`;
+  $("#trade-totals").replaceChildren(
+    tile("Made / lost overall", t.gain == null ? "--" : `${signedMoney(t.gain)} (${pct(t.return_pct)})`, dir(t.gain)),
+    tile("Beat the S&P 500?", t.beat_benchmark == null ? "--" : (t.beat_benchmark ? "Yes " : "Not yet ") + vs,
+         t.beat_benchmark ? "up" : t.beat_benchmark === false ? "down" : "", "Its return vs just holding the S&P 500 over the same days"),
+    tile("Trades finished", t.trades_closed ? `${t.trades_closed}: ${t.wins} won, ${t.losses} lost` : "none yet"),
+    tile("Win rate", t.win_rate_pct == null ? "--" : plain(t.win_rate_pct, 0) + "%"),
+    tile("Average win / loss", t.avg_win_pct == null && t.avg_loss_pct == null ? "--" : `${pct(t.avg_win_pct, 1)} / ${pct(t.avg_loss_pct, 1)}`),
+    tile("Money put into trades", money(t.spent_total), "", "Everything it spent buying, over all its trades"),
+    tile("Taken profit / on paper now", `${signedMoney(t.realized_gain)} / ${signedMoney(t.unrealized_gain)}`, dir((t.realized_gain || 0) + (t.unrealized_gain || 0)),
+         "Gains from finished trades / gains on what it still holds"),
+    tile("Best / worst trade", t.best ? `${t.best.ticker} ${pct(t.best.gain_pct, 1)} / ${t.worst.ticker} ${pct(t.worst.gain_pct, 1)}` : "--"));
+
+  segmented($("#result-filter"), [["all", "All"], ["win", "Wins"], ["loss", "Losses"]], state.result, v => { state.result = v; render(); });
+  const done = (a.trades || []).filter(r => state.result === "all" || r.result === state.result);
+  const head = (cols, numeric) => el("thead", {}, el("tr", {}, cols.map(h => el("th", { class: numeric.includes(h) ? "num" : null, text: h }))));
+  $("#trades-done").replaceChildren(!done.length ? el("div", { class: "empty", text: "No finished trades yet." }) : el("table", {},
+    head(["Stock", "Desk", "Bought", "Sold", "Qty", "Spent", "Got back", "Made / lost", "Result", "Why it sold"],
+         ["Qty", "Spent", "Got back", "Made / lost"]),
+    el("tbody", {}, done.map(r => el("tr", {},
+      el("td", { class: "sym", text: r.ticker }), el("td", { class: "muted", text: r.desk }),
+      el("td", { class: "num muted", style: "text-align:left", text: `${r.bought_on} @ ${money(r.buy_price)}` }),
+      el("td", { class: "num muted", style: "text-align:left", text: `${r.sold_on} @ ${money(r.sell_price)}` }),
+      el("td", { class: "num", text: r.qty }), el("td", { class: "num", text: money(r.spent) }),
+      el("td", { class: "num", text: money(r.got_back) }),
+      el("td", { class: "num " + dir(r.gain) }, `${signedMoney(r.gain)} `, el("span", { style: "font-size:12px", text: `(${pct(r.gain_pct)})` })),
+      el("td", { class: r.result === "win" ? "up" : r.result === "loss" ? "down" : "muted", text: r.result === "win" ? "Win" : r.result === "loss" ? "Loss" : "Even" }),
+      el("td", { class: "reason", text: r.why_sold }))))));
+
+  const open = a.holding || [];
+  $("#trades-open").replaceChildren(!open.length ? el("div", { class: "empty", text: "Not holding anything right now." }) : el("table", {},
+    head(["Stock", "Desk", "Bought", "Qty", "Spent", "Worth now", "Up / down"], ["Qty", "Spent", "Worth now", "Up / down"]),
+    el("tbody", {}, open.map(r => el("tr", {},
+      el("td", { class: "sym", text: r.ticker }), el("td", { class: "muted", text: r.desk }),
+      el("td", { class: "num muted", style: "text-align:left", text: r.bought_on }),
+      el("td", { class: "num", text: r.qty }), el("td", { class: "num", text: money(r.spent) }),
+      el("td", { class: "num", text: money(r.value) }),
+      el("td", { class: "num " + dir(r.gain) }, `${signedMoney(r.gain)} `, el("span", { style: "font-size:12px", text: `(${pct(r.gain_pct)})` })))))));
+
+  const days = a.daily || [];
+  $("#trades-daily").replaceChildren(!days.length ? el("div", { class: "empty", text: "No trading days yet." }) : el("table", {},
+    head(["Date", "Value at the close", "That day", "Up / down %"], ["Value at the close", "That day", "Up / down %"]),
+    el("tbody", {}, days.map(r => el("tr", {},
+      el("td", { class: "num muted", style: "text-align:left", text: r.date }),
+      el("td", { class: "num", text: money(r.value) }),
+      el("td", { class: "num " + dir(r.change), text: signedMoney(r.change) }),
+      el("td", { class: "num " + dir(r.change_pct), text: pct(r.change_pct) }))))));
 }
 function renderActivity(a) {
   segmented($("#side-filter"), [["all", "All"], ["BUY", "Buys"], ["SELL", "Sells"]], state.side, v => { state.side = v; render(); });

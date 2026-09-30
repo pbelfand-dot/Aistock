@@ -22,6 +22,12 @@ the best day. No minimum number of trades. Then the owner still confirms by hand
   6 times in 10 (58%), and momentum with the trend filter about half the time (49%).
 - So a single stage can catch a broken method, but can't prove a good one.
 
+**Reports the owner sees (Trades tab):** every trade with what was spent, what came back, the gain
+or loss in $ and %, win or lose; each day's % change; and the totals vs SPY. The same report
+exists for three accounts: "in its head" (a studying desk trades with pretend money on this Mac:
+swing = momentum, day = opening range breakout), paper, and real money. After each close the
+journal gets one line per account with today's result and the running totals.
+
 **Where the code is now:** Stage 1 is a button. Otherwise each desk still goes study (30 days) →
 plan review → paper → live. Real money always needs the promotion rules to pass and the owner's
 typed confirmation.

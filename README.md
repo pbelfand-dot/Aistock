@@ -25,6 +25,10 @@ code changes.
 - **Its window** is a brokerage-style dashboard: your account value vs. the S&P 500, positions,
   every trade and why, each desk's progress, the watchlist, and **Pause** / **Emergency stop**
   buttons.
+- **Trades** (a tab) shows every trade: what it spent, what it got back, the gain or loss in $ and %,
+  win or lose, each day's % change, and the totals vs. the S&P 500. It works the same for all three
+  accounts (pick one at the top of the Summary tab): *In its head* (pretend trades while a desk
+  studies), *Paper* and *Real money*.
 - **View → Show Demo Data** shows it with made-up prices right away.
 - **Setup** (the button) connects Alpaca, switches the autopilot and says what's next.
 - **Kestrel → Setup Menu** (⌘,) opens the full Terminal menu (plans, real money, Schwab).
