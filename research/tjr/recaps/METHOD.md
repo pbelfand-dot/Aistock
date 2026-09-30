@@ -19,6 +19,8 @@ carries where it came from. Unknown is a valid answer; a guess presented as fact
 1. Look at every sheet first to map the video. Then open the full-size shots you need (typically
    5–15) to read instruments, timeframes, dates, prices and position boxes.
 2. Read the transcript alongside to learn what he says he did and why.
+   Budget: open at most ~15 full-size shots per video, and don't re-open the same picture. If a
+   number still can't be read, mark it unknown instead of hunting for it.
 3. Record each trade separately (a video can have 0, 1 or several trades). Market-analysis
    videos with no trade get `trades: []`, `no_trade_reason`, and their analysis in
    `market_context` / `lessons_stated`.

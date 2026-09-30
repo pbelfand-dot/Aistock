@@ -1,0 +1,57 @@
+{
+  "video": {
+    "n": 4,
+    "file": "02_22_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "All 36 shots and 9 sheets used; full-size shots readable (legend, axis labels, position-tool labels, x-axis date). Transcript (20 lines) is heavily garbled: only gist and a few phrases usable. No broker/P&L panel appears.",
+    "duration_min": 4.89,
+    "title_claim": "",
+    "session_date": {"value": "2024-02-22", "src": "seen", "ref": "#10 01m19s / #11 01m23s x-axis 'Thu 22 Feb '24 09:59' / '10:00'; file name 02_22_2024; Forex Factory page #3 00m16s 'Thu Feb 22'"}
+  },
+  "market_context": {
+    "regime": {"value": "NQ 4h: strong rally off the 21 Feb low into a 22 Feb gap up, trading above the 16 Feb 4h high (~18026) below the marked 18108.50 high; 1h trending up; 5m: dip at the 09:30 open then displacement up. ES 5m showed the same pattern (dip below marked 5056.00, then rally above 5067.75) but he says no ES entry.", "src": "seen", "ref": "#2 00m12s, #5 00m29s legend 'NASDAQ 100 E-mini Futures · 4h · CME'; #1 00m00s '· 1h ·'; #7 00m37s '· 5 ·'; ES: #30 03m45s / #31 04m10s legend 'S&P 500 E-mini Futures · 5 · CME' with lines 5067.75 and 5056.00; ES no-entry heard [04:15] 'so no entry on yes'"},
+    "news": {"value": "News-heavy day: Unemployment Claims, Flash Manufacturing PMI, Flash Services PMI (red), Existing Home Sales (orange), FOMC Member Waller speaks (orange). Standard ET times: 8:30 claims, 9:45 PMIs, 10:00 home sales.", "src": "seen", "ref": "#3 00m16s Forex Factory Thu Feb 22 shows those events at 9:30am / 10:45am / 11:00am / 8:35pm in FF's own display timezone (looks like ET+1; ET conversion is inferred from the standard 8:30 ET claims release). Heard [00:15] 'we have a lot news is today ... didn't necessarily stop me from taking' = read as 'lots of news today, didn't stop me from taking the trade'"},
+    "bias": {"value": "bullish: 4h broke structure to the upside, bullish on 1h; draw on liquidity = the prior 4h high at 18026.00 (16 Feb)", "src": "inferred", "ref": "heard [00:30] 'we broke four hour shift to the outsider ... on the hourly' read as '4h broke structure to the upside ... hourly'; heard [02:00] 'the next draw was this previous hour ...'; seen #5 00m29s 4h line at 18026.00 starting at the 16 Feb 4h high, and the position-tool target sits on it"}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-02-22", "src": "seen", "ref": "#11 01m23s x-axis 'Thu 22 Feb '24 10:00' at the position box's left edge"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#10 01m19s legend 'NASDAQ 100 E-mini Futures · 1 · CME', symbol box 'NQ1!'"},
+      "direction": {"value": "long", "src": "seen", "ref": "#10 01m19s long position tool: blue profit zone above entry, gray zone and 'Stop: 58.50' label below"},
+      "timeframes": {"value": {"bias": "4h/1h", "setup": "5m", "entry": "5m or 1m (box shown on both; unclear which he executed on)"}, "src": "inferred", "ref": "shown in order 1h #1, 4h #2-#6, 5m #7-#8, 2m #9, 1m #10-#12, 5m #13-#16; heard [00:30] 'four hour ... hourly', [00:45] 'five minute', [01:45] 'gap of fire mine' (~'gap on the five-minute')"},
+      "setup": {"value": "NY-open sweep of the 08:00 5m low (17872.50) -> 5m BOS above the 06:20 swing high (17925.75) -> pullback into a 5m gray zone (~17893-17902) -> long ~10:00", "src": "inferred", "ref": "from drawn lines and candles on #8 00m54s, #12 01m27s, #14 01m35s; heard [01:00] 'order block', [01:30] 'the imbalance' (garbled); the exact trigger is not stated legibly"},
+      "entry_conditions": [
+        {"value": "HTF bias bullish: 4h broke structure up, 1h bullish", "src": "heard", "ref": "[00:30] 'we broke four hour shift to the outsider ... on the hourly' (read as broke 4h structure to the upside, hourly bullish)"},
+        {"value": "price traded below the marked 17872.50 low (line starts ~08:00 on 5m) around 09:24-09:35 ET, low ~17865 +/-3, without reaching the 17857.75 line (~04:00 low), then reversed up", "src": "inferred", "ref": "lines 17872.50 / 17857.75 seen on axis #8 00m54s (origins ~08:00 / ~04:00 on the 5m x-axis); low estimated from 1m candles vs axis labels in #10 01m19s and #12 01m27s"},
+        {"value": "5m candles closed above the marked 17925.75 swing high (line starts ~06:20) soon after 09:30 (5m BOS)", "src": "inferred", "ref": "#14 01m35s 5m: candles close above the 17925.75 line after the 09:30 marker; heard [00:45] 'five minute ... marked change' (~'market structure change') garbled"},
+        {"value": "price pulled back into the dark-gray zone ~17893-17902 (drawn from the 09:30 displacement; likely his order block/FVG) at ~09:54 ET, 1m low ~17897, before entry", "src": "inferred", "ref": "#12 01m27s 1m chart: zone bounds estimated from axis (17900.00 / 17890.00 labels), +/-2; heard [01:00] 'order block', [01:30] 'the imbalance'"},
+        {"value": "entry 17922.25 taken as price moved back up to the 17919.25 (blue ray) / 17925.75 area; the role of the 17919.25 ray is not stated", "src": "inferred", "ref": "#12 01m27s axis labels 17925.75 / 17922.25 / 17919.25 next to the box's left edge"}
+      ],
+      "entry_time": {"value": "~10:00 ET (chart time)", "src": "seen", "ref": "crosshair on the box's left edge reads 'Thu 22 Feb '24 09:59' in #10 01m19s and '10:00' in #11 01m23s. ET is inferred: the 09:30 red open marker snaps to the 06:00 4h bar in #2, which fits New York time"},
+      "entry": {"value": 17922.25, "src": "seen", "ref": "#10 01m19s gray position label '17922.25' on axis; consistent with stop label: 17922.25 - 58.50 = 17863.75"},
+      "stop": {"value": 17863.75, "src": "seen", "ref": "#10 01m19s gray axis label '17863.75' at the box bottom; tool label 'Stop: 58.50 (0.33%) 234, Amount: 99000'"},
+      "stop_rule": {"value": "just below the NY-open sweep low (~17865), about 1-2 points under it", "src": "inferred", "ref": "stop 17863.75 vs sweep low estimated ~17865 +/-3 from 1m candles in #10 / #12"},
+      "target": {"value": 18026.25, "src": "seen", "ref": "#18 02m17s / #34 04m22s light-blue position label '18026.25' on axis; tool 'Risk/Reward Ratio: 1.78' in #10 matches (18026.25-17922.25)/58.50 = 1.78"},
+      "target_rule": {"value": "one tick above the marked 18026.00 line = prior 4h swing high of 16 Feb (buy-side liquidity)", "src": "inferred", "ref": "#5 00m29s 4h: the ~18026 line starts at the 16 Feb 4h candle high; #18 02m17s axis shows black '18026.00' next to target '18026.25'; heard [02:00] 'the next draw was this previous hour ...' (garbled)"},
+      "exit": {"value": "target 18026.25 reached ~13:05 ET (actual exit not shown)", "src": "inferred", "ref": "#18 02m17s / #34 04m22s 5m: after entry, price stayed above ~17895 (low ~10:48 ET per #12), then crossed the target line ~13:00-13:10 ET; no fills or exit shown, and he does not legibly say where he exited"},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "no fills or broker panel shown. Position-tool readout #10 01m19s 'Qty: 0.855', 'Amount: 99000' fits a tool setting of a $100k account at 1% risk (0.855 x 58.5 x $20 = ~$1,000; 100,000 - 1,000 = 99,000). That is a drawing setting, not his real size"},
+      "result": {"value": "win", "src": "inferred", "ref": "on the chart, price hit the drawn target before the drawn stop; the box may have been drawn in hindsight and the real fill and exit are not shown"},
+      "r_multiple": {"value": 1.78, "src": "computed", "ref": "(18026.25-17922.25)/(17922.25-17863.75) = 104.00/58.50 = 1.78; assumes exit at the drawn target; the tool label 'Risk/Reward Ratio: 1.78' (#10) agrees"},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "no $ amount in title (title_claim empty) or legible in transcript. 'Open P&L: 52.75' (#10 1m) / '44.25' (#16 5m) are TradingView drawing-tool readouts at the box's right edge, not account P&L"},
+      "pnl_verified": {"value": "no", "src": "seen", "ref": "no broker/platform panel with the position or fills is shown; the 'TJRTRADES - Account Manager' browser tab is never opened"},
+      "mistakes": [
+        {"value": "possible news risk: entry at ~10:00 ET matches the Existing Home Sales release (medium impact) on a day he calls news-heavy; no execution mistake is visible", "src": "inferred", "ref": "entry time from #11 01m23s; event from #3 00m16s (FF 11:00am display = 10:00 ET, inferred); heard [00:15] 'a lot news is today'"}
+      ],
+      "evidence_summary": "Seen: NQ, 22 Feb 2024, long, entry 17922.25, stop 17863.75, target 18026.25, tool R:R 1.78. Inferred: sweep/BOS/zone logic, ET timezone, win (target hit ~13:05 ET before the stop). Heard (garbled): 4h/1h bullish bias, 5m execution. No fills, size or P&L."
+    }
+  ],
+  "lessons_stated": [
+    {"value": "Take bias from the higher timeframes (4h broke structure up, 1h bullish), then execute on the 5-minute", "src": "heard", "ref": "[00:30] 'we broke four hour shift to the outsider ... on the hourly'; [00:45] 'rather than moving in the five minute we saw that marked change'; garbled, low confidence"},
+    {"value": "The strategy is 'literally bias, then execution'; he calls it the easiest strategy", "src": "heard", "ref": "[03:00] 'it's literally it's that bias that execution all the easiest strategy' (garbled)"},
+    {"value": "A news-heavy day did not stop him from taking the trade", "src": "heard", "ref": "[00:15] 'we have a lot news is today ... didn't necessarily stop me from taking' (garbled)"},
+    {"value": "No entry on ES: he took the NQ long only", "src": "heard", "ref": "[04:15] 'so no entry on yes but there was a long' read as 'no entry on ES'; the ES charts #30-#33 show no position tool"},
+    {"value": "He calls this the same setup he repeats daily and taught in a mastermind about 1.5 weeks earlier", "src": "heard", "ref": "[02:15] 'it much the same exact trade'; [02:30] 'the masterminds ... last week and half ago' (garbled)"}
+  ],
+  "quality_notes": "The position-tool prices are clearly readable and agree with each other (entry, stop, target, 58.50-point stop, R:R 1.78). The weak points: the transcript is almost unusable (reasons and exit only as gist); no fills, exit or account P&L are shown, so the box may be a hindsight drawing and the win is only from the chart; the chart timezone label is hidden behind the webcam (ET inferred from 4h bar alignment); gray-zone bounds and the sweep low are estimates (+/-2-3 pts); which timeframe he entered on is unclear."
+}

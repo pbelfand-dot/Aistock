@@ -1,0 +1,87 @@
+{
+  "video": {
+    "n": 3,
+    "file": "02_21_2024.Trade.Recap.Best.1080p.60fps.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 10 sheets and 37 shots, with about 20 shots read at full size and zoomed. Legends, axis labels, position-tool labels, one position-tool tooltip (#19) and bar OHLC legends under the crosshair are readable. The transcript (21 lines, pocketsphinx) is very garbled: gist only, and the exit and result wording is ambiguous. No broker or P&L panel appears.",
+    "duration_min": 5.02,
+    "title_claim": "",
+    "session_date": {"value": "2024-02-21", "src": "seen", "ref": "#1 00m00s x-axis 'Wed 21 Feb '24 09:30'; #16 01m44s 'Wed 21 Feb '24 10:45'; Forex Factory #22 02m21s 'Yesterday: Feb 21' (recorded Thu 22 Feb, #5 00m54s 'Today: Feb 22'); file name 02_21_2024"}
+  },
+  "market_context": {
+    "regime": {"value": "ES and NQ 1h/4h were in a pullback down from the mid-Feb highs, with lower highs into the Feb 20 low (ES 4968.25). On 21 Feb (5m), price chopped about 4968-4987 ES until 14:00 ET, made a low of about 4959 ES / 17373.25 NQ around 14:45-15:20 ET, then rallied hard after 15:20 (ES >5000 by 16:00, about 5040 overnight). By the recording on 22 Feb, ES 4h was back at the highs (~5064).", "src": "seen", "ref": "#7 01m02s legend 'S&P 500 E-mini Futures · 1h · CME'; #8 01m06s '· 4h ·'; #18 01m52s crosshair Tue 20 Feb 12:25 on the 4968.25 line; #24 02m30s ES 5m low wick at the green 4959.00 line; #34 03m53s NQ 14:45 bar legend 'L17373.25'; #9 01m10s rally to about 5040 by Thu 22 Feb 01:15; #37 04m47s ES 4h"},
+    "news": {"value": "FOMC Meeting Minutes on Wed 21 Feb at 2:00pm ET (red impact); FOMC Member Barkin spoke at about 9:10 ET. A browser tab reads 'nvidia earnings - Google Search' (NVDA reported after the close on 21 Feb, which is outside knowledge).", "src": "seen", "ref": "Forex Factory #3 00m41s and #22 02m21s show 'FOMC Meeting Minutes 3:00pm' and 'FOMC Member Barkin Speaks 10:10am'. FF's display timezone looks like ET+1, because #5 shows Unemployment Claims at 9:30am (the standard release is 8:30 ET), so the ET times are inferred. The ES 5m 14:00 bar spikes to about 4984.6 (#11 01m19s). Tab title seen in every shot."},
+    "bias": {"value": "bearish: bearish on the 1h and 4h before the open. Draw on liquidity = sell-side lows below: ES 4968.25 (Feb 20 low), 4959.00, then 4936.50; NQ 17363.75, then 17329.00", "src": "heard", "ref": "[01:00] 'we were ... in the hourly we were bearish are four hours to be my overall bias'; [02:45] 'we were bearish on the hourly prior market open'; [01:45] 'here in my targets ... this low right here ... and then this low'. Target lines are seen on #7, #9 and #27."}
+  },
+  "trades": [
+    {
+      "date": {"value": "2024-02-21", "src": "seen", "ref": "#19 01m56s x-axis 'Wed 21 Feb '24 09:30' and '12:00' under the position box"},
+      "instrument": {"value": "ES (E-mini S&P 500 futures, ES1!)", "src": "seen", "ref": "#4 00m50s / #19 01m56s legend 'S&P 500 E-mini Futures · 5 · CME'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#19 position tool: grey stop box above the entry and blue target box below it (short tool)"},
+      "timeframes": {"value": {"bias": "1h/4h", "setup": "5m", "entry": "5m"}, "src": "inferred", "ref": "heard [01:00] 'hourly ... four hours ... bias' and [01:30] 'five minutes'; he shows the 1h (#7, #14) and 4h (#8); the position box is drawn on the 5m (#4, #10, #19)"},
+      "setup": {"value": "bearish HTF bias -> buy-side sweep of pre-open highs -> 5m FVG inverted (IFVG) -> short", "src": "inferred", "ref": "heard [01:15] 'swept out the [highs?]', [01:30] 'then we saw this imbalance get [inverted?] ... and here is our [entry]'; seen dark-grey FVG zone at about 4978-4980.75 on #10 01m15s"},
+      "entry_conditions": [
+        {"value": "1h and 4h bias bearish", "src": "heard", "ref": "[01:00] 'hourly we were bearish are four hours ... my overall bias'"},
+        {"value": "the 10:00 ET 5m candle traded up to about 4984.6, at or just above the 4984.50 line (the 05:00 ET 1h high), i.e. a marginal sweep of the pre-open high", "src": "inferred", "ref": "#14 01m31s 1h crosshair on the 05:00 bar, legend 'H4984.50', where the 4984.50 line starts; the 10:00 5m wick is about 4984.6 ±0.5 by axis interpolation on #11 01m19s / #16 01m44s"},
+        {"value": "price closed back below the 5m FVG left by that up-move (about 4978-4980.75): the IFVG", "src": "inferred", "ref": "heard [01:30] 'imbalance get it over'; seen FVG rectangle from about 10:20 ET on #10/#23; the 10:25-10:40 bars close about 4976-4978 (#16 zoom)"},
+        {"value": "short at 4976.75 on the 10:45 ET 5m bar (O4975.75 H4979.00 L4974.25 C4978.25)", "src": "seen", "ref": "#16 01m44s crosshair label 'Wed 21 Feb '24 10:45' with that OHLC legend, shown as he says 'here is our [entry]' ([01:30] line)"}
+      ],
+      "entry_time": {"value": "10:45 ET (chart time, ±5 min)", "src": "inferred", "ref": "Position-box left edge is at about 10:45 on #6, #10, #19 and #23 by x-axis interpolation, and #16 crosshair is on the 10:45 bar. Chart time is taken as ET: a red 09:30 open marker, and the 14:00 bar spike matches the 2:00pm ET FOMC minutes."},
+      "entry": {"value": 4976.75, "src": "seen", "ref": "#10 01m15s / #19 01m56s grey position-tool axis label 4976.75 at the box's entry line"},
+      "stop": {"value": 4983.25, "src": "seen", "ref": "#19 grey axis label 4983.25 at the box top; tooltip 'Stop: 6.50 (0.13%) 26' (26 ticks)"},
+      "stop_rule": {"value": null, "src": "unknown", "ref": "Not legibly stated. The stop sits above the FVG top (4980.75) but below the 10:00 high (about 4984.6)."},
+      "target": {"value": 4936.5, "src": "inferred", "ref": "The target label is hidden by the webcam. The tooltip 'Risk/Reward Ratio: 6.19' x 6.50 = 40.25 gives 4976.75-40.25 = 4936.50, and the box bottom sits on the horizontal line at about 4936.5 (#9 01m10s, #7 01m02s)."},
+      "target_rule": {"value": "prior swing low (sell-side liquidity): the 13 Feb 1h low; intermediate lows 4968.25 (Feb 20 low) and 4959.00", "src": "inferred", "ref": "#7 01m02s 1h line at about 4936.5 anchored at the 13 Feb low; heard [01:45] 'this low right here ... and then this low'"},
+      "exit": {"value": "stopped at 4983.25 per the drawn position tool, about 11:05-11:15 ET", "src": "inferred", "ref": "#19 tooltip 'Closed P&L: -6.50' (seen) = TradingView marks the drawn trade stopped. The 5m highs of about 4986-4987 at 11:05-11:15 ET are above 4983.25 (#11, #23 zoom), and the 14:00 FOMC spike (about 4984.6) is also above it. His real exit or fill is not shown."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "The tooltip 'Qty: 0.063, Amount: 659.6' is TradingView's default tool account, not his position size"},
+      "result": {"value": "loss", "src": "inferred", "ref": "Position tool shows Closed P&L -6.50 (#19). Price exceeded the stop before any target: the day low was about 4959, which never reached 4936.50 (#24). Heard [00:00] 'end up taking taking in hell on both of them', possibly 'taking an L on both of them' (uncertain)."},
+      "r_multiple": {"value": -1.0, "src": "computed", "ref": "(entry-exit)/(stop-entry) = (4976.75-4983.25)/6.50 = -1.0, with exit = stop per the tool's Closed P&L -6.50. Planned R:R 6.19 is seen on the tooltip."},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No $ figure stated or shown; the title claim is empty"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "No broker or platform panel with fills; the only P&L is TradingView's drawing-tool calculation"},
+      "mistakes": [
+        {"value": "stop placed inside the morning range, below the 10:00 swing high (about 4984.6), so the 11:05-11:15 push to about 4987 took it out before the move down", "src": "inferred", "ref": "#16 / #23 zoom: stop 4983.25 vs the 10:00 wick at about 4984.6 and the 11:10 bars at about 4987"},
+        {"value": "possibly entered too early / should have waited (he says 'should wait for' something, perhaps the FOMC minutes or more confirmation)", "src": "heard", "ref": "[02:00] 'the main thing here is honestly just five should wait for'; the Forex Factory FOMC Minutes page is shown right after at #22 02m21s. The reading is uncertain."},
+        {"value": "traded on an FOMC-minutes day with NVDA earnings after the close", "src": "inferred", "ref": "#22 02m21s calendar; tab 'nvidia earnings'; heard [03:45] 'what went wrong was ... [?] that came out yesterday' (garbled)"}
+      ],
+      "evidence_summary": "Seen: instrument, 5m, date, entry 4976.75, stop 4983.25, 26-tick stop, R:R 6.19 and Closed P&L -6.50 on the tool tooltip. Inferred: target 4936.50, entry time about 10:45 ET, stop-out and -1R. Heard: HTF bearish bias, sweep, IFVG entry."
+    },
+    {
+      "date": {"value": "2024-02-21", "src": "seen", "ref": "#1 00m00s / #30 02m59s x-axis 'Wed 21 Feb '24 09:30' under the position box"},
+      "instrument": {"value": "NQ (E-mini Nasdaq-100 futures, NQ1!)", "src": "seen", "ref": "#1 00m00s / #30 02m59s legend 'NASDAQ 100 E-mini Futures · 5 · CME'"},
+      "direction": {"value": "short", "src": "seen", "ref": "#1 / #30 position tool: grey stop box above the entry and blue target box below it"},
+      "timeframes": {"value": {"bias": "1h/4h", "setup": "5m", "entry": "5m"}, "src": "inferred", "ref": "heard [02:45] 'bearish on the hourly prior market open'; he shows the 4h (#27) and 1h (#28, #29, #33); the box is on the 5m (#30)"},
+      "setup": {"value": "same as ES: bearish 1h bias -> sweep of highs after the open -> rejection / 5m IFVG -> short ('super similar situation')", "src": "heard", "ref": "[02:30] 'that's super similar situation'; [03:00] 'we swept up the ... rejection'"},
+      "entry_conditions": [
+        {"value": "1h bias bearish before the open", "src": "heard", "ref": "[02:45] 'we were bearish on the hourly prior market open'"},
+        {"value": "the 10:00 ET 5m candle ran to about 17523-17525, above the 17514.75 line (buy-side sweep)", "src": "inferred", "ref": "#31 03m03s zoom by axis interpolation (±3 pts); the 17514.75 line is seen on #1 / #30"},
+        {"value": "price rejected and closed back below the 5m FVG (dashed rectangle at about 17482-17490)", "src": "inferred", "ref": "heard [03:00] 'rejection'; seen dashed grey rectangle from about 10:20 ET on #1 / #30"},
+        {"value": "short at 17464.25", "src": "seen", "ref": "#27 02m46s / #28 02m50s grey position-tool label 17464.25"}
+      ],
+      "entry_time": {"value": "10:25 ET (chart time, ±5 min)", "src": "inferred", "ref": "The position-box left edge is at about 10:25 on #1, #30 and #34 by x-axis interpolation. He later points at the 10:45 and 10:50 bars (#31 03m03s, #32 03m15s), so the real fill time is uncertain."},
+      "entry": {"value": 17464.25, "src": "seen", "ref": "#27 02m46s grey axis label 17464.25 at the box's entry line"},
+      "stop": {"value": 17512.75, "src": "seen", "ref": "#27 / #28 grey axis label 17512.75 at the box top (48.5 pts risk)"},
+      "stop_rule": {"value": null, "src": "unknown", "ref": "Not stated. The stop is above the FVG and 17491.75 line but below the 10:00 high (about 17524)."},
+      "target": {"value": 17329.0, "src": "seen", "ref": "#27 02m46s / #28 02m50s blue position-tool target label 17329.00, matching the box bottom"},
+      "target_rule": {"value": "prior low below (sell-side liquidity), a line at 17329.00 anchored in early Feb on the 4h; intermediate 17363.75", "src": "inferred", "ref": "#27 4h lines 17363.75 and 17329.00; heard [03:30] 'a low which is slightly lower than this one'"},
+      "exit": {"value": "stopped at 17512.75 (inferred), about 11:10-11:15 ET", "src": "inferred", "ref": "#30 zoom: the 11:10-11:15 5m wicks poke above the grey stop box to about 17518 (±3). The day low was 17373.25 (#34 14:45 legend), so the target was never reached. No fill or tooltip is shown for NQ."},
+      "size_or_leverage": {"value": null, "src": "unknown", "ref": "Not shown or stated"},
+      "result": {"value": "loss", "src": "inferred", "ref": "Price traded above the drawn stop before any target; heard [00:00] possibly 'taking an L on both of them' (uncertain)"},
+      "r_multiple": {"value": -1.0, "src": "inferred", "ref": "(entry-exit)/(stop-entry) = (17464.25-17512.75)/48.5 = -1.0, assuming exit at the drawn stop. Planned R:R = 135.25/48.5 = 2.79."},
+      "claimed_pnl": {"value": null, "src": "unknown", "ref": "No $ figure stated or shown"},
+      "pnl_verified": {"value": "no", "src": "inferred", "ref": "No broker or platform panel shown"},
+      "mistakes": [
+        {"value": "stop below the 10:00 swing high (about 17524); the 11:10-11:15 push to about 17518 hit it before price fell about 140 pts", "src": "inferred", "ref": "#30 / #31 zoom"},
+        {"value": "correlated risk: the same short idea on ES and NQ at the same time, both stopped by the same up-move", "src": "inferred", "ref": "Both boxes are stopped by the 11:05-11:15 ET rally (#23, #30)"}
+      ],
+      "evidence_summary": "Seen: instrument, 5m, date, entry 17464.25, stop 17512.75, target 17329.00 (tool labels), day low 17373.25. Inferred: entry time about 10:25 ET, stop-out and -1R (no tooltip or fill). Heard: bearish 1h bias, sweep, rejection."
+    }
+  ],
+  "no_trade_reason": null,
+  "lessons_stated": [
+    {"value": "Take the 1h and 4h bias as the overall bias (both bearish here) and look for a sweep, then a 5m imbalance inversion, as the entry", "src": "heard", "ref": "[01:00]-[01:30] 'hourly we were bearish are four hours ... overall bias ... swept out ... five minutes ... imbalance ... here is our [entry]'"},
+    {"value": "He says he should have waited for something (reading uncertain: FOMC minutes or more confirmation)", "src": "heard", "ref": "[02:00] 'the main thing here is honestly just five should wait for'"},
+    {"value": "After the rally, bias switches (to bullish) on the higher timeframe", "src": "heard", "ref": "[04:30] 'now we have a switch in bias'; #36 04m22s ES 1h and #37 04m47s ES 4h show the rally to about 5064"}
+  ],
+  "quality_notes": "Prices and levels come from position-tool and line labels (reliable). ES target is derived from the tooltip R:R because its label is under the webcam. Entry times come from box left edges, ±5 min. The result is the main weak point: no fill, exit or P&L panel is shown. The ES 'Closed P&L -6.50' is TradingView's calculation on the drawn box, not an account fill. NQ's stop-out is inferred from candles about 5 pts above the stop. The transcript is heavily garbled, especially 00:00-00:45 and 02:00-04:15, so whether he took partials, closed manually or was stopped cannot be confirmed by ear."
+}
