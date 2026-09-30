@@ -34,6 +34,7 @@ def load_config(path=None) -> dict:
         "webull_app_key": os.environ.get("WEBULL_APP_KEY", ""),          # Webull (webull_api.py; read-only for now)
         "webull_app_secret": os.environ.get("WEBULL_APP_SECRET", ""),
         "webull_account_id": os.environ.get("WEBULL_ACCOUNT_ID", ""),
+        "webull_env": os.environ.get("WEBULL_ENVIRONMENT", ""),          # paper (Webull's test server) or live
         "telegram_token": os.environ.get("TELEGRAM_BOT_TOKEN", ""),      # phone alerts (phone.py)
         "telegram_chat": os.environ.get("TELEGRAM_CHAT_ID", ""),
     }

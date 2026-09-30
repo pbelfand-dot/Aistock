@@ -24,11 +24,15 @@ def test_requests_are_signed_exactly_like_webulls_own_sdk(path, query, body, exp
 
 
 class FakeWebull:
-    """Webull's side: the token goes PENDING -> (you approve in the app) -> NORMAL."""
-    def __init__(self, token_check=True):
-        self.token_check, self.status, self.calls = token_check, None, []
+    """Webull's side: the token goes PENDING -> (you approve in the app) -> NORMAL.
+    home = the server that knows these keys ("live", "paper", or None for both)."""
+    def __init__(self, token_check=True, home=None):
+        self.token_check, self.status, self.calls, self.home = token_check, None, [], home
 
-    def __call__(self, cfg, method, path, query=None, body=None, token=None, wait=20):
+    def __call__(self, cfg, method, path, query=None, body=None, token=None, wait=20, env=None):
+        where = env or webull_api.environment(cfg)
+        if self.home and where != self.home:
+            raise webull_api.WebullError("Invalid credentials (HTTP 401)", 401)
         self.calls.append(path)
         if path == "/openapi/config":
             return {"token_check_enabled": self.token_check}
@@ -71,7 +75,8 @@ def test_webull_keys_are_saved_privately_then_you_approve_kestrel_in_the_webull_
     token_file = tmp_path / "webull_token.json"
     assert token_file.stat().st_mode & 0o777 == 0o600
     store = Store(tmp_path / "aitrader.sqlite")
-    assert app_api.setup_status(cfg, store)["webull"] == {"keys": True, "account_id": False, "approval": "PENDING"}
+    assert app_api.setup_status(cfg, store)["webull"] == {"keys": True, "account_id": False, "environment": "paper",
+                                                        "approval": "PENDING"}
 
     creates = webull.calls.count("/auth/tokens/create")
     assert app_api.handle("check-webull", cfg, payload={"poll": True})["waiting"]      # still waiting
@@ -133,3 +138,48 @@ def test_no_token_needed_when_webull_says_so(cfg, monkeypatch):
     webull = FakeWebull(token_check=False)
     monkeypatch.setattr(webull_api, "call", webull)
     assert webull_api.connect(cfg)["ok"] and "/auth/tokens/create" not in webull.calls
+
+
+def test_paper_keys_pasted_as_real_money_switch_to_webulls_paper_server(cfg, tmp_path, monkeypatch):
+    env = tmp_path / ".env"
+    env.write_text("WEBULL_ENVIRONMENT=live\n")
+    monkeypatch.setattr(app_api, "env_file", lambda: env)
+    restarts = []
+    monkeypatch.setattr(app_api, "restart_autopilot", lambda: restarts.append(1))
+    monkeypatch.setenv("WEBULL_ENVIRONMENT", "live")                   # put back after the test
+    cfg["secrets"].update(webull_app_key="k" * 32, webull_app_secret="s" * 32, webull_env="live")
+    assert webull_api.HOSTS == {"live": "api.webull.com", "paper": "api.sandbox.webull.com"}
+    monkeypatch.setattr(webull_api, "call", FakeWebull(home="paper"))
+
+    r = app_api.handle("check-webull", cfg, payload={})
+    assert r["switched_to"] == "paper" and r["text"].startswith("These are paper keys")
+    assert r["waiting"] and "Webull (paper): keys accepted" in r["text"]
+    assert "WEBULL_ENVIRONMENT=paper" in env.read_text() and cfg["secrets"]["webull_env"] == "paper"
+    assert restarts and webull_api.load_token(cfg)["status"] == "PENDING"
+    store = Store(tmp_path / "aitrader.sqlite")
+    assert app_api.setup_status(cfg, store)["webull"]["environment"] == "paper"
+
+    cfg["secrets"]["webull_env"] = "live"                                 # a paper approval isn't a real-money one
+    assert webull_api.load_token(cfg) == {}
+
+
+def test_keys_neither_server_knows_get_a_clear_checklist(cfg, monkeypatch):
+    cfg["secrets"].update(webull_app_key="k" * 32, webull_app_secret="s" * 32, webull_env="paper")
+    monkeypatch.setattr(webull_api, "call", FakeWebull(home="nowhere"))
+    r = webull_api.connect(cfg)
+    assert not r["ok"] and not r["waiting"] and "both refused these keys" in r["text"]
+    assert "Invalid credentials" in r["text"] and "swapped" in r["text"]
+    assert cfg["secrets"]["webull_env"] == "paper"                        # nothing switched
+
+
+def test_saving_webull_keys_remembers_paper_or_real_money(cfg, tmp_path, monkeypatch):
+    env = tmp_path / ".env"
+    monkeypatch.setattr(app_api, "env_file", lambda: env)
+    monkeypatch.setattr(app_api, "restart_autopilot", lambda: False)
+    keys = {"app_key": "k" * 32, "app_secret": "s" * 32}
+    app_api.handle("save-webull-keys", cfg, payload={**keys, "environment": "live"})
+    assert "WEBULL_ENVIRONMENT=live" in env.read_text() and webull_api.environment(cfg) == "live"
+    with pytest.raises(ValueError, match="Paper or Real money"):
+        app_api.handle("save-webull-keys", cfg, payload={**keys, "environment": "moon"})
+    app_api.handle("save-webull-keys", cfg, payload=keys)                 # paper unless you pick real money
+    assert "WEBULL_ENVIRONMENT=paper" in env.read_text() and webull_api.environment(cfg) == "paper"
