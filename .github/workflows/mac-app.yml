@@ -62,6 +62,18 @@ jobs:
           AITRADER_SCREENSHOT="$PWD/dist/app-screenshot.png" \
             "dist/AI Trader.app/Contents/MacOS/AITrader" --self-test
 
+      - name: First-run test (a brand-new Mac user - install, Setup, then the app on that install)
+        timeout-minutes: 15
+        run: |
+          export HOME="$RUNNER_TEMP/newuser"; rm -rf "$HOME"; mkdir -p "$HOME"
+          bash "dist/AI Trader.app/Contents/Resources/install.sh"            # what the app does when it opens
+          test -f "$HOME/AITrader/run.py" && test -f "$HOME/AITrader/.env"
+          # The Setup menu's first run: gets uv, installs Python 3.12 and the libraries, then shows the menu.
+          echo q | TERM=dumb bash "$HOME/AITrader/AI Trader Menu.command"
+          cmp "$HOME/AITrader/requirements.txt" "$HOME/AITrader/.venv/.installed-requirements"
+          AITRADER_HOME="$HOME/AITrader" AITRADER_SCREENSHOT="$RUNNER_TEMP/first-run.png" \
+            "dist/AI Trader.app/Contents/MacOS/AITrader" --self-test
+
       - name: Update test (an older copy updates itself to this build; a tampered download is refused)
         timeout-minutes: 5
         run: |
