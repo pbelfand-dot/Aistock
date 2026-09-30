@@ -1,0 +1,99 @@
+{
+  "video": {
+    "n": 11,
+    "file": "03_12_2024.Market.Recap.and.analysis.Best.720p.mp4",
+    "kind": "dated recap/analysis",
+    "accessed": true,
+    "access_note": "Used all 10 sheets, 15 full-size shots (#1, #4, #10, #11, #16, #19, #20, #21, #22, #24, #25, #26, #27, #28, #29) and the transcript. TradingView legends, axis labels, OHLC legends and the clock (bottom right, 'UTC-4' = ET) were readable. The transcript is extremely garbled (pocketsphinx) and gives only fragments. No position tool, order panel or P&L appears anywhere. Structure: 00:00-02:05 a brief review of Mon 11 Mar (NQ/ES); 02:05-06:35 live analysis of Tue 12 Mar (CPI day), recorded about 09:50-09:57 ET; 06:35 the calendar; 06:40-14:55 long-term crypto analysis (BTC, ETH, total market cap) with Fibonacci extensions; 14:56 NQ weekly; 14:59 the calendar again.",
+    "duration_min": 15.0,
+    "title_claim": "",
+    "session_date": {
+      "value": "2024-03-12",
+      "src": "seen",
+      "ref": "#26 06m09s x-axis 'Tue 12 Mar '24 09:30'; #28 06m35s forexfactory.com/calendar?day=mar12.2024, 'Today: Mar 12'; file name 03_12_2024. Recorded the same morning: #1 00m18s clock '09:50:25 (UTC-4)', #27 06m29s '09:56:36 (UTC-4)', #29 09m45s '09:59:52 (UTC-4)'. The first 2 min review Mon 2024-03-11 (#1/#4/#10 x-axis 'Mon 11 Mar '24')."
+    }
+  },
+  "market_context": {
+    "regime": {
+      "value": "Tue 12 Mar (CPI day), as of 09:50-09:57 ET. ES: spiked on the 8:30 CPI release to 5218.75, sold off, printed 5180.00 on the 09:45 15m bar, then rebounded to 5199.25 by 09:56. NQ: post-CPI range 18204.00-18381.00 on 5m; the 09:40 5m bar dipped to 18199.75 (just below 18204.00), and NQ rebounded to 18267.25 by 09:56. NQ 1h backdrop: an 8 Mar high near 18,670 ±15, a sell-off to about 18,147 ±5 on Mon 11 Mar around 09:00-10:00 (below the older 18159.00 line), then a recovery above 18304.00 into 12 Mar before CPI.",
+      "src": "inferred",
+      "ref": "Seen legends: 'S&P 500 E-mini Futures · 15 · CME' #16/#19/#20/#21/#26, '· 5 · CME' #11; 'NASDAQ 100 E-mini Futures · 1h · CME' #1/#4/#24, '· 5 · CME' #10/#25/#27. Seen ES 09:45 bar OHLC legend: #19 (09:53:45) O5185.50 H5191.50 L5180.00 C5190.00; #26 (09:56:16) O5185.50 H5199.50 L5180.00 C5199.25. Seen NQ #27 legend on the 09:40 bar: O18230.75 H18248.25 L18199.75 C18202.75; last price 18267.25. The spike timing (≈08:30-08:45) and the 1h swing prices are estimated from candle positions."
+    },
+    "news": {
+      "value": "12 Mar: at 8:30am, Core CPI m/m actual 0.4% vs forecast 0.3% (previous 0.4%); CPI m/m 0.4% vs 0.4% (previous 0.3%); CPI y/y 3.2% vs 3.1% (previous 3.1%). A 10-y Bond Auction at 1:01pm. The Forex Factory times appear to be ET. No intelligible spoken comment on CPI was found in the transcript.",
+      "src": "seen",
+      "ref": "#28 06m35s forexfactory.com/calendar?day=mar12.2024 (FF clock '9:50am'). ET is inferred: CPI prints at its standard 8:30 ET, and the FF clock matches the TradingView clock 09:50 (UTC-4) at the start of the video."
+    },
+    "bias": {
+      "value": "Mixed and conditional; he commits to neither side and says he is not trading. NQ: he says the hourly turned bullish after a break to the upside ('so we're bullish'), and the post-CPI low 18204.00 had just been taken out. ES: he sketches a hypothetical short from a post-CPI 15m zone (≈5192.75-5197.25) down toward ≈5166.",
+      "src": "heard",
+      "ref": "[02:30] 'we also notice that the hourly was polish [bullish] after this break her show [break of structure] through the outside [upside]'; [04:30] 'so we're bullish ... we broke ... up to the outside [upside] as well'; [04:45] 'we just seen this get taken out'; [03:15] 'i would be looking for the compliments [confirmations] to be on shore [short] ... let's say hypothetically'; [04:00] 'again i'm not trading that's what i would look for'. The ES drawing is seen on #19/#20."
+    },
+    "levels": {
+      "value": "ES (drawn lines, axis labels): 5218.75 (post-CPI spike high); 5196.00 (red line inside a grey 15m zone ≈5192.75-5197.25 drawn from about the 09:30 bar); 5157.00 (a Mon 11 Mar low around 10:00 on 15m; the 5m chart shows a line at 5158.50 at the same low); 5143.75 and 5134.50 (origin not identified); on the 11 Mar 5m review also 5196.00, 5191.50 and 5190.00. NQ: 18499.75 (red, 1h); 18462.75 and 18425.25 (5m, origin not identified); 18381.00 (post-CPI 5m high); 18309.75 and 18303.75 (red pair; earlier a single black 18304.00 line on 1h); 18204.00 (post-CPI low, the line starts at the 12 Mar 08:00 1h bar); 18159.00 and 18094.25 (older 1h lows).",
+      "src": "seen",
+      "ref": "Axis labels on #1/#4 (NQ 1h: 18499.75, 18304.00, 18159.00, 18094.25), #24 (18309.75, 18303.75, 18204.00), #25/#27 (18462.75, 18425.25, 18381.00, 18204.00), #11 (ES 5m: 5196.00, 5191.50, 5190.00, 5158.50), #19-#22 (ES 15m: 5218.75, 5196.00, 5157.00, 5143.75, 5134.50). The zone edges (±1) and which swing each line marks are inferred from positions. The labels 5173.50 (#20), 5175.25 (#21), 18305.50 (#10) and 18387.25 (#24) sit next to the crosshair marker and aren't drawings."
+    },
+    "entry_conditions_needed": [
+      {
+        "value": "ES hypothetical short (drawn at 03:32-04:07, 15m): price retraces up into the grey 15m zone ≈5192.75-5197.25 (red line 5196.00) and rejects there; the drawn path then falls to ≈5166 ±3 (below the 5173-5175 area, above 5157.00) and bounces.",
+        "src": "seen",
+        "ref": "#19 03m32s and #20 03m46s: hand-drawn curve from the grey box down to ≈5166 with an upturn at the bottom; #21 04m07s: the box alone. The target price is estimated from the drawing's position between axis labels (inferred)."
+      },
+      {
+        "value": "Confirmation for that short: a 15m break of structure / 'confirmations to be on short'. The exact trigger (which swing must break) is not intelligible.",
+        "src": "heard",
+        "ref": "[02:30] 'would be looking for would be both a fifteen minute break charger [break of structure]'; [03:15] 'i would be looking for the compliments [confirmations] to be on shore [short]'; [03:45] 'in this zone for a warlock [pullback?]'."
+      },
+      {
+        "value": "NQ long idea (my reading of garbled speech): with the hourly bullish and the post-CPI low 18204.00 swept (09:40 5m low 18199.75), look for a 5m inverse FVG (IFVG) to enter long. Plausible targets would be the 18303.75-18309.75 zone and 18381.00, but he doesn't state a target intelligibly.",
+        "src": "inferred",
+        "ref": "heard [04:45] 'we just seen this get taken out ... i am looking for nasa [NQ?] sent to the inverse'; [05:00] 'the latest yellow five minutes ... for prices to tap into buying ...'. The sweep is seen on #27 (L18199.75 vs the 18204.00 line). The long direction and targets are my inference."
+      },
+      {
+        "value": "Outcome known in the video: by 09:56 ET, ES had traded up through the zone to 5199.50 (5199.25 last), and NQ had bounced to 18267.25. So no rejection at the ES zone had shown yet, and NQ moved in the bullish reading's favour. Nothing after 09:57 ET is shown.",
+        "src": "seen",
+        "ref": "#26 06m09s ES 15m legend H5199.50 C5199.25 at 09:56:16; #27 06m29s NQ last 18267.25 at 09:56:36."
+      }
+    ],
+    "other_markets": {
+      "value": "Crypto, long-term (06:40-14:55). BTC 1M (Bitstamp) at 72304: Fibonacci extensions drawn at -27% = 87018, -50% = 102128, -190% = 194879 (the -90% label wasn't read). He appears to say it could reach 87k, and beyond that he is 'up in the air'. ETH ≈4,020-4,031: he mentions extension targets of about 6,100 (-27%) and 7,300 (-50%), and 'eyeing' 4,800, 'about $700 away ... a 20% gain' that could happen in a single week. Total crypto market cap targets heard: ≈1.6T, 2.5T, 3.2T, 4.8T (possibly ~5T) as profit-taking areas.",
+      "src": "heard",
+      "ref": "Seen #29 06m40s-09m45s 'Bitcoin / U.S. Dollar · 1M · BITSTAMP', fib labels '-27.00%' 87018, '-50.00%' 102128, '-190.00%' 194879, last 72304; ETH last prices 4021.76/4020.75/4019.09/4031.19 are read from the sheet_008/009 thumbnails (#30-#32, #35). Heard: [10:30] 'we hit eighty seven ... after that i'm up in the air'; [11:30]-[11:45] 'twenty seven percent is ... seven thousand three ... twenty seven percent it's six thousand one hundred'; [14:00]-[14:15] 'at four thousand eight hundred ... only like seven hundred dollars away ... a twenty percent game [gain] ... in my single week'; [13:00]-[13:30] 'four point eight trillion ... five trillion ... one six trillion two point five trillion three two trillion ... four point eight trillion'. The ETH and total-cap numbers are heard only; their charts' labels weren't read."
+    }
+  },
+  "trades": [],
+  "no_trade_reason": {
+    "value": "No trade taken or shown. Mon 11 Mar: he says there was no reason to trade (the move came near the end of the session). Tue 12 Mar: he gives only hypothetical scenarios and says he is not trading. No position tool, fills or P&L appear in any sheet or shot.",
+    "src": "heard",
+    "ref": "[01:30] 'pretty much right near the end ... of the [session] so no reason the trade'; [01:45] 'no reason for us [to] the train [trade]'; [02:00] 'so no trades for [us]'; [04:00] 'again i'm not trading that's what i would look for'; [06:30] 'not even trade[ing]'. Seen: none of the 38 thumbnails or 15 opened shots contains a position tool or an order/P&L panel."
+  },
+  "lessons_stated": [
+    {
+      "value": "No trade on Mon 11 Mar because the setup came late in the session; after that price action there was 'no reason to trade'.",
+      "src": "heard",
+      "ref": "[01:30]-[02:00], garbled: 'right near the end ... no reason the trade', 'no reason for us [to trade] especially after seeing [that] past price action'."
+    },
+    {
+      "value": "For a counter-move short after a news spike, wait for the pullback into the zone and for 15m confirmation (break of structure) to the short side. Otherwise stand aside.",
+      "src": "heard",
+      "ref": "[02:30] 'fifteen minute break [of structure]'; [03:15] 'confirmations to be on short ... hypothetically'; [04:00] 'i'm not trading, that's what i would look for'. My paraphrase of fragments."
+    },
+    {
+      "value": "He isn't calling out signals; viewers should trade their own plans.",
+      "src": "heard",
+      "ref": "[06:45] 'again i'm not calling out singles [signals] ... i'm only giving you guys ...'."
+    },
+    {
+      "value": "Fibonacci extensions are useful for finding targets when price is in price discovery (at all-time highs).",
+      "src": "heard",
+      "ref": "[10:00] 'the fill [fib] ... is really awesome for using especially when we're in rice is the remote [price discovery] to find a ...'. Consistent with BTC trading above its prior high on #29 (seen)."
+    },
+    {
+      "value": "Scale out of crypto holdings at successive extension levels: take some profit at the first level, shave off more at the next, and close everything at the highest.",
+      "src": "heard",
+      "ref": "[13:30]-[13:45] 'points for areas that we can look to ... if it comes up here ... [take] some profits ... comes up here shave off more ... up here ... close everything down'. Garbled; my reading."
+    }
+  ],
+  "quality_notes": "No trades, so no R or P&L to evaluate. The transcript is severely garbled: the NQ long idea (5m IFVG after the 18204.00 sweep) depends on my reading of fragments, and the ES short idea is backed mainly by the drawing. The ES zone edges (≈5192.75-5197.25) and the drawn target (≈5166) are estimated from pixel positions (±1 and ±3). What the zone is (FVG, order block) is not stated intelligibly. Nothing after ~09:57 ET is shown, so neither scenario's outcome can be scored from the video. The crypto numbers for ETH and total market cap are heard only (only the BTC fib labels were read). The 00:24-00:31 Forex Factory pages (#2/#3) were only seen as thumbnails and not read."
+}
