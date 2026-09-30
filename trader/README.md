@@ -67,9 +67,20 @@ closed trades, the desk made money, won at least 1.2× what it lost, never dropp
 Your files live in **~/AITrader** (your home folder): `.env` = keys, `config.yaml` = settings,
 `data/` = the bot's memory, plans and logs (`data/autopilot.log`).
 
-**Updating:** download the new zip and open it. Your keys and data stay, and a running background
-autopilot restarts on the new version. If the settings file
-changed, your old one is saved as `config.yaml.before-<version>` and the menu tells you.
+**Updating: automatic.** While the app is open (it can sit minimized), it checks its download page
+when it opens and once a day. When there's a newer version, it downloads it, checks the download's
+fingerprint and signature, swaps itself and restarts. Your keys and data stay, and a running
+background autopilot restarts on the new version.
+- **Paper trading only:** it updates by itself.
+- **Real money involved** (switched on in `.env`, a desk in LIVE, or real shares owned): it
+  **asks you first**, so new code never takes over real money unannounced.
+- **Menu:** AI Trader → **Check for Updates…** checks right now. **Update Automatically** turns
+  the automatic part off (then it always asks).
+- **It must live in your Applications folder** to replace itself.
+- **Updates that need new libraries** open the Setup window, as on the first install.
+- **Settings:** if the settings file changed, your old one is saved as
+  `config.yaml.before-<version>` and the menu tells you.
+- **Versions before 1.0.11** can't update themselves: download the zip once more by hand.
 
 ## The app (your account, like a brokerage)
 

@@ -24,7 +24,7 @@ if [ "${AITRADER_NO_COMPILE:-}" = "1" ]; then
 else
   # One program for both kinds of Mac: Apple Silicon (arm64) and Intel (x86_64).
   for arch in arm64 x86_64; do
-    xcrun swiftc -O -target "$arch-apple-macos12.0" -o "$ROOT/dist/AITrader-$arch" "$ROOT/mac/app/main.swift"
+    xcrun swiftc -O -target "$arch-apple-macos12.0" -o "$ROOT/dist/AITrader-$arch" "$ROOT"/mac/app/*.swift
   done
   lipo -create -output "$APP/Contents/MacOS/AITrader" "$ROOT/dist/AITrader-arm64" "$ROOT/dist/AITrader-x86_64"
   rm "$ROOT/dist/AITrader-arm64" "$ROOT/dist/AITrader-x86_64"
@@ -40,4 +40,7 @@ if command -v codesign >/dev/null; then
 else
   zip -qry AITrader-mac.zip "AI Trader.app"
 fi
+# What the app's updater reads (published next to the zip): the version and the zip's fingerprint.
+SHA="$( (command -v shasum >/dev/null && shasum -a 256 AITrader-mac.zip || sha256sum AITrader-mac.zip) | cut -d' ' -f1)"
+printf '{"version": "%s", "zip": "AITrader-mac.zip", "sha256": "%s"}\n' "$VERSION" "$SHA" > latest.json
 echo "Built $ROOT/dist/AITrader-mac.zip (version $VERSION)"

@@ -1,5 +1,6 @@
 """The Mac app pieces and the Claude (MCP) connection."""
 import asyncio
+import hashlib
 import json
 import os
 import plistlib
@@ -96,6 +97,10 @@ def test_the_mac_app_builds(tmp_path):
                   "aitrader/web/dashboard.html", "aitrader/app_api.py"):
             assert f"AI Trader.app/Contents/Resources/trader/{f}" in names
         assert not any("/.env" == n[-5:] for n in names), "never ship anyone's keys"
+        # What installed apps read to update themselves: this version and the zip's exact fingerprint.
+        manifest = json.loads((REPO / "dist" / "latest.json").read_text())
+        assert manifest == {"version": "9.9.9", "zip": "AITrader-mac.zip",
+                            "sha256": hashlib.sha256(archive.read_bytes()).hexdigest()}
     finally:
         subprocess.run(["rm", "-rf", str(REPO / "dist")])
 

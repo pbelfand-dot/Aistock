@@ -9,6 +9,7 @@ directly, like any Mac app runs a helper program.
   pause [--demo]                             no new trades (stop-losses keep working)
   kill --confirm "SELL EVERYTHING" [--demo]  the emergency stop
   demo-build                                 fresh demo data (made-up prices, about a minute)
+  update-policy                              is real money involved? (the app asks before updating if so)
 
 --demo works on the demo folder (data/demo) instead of your real data.
 """
@@ -34,6 +35,22 @@ def pause_all(cfg, store, who: str) -> str:
             "day desk still sells before the close. Resume from the Setup menu.")
 
 
+def real_money_status(cfg, store) -> dict:
+    """Is real money involved right now? The app updates itself automatically only when it isn't;
+    otherwise it asks you first, so new code never takes over real-money trading unannounced."""
+    from .phases import Phase, current_phase
+    reasons = []
+    if cfg.get("live_trading_enabled"):
+        reasons.append("real-money trading is switched on (LIVE_TRADING_ENABLED=true)")
+    for desk in cfg["desks"]:
+        if current_phase(store, desk) == Phase.LIVE:
+            reasons.append(f"the {desk} desk is trading real money")
+        saved = store.get(f"live-{desk}_ledger")
+        if saved and (saved.get("positions") or saved.get("pending")):
+            reasons.append(f"the {desk} desk owns real shares or has real orders open")
+    return {"real_money": bool(reasons), "reasons": reasons}
+
+
 def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None) -> dict:
     from . import dashboard
     from .config import data_path
@@ -49,6 +66,8 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None) -> d
     try:
         if action == "snapshot":
             return dashboard.snapshot(cfg, store)
+        if action == "update-policy":
+            return real_money_status(cfg, store)
         if action == "pause":
             return {"message": pause_all(cfg, store, "you, from the app")}
         if action == "kill":
@@ -65,7 +84,7 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None) -> d
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="python -m aitrader.app_api")
-    parser.add_argument("action", choices=["snapshot", "pause", "kill", "demo-build"])
+    parser.add_argument("action", choices=["snapshot", "pause", "kill", "demo-build", "update-policy"])
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)

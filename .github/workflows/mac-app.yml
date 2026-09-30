@@ -62,6 +62,27 @@ jobs:
           AITRADER_SCREENSHOT="$PWD/dist/app-screenshot.png" \
             "dist/AI Trader.app/Contents/MacOS/AITrader" --self-test
 
+      - name: Update test (an older copy updates itself to this build; a tampered download is refused)
+        timeout-minutes: 5
+        run: |
+          T="$RUNNER_TEMP/update-test"; rm -rf "$T"; mkdir -p "$T"
+          OLD="$T/AI Trader.app"
+          cp -R "dist/AI Trader.app" "$OLD"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.0" -c "Set :CFBundleVersion 1.0.0" "$OLD/Contents/Info.plist"
+          codesign --force --sign - "$OLD"
+          version() { /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$1/Contents/Info.plist"; }
+          export AITRADER_HOME="$PWD/trader" AITRADER_PYTHON="$(command -v python)"
+          cp dist/AITrader-mac.zip "$T/"
+          sed 's/"sha256": "[0-9a-f]*"/"sha256": "0000"/' dist/latest.json > "$T/tampered.json"
+          if AITRADER_UPDATE_FEED="file://$T/tampered.json" "$OLD/Contents/MacOS/AITrader" --update-test; then
+            echo "A download that didn't match its fingerprint was installed"; exit 1
+          fi
+          test "$(version "$OLD")" = "1.0.0"
+          AITRADER_UPDATE_FEED="file://$PWD/dist/latest.json" "$OLD/Contents/MacOS/AITrader" --update-test
+          test "$(version "$OLD")" = "1.0.${{ github.run_number }}"
+          codesign --verify --strict "$OLD"
+          ls -a "$T"
+
       - name: Keep the self-test screenshot
         if: always()
         uses: actions/upload-artifact@v4
@@ -83,3 +104,4 @@ jobs:
             gh release create mac-app --target "$GITHUB_SHA" --title "AI Trader for Mac" --notes "$notes" --latest
           fi
           gh release upload mac-app dist/AITrader-mac.zip dist/app-screenshot.png --clobber
+          gh release upload mac-app dist/latest.json --clobber      # last: the apps' updater reads this
