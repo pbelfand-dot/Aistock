@@ -138,3 +138,13 @@ def test_a_new_install_scans_in_the_morning_so_the_first_decision_can_use_the_li
     monkeypatch.setattr(scanner, "load_list", lambda cfg: {"liked": [{"symbol": "ROCKET"}]})
     run.run_job("morning", cfg, store, None, datetime(2026, 10, 1, 9, 30), set())
     assert ran == ["2026-09-30"]                                                # has a list: waits for tonight
+
+
+def test_when_the_notes_are_too_long_the_tjr_notes_are_cut_not_the_stock_list(cfg, monkeypatch):
+    """TJR's notes are for Stage 2; the stocks it likes and its own lessons matter now."""
+    monkeypatch.setattr(scanner, "universe", lambda cfg: list(fake_market()))
+    run_scan(cfg, Store(":memory:"))
+    text = knowledge.pack(cfg, max_chars=len(knowledge.pack(cfg)) - 200)
+    assert "Stocks I like right now" in text and "ROCKET" in text
+    assert text.index("Stocks I like right now") < text.index("# TJR's model")
+    assert text.index("Hard safety rules") < text.index("Stocks I like right now")   # safety always first

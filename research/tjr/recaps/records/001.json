@@ -1,0 +1,305 @@
+{
+ "video": {
+  "n": 1,
+  "file": "75.210.in.One.Day.Trading.Live.Full.Breakdown.Best.1080p.60fps.mp4",
+  "kind": "live session",
+  "accessed": true,
+  "access_note": "Only ONE picture exists for this 100-min live stream: scene detection produced a single scene (00m00s-100m08s), so the only shot is the final frame at 100m08s (1 sheet, 1 shot). I opened that shot and zoomed crops of it (legend, price axis, x-axis, position box, watchlist); box edges and candle prices were measured by pixel position against the axis labels. Everything before the final frame is known only from the transcript (359 lines), which is extremely garbled (many lines are noise such as repeated 'gervais'); it gives gist and timestamps only. The transcript is silent from [71:45] to [78:00].",
+  "duration_min": 100.22,
+  "title_claim": "$75,210 in one day (from the file name '75.210.in.One.Day...'; info.json title_claim is empty)",
+  "session_date": {
+   "value": "2026-04-17",
+   "src": "seen",
+   "ref": "#1 100m08s x-axis crosshair label 'Fri 17 Apr '26 12:14' on the same day as the last bar (~11:13); clock '11:13:01 UTC-4'; [100:00] 'not tomorrow because tomorrow saturday' agrees with a Friday"
+  }
+ },
+ "market_context": {
+  "regime": {
+   "value": "Index futures at/near all-time highs after taking upside liquidity overnight (heard). NQ 1m on 17 Apr: ~26,750-26,815 around 09:07-09:21 ET, sell-off to a low ~26,694 around 09:40-09:48 ET, then trend up to ~26,853 (10:49 and 11:05 ET), 26,822.00 at 11:13 ET. Day change at 11:13: NQ +336.75 (+1.27%), ES 7,164 +87.5 (+1.24%)",
+   "src": "seen",
+   "ref": "#1 100m08s: legend 'NASDAQ 100 E-mini Futures · 1 · CME', symbol 'NQ1!'; candle prices inferred (+/-3) from pixel position between axis labels (26,930 to 26,700); symbol panel '26,824.00 +336.75 +1.27%', watchlist 'ES 7,164 87.5 1.24%'; region ~09:22-09:40 below 26,750 hidden by webcam. Heard [00:00]-[00:30] 'Asia session didn't do anything, London session we expanded ... took out draws on liquidity to the upside ... all time highs ... S&P 500 and Nasdaq' (rough)"
+  },
+  "news": {
+   "value": "None mentioned that can be made out; no economic calendar shown",
+   "src": "heard",
+   "ref": "No clear news reference in the garbled transcript. Seen in #1 100m08s only a TradingView headline '11 minutes ago - BUZZ - Nasdaq top...' (not a scheduled release)"
+  },
+  "bias": {
+   "value": "Bullish: after the all-time-high breakout he expected higher; draw on liquidity = all-time highs (ES/NQ) and 15m highs. He required the 'more bearish' index (NQ) to invert its bearish gap before trusting longs",
+   "src": "heard",
+   "ref": "[00:15] 'in my personal opinion we will probably end up going higher'; [03:00] 'I think we are going to want higher ... just recently [broke all-time highs], I think that is bullish'; [27:30] 'fifteen minute [highs]'; [27:45] 'I want [ES] to grab all time highs'; [04:45] 'I also need [Nasdaq] to disrespect [its] gap because Nasdaq is the more bearish index' (rough)"
+  }
+ },
+ "trades": [
+  {
+   "date": {
+    "value": "2026-04-17",
+    "src": "inferred",
+    "ref": "same live session as the final frame (#1 100m08s 'Fri 17 Apr '26')"
+   },
+   "instrument": {
+    "value": "NQ (Nasdaq-100 E-mini futures)",
+    "src": "heard",
+    "ref": "[14:15] 'I'll probably want to take short ... short on nasa[daq]'; [14:45] 'we're assured on nasdaq' read as 'we're short on Nasdaq'. Not on screen in the only picture"
+   },
+   "direction": {
+    "value": "short",
+    "src": "heard",
+    "ref": "[14:45] 'we're [short] on nasdaq'; [32:45] 'we lost on the first initial short' (rough)"
+   },
+   "timeframes": {
+    "value": {
+     "bias": "unknown",
+     "setup": "1m (possibly 5m)",
+     "entry": "unknown"
+    },
+    "src": "heard",
+    "ref": "[10:15] 'we might break one minute [structure] down'; [03:00] 'five minute [break of] structure to the downside' (rough)"
+   },
+   "setup": {
+    "value": "NQ break of structure down, confirmed by ES also breaking structure down (counter to his bullish view)",
+    "src": "heard",
+    "ref": "[14:00] 'we did a great charter [break of structure] from [NQ]'; [14:15] 'we need [ES to break structure] to the downside as well'; [14:45] '[ES] great [structure] ... we're short on nasdaq' (rough)"
+   },
+   "entry_conditions": [
+    {
+     "value": "NQ broke 1m structure to the downside",
+     "src": "heard",
+     "ref": "[10:15] 'we might break one minute [structure] down'; [14:00] 'great [break of structure] ... on [NQ]' (rough)"
+    },
+    {
+     "value": "ES (the 'more bullish' index) also broke structure to the downside before he shorted NQ",
+     "src": "heard",
+     "ref": "[14:15]-[14:45] 'we need ES [to break structure] to the downside as well ... [ES broke structure], we're short on nasdaq' (rough)"
+    }
+   ],
+   "entry_time": {
+    "value": "~09:47-09:48 ET",
+    "src": "inferred",
+    "ref": "[14:45] + video start ~09:32:53 ET (final frame 100m08s shows clock 11:13:01 UTC-4 = EDT), assuming continuous recording"
+   },
+   "entry": {
+    "value": null,
+    "src": "unknown",
+    "ref": "no picture of this trade; NQ traded ~26,694-26,709 around 09:45-09:48 ET (inferred from #1 100m08s candles)"
+   },
+   "stop": {
+    "value": null,
+    "src": "unknown",
+    "ref": "not seen or heard"
+   },
+   "stop_rule": {
+    "value": null,
+    "src": "unknown",
+    "ref": "not heard"
+   },
+   "target": {
+    "value": null,
+    "src": "unknown",
+    "ref": "not seen or heard"
+   },
+   "target_rule": {
+    "value": null,
+    "src": "unknown",
+    "ref": "[19:15]-[19:45] mentions 'these lows' but too garbled"
+   },
+   "exit": {
+    "value": "loss; exit price and time not known",
+    "src": "heard",
+    "ref": "[32:45] 'we lost on the first initial short'; [71:00] '...loss... the first one ... and then this was the second one, big winner' (rough). NQ spiked to ~26,732 at ~09:50 ET (inferred from candles), which would have hit a nearby stop, but the stop is unknown"
+   },
+   "size_or_leverage": {
+    "value": null,
+    "src": "unknown",
+    "ref": "not seen or heard"
+   },
+   "result": {
+    "value": "loss",
+    "src": "heard",
+    "ref": "[32:45] 'we lost on the first initial short'"
+   },
+   "r_multiple": {
+    "value": null,
+    "src": "unknown",
+    "ref": "no entry/stop/exit prices; a full stop-out would be -1R but whether it was a full stop is not known"
+   },
+   "claimed_pnl": {
+    "value": null,
+    "src": "unknown",
+    "ref": "no amount stated for this trade; [34:45] 'bring us back to our break even point' suggests a later partial on trade 2 recovered it (rough)"
+   },
+   "pnl_verified": {
+    "value": "no",
+    "src": "seen",
+    "ref": "only one picture exists and it shows no broker/platform P&L or fills for this trade"
+   },
+   "mistakes": [
+    {
+     "value": "Shorted against his own stated bullish view and his remark that he doesn't like shorting right after all-time highs are taken",
+     "src": "inferred",
+     "ref": "[03:00] 'we are going to want higher'; [10:45] 'I don't like shorting right after taking out all [time highs]'; [10:30] 'I just don't want [to] short prematurely'; then short at [14:45] (rough)"
+    }
+   ],
+   "evidence_summary": "Entirely heard from a very garbled transcript: instrument, direction, rough setup and loss. No price, stop, size or R; nothing seen."
+  },
+  {
+   "date": {
+    "value": "2026-04-17",
+    "src": "seen",
+    "ref": "#1 100m08s x-axis 'Fri 17 Apr '26' with the position tool on that day's 09:49-10:34 bars"
+   },
+   "instrument": {
+    "value": "NQ (Nasdaq-100 E-mini futures, NQ1!)",
+    "src": "seen",
+    "ref": "#1 100m08s legend 'NASDAQ 100 E-mini Futures · 1 · CME', symbol box 'NQ1!', position tool drawn on it"
+   },
+   "direction": {
+    "value": "long",
+    "src": "seen",
+    "ref": "#1 100m08s position tool: blue profit zone 26,704 -> 26,863.5 above the entry, grey stop zone below; darker blue fill from entry up to ~26,792 and a dashed line rising to the box's right edge (TradingView's filled-trade shading). Heard [25:00] 'probably should [have] long[ed] ES rather than nasdaq'"
+   },
+   "timeframes": {
+    "value": {
+     "bias": "all-time-high context (TF not stated)",
+     "setup": "1m gaps (IFVG), 5m structure mentioned",
+     "entry": "1m"
+    },
+    "src": "seen",
+    "ref": "entry TF: #1 100m08s legend '· 1 ·'; setup TF heard [22:30] 'this one minute gap', [54:45] 'five minute ... too volatile ... I just watch the one minute' (rough)"
+   },
+   "setup": {
+    "value": "Bullish ATH context -> NQ (the 'more bearish' index) inverts its bearish 1m FVG (IFVG) while ES breaks structure up -> long NQ near the morning low, target all-time highs",
+    "src": "heard",
+    "ref": "[04:30]-[07:00] rule to wait for the more bearish index to disrespect its gap; [22:15] '[ES] broke structure [to the] upside but ... still maintaining bearish order flow on the more bearish index'; [23:00]-[23:30] wait for it to 'inverse this gap ... there you go'; [61:15] 'all time highs and the final take profit' (rough)"
+   },
+   "entry_conditions": [
+    {
+     "value": "Context: ES and NQ had just made all-time highs after taking overnight upside liquidity; he expected higher",
+     "src": "heard",
+     "ref": "[00:15]-[00:30], [03:00] (rough)"
+    },
+    {
+     "value": "ES (more bullish index) broke structure to the upside",
+     "src": "heard",
+     "ref": "[22:15] 'okay so [ES broke structure to the upside] but that doesn't mean anything' (rough)"
+    },
+    {
+     "value": "NQ (more bearish index) closed through / inverted its bearish 1m FVG (IFVG) - his required confirmation for longs",
+     "src": "heard",
+     "ref": "[04:45] 'I also need [Nasdaq] to disrespect [its] gap'; [22:30] 'only thing holding ... this one minute gap'; [23:30] 'we need this gap to [invert] ... there you go' (rough)"
+    },
+    {
+     "value": "Entry at the low area of the post-open sell-off (~26,694-26,712 traded 09:45-09:57 ET)",
+     "src": "inferred",
+     "ref": "#1 100m08s candle positions vs axis (+/-3 pts)"
+    }
+   ],
+   "entry_time": {
+    "value": "~09:50 ET (range 09:49-09:56 ET)",
+    "src": "inferred",
+    "ref": "#1 100m08s box left edge x~393 = ~09:49 on the x-axis (chart tz UTC-4 = ET); [17:15] (~09:50 ET) '...actually got [a long]', [25:00] (~09:58 ET) already long NQ; NQ traded at 26,704 around 09:49 and again 09:54-09:56"
+   },
+   "entry": {
+    "value": 26704.0,
+    "src": "seen",
+    "ref": "#1 100m08s grey axis label '26,704.00' at the boundary between the blue profit zone and grey stop zone (pixel y~629 = 26,703.5)"
+   },
+   "stop": {
+    "value": 26694.0,
+    "src": "inferred",
+    "ref": "bottom of the grey stop zone at pixel y~651.5 -> ~26,694 +/-1 (no axis label for it); risk ~10 pts"
+   },
+   "stop_rule": {
+    "value": "At/just under the ~09:45-09:48 ET session low (~26,694); rule not stated",
+    "src": "inferred",
+    "ref": "#1 100m08s candles 09:45-09:48 lows ~26,694 (+/-3) vs stop ~26,694"
+   },
+   "target": {
+    "value": 26863.5,
+    "src": "seen",
+    "ref": "#1 100m08s blue axis label '26,863.50' at the top edge of the profit zone (black line '26,864.00' next to it). Planned R ~ 159.5/10 ~ 16R. Not reached by 11:13 ET (high ~26,853 +/-3, inferred)"
+   },
+   "target_rule": {
+    "value": "Partials on the way; final take profit at the all-time highs",
+    "src": "heard",
+    "ref": "[27:45]-[28:00] 'grab all time highs ... maybe not final take profit ... majority of my position'; [60:45]-[61:15] '[partial] my position and then final take profit is ... the all time highs' (rough)"
+   },
+   "exit": {
+    "value": "Scaled out: partial ~10:06 ET ('make this trade risk free'), partial ~10:40 ET, rest closed manually ~11:11-11:13 ET before the target; exit prices not readable (NQ ~26,822-26,839 at 11:10-11:13; last 26,822.00 at 11:13:01)",
+    "src": "heard",
+    "ref": "[33:00] 'just a partial ... make this trade risk free'; [67:30]-[68:15] 'sell ... in profit ... that makes me thirteen thousand dollars ... floating sixty thousand dollars in profit'; [98:45] 'close everything here'; [99:15] 'not worth the extra money ... especially after price [inverses] gap to the [downside]'. Prices/times: #1 100m08s legend 'C26,822.00', clock 11:13:01; clock times inferred from video offset"
+   },
+   "size_or_leverage": {
+    "value": null,
+    "src": "unknown",
+    "ref": "no quantity visible (no broker position line); not stated"
+   },
+   "result": {
+    "value": "win",
+    "src": "inferred",
+    "ref": "price ~118 pts above entry at the close time without the ~26,694 stop being hit after entry (seen #1 100m08s); heard [71:00] 'second one, big winner'"
+   },
+   "r_multiple": {
+    "value": null,
+    "src": "unknown",
+    "ref": "whole-trade R unknown: the partial exits' prices aren't shown. Final portion only ≈ +12.1R (inferred, range 10.5–14; final portion only: (exit - entry)/(entry - stop) = (~26,825 - 26,704)/(26,704 - ~26,694) = 121/10 ~ 12.1R; exit ~26,825 +/-5 is a proxy from the 11:10-11:13 bars, stop +/-1, so ~10.5-14R. Partials' prices unknown, so blended R unknown. Planned to target ~16R). Kept out of the average, like other partial-exit trades."
+   },
+   "claimed_pnl": {
+    "value": "$75,210 for the day (net incl. trade 1 loss, as stated); earlier '$13,000' realized and '$60,000 floating' at ~10:41 ET",
+    "src": "heard",
+    "ref": "[99:00] 'seventy five thousand [and] two hundred and ten dollars ... for the day' (matches file name); [68:00] 'thirteen thousand dollars'; [68:15] 'floating sixty thousand dollars in profit right now' (rough)"
+   },
+   "pnl_verified": {
+    "value": "no",
+    "src": "seen",
+    "ref": "only a TradingView position drawing is visible; no broker/platform P&L panel with the matching position or fills"
+   },
+   "mistakes": [
+    {
+     "value": "Traded NQ although by his own account ES was the stronger (more bullish) index to long",
+     "src": "heard",
+     "ref": "[25:00] 'to be fair I probably should [have] long[ed] ES rather than nasdaq but it is what it is' (rough)"
+    }
+   ],
+   "evidence_summary": "Seen: instrument, 1m chart, long position tool with entry 26,704 and target 26,863.5, and price path to 11:13. Inferred: stop ~26,694 (pixels), entry time, result and the ~12R runner R. Heard: setup, partials, early exit and the $75,210 claim."
+  }
+ ],
+ "lessons_stated": [
+  {
+   "value": "To go long, don't take the more bullish index's (ES) signal alone; wait for the more bearish index (NQ) to also disrespect/invert its bearish gap",
+   "src": "heard",
+   "ref": "[04:30]-[05:45] 'not only do I need ES to disrespect that gap, I also need Nasdaq to disrespect its gap because Nasdaq is the more bearish index ... why should we listen to the more bullish index about why we should go higher' (rough)"
+  },
+  {
+   "value": "To go short, wait for the more bullish index (ES) to confirm with a break of structure down",
+   "src": "heard",
+   "ref": "[06:00]-[07:00], [14:15] 'we need ES [to break structure] to the downside as well' (rough)"
+  },
+  {
+   "value": "Before inverting a gap, price often prints a candle (hammer/inverted hammer) that looks like the gap is holding; don't get ahead of yourself",
+   "src": "heard",
+   "ref": "[09:45]-[10:15] (rough)"
+  },
+  {
+   "value": "He doesn't like shorting right after all-time highs are taken and doesn't want to short prematurely",
+   "src": "heard",
+   "ref": "[10:30]-[10:45] (rough)"
+  },
+  {
+   "value": "Take partials along the way; final take profit at the all-time highs",
+   "src": "heard",
+   "ref": "[28:00], [60:45]-[61:15] (rough)"
+  },
+  {
+   "value": "When the 5m is too volatile, he watches the 1m",
+   "src": "heard",
+   "ref": "[54:45] 'the five minute ... too volatile ... I just watch the one minute' (rough)"
+  },
+  {
+   "value": "Closing before the full target was fine: not worth the extra money and screen time once price inverted a gap to the downside",
+   "src": "heard",
+   "ref": "[99:15] (rough)"
+  }
+ ],
+ "quality_notes": "Biggest limit: one picture (final frame at 100m08s) for a 100-min stream, because scene detection found a single scene. Trade 1 (short) is heard-only, with no prices, stop or R. Trade 2: entry and target are read off axis labels; the stop is from pixels (+/-1 pt); partial and final exit prices are not visible, so R is a proxy for the final portion only. Clock times assume continuous recording, mapped from the final frame (11:13:01 UTC-4 = ET at 100m08s), +/-2 min. The transcript is very garbled; the $75,210, $13k and $60k figures are unverified claims. Other lines seen with no stated meaning: 26,917.50 and 26,747.50 (red), a 26,798.50 ray, and a grey zone ~26,730-26,743 from ~09:54."
+}
