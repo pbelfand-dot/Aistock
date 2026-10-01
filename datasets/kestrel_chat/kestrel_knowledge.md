@@ -900,12 +900,13 @@ rules, add it to `all_strategies()`. It's studied, backtested and considered aut
 ```yaml
 # =====================================================================
 #  AI TRADER SETTINGS
-#  Every "knob" of the bot lives here. Secrets (Schwab keys) go in .env,
+#  Every "knob" of the bot lives here. Secrets (every key) go in ~/AITrader/.env,
 #  never in this file.
 # =====================================================================
 
-# Where orders go: "alpaca" (paper AND real money) or "schwab" (real money only;
-# Schwab has no paper trading). Both use the same safety rules.
+# Where REAL-money orders go: "alpaca", "schwab" or "webull" (Setup -> Settings). Paper trading
+# happens in the Alpaca or Webull paper account, or simulated on this Mac (Schwab has no paper
+# trading). All of them use the same safety rules.
 broker: alpaca
 
 # The yardstick (never traded). If a desk can't beat simply holding
@@ -922,13 +923,13 @@ paper:
 
 live:
   max_capital: 1000        # the bot NEVER uses more than this, whatever else is in your account
-  account_type: auto       # auto = Schwab: cash rules, Alpaca: margin. "cash": only SETTLED money is spent
+  account_type: auto       # auto = Schwab and Webull: cash rules, Alpaca: margin. "cash": only SETTLED money is spent
                            # (T+1, bank holidays counted), so there are never good faith violations.
                            # "margin": Alpaca under $2,000 can't borrow, and it covers unsettled money itself.
                            # The bot never borrows either way.
   limit_buffer_pct: 0.2    # limit orders at quote +/- 0.2%: they fill, but never at crazy prices
   fill_timeout_seconds: 60 # cancel an order if it isn't filled in time
-  resting_stops: true      # ALSO leave a stop-loss order sitting at Schwab, so a sleeping or
+  resting_stops: true      # ALSO leave a stop-loss order sitting at the broker, so a sleeping or
                            # crashed laptop can't stop a falling position from being sold
 
 # ---- Two desks share the money -----------------------------------------

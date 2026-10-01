@@ -38,6 +38,25 @@ def test_the_dataset_builds_into_valid_chat_files(tmp_path):
 
 
 @pytest.mark.skipif(not READY, reason="no dataset (or no answers yet) in this checkout")
+def test_everything_is_in_one_jsonl_file(tmp_path):
+    b = builder()
+    summary = b.build(tmp_path)
+    lines = [json.loads(x) for x in (tmp_path / "kestrel_everything.jsonl").read_text().splitlines()]
+    assert len(lines) == summary["everything"] == summary["examples"] + summary["doc_sections"]
+    assert all([m["role"] for m in x["messages"]] == ["system", "user", "assistant"] for x in lines)
+    assert {x["messages"][0]["content"] for x in lines} == {b.SYSTEM}
+    asked = [x["messages"][1]["content"] for x in lines]
+    assert len(set(asked)) == len(asked)                               # no question twice
+    sources = {x["source"] for x in b.doc_sections()}
+    assert sources == {str(f.relative_to(REPO)) for f in b.DOCS()} | {"trader/config.yaml"}   # every doc is in it
+    answers = "\n".join(x["messages"][2]["content"] for x in lines)
+    for key in ("in_play:", "earnings:", "fractional:", "llm:", "desks:"):
+        assert key in answers                                          # every group of settings too
+    assert max(len(x["messages"][2]["content"]) for x in lines) < 6000  # pieces small enough to train on
+    assert all(x["messages"][2]["content"].count("```") % 2 == 0 for x in lines)   # no code block cut in half
+
+
+@pytest.mark.skipif(not READY, reason="no dataset (or no answers yet) in this checkout")
 def test_every_answer_names_a_source_that_exists():
     b = builder()
     missing = []
