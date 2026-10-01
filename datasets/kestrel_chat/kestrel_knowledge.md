@@ -61,6 +61,10 @@ code changes.
   - **The Kestrel screen on your iPhone.** It works over Tailscale, a free private network between
     your own devices. It's served only on the Mac's Tailscale address and needs Kestrel's access key.
     Add it to your Home Screen and it opens like an app. Keys and settings stay on the Mac.
+- **Local AI** (Setup step 7): a free AI on your Mac writes the plain-English parts (the plan, the
+  report's summary, the team's notes). It never decides trades and nothing leaves the Mac. Install
+  [Ollama](https://ollama.com/download) and Kestrel downloads Google's Gemma 4 12B (about 8 GB) by itself.
+  A Mac with less than 16 GB of memory uses the small Qwen3 4B instead, so trading never slows down.
 - **View → Show Demo Data** shows it with made-up prices right away.
 - **Setup** (the button) connects Alpaca, switches the autopilot and says what's next.
 - **Stage 2: TJR's model** (day desk). It waits for a sweep below a low, a break back up, then buys
@@ -1119,12 +1123,16 @@ news:
   days: 3
 
 # ---- Optional local LLM (Ollama) for plain-English write-ups ----------------
-# It WRITES the plan. It does NOT decide trades.
+# It WRITES the plan, the report summary and the team's notes. It does NOT decide trades.
+# Install Ollama (free, ollama.com/download); Kestrel downloads the model by itself (Setup step 7).
 llm:
   enabled: true
   url: http://localhost:11434
-  model: qwen3:4b          # small enough for a normal laptop (~2.5 GB)
-  timeout_seconds: 180
+  model: gemma4:12b        # Google's Gemma 4 12B (Apache 2.0, ~8 GB download): needs a 16 GB Mac
+  small_model: qwen3:4b    # ~2.5 GB: used on a Mac with less memory, and while the big one downloads
+  min_memory_gb: 16        # below this, the small model, so the AI never slows down trading
+  think: false             # answer straight away instead of "thinking" first (faster short write-ups)
+  timeout_seconds: 300     # a bigger model takes longer, the first time each day most of all
   use_knowledge: true      # give it the background notes (aitrader/knowledge): plan, safety rules, research, TJR
   context_tokens: 8192     # room for those notes plus the question
 ```

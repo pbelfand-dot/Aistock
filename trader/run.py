@@ -483,7 +483,9 @@ def due_jobs(now: datetime, done: set) -> list:
 
 SCAN_IN_BACKGROUND = True                               # tests run it inline
 SCAN_TRIES = 3                                          # a scan that keeps failing waits for the next day
+SCAN_STUCK_MINUTES = 45                                 # a scan "running" longer than this is stuck: start over
 _scanning = None                                        # the running scan thread, if any
+_scan_began = 0.0                                       # when it started (monotonic clock: Mac sleep doesn't count)
 
 
 def scan_running() -> bool:
@@ -511,9 +513,15 @@ def scan_in_background(cfg, store, today, why, kind="evening") -> str:
     written down (scan_status), so the report can say when the list was last made, or why it wasn't."""
     import threading
     from aitrader import scanner
-    global _scanning
+    global _scanning, _scan_began
     if scan_running():
-        return "scan: already running in the background"
+        if time.monotonic() - _scan_began < SCAN_STUCK_MINUTES * 60:
+            return "scan: already running in the background"
+        stuck = scan_state(store, today, kind) or store.get("scan_status") or {}
+        store.set("scan_status", {**stuck, "error": f"stuck for over {SCAN_STUCK_MINUTES} minutes (a network "
+                                                    "call never answered)", "failed_at": now_ny().isoformat(timespec="minutes")})
+        store.log(f"[scan] stuck for over {SCAN_STUCK_MINUTES} minutes (a network call never answered): starting over")
+        _scanning = None                                     # leave it behind: it can't overwrite the new one
     state = scan_state(store, today, kind)
     if state.get("finished"):
         return ""
@@ -530,9 +538,13 @@ def scan_in_background(cfg, store, today, why, kind="evening") -> str:
         base = {"day": today, "kind": kind, "tries": tries}
         try:
             summary = scanner.run(cfg, own, today)
+            if threading.current_thread() is not _scanning and SCAN_IN_BACKGROUND:
+                return                                       # given up on as stuck; a newer scan took over
             own.set("scan_status", {**base, "finished": now_ny().isoformat(timespec="minutes"), "summary": summary})
             own.log(f"[scan] {summary}")
         except Exception as e:                               # the autopilot tries again in 5 minutes
+            if threading.current_thread() is not _scanning and SCAN_IN_BACKGROUND:
+                return
             own.set("scan_status", {**base, "error": repr(e)[:300], "failed_at": now_ny().isoformat(timespec="minutes")})
             again = "tries again in 5 minutes" if tries < SCAN_TRIES else "gave up until tomorrow"
             own.log(f"[scan] failed (try {tries} of {SCAN_TRIES}: {e!r}); {again}")
@@ -543,7 +555,7 @@ def scan_in_background(cfg, store, today, why, kind="evening") -> str:
     if not SCAN_IN_BACKGROUND:
         work()
         return "scan finished"
-    _scanning = threading.Thread(target=work, daemon=True, name="scan")
+    _scanning, _scan_began = threading.Thread(target=work, daemon=True, name="scan"), time.monotonic()
     _scanning.start()
     return "scan started in the background"
 
@@ -570,6 +582,14 @@ def first_scan(cfg, store, today):
     else:
         return
     scan_in_background(cfg, store, today, why, kind="morning")
+
+
+def keep_trying_the_scan(cfg, store, now, done):
+    """The morning scan was cut short (the Mac restarted or slept, an update, a stuck connection): try again
+    during the day, so the swing desk's 3:45pm decision still picks from all US stocks (up to SCAN_TRIES)."""
+    today = now.strftime("%Y-%m-%d")
+    if now.weekday() < 5 and f"morning:{today}" in done and dtime(9, 30) <= now.time() < dtime(15, 30):
+        first_scan(cfg, store, today)
 
 
 def run_job(job, cfg, store, data, now, done) -> str:
@@ -769,6 +789,10 @@ def cmd_autopilot(cfg, store, args):
                     done.add(f"{job}:{today}")
             except Exception as e:                           # never crash; try again next cycle
                 store.log(f"autopilot: {job} failed: {e!r} (will retry in 5 minutes)")
+        try:
+            keep_trying_the_scan(cfg, store, now, done)
+        except Exception as e:                               # never crash over the scan
+            store.log(f"autopilot: couldn't restart the scan: {e!r}")
         progress.update(t=time.monotonic(), job=None)
         store.set("autopilot_busy", None)
         week_ago = (now - timedelta(days=7)).strftime("%Y-%m-%d")
