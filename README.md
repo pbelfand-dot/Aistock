@@ -69,6 +69,11 @@ code changes.
   60 days), the Risk agent skips new buys in it and the journal says so. A lesson that fades and
   then loses again comes back at the first loss. Lessons learned while practicing carry into paper
   and real money. They only ever make it more careful, and never block a sale.
+- **Click any stock symbol** (watchlist, positions, trades, activity, the stock list) to see what it
+  is: the company's name, what it does, its sector, industry and size (Alpaca and Yahoo Finance,
+  looked up once a month), and what Kestrel knows about it: which lists it's on and why, if it's in
+  play today, what each account holds, its trades, its latest score, news and danger headlines, and
+  any mistake it won't repeat with it. It works on the phone screen too.
 - **Scanning the market.** Every evening it checks all US stocks (a quick look at every one, then a
   full year of prices for the actively traded ones). The swing desk considers the 30 strongest it can
   afford. At 9:35am the day desk adds today's **stocks in play**: the busiest stocks whose first 5

@@ -149,6 +149,13 @@
   td { padding: 9px 10px; border-bottom: 1px solid var(--grid); vertical-align: middle; }
   tbody tr:hover { background: var(--surface-2); }
   .sym { font-weight: 600; }
+  .sym[data-ticker] { cursor: pointer; text-decoration: underline dotted var(--muted); text-underline-offset: 3px; }
+  .sym[data-ticker]:hover { color: var(--accent); text-decoration-color: var(--accent); }
+  .sym[data-ticker]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+  dialog.stock { max-width: 560px; width: calc(100vw - 48px); max-height: calc(100vh - 48px); overflow: auto; }
+  .stock .facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+  .stock h4 { margin: 16px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .stock ul { margin: 0; padding-left: 18px; } .stock li { margin: 3px 0; }
   .tag { font-size: 11px; padding: 2px 7px; border-radius: 10px; border: 1px solid var(--border); color: var(--ink-2); }
   .buy { color: var(--accent); font-weight: 600; } .sell { color: var(--ink); font-weight: 600; }
   .reason { color: var(--ink-2); font-size: 13px; max-width: 420px; }
@@ -378,6 +385,12 @@
   <p class="ink2" id="stage2-evidence"></p>
   <p class="ink2">Stage 1 keeps running on the swing desk. Loss limits, the kill switch and good faith rules all apply.</p>
   <div class="dlg-actions"><button data-close>Cancel</button><button class="primary blue" id="do-stage2">Start Stage 2</button></div>
+</dialog>
+
+<dialog id="dlg-stock" class="stock" aria-labelledby="stock-title">
+  <h3 id="stock-title"></h3>
+  <div id="stock-body"></div>
+  <div class="dlg-actions"><button class="primary blue" data-close>Done</button></div>
 </dialog>
 
 <dialog id="dlg-setup" class="setup" aria-labelledby="setup-title">
@@ -817,13 +830,69 @@ function spark(trail) {
   c.setAttribute("cx", lx); c.setAttribute("cy", ly); c.setAttribute("r", 3); c.setAttribute("fill", "var(--accent)");
   svg.append(pl, c); return svg;
 }
+function symCell(ticker, tag = "td") {                  // a stock symbol you can click: what is it?
+  return el(tag, { class: "sym", text: ticker, "data-ticker": ticker, role: "button", tabindex: "0",
+                   title: `What is ${ticker}?` });
+}
+const capSize = (n) => n == null ? null : n >= 1e12 ? `$${plain(n / 1e12, 1)} trillion`
+  : n >= 1e9 ? `$${plain(n / 1e9, 1)} billion` : `$${plain(n / 1e6, 0)} million`;
+async function openStock(ticker) {
+  $("#stock-title").textContent = ticker;
+  $("#stock-title").dataset.ticker = ticker;
+  $("#stock-body").replaceChildren(el("p", { class: "ink2", text: "Looking it up…" }));
+  if (!$("#dlg-stock").open) $("#dlg-stock").showModal();
+  try {
+    const r = await call("stock-info", { input: JSON.stringify({ ticker }) });
+    if ($("#stock-title").dataset.ticker === ticker) renderStock(r);     // not if you clicked another one meanwhile
+  } catch (e) { $("#stock-body").replaceChildren(el("p", { class: "down", text: e.message })); }
+}
+function renderStock(r) {
+  const c = r.company || {}, k = r.kestrel || {};
+  $("#stock-title").textContent = c.name ? `${r.ticker} · ${c.name}` : r.ticker;
+  const kind = c.kind === "ETF" ? "ETF (a basket of stocks)" : c.kind === "fund" ? "fund" : c.kind ? "stock" : null;
+  const facts = [kind, c.exchange, c.sector, c.industry, c.market_cap ? `size ${capSize(c.market_cap)}` : null, c.country]
+    .filter(Boolean).map(f => el("span", { class: "tag", text: f }));
+  const list = (items) => el("ul", {}, items.map(i => el("li", {}, i)));
+  const parts = [];
+  if (facts.length) parts.push(el("div", { class: "facts" }, facts));
+  parts.push(el("p", { class: "ink2", text: c.summary || (c.name ? ""
+    : "Couldn't look up the company right now (is the Mac online?). What Kestrel knows is below.") }));
+  if (c.website) parts.push(el("p", {}, el("a", { href: c.website, text: c.website.replace(/^https?:\/\//, "") })));
+  parts.push(el("h4", { text: "What Kestrel knows" }));
+  const known = [...(k.lists || [])];
+  (k.scores || []).forEach(s => known.push(`Latest score (${s.desk} desk, ${s.account}, ${s.strategy}): `
+    + `${plain(s.score, 2)}; it buys at ${s.buy_above}+ and sells under ${s.sell_below}`));
+  (k.holding || []).forEach(h => known.push(`Holding ${h.qty} share${h.qty === 1 ? "" : "s"} (${h.desk} desk, `
+    + `${h.account}) at ${money(h.avg_cost)} since ${h.since}`));
+  if ((k.danger || []).length) known.push(el("strong", { class: "down", text: `⚠ Danger news (${k.danger.join(", ")}): not buying it for now` }));
+  (k.lessons || []).forEach(l => known.push(el("strong", { text: l })));
+  parts.push(known.length ? list(known) : el("p", { class: "ink2", text: "It isn't on any of Kestrel's lists and it has never traded it." }));
+  if (k.finished) {
+    parts.push(el("h4", { text: `Its trades in ${r.ticker}: ${k.finished} finished, ${k.won} won` }));
+    parts.push(list(k.trades.map(t => el("span", {}, `${t.bought_on} → ${t.sold_on} (${t.account}): `,
+      el("span", { class: dir(t.gain), text: `${signedMoney(t.gain)} (${pct(t.gain_pct)})` }), ` · ${t.why_sold}`))));
+  }
+  if ((k.news || []).length) {
+    parts.push(el("h4", { text: "Recent news" }));
+    parts.push(list(k.news.map(n => el("a", { href: n.url || null, text: n.headline + (n.source ? ` · ${n.source}` : "") }))));
+  }
+  $("#stock-body").replaceChildren(...parts);
+}
+document.addEventListener("click", (e) => {
+  const t = e.target.closest && e.target.closest("[data-ticker]");
+  if (t && t.id !== "stock-title") { e.preventDefault(); openStock(t.dataset.ticker); }
+});
+document.addEventListener("keydown", (e) => {
+  const t = e.target.closest && e.target.closest("[data-ticker]");
+  if (t && t.id !== "stock-title" && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openStock(t.dataset.ticker); }
+});
 function renderWatchlist(s) {
   const pricey = {}; s.desks.forEach(d => Object.assign(pricey, d.too_pricey || {}));
   $("#watch-note").textContent = !s.watchlist.length ? "" : s.watchlist.every(w => w.last == null)
     ? "prices appear once the autopilot runs" : `${s.watchlist.length} stocks`;
   if (!s.watchlist.length) { $("#watchlist").replaceChildren(el("div", { class: "empty", text: "No stocks on the list." })); return; }
   $("#watchlist").replaceChildren(...s.watchlist.map(w => el("div", { class: "wl-row" },
-    el("div", {}, el("div", { class: "sym", text: w.ticker }),
+    el("div", {}, symCell(w.ticker, "div"),
        el("div", { class: "sub" }, w.desk + " desk", pricey[w.ticker] ? el("span", { class: "tag", style: "margin-left:6px", title: "One share costs more than a position's budget", text: "too pricey" }) : null)),
     spark(w.trail),
     el("div", { class: "num" }, el("div", { text: w.last == null ? "--" : money(w.last) }),
@@ -836,7 +905,7 @@ function positionsTable(rows, full) {
   return el("table", {},
     el("thead", {}, el("tr", {}, head.map(h => el("th", { class: numeric.has(h) ? "num" : null, text: h })))),
     el("tbody", {}, rows.map(p => el("tr", {},
-      el("td", { class: "sym", text: p.ticker }), el("td", { class: "muted", text: p.desk }),
+      symCell(p.ticker), el("td", { class: "muted", text: p.desk }),
       el("td", { class: "num", text: p.qty }), el("td", { class: "num", text: money(p.avg_cost) }),
       el("td", { class: "num", text: money(p.last) }),
       el("td", { class: "num " + dir(p.day_change_pct), text: pct(p.day_change_pct) }),
@@ -881,7 +950,7 @@ function renderTrades(a) {
     head(["Stock", "Desk", "Bought", "Sold", "Qty", "Spent", "Got back", "Made / lost", "Result", "Why it sold"],
          ["Qty", "Spent", "Got back", "Made / lost"]),
     el("tbody", {}, done.map(r => el("tr", {},
-      el("td", { class: "sym", text: r.ticker }), el("td", { class: "muted", text: r.desk }),
+      symCell(r.ticker), el("td", { class: "muted", text: r.desk }),
       el("td", { class: "num muted", style: "text-align:left", text: `${r.bought_on} @ ${money(r.buy_price)}` }),
       el("td", { class: "num muted", style: "text-align:left", text: `${r.sold_on} @ ${money(r.sell_price)}` }),
       el("td", { class: "num", text: r.qty }), el("td", { class: "num", text: money(r.spent) }),
@@ -894,7 +963,7 @@ function renderTrades(a) {
   $("#trades-open").replaceChildren(!open.length ? el("div", { class: "empty", text: "Not holding anything right now." }) : el("table", {},
     head(["Stock", "Desk", "Bought", "Qty", "Spent", "Worth now", "Up / down"], ["Qty", "Spent", "Worth now", "Up / down"]),
     el("tbody", {}, open.map(r => el("tr", {},
-      el("td", { class: "sym", text: r.ticker }), el("td", { class: "muted", text: r.desk }),
+      symCell(r.ticker), el("td", { class: "muted", text: r.desk }),
       el("td", { class: "num muted", style: "text-align:left", text: r.bought_on }),
       el("td", { class: "num", text: r.qty }), el("td", { class: "num", text: money(r.spent) }),
       el("td", { class: "num", text: money(r.value) }),
@@ -919,7 +988,7 @@ function renderActivity(a) {
     el("tbody", {}, rows.map(r => el("tr", {},
       el("td", { class: "num muted", style: "text-align:left", text: r.date }),
       el("td", { class: r.side === "BUY" ? "buy" : "sell", text: r.side === "BUY" ? "Buy" : "Sell" }),
-      el("td", { class: "sym", text: r.ticker }), el("td", { class: "muted", text: r.desk }),
+      symCell(r.ticker), el("td", { class: "muted", text: r.desk }),
       el("td", { class: "num", text: r.qty }), el("td", { class: "num", text: money(r.price) }),
       el("td", { class: "num", text: money(r.amount) }),
       el("td", { class: "num " + dir(r.realized_pnl), text: r.realized_pnl == null ? "" : signedMoney(r.realized_pnl) }),
@@ -930,7 +999,7 @@ function scanCard(scan) {                                 // scanner.py: the dai
     el("div", { class: "card-head" }, el("h2", { text: "Stocks it likes" })),
     el("div", { class: "empty", text: "The first scan of all US stocks runs after today's close (the autopilot must be on)." }));
   const row = (r, i) => el("tr", {},
-    el("td", { class: "num", text: r.rank || i + 1 }), el("td", { class: "sym", text: r.symbol }),
+    el("td", { class: "num", text: r.rank || i + 1 }), symCell(r.symbol),
     el("td", { class: "num", text: money(r.price) }),
     el("td", { class: "num " + dir(r.momentum_pct), text: r.momentum_pct == null ? "--" : pct(r.momentum_pct, 1) }),
     el("td", { class: "num " + dir(r.return_1m_pct), text: pct(r.return_1m_pct, 1) }),
