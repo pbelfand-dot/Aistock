@@ -78,6 +78,11 @@ code changes.
   60 days), the Risk agent skips new buys in it and the journal says so. A lesson that fades and
   then loses again comes back at the first loss. Lessons learned while practicing carry into paper
   and real money. They only ever make it more careful, and never block a sale.
+- **P&L calendar** (Trades tab): each weekday of the month with the money made or lost on trades that
+  finished that day (or switch to the account value's daily change), how many trades and how many won,
+  and each week's total. Deeper color = a bigger day; blue is a gain and red a loss (readable with
+  color-blindness), and every day shows its signed amount. Hover for details, click a day for its trades,
+  ‹ › for other months. Works for in its head, paper and real money.
 - **Click any stock symbol** (watchlist, positions, trades, activity, the stock list) to see what it
   is: the company's name, what it does, its sector, industry and size (Alpaca and Yahoo Finance,
   looked up once a month), and what Kestrel knows about it: which lists it's on and why, if it's in

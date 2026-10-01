@@ -62,6 +62,26 @@ def daily(curve: pd.Series, start_value: float = None) -> list:
     return rows[::-1]
 
 
+def calendar(done: list, days: list) -> list:
+    """The P&L calendar (oldest first): for each day with trading, the money made or lost on trades that
+    finished that day (realized), how many, how many won and lost, and the account value's change."""
+    out = {}
+
+    def day(d):
+        return out.setdefault(d, {"date": d, "realized": 0.0, "trades": 0, "wins": 0, "losses": 0, "change": None})
+    for t in done:
+        row = day(t["sold_on"])
+        row["realized"] += t["gain"] or 0.0
+        row["trades"] += 1
+        row["wins"] += t["result"] == "win"
+        row["losses"] += t["result"] == "loss"
+    for r in days:
+        day(r["date"])["change"] = r["change"]
+    for row in out.values():
+        row["realized"] = _r(row["realized"])
+    return [out[d] for d in sorted(out)]
+
+
 def totals(done: list, open_positions: list, start_value: float, value_now: float,
            benchmark_return_pct: float = None, days: int = 0) -> dict:
     """The overall numbers: money in, money out, gains, wins and losses."""

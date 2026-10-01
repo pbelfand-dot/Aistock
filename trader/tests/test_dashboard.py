@@ -294,3 +294,20 @@ def test_setup_shows_good_faith_violations_and_cash_rules(filled, monkeypatch, c
     store.set("live-day_ledger", ledger.to_dict())
     gfv = ask(monkeypatch, capsys, cfg, "setup-status")["gfv"]
     assert gfv == {"cash_rules": True, "violations": 1, "limit": 3}          # only the last 12 months count
+
+
+def test_the_pnl_calendar_has_each_days_finished_trades_and_value_change(filled):
+    from aitrader.report import calendar
+    cfg, store = filled
+    paper = json.loads(json.dumps(dashboard.snapshot(cfg, store)))["accounts"]["paper"]
+    by_day = {r["date"]: r for r in paper["calendar"]}
+    assert list(by_day) == ["2026-09-23", "2026-09-24", "2026-09-25"]          # oldest first, for the months
+    assert by_day["2026-09-24"]["change"] == 5.0 and by_day["2026-09-25"]["change"] == -7.0
+    assert by_day["2026-09-24"]["trades"] == 0                                   # BBB's sale has no buy on record
+
+    done = [{"sold_on": "2026-09-24", "gain": 3.0, "result": "win"},
+            {"sold_on": "2026-09-24", "gain": -1.25, "result": "loss"},
+            {"sold_on": "2026-09-28", "gain": 0.0, "result": "even"}]
+    rows = calendar(done, [{"date": "2026-09-24", "change": 2.5}])
+    assert rows[0] == {"date": "2026-09-24", "realized": 1.75, "trades": 2, "wins": 1, "losses": 1, "change": 2.5}
+    assert rows[1] == {"date": "2026-09-28", "realized": 0.0, "trades": 1, "wins": 0, "losses": 0, "change": None}
