@@ -172,6 +172,7 @@ in_play:
 #   options_gap  = option bets lean against it (only once the options-gap watcher shows an edge!)
 agents:
   enabled: true
+  learn_from_mistakes: true   # skip a buy that repeats a mistake the desk already made (mistakes.py)
   risk_vetoes: []
   correlation_limit: 0.85
   correlation_bars: 60     # swing: 60 days; day desk: 60 five-minute bars

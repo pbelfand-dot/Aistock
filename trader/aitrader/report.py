@@ -191,11 +191,15 @@ def _desk_section(cfg, store, desk, kind, today) -> list:
         out.append("")
     lessons = store.get(f"lessons:{desk}") or {}
     cards = lessons.get("strategies") or {}
-    if cards and lessons.get("mode") == mode:
+    mistakes = store.get(f"mistakes:{desk}") or []
+    if (cards and lessons.get("mode") == mode) or mistakes:
         out.append("**What it has learned from its own trades:**")
-        out += [f"- {name}: {card['status']} ({card['why']})" for name, card in cards.items()]
-        if lessons.get("avoid"):
-            out.append(f"- Not buying in: {', '.join(lessons['avoid'])}")
+        if lessons.get("mode") == mode:
+            out += [f"- {name}: {card['status']} ({card['why']})" for name, card in cards.items()]
+            if lessons.get("avoid"):
+                out.append(f"- Not buying in: {', '.join(lessons['avoid'])}")
+        from .mistakes import note_lines
+        out += note_lines(mistakes)
         out.append("")
     done = trades(fills)
     if done:

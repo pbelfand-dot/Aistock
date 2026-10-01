@@ -9,6 +9,8 @@ the notes, and so does your phone):
   4. Risk      checks every buy before it goes: its size, danger news, stocks that move together, and
                option bets against it. It can only make things SAFER (skip a buy), never bolder, and only
                for the checks you switch on (config.yaml: agents.risk_vetoes). Otherwise it just says so.
+               It also writes down the situation of every buy, and skips a buy that would repeat a
+               mistake the desk has already made (mistakes.py; agents.learn_from_mistakes).
   5. Reviewer  after the close: grades the day and the options watcher, and passes on the lessons.
 
 When the local AI (llm.py) is on, each agent's note is also written in plain English from that agent's
@@ -30,7 +32,8 @@ VETO_CHECKS = ("correlation", "options_gap")
 
 
 def settings(cfg: dict) -> dict:
-    s = {"enabled": True, "risk_vetoes": [], "correlation_limit": 0.85, "correlation_bars": 60}
+    s = {"enabled": True, "risk_vetoes": [], "correlation_limit": 0.85, "correlation_bars": 60,
+         "learn_from_mistakes": True}
     s.update(cfg.get("agents") or {})
     s["risk_vetoes"] = [v for v in (s.get("risk_vetoes") or []) if v in VETO_CHECKS]
     return s
@@ -38,9 +41,11 @@ def settings(cfg: dict) -> dict:
 
 # ---------------------------------------------------------------- 1. Scout
 def scout(scores: pd.Series, prices: pd.Series, positions: dict, cash: float, blocked, gaps: dict,
-          strategy, max_positions: int) -> dict:
+          strategy, max_positions: int, in_play: dict = None, lessons: list = None) -> dict:
     top = scores.dropna().sort_values(ascending=False).head(6)
     return {"top": [[t, round(float(v), 2)] for t, v in top.items()],
+            "in_play": {t: r for t, r in (in_play or {}).items() if t in scores.index},
+            "wont_repeat": [m["tag"] for m in lessons or []],
             "holding": sorted(positions), "slots": f"{len(positions)} of {max_positions}",
             "cash": round(float(cash), 2), "danger": sorted(set(blocked) - set(positions))[:8],
             "options_gaps": {t: d for t, d in gaps.items() if t in scores.index},
@@ -63,6 +68,9 @@ def analyst(facts: dict, strategy) -> list:
             view = "weak"
         else:
             view = "middling" + ("; calls piling up ahead of the price" if gap == "bullish" else "")
+        rvol = (facts.get("in_play") or {}).get(ticker)
+        if rvol:
+            view += f"; in play ({rvol}x its usual opening volume)"
         views.append(f"{ticker} {score:.2f}: {view}")
     for ticker, gap in facts["options_gaps"].items():
         if ticker in facts["holding"] and gap == "bearish":
@@ -96,8 +104,11 @@ def correlations(bars: dict, ticker: str, others, lookback: int) -> dict:
     return out
 
 
-def risk(orders: list, positions: dict, bars: dict, gaps: dict, equity: float, cfg_agents: dict) -> tuple:
-    """(orders it lets through, its notes). Sells always go through (getting out is never riskier)."""
+def risk(orders: list, positions: dict, bars: dict, gaps: dict, equity: float, cfg_agents: dict,
+         lessons: list = None, in_play: dict = None, style: str = "swing", tags_out: dict = None) -> tuple:
+    """(orders it lets through, its notes). Sells always go through (getting out is never riskier).
+    tags_out: filled with the situation of each buy that goes through (mistakes.py)."""
+    from .mistakes import matching, tags_for
     notes, keep = [], []
     held = set(positions)
     for o in orders:
@@ -116,29 +127,39 @@ def risk(orders: list, positions: dict, bars: dict, gaps: dict, equity: float, c
             checks.append("puts are piling up against it")
             if "options_gap" in cfg_agents["risk_vetoes"] and not veto:
                 veto = "option bets lean against it"
+        tags = tags_for(o, bars, gaps, together, in_play, style)
+        repeat = matching(tags, lessons) if cfg_agents.get("learn_from_mistakes", True) else None
+        if repeat and not veto:
+            veto = f"that would repeat a mistake: {repeat['tag']} ({repeat['why']})"
         if veto:
             notes.append(f"SKIPPED BUY {o.ticker}: {veto} ({'; '.join(checks)})")
             continue
         notes.append(f"OK BUY {o.ticker}: " + "; ".join(checks)
                      + ("" if len(checks) == 1 else " (noted only)"))
         keep.append(o)
+        if tags_out is not None:
+            tags_out[o.ticker] = tags
         held.add(o.ticker)                              # the next buy is checked against this one too
     return keep, notes or ["nothing to check (no buys)"]
 
 
 def review_orders(cfg: dict, orders: list, scores: pd.Series, prices: pd.Series, broker, bars: dict, gaps: dict,
-                  strategy, max_positions: int) -> tuple:
-    """The team on one decision: (orders to send, the notes). Called between the strategy and the broker."""
+                  strategy, max_positions: int, lessons: list = None, in_play: dict = None) -> tuple:
+    """The team on one decision: (orders to send, the notes). Called between the strategy and the broker.
+    lessons: the desk's mistakes not to repeat (mistakes.py); in_play: {ticker: relative volume} today."""
     s = settings(cfg)
     positions = broker.positions()
     equity = broker.equity(prices)
-    facts = scout(scores, prices, positions, broker.cash(), broker.blocked, gaps, strategy, max_positions)
+    facts = scout(scores, prices, positions, broker.cash(), broker.blocked, gaps, strategy, max_positions,
+                  in_play=in_play, lessons=lessons)
     views = analyst(facts, strategy)
     plan = trader(orders)
-    keep, checks = risk(orders, positions, bars, gaps, equity, s)
+    tags = {}
+    keep, checks = risk(orders, positions, bars, gaps, equity, s, lessons=lessons, in_play=in_play,
+                        style=strategy.style, tags_out=tags)
     if len(keep) != len(orders):
         plan = trader(keep) if keep else ["no orders (Risk skipped the buys)"]
-    return keep, {"scout": facts, "analyst": views, "trader": plan, "risk": checks}
+    return keep, {"scout": facts, "analyst": views, "trader": plan, "risk": checks, "tags": tags}
 
 
 # ---------------------------------------------------------------- 5. Reviewer (after the close)
@@ -155,6 +176,9 @@ def reviewer(cfg: dict, store, desk: str, mode: str, today: str) -> list:
         lines.append("No trades finished today.")
     lessons = (store.get(f"lessons:{desk}") or {}).get("strategies") or {}
     lines += [f"Lesson on {name}: {card['status']} ({card['why']})" for name, card in lessons.items()]
+    mistakes = store.get(f"mistakes:{desk}") or []
+    if mistakes:
+        lines.append("Won't repeat: " + "; ".join(f"{m['tag']} ({m['why']})" for m in mistakes[:5]) + ".")
     card = scorecard(store)
     graded = sum(c["graded"] for c in card.values())
     if graded:
@@ -178,7 +202,9 @@ def notes_lines(cfg: dict, store, desk: str, mode: str, today: str, narrate: boo
     facts = (f"top scores {', '.join(f'{t} {v:.2f}' for t, v in f['top']) or 'none'}; holding "
              f"{', '.join(f['holding']) or 'nothing'} ({f['slots']} slots), cash ${f['cash']:,.2f}; "
              f"danger news: {', '.join(f['danger']) or 'none'}; option gaps: "
-             f"{', '.join(f'{t} {d}' for t, d in f['options_gaps'].items()) or 'none'}; rule: {f['rule']}.")
+             f"{', '.join(f'{t} {d}' for t, d in f['options_gaps'].items()) or 'none'}; rule: {f['rule']}"
+             + (f"; in play: {', '.join(f'{t} {r}x' for t, r in f['in_play'].items())}" if f.get("in_play") else "")
+             + (f"; won't repeat: {', '.join(f['wont_repeat'])}" if f.get("wont_repeat") else "") + ".")
     parts = {"scout": facts, "analyst": "; ".join(team["analyst"]) or "nothing stood out",
              "trader": "; ".join(team["trader"]), "risk": "; ".join(team["risk"]), "reviewer": " ".join(review)}
     if narrate:                                          # the reasoning roles only: two short questions per desk

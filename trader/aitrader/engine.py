@@ -200,6 +200,13 @@ def remember_thinking(store, mode, now, strategy, risk, scores, prices, broker, 
         store.set(f"{mode}_decisions", {"date": day, "items": (items + [thinking])[-30:]})
 
 
+def in_play_today(cfg: dict, today: str) -> dict:
+    """{ticker: relative volume} of today's stocks in play (in_play.py)."""
+    from .in_play import load
+    state = load(cfg)
+    return {p["symbol"]: p["rvol"] for p in state.get("picks") or []} if state.get("day") == today else {}
+
+
 def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd.DataFrame, now,
               desk_cfg: dict, stops_only: bool = False, no_buys: str = "", cfg: dict = None) -> dict:
     """One moment of paper or live trading. stops_only: just check stop-losses.
@@ -238,9 +245,14 @@ def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd
         from .agents import review_orders, settings as team_settings
         if team_settings(cfg)["enabled"]:
             from .options_flow import gaps_today
+            desk = mode.split("-", 1)[-1]
             try:
                 orders, team = review_orders(cfg, orders, scores, prices, broker, bars, gaps_today(store), strategy,
-                                             risk.max_open_positions)
+                                             risk.max_open_positions, lessons=store.get(f"mistakes:{desk}") or [],
+                                             in_play=in_play_today(cfg, today) if strategy.style == "day" else {})
+                from .mistakes import remember_tags
+                remember_tags(store, desk, today, {o.ticker: team["tags"][o.ticker] for o in orders
+                                                   if o.side == "BUY" and o.ticker in team["tags"]})
             except Exception as e:                  # the notes must never block a trade (above all, a stop-loss)
                 team = {"error": f"the team couldn't write its notes ({e!r}); the orders went ahead unchanged"}
     fills = execute(orders, broker, today)       # each fill is saved the moment it happens (broker.on_fill)

@@ -54,7 +54,14 @@ code changes.
 - **The team.** Every decision passes through five agents, each writing a short note: **Scout** (the
   facts), **Analyst** (what agrees and what conflicts), **Trader** (the tested strategy's orders),
   **Risk** (checks each buy) and **Reviewer** (after the close). The notes are in the after-market
-  report. The rules still decide the trades.
+  report. The rules still decide the trades. The Scout and Analyst also note today's stocks in play.
+- **Mistakes: fine once, not twice.** Every buy is written down with its situation (the stock, in
+  play or the fixed list, under $5, the first 30 minutes or after 2pm, chasing a stock already up a
+  lot, moving with one it owns, option bets against it). When the same situation keeps losing (the
+  same stock 3+ times with at most 1 win, or any situation clearly losing over 8+ trades in the last
+  60 days), the Risk agent skips new buys in it and the journal says so. A lesson that fades and
+  then loses again comes back at the first loss. Lessons learned while practicing carry into paper
+  and real money. They only ever make it more careful, and never block a sale.
 - **Scanning the market.** Every evening it checks all US stocks (a quick look at every one, then a
   full year of prices for the actively traded ones). The swing desk considers the 30 strongest it can
   afford. At 9:35am the day desk adds today's **stocks in play**: the busiest stocks whose first 5

@@ -298,7 +298,7 @@ def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
     from aitrader.scanner import danger_tickers
     danger = danger_tickers(cfg)                              # danger headlines: not buying these for now
     broker.blocked = frozenset(broker.blocked) | {t for t in danger if t not in broker.positions()}
-    risk, change = learned(cfg, store, desk, broker.mode, strategy.name, market)
+    risk, change = learned(cfg, store, desk, broker.mode, strategy.name, market, now.strftime("%Y-%m-%d"))
     result = run_cycle(work_store, broker, strategy, risk, bars, market, now,
                        cfg["desks"][desk], stops_only=stops_only, no_buys=change["no_buys"], cfg=cfg)
     if dry_run:
@@ -321,13 +321,19 @@ def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
     return f"{desk} [{broker.mode}]: value ${result['equity']:,.2f}"
 
 
-def learned(cfg, store, desk, mode, strategy_name, market):
+def learned(cfg, store, desk, mode, strategy_name, market, today=None):
     """What the desk has learned from its own finished trades (learning.py): smaller positions for a
     strategy that's losing, none for one that's clearly losing or in a market condition that clearly
-    loses. Never bigger. Also refreshes the lessons note the local AI reads."""
+    loses. Never bigger. Plus the mistakes it won't repeat (mistakes.py: the Risk agent skips buys in a
+    situation that keeps losing). Also refreshes the lessons note the local AI reads."""
     import dataclasses
-    from aitrader import learning
+    from aitrader import learning, mistakes
     risk = RiskManager.for_desk(cfg, desk)
+    try:
+        for m in mistakes.review(store, desk, today or now_ny().strftime("%Y-%m-%d")):
+            store.log(f"[{mode}] LEARNED: won't repeat {m['tag']} ({m['why']}); the Risk agent skips those buys now")
+    except Exception as e:                                   # learning must never stop trading safely
+        store.log(f"[{mode}] couldn't review its mistakes ({e!r}); trading on without that check this cycle")
     try:
         lessons = learning.review(store.fills(mode), market)
         change = learning.adjust(lessons, strategy_name, learning.today_condition(market))
@@ -342,8 +348,8 @@ def learned(cfg, store, desk, mode, strategy_name, market):
             if card["status"] != old.get("status") and card["status"] in ("half size", "paused"):
                 store.log(f"[{mode}] LEARNED: {name} {card['why']} -> {card['status']}")
         data_path(cfg, learning.NOTE).write_text(learning.note(
-            {d: store.get(f"lessons:{d}") or {"trades": 0, "strategies": {}, "conditions": {}, "avoid": []}
-             for d in active_desks(cfg)}))
+            {d: {**(store.get(f"lessons:{d}") or {"trades": 0, "strategies": {}, "conditions": {}, "avoid": []}),
+                 "mistakes": store.get(f"mistakes:{d}") or []} for d in active_desks(cfg)}))
     if change["size"] < 1:
         risk = dataclasses.replace(risk, max_position_pct=risk.max_position_pct * change["size"])
     return risk, change
