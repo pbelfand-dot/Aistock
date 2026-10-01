@@ -86,7 +86,7 @@ def trading_lock(cfg, wait_seconds=180):
 def load_desk(cfg, store, data, desk, keep=(), live=False):
     """A desk's prices, minus stocks too expensive to ever buy (unless we already own them)."""
     bars, market = data.load(desk, extra=keep)
-    limit = RiskManager.for_desk(cfg, desk).max_share_price(desk_capital(cfg, desk, live))
+    limit = RiskManager.for_desk(cfg, desk, live=live).max_share_price(desk_capital(cfg, desk, live))
     too_pricey = {t: round(float(df["close"].iloc[-1]), 2) for t, df in bars.items()
                   if df["close"].iloc[-1] > limit and t not in keep}
     store.set(f"too_pricey:{desk}", {"limit": round(limit, 2), "tickers": too_pricey})
@@ -328,7 +328,7 @@ def learned(cfg, store, desk, mode, strategy_name, market, today=None):
     situation that keeps losing). Also refreshes the lessons note the local AI reads."""
     import dataclasses
     from aitrader import learning, mistakes
-    risk = RiskManager.for_desk(cfg, desk)
+    risk = RiskManager.for_desk(cfg, desk, live=mode.startswith("live-"))
     try:
         for m in mistakes.review(store, desk, today or now_ny().strftime("%Y-%m-%d")):
             store.log(f"[{mode}] LEARNED: won't repeat {m['tag']} ({m['why']}); the Risk agent skips those buys now")

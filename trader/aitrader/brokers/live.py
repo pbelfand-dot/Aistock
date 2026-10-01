@@ -14,6 +14,9 @@ your money safe is here, written once, used by all of them.
     so if your laptop sleeps or crashes a falling position still gets sold.
   * Normal orders are limit orders a hair through the price (fill fast, never at a
     crazy price). URGENT exits (stop-loss, end of day, emergency) are market orders.
+  * Fractional shares (Alpaca): parts of a share, only for stocks the broker says can be bought in
+    fractions, and at least $1 at a time. Alpaca keeps fractional orders for one day only, so a swing
+    position's overnight stop covers its whole shares; the bot watches the fraction itself.
 
 THE ONE RULE that keeps it safe: the bot stops tracking an order only once the
 broker confirms it is FINISHED (filled, cancelled, rejected or expired). If the
@@ -24,9 +27,9 @@ That's how it avoids selling the same shares twice or losing track of a fill.
     even BEFORE they're sent); reconcile() finds out what happened after a restart.
   * dry_run=True shows exactly what it WOULD send, without sending or changing anything.
 """
-import math
 import time
 
+from ..risk import MIN_ORDER_VALUE, floor_shares, is_fraction, shares
 from .base import Broker, Fill, Ledger, Order
 
 DEAD_STATUSES = {"CANCELED", "REJECTED", "EXPIRED", "REPLACED"}
@@ -71,6 +74,14 @@ class LiveBroker(Broker):
             self.log(f"Could not read your {self.gw.name} balance ({e!r}); no buying this cycle")
             return 0.0
 
+    def _fractionable(self, ticker: str) -> bool:
+        """Can this stock be traded in parts of a share here? (Only Alpaca says yes, stock by stock.)"""
+        check = getattr(self.gw, "fractionable", None)
+        try:
+            return bool(check and check(ticker))
+        except Exception:
+            return False
+
     def _busy(self, ticker: str) -> bool:
         """True if the bot still has an unfinished order for this stock."""
         return any(p["ticker"] == ticker for p in self.ledger.pending)
@@ -100,12 +111,15 @@ class LiveBroker(Broker):
             if order.ticker in self.blocked or "*" in self.blocked:
                 return None
             limit = round(order.price * (1 + self.buffer), 2)
-            qty = min(order.qty, math.floor(self.buying_power(date) / limit))
+            fractional = is_fraction(order.qty) and self._fractionable(order.ticker)
+            qty = floor_shares(min(order.qty, self.buying_power(date) / limit), fractional)
+            if qty <= 0 or (fractional and qty * limit < MIN_ORDER_VALUE):
+                return None
         else:
             limit = round(order.price * (1 - self.buffer), 2)
-            qty = min(order.qty, pos.qty if pos else 0)
-        if qty < 1:
-            return None
+            qty = shares(min(order.qty, pos.qty if pos else 0))
+            if qty <= 0:                              # a part of a share can always be sold
+                return None
         if self.dry_run:
             kind = "MARKET" if order.urgent and order.side == "SELL" else f"limit ${limit}"
             self.log(f"[DRY RUN] would {order.side} {qty} {order.ticker} ({kind}): {order.reason}")
@@ -128,7 +142,7 @@ class LiveBroker(Broker):
             self._place_stop(held)      # protect what we hold: a new buy, a partial sell, or a sell that failed
         return fill
 
-    def _send(self, kind: str, order: Order, qty: int, limit: float, date: str):
+    def _send(self, kind: str, order: Order, qty: float, limit: float, date: str):
         entry = {"id": None, "ticker": order.ticker, "side": order.side, "reason": order.reason,
                  "urgent": order.urgent, "client_id": self.gw.new_client_id()}
         if entry["client_id"]:                        # our own tag: written down BEFORE sending
@@ -183,7 +197,7 @@ class LiveBroker(Broker):
             return None
         self.ledger.pending.remove(entry)
         fill = None
-        if data["filled_qty"] >= 1:
+        if data["filled_qty"] > 0:
             fill = self._book(Fill(date=date, ticker=entry["ticker"], side=entry["side"], qty=data["filled_qty"],
                                    price=data["avg_price"], reason=entry["reason"], order_id=entry["id"]))
         self.save()
@@ -201,12 +215,20 @@ class LiveBroker(Broker):
         return data
 
     # ---- resting stop-loss orders ---------------------------------------------------
+    def stop_qty(self, pos) -> float:
+        """The shares the resting stop covers: all of them, except that a stop kept overnight (swing desk)
+        can't include a part of a share at Alpaca; the bot's own 5-minute checks cover that part."""
+        return floor_shares(pos.qty, False) if self.stop_gtc and is_fraction(pos.qty) else pos.qty
+
     def _place_stop(self, pos):
         if pos.stop_order_id:                         # never two stops for the same shares
             return
+        qty = self.stop_qty(pos)
+        if qty <= 0:
+            return                                    # under one share overnight: the bot's own checks guard it
         stop = round(pos.avg_cost * (1 - self.stop_loss_pct / 100), 2)
         try:
-            order_id = self.gw.place("stop_sell", pos.ticker, pos.qty, price=stop, gtc=self.stop_gtc,
+            order_id = self.gw.place("stop_sell", pos.ticker, qty, price=stop, gtc=self.stop_gtc,
                                      client_id=self.gw.new_client_id())
         except OrderRejected as e:
             self.log(f"!!! could not place a resting stop for {pos.ticker} ({e}). "
@@ -220,7 +242,9 @@ class LiveBroker(Broker):
         pos.stop_order_id = UNKNOWN_ID if order_id is None else order_id
         self.save()
         if order_id:
-            self.log(f"[{self.mode}] resting stop-loss for {pos.qty} {pos.ticker} at ${stop}")
+            rest = f" (the other {shares(pos.qty - qty)} of a share: the bot checks it every 5 minutes)" \
+                if qty != pos.qty else ""
+            self.log(f"[{self.mode}] resting stop-loss for {qty} {pos.ticker} at ${stop}{rest}")
 
     def _find_stop(self, pos) -> str:
         """Look up this position's working stop order at the broker (when its id was lost, or you
@@ -254,7 +278,7 @@ class LiveBroker(Broker):
             return False, None
         order_id, pos.stop_order_id = pos.stop_order_id, ""
         fill = None
-        if data["filled_qty"] >= 1:
+        if data["filled_qty"] > 0:
             fill = self._book(Fill(date=date, ticker=pos.ticker, side="SELL", qty=min(data["filled_qty"], pos.qty),
                                    price=data["avg_price"], reason=f"stop-loss order filled at {self.gw.name}",
                                    order_id=order_id))
@@ -315,12 +339,14 @@ class LiveBroker(Broker):
             if status not in FINISHED:
                 return
             order_id, pos.stop_order_id = pos.stop_order_id, ""
-            if data["filled_qty"] >= 1:
+            if data["filled_qty"] > 0:
                 self._book(Fill(date, pos.ticker, "SELL", min(data["filled_qty"], pos.qty), data["avg_price"],
                                 f"stop-loss order filled at {self.gw.name}", order_id=order_id))
             elif status == "REPLACED":                  # you edited it: keep yours, don't add another
                 pos.stop_order_id = self._find_stop(pos)
                 problems.append(f"{pos.ticker}: you changed its stop order by hand; the bot is using yours")
+            elif status == "EXPIRED":                   # a one-day stop ran out: a new one is placed below
+                pass
             else:
                 problems.append(f"{pos.ticker}: resting stop was {status}; placing a new one")
         for pos in list(self.ledger.positions.values()):
@@ -337,7 +363,7 @@ class LiveBroker(Broker):
             return problems
         for ticker, pos in list(self.ledger.positions.items()):
             real = actual.get(ticker, 0)
-            if real >= pos.qty or self._busy(ticker):
+            if real >= pos.qty - 1e-6 or self._busy(ticker):
                 continue
             problems.append(f"{ticker}: bot's checkbook has {pos.qty}, {self.gw.name} has {real}. Did you sell "
                             "them by hand? Fixing the checkbook.")
@@ -368,7 +394,7 @@ class LiveBroker(Broker):
 
         # 5) Never buy stocks you own yourself
         mine = {t: p.qty for t, p in self.ledger.positions.items()}
-        self.blocked = frozenset(t for t, q in actual.items() if q > mine.get(t, 0))
+        self.blocked = frozenset(t for t, q in actual.items() if q > mine.get(t, 0) + 1e-6)
         for ticker in self.blocked & set(mine):
             problems.append(f"{ticker}: you own extra shares yourself. When the bot sells, the broker may sell "
                             "YOUR oldest shares first (taxes!). Avoid owning the bot's stocks.")

@@ -23,6 +23,8 @@ import math
 
 import pandas as pd
 
+from .risk import shares
+
 LEARNING_TRADES = 12        # below this, no change: too few to tell skill from luck
 PAUSE_TRADES = 30           # a strategy must lose over at least this many trades to be paused
 CONDITION_TRADES = 20       # a market condition needs this many trades before it can be avoided
@@ -47,11 +49,11 @@ def round_trips(fills: pd.DataFrame) -> list:
                 lot["price"] = (lot["price"] * lot["qty"] + row.price * row.qty) / total
                 lot["qty"] = total
             else:
-                open_lots[row.ticker] = {"opened": str(row.date)[:10], "price": float(row.price), "qty": int(row.qty),
+                open_lots[row.ticker] = {"opened": str(row.date)[:10], "price": float(row.price), "qty": shares(float(row.qty)),
                                          "strategy": strategy_of(row.reason)}
         elif row.ticker in open_lots:
             lot = open_lots[row.ticker]
-            qty = min(int(row.qty), lot["qty"])
+            qty = shares(min(float(row.qty), lot["qty"]))
             trades.append({"ticker": row.ticker, "strategy": lot["strategy"], "opened": lot["opened"],
                            "closed": str(row.date)[:10], "qty": qty, "entry": lot["price"], "exit": float(row.price),
                            "return_pct": (float(row.price) / lot["price"] - 1) * 100,

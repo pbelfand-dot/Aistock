@@ -5,6 +5,7 @@ Only the Schwab-specific translation lives here. All the safety rules (stops,
 never selling twice, budget caps...) are in live.py and shared with Alpaca.
 Schwab has no paper trading, so this is used for real money only.
 """
+from ..risk import is_fraction
 from .live import LiveBroker, OrderRejected
 
 
@@ -19,6 +20,8 @@ class SchwabGateway:
         return None                       # Schwab doesn't let us tag orders with our own id
 
     def place(self, kind: str, ticker: str, qty: int, price: float = None, gtc: bool = False, client_id=None):
+        if is_fraction(qty):              # never round a real order quietly
+            raise OrderRejected("Schwab's API trades whole shares only")
         from schwab.orders.common import Duration, OrderType
         from schwab.orders.equities import equity_buy_limit, equity_sell_limit, equity_sell_market
         from schwab.utils import Utils

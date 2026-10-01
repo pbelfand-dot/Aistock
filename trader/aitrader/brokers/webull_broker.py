@@ -16,6 +16,7 @@ cancel, open orders) and Webull's own MCP server's response formats.
 """
 import uuid
 
+from ..risk import is_fraction, shares
 from .live import LiveBroker, OrderRejected
 
 TAG = "kst"
@@ -54,6 +55,8 @@ class WebullGateway:
         return TAG + uuid.uuid4().hex[:29]                  # 32 characters, letters and digits
 
     def place(self, kind: str, ticker: str, qty: int, price: float = None, gtc: bool = False, client_id=None):
+        if is_fraction(qty):              # Webull's API: parts of a share aren't confirmed yet; never round quietly
+            raise OrderRejected("Kestrel trades whole shares at Webull (fractional orders aren't confirmed yet)")
         client_id = client_id or self.new_client_id()
         order = {"client_order_id": client_id, "symbol": ticker, "instrument_type": "EQUITY", "market": "US",
                  "quantity": str(int(qty)), "support_trading_session": "CORE",
@@ -91,7 +94,7 @@ class WebullGateway:
     def order(self, order_id: str) -> dict:
         o = self._detail(order_id)                           # raises on errors: never read as "finished"
         status = str(o.get("status") or "").upper().replace(" ", "_")
-        filled = int(float(o.get("filled_quantity") or o.get("total_filled_qty") or 0))
+        filled = shares(float(o.get("filled_quantity") or o.get("total_filled_qty") or 0))
         return {"status": STATUS.get(status, status or "SUBMITTED"), "filled_qty": filled,
                 "avg_price": float(o.get("filled_price") or 0)}
 
@@ -130,7 +133,7 @@ class WebullGateway:
 
     def holdings(self) -> dict:
         reply = self._ask("GET", "/trading/assets/positions/list", query={"account_id": self.account_id})
-        return {p["symbol"]: max(0, int(float(p.get("quantity") or 0))) for p in _rows(reply)
+        return {p["symbol"]: max(0, shares(float(p.get("quantity") or 0))) for p in _rows(reply)
                 if p.get("symbol") and str(p.get("instrument_type") or "EQUITY").upper() in ("EQUITY", "STOCK")}
 
     def find_sell_stops(self, ticker: str) -> list:

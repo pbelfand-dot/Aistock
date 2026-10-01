@@ -131,6 +131,7 @@ class FakeAlpaca(FakeBroker):
         self.drop_response_after_send = False     # the order arrives, but the reply is lost
         self.drop_before_send = False             # the order never arrives
         self.reject_next = None                   # e.g. (403, "insufficient buying power")
+        self.not_fractionable = set()             # stocks Alpaca won't split into parts of a share
 
     def submit_order(self, req):
         if self.drop_before_send:
@@ -140,9 +141,16 @@ class FakeAlpaca(FakeBroker):
             code, msg = self.reject_next
             self.reject_next = None
             raise alpaca_error(code, msg)
+        qty = float(req.qty)
+        fraction = abs(qty - round(qty)) > 1e-9
+        if fraction and req.time_in_force.value != "day":            # like Alpaca: fractional orders are DAY only
+            raise alpaca_error(422, "fractional orders must be DAY orders")
+        if fraction and req.symbol in self.not_fractionable:
+            raise alpaca_error(422, f"asset {req.symbol} is not fractionable")
         n = {"type": req.type.value.upper(), "side": req.side.value.upper(), "symbol": req.symbol,
-             "qty": int(req.qty), "price": getattr(req, "limit_price", None), "stop": getattr(req, "stop_price", None),
-             "gtc": req.time_in_force.value == "gtc", "client_id": req.client_order_id}
+             "qty": qty if fraction else int(round(qty)), "price": getattr(req, "limit_price", None),
+             "stop": getattr(req, "stop_price", None), "gtc": req.time_in_force.value == "gtc",
+             "client_id": req.client_order_id}
         oid = self._new(n)
         if self.drop_response_after_send:
             self.drop_response_after_send = False
@@ -177,6 +185,9 @@ class FakeAlpaca(FakeBroker):
         c = str(self.cash)
         return SimpleNamespace(cash=c, non_marginable_buying_power=c, buying_power=c, equity=c,
                                trading_blocked=False, account_blocked=False, pattern_day_trader=None, daytrade_count=None)
+
+    def get_asset(self, symbol):
+        return SimpleNamespace(symbol=symbol, tradable=True, fractionable=symbol not in self.not_fractionable)
 
     def get_all_positions(self):
         return [SimpleNamespace(symbol=s, qty=str(q)) for s, q in self.held.items()]

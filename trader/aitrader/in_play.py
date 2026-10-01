@@ -7,7 +7,7 @@ opening-range breakouts (Zarattini, Barbon & Aziz, 2024) found the method worked
 not on stocks picked at random; the day desk's own shadow trades on a fixed list agreed (ORB won 2 of 12).
 
 1. Every evening the all-stocks scan (scanner.py) keeps the pool: the busiest stocks the day desk could
-   trade ($5+, 1M+ shares a day, moves at least $0.50 a day, a whole share fits one position).
+   trade ($5+, 1M+ shares a day, moves at least $0.50 a day, affordable: any price with fractional shares).
 2. At 9:35 ET: how much of each traded 9:30-9:35, compared with its own average for that same 5 minutes
    over the last 14 days. The ones with the highest relative volume (at least `min_rvol`) join the day
    desk's list for today. Its fixed watchlist stays, so a failed scan never leaves it with nothing.
@@ -41,7 +41,7 @@ def is_on(cfg: dict) -> bool:
 
 
 def day_price_limit(cfg: dict) -> float:
-    """The most one share can cost for the day desk (whole shares, one position's budget)."""
+    """The most one share can cost for the day desk (no limit with fractional shares)."""
     from .config import desk_capital
     from .risk import RiskManager
     return RiskManager.for_desk(cfg, "day").max_share_price(desk_capital(cfg, "day", False))

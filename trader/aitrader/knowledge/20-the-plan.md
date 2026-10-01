@@ -7,10 +7,11 @@
      strongest stocks from the daily all-stocks scan that it can afford) by its 12-month return, skipping the latest month. Buy from
      the top 20% while the stock is above its 200-day average; sell when it drops out of the top
      half or below its 200-day average. No new buys while SPY is below its 200-day average.
-   - Whole shares only, at most 8 positions of up to 12.5% of the desk's money each, 7% stop-loss.
+   - At most 8 positions of up to 12.5% of the desk's money each, 7% stop-loss. Fractional shares at
+     Alpaca and in the simulation (so a pricey stock can be bought in part); whole shares at Schwab and Webull.
      (Was 3: holding 8 trades about 3x as often with about the same return and a smaller worst drop
      in the bot's own 2011-2026 backtest. The scan hands it the 30 strongest stocks it can afford.)
-     Stocks too expensive for one whole share are skipped.
+     With whole shares (Schwab, Webull), stocks too expensive for one share are skipped.
    - The owner starts it with **Start Stage 1 paper trading** in Setup (or `python run.py
      start-stage1`). It skips the study month; the day desk keeps studying.
 2. **Stage 2: paper, 30 trading days:** Stage 1 plus TJR's model on the day desk (`tjr_model`,

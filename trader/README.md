@@ -103,8 +103,9 @@ Only deleting the AITrader folder removes them.
 - **Where you see it:** Research & plans → *Stocks it likes*. Each stock shows when it joined, how
   long it has stayed, and how it has done since.
 - **New listings** (under a year of history) go on a separate watch-only list.
-- **How the swing desk uses it:** it considers the 30 strongest stocks it can afford one whole share
-  of (not the day desk's stocks), and holds up to 8. Its own rules and budget still decide every trade.
+- **How the swing desk uses it:** it considers the 30 strongest stocks it can afford (with fractional
+  shares, any price; with whole shares, ones where a share fits a position), not the day desk's
+  stocks, and holds up to 8. Its own rules and budget still decide every trade.
 - **If a scan doesn't finish** (the Mac slept, an update restarted it, Alpaca refused too many
   requests), it tries again in 5 minutes, up to 3 times, and again the next morning if the list is
   old. The after-market report says when the list was last made, or why not.
@@ -290,8 +291,11 @@ python run.py menu            # or: python run.py check / autopilot / status ...
 6. **Real money only** after every paper rule passes, you type `REAL MONEY`, `.env` says
    `LIVE_TRADING_ENABLED=true`, and prices are real-time (Alpaca or Schwab data).
 7. Daily loss limit (3%) and a **kill switch** (desk down 15% from its best day).
-8. **Whole shares only**, so with $500 per desk, pricey stocks are skipped automatically
-   (`status` lists which).
+8. **Fractional shares at Alpaca** (and in the simulation): parts of a share, at least $1 at a time,
+   only for stocks Alpaca allows. Alpaca keeps fractional orders for one day only, so a swing position's
+   overnight stop covers its whole shares and the bot checks the fraction itself every 5 minutes.
+   **Schwab and Webull: whole shares only** (Schwab's API can't; Webull's isn't confirmed), so pricey
+   stocks are skipped there (`status` lists which). Setup -> Settings -> Fractional shares turns it off.
 
 **Alpaca notes:** every Alpaca account is a "margin" type (there are no cash accounts), but
 under $2,000 it can't borrow, and sale money is usable right away (no good-faith violations).

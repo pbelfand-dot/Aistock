@@ -78,6 +78,17 @@ def paper_broker(cfg: dict) -> str:
     return "alpaca" if (cfg["broker"] == "alpaca" and cfg["paper"].get("use_broker_paper", True) and alpaca) else "local"
 
 
+def fractional_allowed(cfg: dict, live: bool = False) -> bool:
+    """Fractional shares (parts of a share), where the orders go can do them: Alpaca and the simulation
+    on this Mac can; Schwab's API can't, and Webull's isn't confirmed yet, so those buy whole shares.
+    Real money follows the real-money broker; paper (and practice in its head) follow the paper account.
+    Setting fractional.enabled: off = whole shares everywhere."""
+    setting = str((cfg.get("fractional") or {}).get("enabled", True)).strip().lower()
+    if setting in ("off", "false", "no", "0"):
+        return False
+    return (cfg.get("broker", "alpaca") if live else paper_broker(cfg)) in ("alpaca", "local")
+
+
 def uses_broker_paper(cfg: dict) -> bool:
     """Paper trade inside a broker's paper account (real order handling) instead of simulating it here."""
     return paper_broker(cfg) != "local"

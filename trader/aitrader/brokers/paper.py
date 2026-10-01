@@ -6,9 +6,9 @@ trading is simulated here. To keep it honest, every fill is a bit WORSE than
 the quoted price (slippage). Real orders rarely fill at the exact price you saw.
 The backtester uses this same class, so tests and paper play by the same rules.
 """
-import math
 import uuid
 
+from ..risk import MIN_ORDER_VALUE, floor_shares, is_fraction
 from .base import Broker, Fill, Ledger, Order
 
 
@@ -28,14 +28,17 @@ class PaperBroker(Broker):
             return None
         if order.side == "BUY":
             price = order.price * (1 + self.slippage)
-            affordable = math.floor((self.buying_power(date) - self.commission) / price)
+            fractional = is_fraction(order.qty)       # the sizing already decided parts of a share are allowed
+            affordable = floor_shares((self.buying_power(date) - self.commission) / price, fractional)
             qty = min(order.qty, affordable)
+            if qty <= 0 or (fractional and qty * price < MIN_ORDER_VALUE):
+                return None
         else:
             held = self.ledger.positions.get(order.ticker)
             price = order.price * (1 - self.slippage)
             qty = min(order.qty, held.qty if held else 0)
-        if qty < 1:
-            return None
+            if qty <= 0:                              # a part of a share can always be sold
+                return None
 
         self.ledger.cash -= self.commission
         fill = Fill(date=date, ticker=order.ticker, side=order.side, qty=qty,

@@ -19,6 +19,10 @@
   - With $50 at Schwab, this means about one full round trip per day at most.
 - **Alpaca:** it covers unsettled money itself, so there are no good faith violations there. It
   dropped the pattern-day-trader limit in 2026 (FINRA retired the rule).
-- **Schwab's API trades whole shares only.** With $50, only stocks under about $50 a share fit.
+- **Fractional shares:** Alpaca (and the simulation) buy parts of a share, at least $1 at a time, only
+  for stocks Alpaca allows; a swing position's overnight stop covers its whole shares and the bot watches
+  the fraction itself. Schwab's API trades whole shares only (with $50, only stocks under about $50 fit);
+  Webull's fractional orders aren't confirmed, so Webull gets whole shares too. The $50 real-money test
+  starts at Alpaca.
 - **Schwab login lasts 7 days.** The owner logs in again from Setup; an expired login means no Schwab trading.
 - **Keys and settings live only on the Mac** (`~/AITrader`) and survive updates.

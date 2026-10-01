@@ -480,6 +480,8 @@
         <label>Account type<select id="set-acct"><option value="auto">Automatic (Schwab, Webull = cash rules)</option>
           <option value="cash">Cash: settled money only</option><option value="margin">Margin</option></select></label>
         <label>Paper (practice) money ($)<input id="set-paper" inputmode="decimal"></label>
+        <label>Fractional shares (Alpaca and the simulation)<select id="set-frac"><option value="on">On: parts of a share</option>
+          <option value="off">Off: whole shares only</option></select></label>
         <label>Scan all US stocks every day<select id="set-scan"><option value="on">On</option>
           <option value="off">Off (only the watchlist)</option></select></label>
         <label>Let Kestrel read the news<select id="set-news"><option value="on">On (Alpaca/Yahoo headlines)</option>
@@ -1209,6 +1211,7 @@ async function refreshSetup() {
       $("#set-broker").value = set.broker; $("#set-cap").value = set.real_money_cap;
       $("#set-acct").value = set.account_type; $("#set-paper").value = set.paper_cash;
       $("#set-paperat").value = set.paper_broker || "auto";
+      $("#set-frac").value = set.fractional || "on";
       $("#set-scan").value = set.scan_all_stocks || "on"; $("#set-news").value = set.read_news || "on";
       $("#sw-callback").value = s.schwab.callback_url || "";
       $("#setup-later").dataset.filled = "1";
@@ -1324,7 +1327,7 @@ $("#screen-send").onclick = (e) => setupAction(e.target, "phone-screen-send", un
 $("#save-settings").onclick = (e) => setupAction(e.target, "save-settings", {
   broker: $("#set-broker").value, real_money_cap: $("#set-cap").value,
   account_type: $("#set-acct").value, paper_cash: $("#set-paper").value, paper_broker: $("#set-paperat").value,
-  scan_all_stocks: $("#set-scan").value, read_news: $("#set-news").value });
+  fractional: $("#set-frac").value, scan_all_stocks: $("#set-scan").value, read_news: $("#set-news").value });
 $("#save-schwab").onclick = (e) => setupAction(e.target, "save-schwab-keys", {
   app_key: $("#sw-key").value, app_secret: $("#sw-secret").value, callback_url: $("#sw-callback").value,
   account_number: $("#sw-acct").value }, async (r) => { $("#sw-key").value = ""; $("#sw-secret").value = ""; notify(r.message); });

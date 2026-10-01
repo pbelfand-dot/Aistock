@@ -209,7 +209,7 @@ def pick(table: pd.DataFrame, cfg: dict) -> tuple:
 
 
 def swing_price_limit(cfg: dict) -> float:
-    """The most one share can cost for the swing desk (whole shares, one position's budget)."""
+    """The most one share can cost for the swing desk (no limit with fractional shares)."""
     from .config import desk_capital
     from .risk import RiskManager
     if "swing" not in (cfg.get("desks") or {}):
@@ -222,7 +222,7 @@ def day_tickers(cfg: dict) -> set:
 
 
 def swing_picks(table: pd.DataFrame, cfg: dict) -> list:
-    """What the swing desk considers: the strongest stocks it can afford a whole share of, skipping the
+    """What the swing desk considers: the strongest stocks it can afford (any price with fractional shares), skipping the
     day desk's stocks (a stock is on one desk only). With more positions each share must cost less, so
     picking from the whole ranking (not just the top of the list) keeps enough strong candidates."""
     if table.empty:
