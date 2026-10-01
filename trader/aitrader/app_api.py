@@ -594,6 +594,8 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
             return info(cfg, store, (payload or {}).get("ticker"))
         if action == "setup-status":
             return setup_status(cfg, store)
+        if action == "thinking":
+            return dashboard.thinking(cfg, store)
         if action == "resume":
             import run                                  # run.py, next to the aitrader folder
             run.cmd_resume(cfg, store, SimpleNamespace(desk=None))
@@ -645,7 +647,7 @@ def main(argv=None) -> int:
         "autopilot-on", "autopilot-off", "resume", "save-settings", "save-live-keys", "save-schwab-keys",
         "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude", "start-stage1",
         "save-phone", "phone-test", "phone-screen-send", "save-webull-keys", "check-webull", "lid-mode-on",
-        "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test", "stock-info", "llm-download"])
+        "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test", "stock-info", "llm-download", "thinking"])
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)

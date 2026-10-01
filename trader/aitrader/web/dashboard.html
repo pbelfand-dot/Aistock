@@ -255,6 +255,47 @@
   [hidden] { display: none !important; }
   .loading { opacity: .6; transition: opacity .2s; }
 
+  /* Thinking tab: the live decision feed */
+  .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--good);
+              margin-left: 4px; vertical-align: 1px; opacity: 0; }
+  .live-dot.on { opacity: 1; }
+  .think-now { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
+  .think-now .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); margin-top: 5px; flex: none; }
+  .think-now .pulse.busy { background: var(--accent); animation: think-pulse 1.4s ease-in-out infinite; }
+  .think-now .pulse.waiting { background: var(--good); }
+  @keyframes think-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.75); } }
+  @media (prefers-reduced-motion: reduce) { .think-now .pulse.busy { animation: none; } }
+  .think-meta { font-size: 12px; margin-top: 4px; }
+  .think-desks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 16px; align-items: start; }
+  .think-desks h3 { font-size: 13px; margin: 16px 0 8px; color: var(--ink-2); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  .think-rule { font-size: 13px; color: var(--ink-2); margin: 0; }
+  .scores { display: grid; grid-template-columns: minmax(48px, auto) 1fr 40px minmax(0, auto); gap: 4px 10px; align-items: center; font-size: 13px; }
+  .scores .row { display: contents; }
+  .scores .num { font-variant-numeric: tabular-nums; text-align: right; color: var(--ink); }
+  .score-track { position: relative; height: 18px; }
+  .score-track::before { content: ""; position: absolute; left: 0; right: 0; top: 8px; height: 2px; background: var(--grid); }
+  .score-bar { position: absolute; left: 0; top: 4px; height: 10px; border-radius: 0 4px 4px 0; background: var(--gain-2); min-width: 2px; }
+  .score-bar.in { background: var(--accent); }
+  .score-line { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink-2); border-radius: 1px; }
+  .score-line.sell { background: none; border-left: 2px dashed var(--muted); width: 0; }
+  .score-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-2); margin-top: 8px; }
+  .score-legend .sw { display: inline-block; width: 12px; height: 10px; border-radius: 0 3px 3px 0; vertical-align: -1px; margin-right: 5px; }
+  .score-legend .ln { display: inline-block; width: 0; height: 12px; border-left: 2px solid var(--ink-2); vertical-align: -2px; margin-right: 5px; }
+  .score-legend .ln.sell { border-left-style: dashed; border-left-color: var(--muted); }
+  .think-list { margin: 0; padding-left: 18px; font-size: 13px; }
+  .think-list li { margin: 3px 0; }
+  .team { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; margin: 0; }
+  .team dt { font-weight: 600; color: var(--ink); } .team dd { margin: 0; color: var(--ink-2); }
+  .watch { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .watch th { text-align: left; font-weight: 500; color: var(--muted); padding: 4px 6px 4px 0; }
+  .watch td { padding: 4px 6px 4px 0; border-top: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
+  .think-checks summary { cursor: pointer; font-size: 13px; color: var(--ink-2); margin-top: 16px; }
+  .think-checks ol { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; max-height: 320px; overflow-y: auto; }
+  .think-checks li { padding: 5px 0; border-top: 1px solid var(--grid); color: var(--ink-2); }
+  .think-checks time { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; margin-right: 8px; }
+  .score-tip { font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+  @media (max-width: 640px) { .scores { gap: 4px 8px; } .score-tip { font-size: 11px; } }
+
   /* phones (kept last so it wins over the rules above) */
   @media (max-width: 640px) {
     .topbar { padding: 0 12px; gap: 8px; } main { padding: 16px 12px 32px; }
@@ -284,6 +325,7 @@
 </header>
 <nav class="tabs" role="tablist">
   <button class="tab" role="tab" data-tab="summary">Summary</button>
+  <button class="tab" role="tab" data-tab="thinking">Thinking <span class="live-dot" id="think-tab-dot" aria-hidden="true"></span></button>
   <button class="tab" role="tab" data-tab="positions">Positions</button>
   <button class="tab" role="tab" data-tab="trades">Trades</button>
   <button class="tab" role="tab" data-tab="activity">Activity</button>
@@ -336,6 +378,16 @@
   <section data-panel="positions" hidden>
     <div class="card"><div class="card-head"><h2>Positions</h2><span class="muted" id="positions-note"></span></div>
       <div class="table-scroll" id="positions-full"></div></div>
+  </section>
+
+  <!-- THINKING: what each desk is looking at and deciding, live -->
+  <section data-panel="thinking" hidden>
+    <div class="card think-now" id="think-now" aria-live="polite">
+      <span class="pulse" id="think-pulse" aria-hidden="true"></span>
+      <div><strong id="think-text">Asking the bot…</strong><div class="ink2" id="think-also"></div>
+        <div class="muted think-meta" id="think-meta"></div></div>
+    </div>
+    <div class="think-desks" id="think-desks"></div>
   </section>
 
   <!-- TRADES: every trade, each day, and the totals (the same for in its head, paper and real) -->
@@ -1313,6 +1365,99 @@ function setTab(t) {
   document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
   document.querySelectorAll("[data-panel]").forEach(p => p.hidden = p.dataset.panel !== t);
   if (t === "summary" && state.snap) render();
+  if (t === "thinking") thinkLoop(); else $("#think-tab-dot").classList.remove("on");
+}
+
+/* ---------------- Thinking: the live decision feed (asks the bot every few seconds while it's open) ---------------- */
+let thinkTimer = null, thinkBusy = false;
+async function thinkLoop() {
+  clearTimeout(thinkTimer);
+  if (state.tab !== "thinking" || document.hidden) return;
+  if (!thinkBusy) {
+    thinkBusy = true;
+    try { renderThinking(await call("thinking")); }
+    catch (e) { $("#think-text").textContent = e.message || "The bot didn't answer."; }
+    finally { thinkBusy = false; }
+  }
+  thinkTimer = setTimeout(thinkLoop, 5000);
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && state.tab === "thinking") thinkLoop(); });
+
+const scoreText = (v) => v == null ? "--" : Number(v).toFixed(2);
+function scoreChart(d) {
+  const buy = d.buy_above, sell = d.sell_below;
+  const pct = (v) => `${Math.max(0, Math.min(1, v)) * 100}%`;
+  const rows = d.top.map(r => {
+    const inZone = r.score >= buy, sellZone = r.owned && r.score < sell;
+    const badge = r.owned ? (sellZone ? "owns it · sell zone" : "owns it") : inZone ? "buy zone" : "";
+    const tip = `${r.ticker}: score ${scoreText(r.score)} (buys at ${scoreText(buy)}, sells under ${scoreText(sell)})`
+      + (r.price != null ? ` · ${money(r.price)}` : "") + (r.owned ? " · owns it" : "");
+    const track = el("div", { class: "score-track", title: tip, role: "img", "aria-label": tip },
+      el("div", { class: "score-bar" + (inZone ? " in" : ""), style: `width:${pct(r.score)}` }),
+      el("div", { class: "score-line", style: `left:calc(${pct(buy)} - 1px)` }),
+      el("div", { class: "score-line sell", style: `left:calc(${pct(sell)} - 1px)` }));
+    return el("div", { class: "row" }, symCell(r.ticker, "span"), track,
+      el("span", { class: "num", text: scoreText(r.score) }), el("span", { class: "score-tip", text: badge }));
+  });
+  return [el("div", { class: "scores" }, ...rows),
+    el("div", { class: "score-legend" },
+      el("span", {}, el("span", { class: "sw", style: "background:var(--accent)" }), "buy zone (at or above the buy line)"),
+      el("span", {}, el("span", { class: "sw", style: "background:var(--gain-2)" }), "below it"),
+      el("span", {}, el("span", { class: "ln" }), `buys at ${scoreText(buy)}`),
+      el("span", {}, el("span", { class: "ln sell" }), `sells under ${scoreText(sell)}`))];
+}
+function deskThinking(d) {
+  const name = `${cap(d.desk)} desk`;
+  const kids = [el("div", { class: "card-head" }, el("h2", { text: `${name} · ${d.account}` }), el("div", { class: "spacer" }),
+    el("span", { class: "tag", text: d.today ? `last check ${d.time.slice(-5)}` : "no check yet today" }))];
+  if (d.halted) kids.push(el("p", { class: "ink2", text: "Paused: no new trades (stop-losses still work). Resume in Setup." }));
+  if (!d.today) {
+    kids.push(el("p", { class: "ink2", text: d.desk === "swing"
+      ? "It decides once a day at 3:45pm, and checks its stop-losses every 5 minutes while the market is open."
+      : "It checks every 5 minutes while the market is open and never holds overnight. Its first check today shows up here." }));
+    if (d.time) kids.push(el("p", { class: "muted", style: "font-size:12px", text: `Its last check was ${d.time}.` }));
+  } else {
+    kids.push(el("p", { class: "think-rule" }, el("strong", { text: d.strategy }), `: ${d.description}`));
+    kids.push(el("h3", { text: `What it sees (top ${d.top.length} scores)` }));
+    kids.push(...(d.top.length ? scoreChart(d) : [el("p", { class: "ink2", text: "No scores yet." })]));
+    kids.push(el("h3", { text: `What it decided at ${d.time.slice(-5)}` }));
+    kids.push(d.orders.length
+      ? el("ul", { class: "think-list" }, ...d.orders.map(o => el("li", {},
+          el("strong", { text: `${o.side} ${o.qty} ` }), symCell(o.ticker, "span"), ` @ ${money(o.price)}: ${o.reason}`)))
+      : el("p", { class: "think-rule", text: "No trade" + (d.why ? `: ${d.why}.` : ".") }));
+    kids.push(el("p", { class: "muted", style: "font-size:12px; margin:6px 0 0",
+      text: `Holding ${d.holding} of ${d.max_positions} · ${money(d.cash)} cash` }));
+    if (d.team || d.team_error) {
+      kids.push(el("h3", { text: "The team's notes" }));
+      kids.push(d.team ? el("dl", { class: "team" }, ...[["Scout", d.team.scout], ["Analyst", d.team.analyst],
+        ["Trader", d.team.trader], ["Risk", d.team.risk]].flatMap(([k, v]) => [el("dt", { text: k }), el("dd", { text: v })]))
+        : el("p", { class: "ink2", text: d.team_error }));
+    }
+  }
+  const w = d.watch;
+  if (w && w.holdings.length) {
+    kids.push(el("h3", { text: `Watching (checked ${w.time.slice(-5)})` }));
+    kids.push(el("div", { class: "table-scroll" }, el("table", { class: "watch" },
+      el("thead", {}, el("tr", {}, ...["Stock", "Price", "Stop-loss", "Above the stop"].map(h => el("th", { text: h })))),
+      el("tbody", {}, ...w.holdings.map(h => el("tr", {}, symCell(h.ticker), el("td", { text: money(h.price) }),
+        el("td", { text: money(h.stop) }), el("td", { text: h.above_stop_pct == null ? "--" : `${h.above_stop_pct.toFixed(1)}%` })))))));
+  }
+  if (d.checks.length > 1) {
+    kids.push(el("details", { class: "think-checks" }, el("summary", { text: `Every check today (${d.checks.length})` }),
+      el("ol", {}, ...d.checks.map(c => el("li", {}, el("time", { text: c.time }),
+        c.top.length ? `top ${c.top.map(x => `${x.ticker} ${scoreText(x.score)}`).join(", ")} · ` : "",
+        c.orders.length ? c.orders.map(o => `${o.side} ${o.ticker}`).join(", ") : "no trade" + (c.why ? ` (${c.why})` : ""))))));
+  }
+  return el("div", { class: "card" }, ...kids);
+}
+function renderThinking(r) {
+  const busy = r.live.busy;
+  $("#think-pulse").className = "pulse" + (busy ? " busy" : r.running ? " waiting" : "");
+  $("#think-text").textContent = r.live.text;
+  $("#think-also").textContent = r.live.also || "";
+  $("#think-meta").textContent = (busy ? `Started ${r.live.since}. ` : "") + `Updated ${r.time.slice(11, 19)} · refreshes every 5 seconds.`;
+  $("#think-tab-dot").classList.toggle("on", busy);
+  $("#think-desks").replaceChildren(...r.desks.map(deskThinking));
 }
 document.querySelectorAll(".tab").forEach(b => b.onclick = () => setTab(b.dataset.tab));
 document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => setTab(b.dataset.go));

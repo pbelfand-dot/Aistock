@@ -189,6 +189,19 @@ def reviewer(cfg: dict, store, desk: str, mode: str, today: str) -> list:
 
 
 # ---------------------------------------------------------------- the notes, for the report
+def team_parts(team: dict) -> dict:
+    """Each agent's note on one decision, as one line of plain text: {scout, analyst, trader, risk}."""
+    f = team["scout"]
+    facts = (f"top scores {', '.join(f'{t} {v:.2f}' for t, v in f['top']) or 'none'}; holding "
+             f"{', '.join(f['holding']) or 'nothing'} ({f['slots']} slots), cash ${f['cash']:,.2f}; "
+             f"danger news: {', '.join(f['danger']) or 'none'}; option gaps: "
+             f"{', '.join(f'{t} {d}' for t, d in f['options_gaps'].items()) or 'none'}; rule: {f['rule']}"
+             + (f"; in play: {', '.join(f'{t} {r}x' for t, r in f['in_play'].items())}" if f.get("in_play") else "")
+             + (f"; won't repeat: {', '.join(f['wont_repeat'])}" if f.get("wont_repeat") else "") + ".")
+    return {"scout": facts, "analyst": "; ".join(team["analyst"]) or "nothing stood out",
+            "trader": "; ".join(team["trader"]), "risk": "; ".join(team["risk"])}
+
+
 def notes_lines(cfg: dict, store, desk: str, mode: str, today: str, narrate: bool = False) -> list:
     """The report's 'team' section for one desk: each agent's note from the last decision, and the
     Reviewer's day. narrate: the local AI rewrites each note in plain English (facts only)."""
@@ -198,15 +211,7 @@ def notes_lines(cfg: dict, store, desk: str, mode: str, today: str, narrate: boo
         return [f"**The team:** {team['error']}.", "- Reviewer: " + " ".join(review), ""]
     if not team:
         return ["**The team:** no decision notes yet today.", "- Reviewer: " + " ".join(review), ""]
-    f = team["scout"]
-    facts = (f"top scores {', '.join(f'{t} {v:.2f}' for t, v in f['top']) or 'none'}; holding "
-             f"{', '.join(f['holding']) or 'nothing'} ({f['slots']} slots), cash ${f['cash']:,.2f}; "
-             f"danger news: {', '.join(f['danger']) or 'none'}; option gaps: "
-             f"{', '.join(f'{t} {d}' for t, d in f['options_gaps'].items()) or 'none'}; rule: {f['rule']}"
-             + (f"; in play: {', '.join(f'{t} {r}x' for t, r in f['in_play'].items())}" if f.get("in_play") else "")
-             + (f"; won't repeat: {', '.join(f['wont_repeat'])}" if f.get("wont_repeat") else "") + ".")
-    parts = {"scout": facts, "analyst": "; ".join(team["analyst"]) or "nothing stood out",
-             "trader": "; ".join(team["trader"]), "risk": "; ".join(team["risk"]), "reviewer": " ".join(review)}
+    parts = {**team_parts(team), "reviewer": " ".join(review)}
     if narrate:                                          # the reasoning roles only: two short questions per desk
         from .llm import ask_local_llm
         for role, text in ((r, parts[r]) for r in ("analyst", "reviewer")):

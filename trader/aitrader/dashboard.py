@@ -237,6 +237,78 @@ def _reports(cfg) -> list:
         return []
 
 
+JOB_NAMES = {"morning": "the morning check-in", "day": "a day-desk check", "swing": "the swing decision",
+             "swing-stops": "a stop-loss check", "study": "the after-close study", "scan": "the stock scan",
+             "report": "the after-market report", "options": "the options-gap watcher",
+             "inplay": "finding today's stocks in play", "tjr": "TJR's history test"}
+
+
+def thinking(cfg, store, now=None) -> dict:
+    """The live Thinking tab: what the autopilot is doing this moment, and for each desk its latest check
+    (the scores, the team's notes, what it did or why not), what it's watching, and today's earlier checks."""
+    from datetime import timedelta
+    from .agents import team_parts
+    from .market_hours import in_session
+    from .phases import mode_of
+    from .report import why_not_buying
+    from .strategies import all_strategies
+    demo = cfg["data"].get("source") == "demo"
+    if now is None and demo:                             # the demo's made-up days: show its last check
+        from .phases import mode_of as _mode
+        times = [(store.get(f"{_mode(current_phase(store, d), d)}_thinking") or {}).get("time", "")
+                 for d in active_desks(cfg)]
+        now = datetime.strptime(max(times), "%Y-%m-%d %H:%M") if any(times) else None
+    now = now or now_ny()
+    today = now.strftime("%Y-%m-%d")
+    beat = store.get("autopilot_heartbeat")
+    minutes = (now - datetime.fromisoformat(beat)).total_seconds() / 60 if beat else None
+    running = minutes is not None and minutes < 12
+    busy, step = store.get("autopilot_busy") or {}, store.get("autopilot_step") or {}
+    if demo:
+        live = {"busy": False, "text": f"Demo: what the bot was thinking at its last check on made-up prices "
+                                       f"({now:%Y-%m-%d %H:%M})."}
+    elif busy.get("job"):
+        text = JOB_NAMES.get(busy["job"], busy["job"])
+        text = text[:1].upper() + text[1:]
+        if step.get("at", "") >= busy.get("since", "~"):
+            text += f": {step['text']}"
+        live = {"busy": True, "text": text + "…", "since": busy["since"][11:19]}
+    elif running and in_session(now):
+        nxt = (now + timedelta(minutes=5 - now.minute % 5)).replace(second=0, microsecond=0)
+        live = {"busy": False, "text": f"Waiting for the next check at {nxt:%H:%M} (every 5 minutes while the "
+                                       f"market is open)."}
+    else:
+        live = {"busy": False, "text": _right_now(cfg, store, now)["headline"]}
+    scan = store.get("scan_status") or {}
+    if scan.get("day") == today and scan.get("started") and not scan.get("finished") and not scan.get("error"):
+        live["also"] = f"In the background: scanning all US stocks (started {scan['started'][11:16]})."
+
+    desks = []
+    for desk in active_desks(cfg):
+        phase = current_phase(store, desk)
+        mode = mode_of(phase, desk)
+        kind = mode.split("-")[0]
+        t = store.get(f"{mode}_thinking") or {}
+        fresh = t.get("time", "").startswith(today)
+        team = t.get("team") if fresh else None
+        description = next((s.description for s in all_strategies(cfg, desk) if s.name == t.get("strategy")), "")
+        watch = store.get(f"{mode}_watch") or {}
+        checks = store.get(f"{mode}_checks") or {}
+        desks.append({
+            "desk": desk, "mode": mode, "account": {"study": "in its head", "paper": "paper",
+                                                    "live": "REAL money"}[kind],
+            "halted": bool(store.get(f"halted:{desk}")), "today": fresh, "time": t.get("time"),
+            "strategy": t.get("strategy"), "description": description,
+            "buy_above": t.get("buy_above"), "sell_below": t.get("sell_below"),
+            "top": t.get("top") or [], "holding": t.get("holding"), "max_positions": t.get("max_positions"),
+            "cash": t.get("cash"), "orders": t.get("orders") or [], "why": why_not_buying(t) if t else "",
+            "team": team_parts(team) if team and not team.get("error") else None,
+            "team_error": (team or {}).get("error"),
+            "watch": watch if watch.get("time", "").startswith(today) else None,
+            "checks": list(reversed(checks.get("items", []))) if checks.get("date") == today else []})
+    return {"time": now.isoformat(timespec="seconds"), "running": running, "live": live, "desks": desks}
+
+
 def _right_now(cfg, store, now=None) -> dict:
     """One glance: is Kestrel testing right now, and what is each desk doing or waiting for?"""
     from datetime import time as dtime
@@ -249,9 +321,7 @@ def _right_now(cfg, store, now=None) -> dict:
     running = minutes is not None and minutes < 12
     trading_day = now.weekday() < 5 and now.date() not in market_holidays(now.year)
     busy = store.get("autopilot_busy") or {}
-    names = {"morning": "the morning check-in", "day": "a day-desk check", "swing": "the swing decision",
-             "swing-stops": "a stop-loss check", "study": "the after-close study", "scan": "the stock scan",
-             "report": "the after-market report", "options": "the options-gap watcher"}
+    names = JOB_NAMES
     if not running and busy.get("job"):
         since = datetime.fromisoformat(busy["since"])
         took = (now - since).total_seconds() / 60

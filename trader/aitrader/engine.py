@@ -23,7 +23,7 @@ import pandas as pd
 
 from .brokers import Ledger, Order, PaperBroker
 from .config import desk_capital, is_cash_account
-from .market_hours import minutes_to_close
+from .market_hours import minutes_to_close, now_ny
 from .performance import summarize
 from .risk import RiskManager
 from .strategies import current_scores
@@ -211,6 +211,23 @@ def run_backtest(strategy, bars: dict, market: pd.DataFrame, cfg: dict, desk: st
     return result
 
 
+def say_step(store, mode: str, text: str):
+    """What the autopilot is doing this very moment (a few words), for the live Thinking tab."""
+    store.set("autopilot_step", {"mode": mode, "text": text, "at": now_ny().isoformat(timespec="seconds")})
+
+
+def remember_watch(store, mode, now, risk, prices, broker):
+    """What it owns and how far each one is from its stop-loss, at every check (stop-loss checks too)."""
+    holdings = []
+    for t, pos in broker.positions().items():
+        price = None if t not in prices or pd.isna(prices[t]) else float(prices[t])
+        stop = pos.avg_cost * (1 - (pos.stop_pct or risk.stop_loss_pct) / 100)
+        holdings.append({"ticker": t, "qty": pos.qty, "avg_cost": round(pos.avg_cost, 2),
+                         "price": round(price, 2) if price else None, "stop": round(stop, 2),
+                         "above_stop_pct": round((price / stop - 1) * 100, 1) if price and stop else None})
+    store.set(f"{mode}_watch", {"time": now.strftime("%Y-%m-%d %H:%M"), "holdings": holdings})
+
+
 def remember_thinking(store, mode, now, strategy, risk, scores, prices, broker, orders, why_no_buys, team=None):
     """What it was thinking at this decision, for the after-market report (report.py): its top picks,
     what it did, and why it didn't buy more. The latest one is kept, plus each decision that traded."""
@@ -229,8 +246,13 @@ def remember_thinking(store, mode, now, strategy, risk, scores, prices, broker, 
                     "reason": o.reason} for o in orders],
     }
     store.set(f"{mode}_thinking", thinking)
+    day = now.strftime("%Y-%m-%d")
+    saved = store.get(f"{mode}_checks") or {}                # today's checks, one line each (the live feed)
+    checks = saved.get("items", []) if saved.get("date") == day else []
+    checks.append({"time": thinking["time"][-5:], "top": thinking["top"][:3], "orders": thinking["orders"],
+                   "why": why_no_buys, "holding": thinking["holding"]})
+    store.set(f"{mode}_checks", {"date": day, "items": checks[-120:]})
     if orders:
-        day = now.strftime("%Y-%m-%d")
         saved = store.get(f"{mode}_decisions") or {}
         items = saved.get("items", []) if saved.get("date") == day else []
         store.set(f"{mode}_decisions", {"date": day, "items": (items + [thinking])[-30:]})
@@ -262,6 +284,8 @@ def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd
     yesterday_equity = float(before_today.iloc[-1]) if len(before_today) else None
 
     scores = pd.Series(dtype=float)
+    say_step(store, mode, f"checking the stop-losses on {len(broker.positions())} holdings" if stops_only
+             else f"scoring {len(bars)} stocks with {strategy.name}")
     if not stops_only:
         scores = current_scores(strategy, bars, market)
         for ticker in broker.blocked:               # e.g. stocks you own yourself
@@ -281,6 +305,8 @@ def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd
     if cfg is not None and not stops_only:
         from .agents import review_orders, settings as team_settings
         if team_settings(cfg)["enabled"]:
+            say_step(store, mode, "the team (Scout, Analyst, Trader, Risk) is going over "
+                     + (f"{len(orders)} order{'s' if len(orders) != 1 else ''}" if orders else "the scores"))
             from .options_flow import gaps_today
             desk = mode.split("-", 1)[-1]
             try:
@@ -292,7 +318,11 @@ def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd
                                                    if o.side == "BUY" and o.ticker in team["tags"]})
             except Exception as e:                  # the notes must never block a trade (above all, a stop-loss)
                 team = {"error": f"the team couldn't write its notes ({e!r}); the orders went ahead unchanged"}
+    if orders:
+        say_step(store, mode, "sending " + ", ".join(f"{o.side} {o.ticker}" for o in orders[:4])
+                 + (" and more" if len(orders) > 4 else ""))
     fills = execute(orders, broker, today)       # each fill is saved the moment it happens (broker.on_fill)
+    remember_watch(store, mode, now, risk, prices, broker)
     if not stops_only:
         why = no_buys or ("" if allowed else why_not)
         if not why and strategy.style == "day" and minutes_to_close(now) <= desk_cfg["last_entry_minutes_before_close"]:
