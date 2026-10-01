@@ -20,7 +20,7 @@ let bridgeActions: Set<String> = ["snapshot", "pause", "kill", "demo-build", "se
                                    "save-live-keys", "save-schwab-keys", "schwab-login-start", "schwab-login-finish",
                                    "check-schwab", "connect-claude", "start-stage1", "save-phone", "phone-test",
                                    "phone-screen-send", "save-webull-keys", "check-webull", "lid-mode-on",
-                                   "lid-mode-off", "start-stage2", "tjr-test"]
+                                   "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test"]
 
 /// Python and the bot's libraries are installed, and match this version of the app.
 func botIsReady() -> Bool {

@@ -616,9 +616,11 @@ def start_phone(cfg, store):
     if is_on((cfg.get("phone") or {}).get("screen", False)):  # the Kestrel screen over Tailscale
         from aitrader import phone_screen
         threading.Thread(target=phone_screen.serve_forever, args=(cfg,), daemon=True, name="phone-screen").start()
+    from aitrader import pushover
+    if phone.token(cfg) or pushover.has_keys(cfg):
+        store.on_log = phone.forwarder(cfg)             # alerts: Telegram and/or Pushover
     if not phone.token(cfg):
-        return
-    store.on_log = phone.forwarder(cfg)
+        return                                          # commands need Telegram (Pushover only delivers)
     path = data_path(cfg, "aitrader.sqlite")
     threading.Thread(target=phone.listen, args=(cfg, lambda: Store(path)), daemon=True, name="phone").start()
 
