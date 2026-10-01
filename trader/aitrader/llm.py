@@ -118,11 +118,15 @@ def pull(cfg: dict, model: str) -> bool:
                     raise RuntimeError(msg["error"])
                 if msg.get("status") == "success":
                     _save_state(cfg, model, running=False, done=True, percent=100, status="success")
+                    announce(cfg, f"[local AI] ready: {model} is downloaded, and the plain-English write-ups "
+                                  "use it from now on")
                     return True
                 if time.time() - last > 2:
                     total, done = msg.get("total"), msg.get("completed")
                     _save_state(cfg, model, running=True, status=msg.get("status", ""),
-                                percent=round(100 * done / total) if total and done else None)
+                                percent=round(100 * done / total) if total and done else None,
+                                gb_done=round(done / 1e9, 1) if total and done else None,
+                                gb_total=round(total / 1e9, 1) if total else None)
                     last = time.time()
         raise RuntimeError("the download stopped before it finished")
     except Exception as e:
@@ -133,6 +137,24 @@ def pull(cfg: dict, model: str) -> bool:
             why = "Ollama isn't running"
         _save_state(cfg, model, running=False, error=why)
         return False
+
+
+def announce(cfg: dict, text: str):
+    """The download finished: a line in the Activity tab, and a message to your phone if it's set up.
+    (This runs in the download's own process, so it sends straight away instead of queueing.)"""
+    from . import phone, pushover
+    from .config import data_path
+    from .storage import Store
+    try:
+        store = Store(data_path(cfg, "aitrader.sqlite"))
+        store.log(text, echo=False)
+        store.db.close()
+        if phone.connected(cfg):
+            phone.send(cfg, text)
+        if pushover.has_keys(cfg):
+            pushover.send(cfg, text, title="Kestrel: local AI ready", priority=0)
+    except Exception:
+        pass                                            # a notice must never fail the download
 
 
 def pick_model(cfg: dict, names: list):
@@ -197,7 +219,8 @@ def status(cfg: dict) -> dict:
             "big_model": llm.get("model"), "small_model": small, "memory_gb": round(memory) if memory else None,
             "min_memory_gb": llm.get("min_memory_gb", 16), "ready": names is not None and has(names, want),
             "using": None if names is None else want if has(names, want) else small if has(names, small) else None,
-            "downloading": bool(mine.get("running")), "percent": mine.get("percent"), "error": mine.get("error")}
+            "downloading": bool(mine.get("running")), "percent": mine.get("percent"), "error": mine.get("error"),
+            "gb_done": mine.get("gb_done"), "gb_total": mine.get("gb_total")}
 
 
 if __name__ == "__main__":                             # python -m aitrader.llm pull <model>  (started by _spawn)
