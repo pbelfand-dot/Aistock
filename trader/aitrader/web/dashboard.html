@@ -420,7 +420,20 @@
     <p class="ink2" id="gfv-text"></p>
   </section>
   <section class="setup-step">
-    <h4><span class="num">5</span> Your phone (Telegram) <span class="tag" id="phone-state"></span></h4>
+    <h4><span class="num">5</span> Your phone: alerts <span class="tag" id="push-state"></span></h4>
+    <p class="ink2"><strong>Pushover</strong> (push notifications): every buy and sell, the after-market summary,
+       and anything urgent, loud enough to wake you for a real-money emergency. <strong>1.</strong> Install
+       <a href="https://apps.apple.com/app/id506088175">Pushover</a> on your iPhone (free for 30 days, then $4.99 once)
+       and sign up at <a href="https://pushover.net/signup">pushover.net</a>. <strong>2.</strong> Copy
+       <em>Your User Key</em> from your <a href="https://pushover.net/">Pushover dashboard</a>. <strong>3.</strong>
+       <a href="https://pushover.net/apps/build">Create an application</a> named Kestrel and copy its
+       <em>API Token</em>. <strong>4.</strong> Paste both here and press Save: a test alert comes right away.</p>
+    <div class="setup-grid">
+      <label>User Key<input id="push-user" type="password" autocomplete="off" spellcheck="false" placeholder="30 letters and digits"></label>
+      <label>API Token<input id="push-token" type="password" autocomplete="off" spellcheck="false" placeholder="30 letters and digits"></label>
+    </div>
+    <div class="setup-row"><button class="primary" id="save-push">Save</button><button id="push-test">Send a test alert</button></div>
+    <h4 style="margin-top:14px">Telegram (alerts and commands) <span class="tag" id="phone-state"></span></h4>
     <p class="ink2">Get a message for every trade, the after-close results and the after-market report, and
        control Kestrel from your phone (/status, /trades, /report, /pause). <strong>1.</strong> In Telegram, open
        <a href="https://t.me/BotFather">@BotFather</a>, send <code>/newbot</code> and pick any name; it gives you a
@@ -1132,6 +1145,9 @@ async function refreshSetup() {
       $("#setup-later").dataset.filled = "1";
     }
     const ph = s.phone || {};
+    const po = ph.pushover || {};
+    $("#push-state").textContent = po.keys ? `Pushover on · ${po.sent} of ${(po.limit || 10000).toLocaleString()} this month` : "Pushover not set up";
+    $("#push-test").disabled = !po.keys;
     $("#phone-state").textContent = ph.paired ? "paired" : ph.token ? "waiting for your phone" : "not set up";
     $("#phone-pair").hidden = !ph.code;
     if (ph.code) $("#phone-pair").replaceChildren("Now send your bot this message: ", el("code", { text: `/start ${ph.code}` }));
@@ -1226,6 +1242,13 @@ $("#save-phone").onclick = (e) => {
   setupAction(e.target, "save-phone", { token }, async (r) => { $("#phone-token").value = ""; notify(r.message); });
 };
 $("#phone-test").onclick = (e) => setupAction(e.target, "phone-test", undefined, async (r) => notify(r.text, !r.ok));
+$("#save-push").onclick = (e) => {
+  const user = $("#push-user").value.trim(), token = $("#push-token").value.trim();
+  if (!user || !token) { notify("Paste both the User Key and the API Token from pushover.net first.", true); return; }
+  setupAction(e.target, "save-pushover", { user, token }, async (r) => {
+    $("#push-user").value = ""; $("#push-token").value = ""; notify(r.message); });
+};
+$("#push-test").onclick = (e) => setupAction(e.target, "pushover-test", undefined, async (r) => notify(r.text, !r.ok));
 $("#screen-toggle").onclick = (e) => setupAction(e.target, "save-settings", { phone_screen: e.target.dataset.on ? "off" : "on" },
   async () => notify(e.target.dataset.on ? "Phone screen off." : "Phone screen on. It starts within a minute while Tailscale is running."));
 $("#screen-send").onclick = (e) => setupAction(e.target, "phone-screen-send", undefined, async (r) => notify(r.text, !r.ok));

@@ -38,6 +38,13 @@ code changes.
   - changes to its stock list, and what's next.
   It's also saved in `~/AITrader/data/reports/`, and you can print it with `python run.py report`.
 - **Your phone** (Setup steps 5 and 6):
+  - **Pushover push alerts.** Install [Pushover](https://apps.apple.com/app/id506088175) (free for 30
+    days, then a one-time $4.99 per platform; sending is free up to 10,000 messages a month). Paste
+    your User Key and the API Token of an application named Kestrel
+    ([pushover.net/apps/build](https://pushover.net/apps/build)) into Setup. Every buy and sell, the
+    after-market summary and anything urgent arrive as push notifications. A real-money kill switch
+    or emergency stop repeats every minute until you open it. Near the monthly limit, only urgent
+    alerts go out. Pushover only delivers alerts; commands stay on Telegram.
   - **Telegram alerts and commands.** Your own private bot messages you every buy and sell, the
     after-close results and the after-market report. Send it `/status`, `/trades`, `/report`,
     `/pause`, `/resume`, or `/kill SELL EVERYTHING`. It only answers the phone you paired with the

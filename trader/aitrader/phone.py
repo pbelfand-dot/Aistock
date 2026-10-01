@@ -1,5 +1,5 @@
 """
-phone.py: Kestrel on your phone, through a private Telegram bot.
+phone.py: Kestrel on your phone, through a private Telegram bot (and/or Pushover: pushover.py).
 
   Alerts: every buy and sell (what it spent, what it got back, WIN or LOSS), the after-close summary,
           the after-market report, and anything urgent (kill switch, emergency stop, pauses).
@@ -23,7 +23,7 @@ from .config import ROOT, data_path
 TOKEN_PATTERN = r"\d{5,15}:[A-Za-z0-9_-]{30,60}"
 MAX_TEXT = 3900                                        # Telegram's limit is 4096 characters per message
 ALERT_MARKS = ("] BUY ", "] SELL ", "!!!", "KILL SWITCH", "EMERGENCY", "PAUSED by", "Resumed",
-               "PHASE CHANGE", "LEARNED:", "since the start")
+               "PHASE CHANGE", "LEARNED:", "since the start", "WARNING:")
 HELP = ("Kestrel on your phone:\n"
         "/status  how each account is doing\n"
         "/trades  the last 10 finished trades\n"
@@ -89,18 +89,28 @@ def save_owner(cfg, chat_id: str):
 # ---------------------------------------------------------------- alerts
 def forwarder(cfg):
     """For Store.on_log: sends the journal lines that matter to your phone (trades, daily results,
-    anything urgent), and the whole after-market report when it's written."""
+    anything urgent), and the after-market report when it's written: to Telegram (the whole report)
+    and/or Pushover (its summary; Pushover's limit is 1,024 characters), whichever is set up."""
+    from . import pushover
+
     def forward(message: str):
-        if not connected(cfg):
+        telegram, push = connected(cfg), pushover.has_keys(cfg)
+        if not (telegram or push):
             return
         if message.startswith("After-market report for "):
             day = message.split()[3]
             path = data_path(cfg, f"reports/after-market-{day}.md")
-            if path.exists():
+            if telegram and path.exists():
                 send(cfg, path.read_text())
+            summary = pushover.report_alert(cfg, day) if push else ""
+            if summary:
+                pushover.send_later(cfg, summary, title=f"Kestrel: after-market report {day}", priority=0)
             return
         if any(mark in message for mark in ALERT_MARKS):
-            send(cfg, message)
+            if telegram:
+                send(cfg, message)
+            if push:
+                pushover.send_later(cfg, message)
     return forward
 
 

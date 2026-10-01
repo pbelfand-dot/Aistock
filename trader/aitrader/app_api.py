@@ -28,6 +28,8 @@ directly, like any Mac app runs a helper program.
   tjr-test                                   runs TJR's history test now (a minute or two)
   save-phone < {"token": ..}                 your phone: a private Telegram bot for alerts and commands (phone.py)
   phone-test                                 sends your phone a test message
+  save-pushover < {"user", "token"}          push alerts through Pushover (pushover.py): checks the keys, sends a test
+  pushover-test                              sends a test push notification
   phone-screen-send                          sends your phone the link to the Kestrel screen (Tailscale)
   lid-mode-on / lid-mode-off                 keep trading with the lid closed while plugged in (asks for the
                                              Mac password once; see lid_mode.py)
@@ -79,7 +81,7 @@ def real_money_status(cfg, store) -> dict:
 # ---------------------------------------------------------------- the Setup screen
 PAPER_KEYS = ("ALPACA_PAPER_API_KEY", "ALPACA_PAPER_SECRET_KEY")
 STDIN_ACTIONS = {"save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
-                 "connect-claude", "save-phone", "save-webull-keys",
+                 "connect-claude", "save-phone", "save-webull-keys", "save-pushover",
                  "check-webull"}                                    # these read their details from stdin (never argv)
 
 NEXT_STEP = {
@@ -215,6 +217,42 @@ def save_phone(cfg, payload: dict) -> dict:
     restart_autopilot()
     return {"message": f"Saved on this Mac only. Now open @{bot.get('username')} in Telegram and send: /start {code}",
             "bot": bot.get("username"), "code": code}
+
+
+def save_pushover(cfg, payload: dict) -> dict:
+    """Saves the Pushover User Key and API Token (after Pushover accepts them) and sends a test alert."""
+    from . import pushover
+    user, token = str(payload.get("user", "")).strip(), str(payload.get("token", "")).strip()
+    for name, value in (("User Key", user), ("API Token", token)):
+        if not re.fullmatch(pushover.KEY_PATTERN, value):
+            raise ValueError(f"That {name} doesn't look right: it's 30 letters and digits. Copy it again from "
+                             "pushover.net (User Key: your dashboard; API Token: your Kestrel application).")
+    if user == token:
+        raise ValueError("The User Key and the API Token are the same: the API Token comes from the application "
+                         "you create at pushover.net/apps/build.")
+    cfg["secrets"].update(pushover_user=user, pushover_token=token)
+    try:
+        devices = pushover.validate(cfg).get("devices") or []
+    except Exception as e:
+        cfg["secrets"].update(pushover_user="", pushover_token="")
+        raise ValueError(f"Pushover didn't accept them ({e}). Check that the User Key is yours and the API "
+                         "Token is from the application you made.") from None
+    write_env(env_file(), {"PUSHOVER_USER_KEY": user, "PUSHOVER_APP_TOKEN": token})
+    sent = pushover.send(cfg, "Kestrel is connected: trades, results and anything urgent will show up here.",
+                         priority=0)
+    restart_autopilot()
+    where = f" on {', '.join(devices)}" if devices else ""
+    return {"message": "Saved on this Mac only. " + (f"A test alert is on its way{where}." if sent else
+            "Pushover accepted the keys, but the test alert didn't go out; press Send a test."),
+            "devices": devices}
+
+
+def pushover_test(cfg) -> dict:
+    from . import pushover
+    if not pushover.has_keys(cfg):
+        return {"ok": False, "text": "Paste your Pushover User Key and API Token first."}
+    ok = pushover.send(cfg, "Kestrel test alert: Pushover works.", priority=0)
+    return {"ok": ok, "text": "Sent. Check your phone." if ok else "Couldn't reach Pushover. Is the Mac online?"}
 
 
 def phone_test(cfg) -> dict:
@@ -433,7 +471,10 @@ def phone_status(cfg) -> dict:
     has_token = bool(phone.token(cfg))
     screen_on = is_on((cfg.get("phone") or {}).get("screen", False))
     ip = phone_screen.tailscale_ip()
+    from . import pushover
     return {"token": has_token, "paired": phone.connected(cfg),
+            "pushover": {"keys": pushover.has_keys(cfg), "sent": pushover.sent_this_month(cfg),
+                         "limit": pushover.MONTHLY_LIMIT},
             "code": phone.pairing_code(cfg) if has_token and not phone.connected(cfg) else None,
             "screen": {"on": screen_on, "tailscale": bool(ip),
                        "link": phone_screen.link(cfg) if screen_on and ip else None}}
@@ -494,6 +535,10 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         return save_phone(cfg, payload or {})
     if action == "phone-test":
         return phone_test(cfg)
+    if action == "save-pushover":
+        return save_pushover(cfg, payload or {})
+    if action == "pushover-test":
+        return pushover_test(cfg)
     if action == "phone-screen-send":
         return phone_screen_send(cfg)
     if action in ("lid-mode-on", "lid-mode-off"):
@@ -576,7 +621,7 @@ def main(argv=None) -> int:
         "autopilot-on", "autopilot-off", "resume", "save-settings", "save-live-keys", "save-schwab-keys",
         "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude", "start-stage1",
         "save-phone", "phone-test", "phone-screen-send", "save-webull-keys", "check-webull", "lid-mode-on",
-        "lid-mode-off", "start-stage2", "tjr-test"])
+        "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test"])
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)

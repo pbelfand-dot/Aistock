@@ -37,6 +37,8 @@ def load_config(path=None) -> dict:
         "webull_env": os.environ.get("WEBULL_ENVIRONMENT", ""),          # paper (Webull's test server) or live
         "telegram_token": os.environ.get("TELEGRAM_BOT_TOKEN", ""),      # phone alerts (phone.py)
         "telegram_chat": os.environ.get("TELEGRAM_CHAT_ID", ""),
+        "pushover_user": os.environ.get("PUSHOVER_USER_KEY", ""),        # push alerts (pushover.py)
+        "pushover_token": os.environ.get("PUSHOVER_APP_TOKEN", ""),
     }
     cfg["live_trading_enabled"] = os.environ.get("LIVE_TRADING_ENABLED", "").strip().lower() == "true"
     cfg.setdefault("data_dir", str(DATA_DIR))
