@@ -8,6 +8,7 @@ Questions an owner asks about Kestrel, and accurate answers written from the app
 
 | File | Use it for |
 |---|---|
+| `kestrel_everything.jsonl` | **Everything in one JSONL file:** all the questions and answers, plus every section of the docs and every group of settings as a conversation (same chat format, ready to upload) |
 | `kestrel_knowledge.md` | The whole reference in one file: upload it as "knowledge" (no training needed) |
 | `instructions.md` | The assistant's instructions (its system prompt) |
 | `kestrel_chat_train.jsonl` / `kestrel_chat_val.jsonl` | Fine-tuning: example conversations, 90% to train and 10% to check |
@@ -24,6 +25,8 @@ Create) or a Claude Project. Paste `instructions.md` into its instructions, and 
 as the validation file to a fine-tuning service that takes chat-format JSONL (one `{"messages": [...]}`
 conversation per line; OpenAI's needs at least 10). Every example uses the same system message, as recommended.
 Fine-tuning teaches the *style* and common answers; for facts that change, still give it the knowledge file.
+To train on everything at once, upload `kestrel_everything.jsonl` instead (it has no separate validation
+file; its doc answers are long, so a model trained on it may answer at more length).
 
 **3. A local model on your Mac.** Local tools (for example Ollama or LM Studio) can use the instructions as
 the system prompt and the knowledge file as context; fine-tuning a local model needs a training tool that

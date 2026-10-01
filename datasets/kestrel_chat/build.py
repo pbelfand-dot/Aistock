@@ -13,6 +13,8 @@ It writes, next to this file:
   kestrel_knowledge.md       Kestrel's documentation in one file, to upload as "knowledge" to a ChatGPT GPT,
                              a Claude Project, or a local AI (no training needed)
   instructions.md            the assistant's instructions (the system prompt every example uses)
+  kestrel_everything.jsonl   EVERYTHING in one JSONL file, same chat format: every question and answer,
+                             plus every section of the docs and every group of settings as a conversation
 
 Every answer must come from the app's own docs and code (each draft names its source). The build refuses
 anything that looks like a key, a token or an email address, and duplicate questions.
@@ -87,12 +89,105 @@ def knowledge() -> str:
     parts = ["# Kestrel: everything the assistant should know", "",
              "Built from the app's own documentation by datasets/kestrel_chat/build.py. When the app changes, "
              "build it again.", ""]
-    files = [REPO / "README.md"] + sorted((REPO / "trader/aitrader/knowledge").glob("*.md")) + [REPO / "trader/README.md"]
-    for f in files:
+    for f in DOCS():
         parts += [f"\n---\n\n<!-- from {f.relative_to(REPO)} -->\n", f.read_text().strip(), ""]
     parts += ["\n---\n\n<!-- from trader/config.yaml (the settings, with their explanations) -->\n",
               "```yaml", (REPO / "trader/config.yaml").read_text().strip(), "```", ""]
     return "\n".join(parts)
+
+
+DOCS = lambda: [REPO / "README.md"] + sorted((REPO / "trader/aitrader/knowledge").glob("*.md")) + [REPO / "trader/README.md"]
+MAX_PART = 3500          # characters per doc example (~900 tokens), so small local models can train on them too
+
+
+def _plain(heading: str) -> str:
+    """A heading without markdown links, emoji or formatting."""
+    heading = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", heading)
+    return re.sub(r"^[^\w(]+", "", heading.replace("**", "").replace("`", "")).strip()
+
+
+def _split_block(block: str) -> list:
+    """A block too long for one example: a table is cut between rows (each piece keeps the header row);
+    anything else is cut before a line that starts a new item (not an indented continuation)."""
+    if len(block) <= MAX_PART or block.lstrip().startswith("```"):
+        return [block]
+    lines = block.splitlines()
+    table = all(x.lstrip().startswith("|") for x in lines)
+    head, rows = (lines[:2], lines[2:]) if table else ([], lines)
+    out, cur = [], []
+    for line in rows:
+        size = sum(len(x) + 1 for x in head + cur)
+        if cur and size + len(line) > MAX_PART and (table or not line.startswith((" ", "\t"))):
+            out.append("\n".join(head + cur)); cur = []
+        cur.append(line)
+    return out + ["\n".join(head + cur)]
+
+
+def _parts(text: str) -> list:
+    """Split a long section at blank lines (never inside a code block) into pieces of at most ~MAX_PART."""
+    blocks, cur, fence = [], [], False
+    for line in text.splitlines():
+        if line.lstrip().startswith("```"):
+            fence = not fence
+        if not line.strip() and not fence and cur:
+            blocks.append("\n".join(cur)); cur = []
+        elif line.strip() or cur:
+            cur.append(line)
+    if cur:
+        blocks.append("\n".join(cur))
+    parts, piece = [], ""
+    for b in [small for b in blocks for small in _split_block(b)]:
+        if piece and len(piece) + len(b) + 2 > MAX_PART:
+            parts.append(piece); piece = b
+        else:
+            piece = f"{piece}\n\n{b}" if piece else b
+    return parts + ([piece] if piece else [])
+
+
+def doc_sections() -> list:
+    """Every doc split at its headings (#, ##, ###; never inside a code block), and config.yaml split into
+    its groups of settings, as question-and-answer items like the drafts."""
+    items = []
+    for f in DOCS():
+        name, title, heading, body, fence, sections = str(f.relative_to(REPO)), None, None, [], False, []
+        for line in f.read_text().splitlines():
+            if line.lstrip().startswith("```"):
+                fence = not fence
+            m = None if fence else re.match(r"^(#{1,3}) (.+)", line)
+            if m:
+                sections.append((heading, body))
+                heading, body = _plain(m.group(2)), []
+                title = title or heading
+            else:
+                body.append(line)
+        sections.append((heading, body))
+        for heading, lines in sections:
+            text = "\n".join(lines).strip()
+            if len(text) < 40:
+                continue
+            where = "" if heading == title else f' (in "{title}")'
+            parts = _parts(text)
+            for n, part in enumerate(parts, 1):
+                more = f", part {n} of {len(parts)}" if len(parts) > 1 else ""
+                q = (f'What do Kestrel\'s docs say about "{heading or title}"{where}{more}?' if where or more else
+                     f'What does Kestrel\'s "{title}" note say?')
+                items.append({"q": q, "a": part, "source": name, "topic": "docs"})
+    groups, cur = [], []
+    for line in (REPO / "trader/config.yaml").read_text().splitlines():
+        if re.match(r"^[a-z_]+:", line) and any(re.match(r"^[a-z_]+:", x) for x in cur):
+            keep = []                                  # comment lines right above a key belong to that key
+            while cur and (cur[-1].startswith("#") or not cur[-1].strip()):
+                keep.insert(0, cur.pop())
+            groups.append(cur); cur = keep
+        cur.append(line)
+    groups.append(cur)
+    for g in groups:
+        key = next(re.match(r"^([a-z_]+):", x).group(1) for x in g if re.match(r"^[a-z_]+:", x))
+        text = "\n".join(g).strip()
+        items.append({"q": f'What are Kestrel\'s "{key}" settings (config.yaml), and what does each one do?',
+                      "a": f"These are the `{key}` settings in trader/config.yaml, with their explanations:\n\n"
+                           f"```yaml\n{text}\n```", "source": "trader/config.yaml", "topic": "settings"})
+    return items
 
 
 def build(out: Path = HERE, seed: int = 7) -> dict:
@@ -112,6 +207,10 @@ def build(out: Path = HERE, seed: int = 7) -> dict:
         w.writerow(["topic", "question", "answer", "source"])
         for x in items:
             w.writerow([x["topic"], x["q"], x["a"], x["source"]])
+    docs = check(doc_sections())
+    with open(out / "kestrel_everything.jsonl", "w") as f:
+        for x in items + docs:
+            f.write(json.dumps(example(x), ensure_ascii=False) + "\n")
     (out / "kestrel_knowledge.md").write_text(knowledge())
     (out / "instructions.md").write_text(
         "# Instructions for Kestrel's assistant\n\nPaste this as the instructions (system prompt) of your custom AI:\n\n"
@@ -119,7 +218,8 @@ def build(out: Path = HERE, seed: int = 7) -> dict:
     topics = {}
     for x in items:
         topics[x["topic"]] = topics.get(x["topic"], 0) + 1
-    return {"examples": len(items), "train": len(train), "validation": len(val), "topics": topics}
+    return {"examples": len(items), "train": len(train), "validation": len(val), "topics": topics,
+            "everything": len(items) + len(docs), "doc_sections": len(docs)}
 
 
 if __name__ == "__main__":
