@@ -167,5 +167,7 @@ def note(desks: dict) -> str:
             lines.append(f"- In a {value}: {c['trades']} trades, average {c['avg_return_pct']:+.2f}%.")
         for value in lessons["avoid"]:
             lines.append(f"- **Avoiding new buys in a {value}** (clearly losing there).")
+        from .mistakes import note_lines
+        lines += note_lines(lessons.get("mistakes") or [])
         lines.append("")
     return "\n".join(lines)

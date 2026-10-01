@@ -158,7 +158,7 @@ def test_the_report_shows_the_team_and_the_watcher(cfg, tmp_path, monkeypatch):
         FakeData.now = now
         run.trade_desk(cfg, store, data, "day", now)
     thinking = store.get("study-day_thinking")
-    assert set(thinking["team"]) == {"scout", "analyst", "trader", "risk"}
+    assert set(thinking["team"]) == {"scout", "analyst", "trader", "risk", "tags"}
     text = report.after_market(cfg, store, days[0].strftime("%Y-%m-%d"))
     assert "**The team (the last decision, then the day):**" in text
     for role in ("Scout", "Analyst", "Trader", "Risk", "Reviewer"):
