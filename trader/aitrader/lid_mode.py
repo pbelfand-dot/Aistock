@@ -26,7 +26,7 @@ from zoneinfo import ZoneInfo
 
 PMSET = "/usr/bin/pmset"
 RULE_PATH = "/etc/sudoers.d/kestrel-lid"
-MORNING_WAKE_NY = (8, 30)                              # before the 9:30 open (the morning job runs ~9:15)
+MORNING_WAKE_NY = (8, 30)                              # before the 9:30 open (the morning job runs at 9:25)
 CHECK_EVERY = 10                                       # seconds
 
 

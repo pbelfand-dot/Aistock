@@ -1,7 +1,8 @@
 // updater.swift: the app keeps itself up to date from its GitHub download page.
 //
-// The build machine publishes, next to AITrader-mac.zip, a small latest.json:
-//     {"version": "1.0.12", "zip": "AITrader-mac.zip", "sha256": "<fingerprint of the zip>"}
+// The build machine publishes, next to Kestrel-mac.zip (also posted as AITrader-mac.zip, its old name),
+// a small latest.json:
+//     {"version": "1.0.12", "zip": "Kestrel-mac.zip", "sha256": "<fingerprint of the zip>"}
 // The app reads it when it opens and once a day. If there's a newer version it downloads the zip,
 // checks the fingerprint, checks the new app (right version, valid signature), then swaps it in
 // and restarts. Your keys and data in ~/AITrader are never touched by this; the new app's

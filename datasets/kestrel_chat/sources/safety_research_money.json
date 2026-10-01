@@ -1,0 +1,382 @@
+[
+ {
+  "q": "what has to happen before kestrel can trade my real money?",
+  "a": "Four locks all have to be open, and each desk (swing and day) earns it separately. 1) The desk's paper results pass the promotion rules: at least 30 trading days of paper trading, it made money, it beat SPY over the same days, and it never dropped more than 10% from its best day. 2) Your ~/AITrader/.env file says LIVE_TRADING_ENABLED=true. 3) Prices are real-time, meaning Alpaca or Schwab data, not free Yahoo data. 4) You run the promote step and type REAL MONEY exactly. If any one is missing, no real order goes out.",
+  "source": "trader/README.md (Safety rules, #6); trader/run.py (cmd_promote, open_broker); trader/config.yaml (promotion); trader/aitrader/phases.py (check_promotion); trader/aitrader/knowledge/10-safety-rules.md"
+ },
+ {
+  "q": "how do i actually switch it to real money once paper looks good?",
+  "a": "From the full Setup menu (Kestrel → Setup Menu, or `python run.py promote` in Terminal), choose Promote a desk to REAL money. It only works for a desk that is paper trading and has no leftover real positions or orders. It prints every rule with PASS or FAIL; if one fails, it tells you to keep paper trading. If all pass, it still needs real-time prices and LIVE_TRADING_ENABLED=true in ~/AITrader/.env. Then it checks it can reach your real-money account, shows the desk's cap, warns that past results don't guarantee future results, and asks you to type REAL MONEY.",
+  "source": "trader/run.py (cmd_promote, prove_live_connection); trader/README.md (The journey, The menu)"
+ },
+ {
+  "q": "is there any way it could start using real money by accident?",
+  "a": "It's built so it can't. Real orders need all of these at once: a desk that passed the paper promotion rules, LIVE_TRADING_ENABLED=true in ~/AITrader/.env, real-time price data, and you typing REAL MONEY. The code refuses to send real orders when the .env switch isn't on. Saving Alpaca real-money keys turns nothing on, and the Setup screen refuses live keys in the paper-key boxes on purpose. Even once live, it never spends more than the real-money cap you set.",
+  "source": "trader/run.py (open_broker: 'LIVE_TRADING_ENABLED is not true ... refusing to send real orders'); trader/README.md (Setup steps 4 and 7); trader/aitrader/knowledge/10-safety-rules.md"
+ },
+ {
+  "q": "what are the exact promotion rules?",
+  "a": "They're in config.yaml under promotion, checked per desk, and all must pass: at least 30 trading days of paper trading; a total return above 0%; a worst drop from its best day of no more than 10%; and a return higher than SPY's over the same days. A minimum number of closed trades and a minimum profit factor are left blank, so they aren't checked, because momentum trades rarely and a 30-day stage may only close a few trades. Passing doesn't promote anything by itself: you still confirm by hand.",
+  "source": "trader/config.yaml (promotion); trader/aitrader/phases.py (check_promotion); trader/aitrader/knowledge/20-the-plan.md (Pass rule)"
+ },
+ {
+  "q": "what counts as passing paper trading? like what number do i need to hit",
+  "a": "There's no profit target beyond this: over at least 30 trading days of paper trading, the desk has to make money (anything above 0%), do better than simply holding SPY over the same days, and never fall more than 10% below its best day. There's no minimum number of trades. The SPY test is there for a simple reason: if the bot can't beat SPY, buying SPY is the better deal. Even after it passes, you still type REAL MONEY to confirm.",
+  "source": "trader/README.md ('Profitable' means your rule); trader/aitrader/knowledge/20-the-plan.md (Pass rule); trader/config.yaml (promotion)"
+ },
+ {
+  "q": "why do i have to type REAL MONEY, isn't a button enough?",
+  "a": "It's the last lock, and it's meant to be deliberate. Every step up in Kestrel needs numbers and a human yes; there are no shortcuts to live trading. Before it asks, it shows which desk will trade real money and that desk's cap, plus the warning: past results don't guarantee future results, only use money you can afford to lose. Anything other than exactly REAL MONEY means not promoted. Going live stays in the Terminal Setup menu, where you type a confirmation, not in the app window or on your phone.",
+  "source": "trader/run.py (cmd_promote); trader/aitrader/phases.py (module docstring: 'No shortcuts to LIVE'); trader/README.md (The app: 'Approving plans, going live and Schwab stay in the full Setup menu')"
+ },
+ {
+  "q": "can i use the free yahoo data for real money?",
+  "a": "No. Yahoo data is for study and paper only. Real money needs real-time prices: Alpaca data (data.source set to auto or alpaca) or Schwab's real-time data. If the data source isn't Alpaca or Schwab, the promote step stops with \"Real money needs real-time prices\", and the real-money broker connection refuses to open too. With \"auto\", Kestrel uses Alpaca data whenever your Alpaca keys are saved, and Yahoo only when they aren't.",
+  "source": "trader/config.yaml (data.source comments); trader/run.py (open_broker, cmd_promote); trader/aitrader/config.py (data_source)"
+ },
+ {
+  "q": "i put my alpaca live keys into setup. is it trading real money now?",
+  "a": "No. Saving Alpaca real-money keys turns nothing on. Real money still needs a desk whose paper results passed the promotion rules, LIVE_TRADING_ENABLED=true in ~/AITrader/.env, real-time prices, and you typing REAL MONEY in the promote step. Until then each desk stays in study or paper. You can see each desk's step on the Summary tab (Study → Plan → Paper → Live) or with `python run.py status`.",
+  "source": "trader/README.md (Setup step 7: 'saving them turns nothing on'; The app: Summary; The menu)"
+ },
+ {
+  "q": "skip the paper trading, i want to go straight to real money",
+  "a": "I can't help with that, and Kestrel won't do it: there's no shortcut to live. Real money only opens after a desk has paper traded for at least 30 trading days, made money, beaten SPY over the same days and stayed within a 10% drop, plus LIVE_TRADING_ENABLED=true and your typed REAL MONEY. Paper is where a broken method gets caught cheaply: the bot's own old swing rules made only 0.7-1.6% a year in the 16-year test. If you want to start sooner, Setup → Start Stage 1 paper trading begins the momentum method on paper right away.",
+  "source": "trader/aitrader/phases.py (module docstring); trader/config.yaml (promotion); trader/aitrader/knowledge/30-research-findings.md; trader/README.md (Stage 1 shortcut)"
+ },
+ {
+  "q": "can you just flip it to live? i really don't want to wait 30 days",
+  "a": "No, and I won't help get around it. The 30 trading days are your own pass rule, and they're a minimum, not a formality. Even then, the research says one 30-day stretch can catch a broken method but can't prove a good one, so skipping it would mean real money with no paper evidence at all. What helps: start Stage 1 paper trading today if it isn't running, keep the autopilot on, and check progress anytime with `python run.py status`.",
+  "source": "trader/aitrader/knowledge/20-the-plan.md (Pass rule and caveat); trader/aitrader/phases.py; trader/README.md (The menu)"
+ },
+ {
+  "q": "is there a flag or setting that skips the 30 days? i saw --force somewhere",
+  "a": "The --force flag belongs to the plan command and only skips the study month's wait when writing trading plans. It's marked TESTING ONLY, and it doesn't touch paper trading or real money. Promotion to live only happens from paper, and it counts the desk's actual paper trading days against the promotion rules. I'm not going to help work around that. If the goal is to start sooner, Start Stage 1 already skips the study month for the swing desk and paper trades momentum right away.",
+  "source": "trader/run.py (argparse: plan --force 'skip the 30-day wait (TESTING ONLY)'; cmd_promote; start_stage1)"
+ },
+ {
+  "q": "does kestrel auto-update while it's trading real money?",
+  "a": "No, it asks first. With paper trading only, it updates by itself. If real money is involved, meaning LIVE_TRADING_ENABLED=true, a desk trading real money, or real shares or orders still open, it asks you before installing, so new code never takes over real money unannounced. If it can't confirm that no real money is involved, it treats that as \"ask first\" too. Turning off Update Automatically in the Kestrel menu makes it always ask. Your keys and data stay either way.",
+  "source": "trader/README.md (Updating: automatic); trader/aitrader/app_api.py (real_money_status); mac/app/updater.swift (realMoneyReasons: 'Anything unclear counts as ask first')"
+ },
+ {
+  "q": "will an update mess with my live trades?",
+  "a": "It shouldn't surprise you. When a newer version exists, the app checks the download's fingerprint and signature before swapping itself in. If real money is involved (switched on in .env, a desk live, or real shares owned), it asks you first instead of updating on its own. Your keys in ~/AITrader/.env and your data stay, and a running background autopilot restarts on the new version. Resting stop orders sit at the broker, so they keep protecting positions during the restart.",
+  "source": "trader/README.md (Updating: automatic; Safety rules #4); trader/aitrader/brokers/live.py (resting stop-loss)"
+ },
+ {
+  "q": "how do i stop everything right now?",
+  "a": "Use the emergency stop. In the app, press Emergency stop and type SELL EVERYTHING. From Telegram, send /kill SELL EVERYTHING (exactly that phrase). In Terminal, run `python run.py kill`. It cancels the bot's own orders, sells everything the bot owns with market orders, and halts both desks. It never sells your own stocks. If a sale doesn't go through, it keeps trying every 5 minutes, and you can also sell at the broker yourself.",
+  "source": "trader/README.md (The app: Emergency stop; The menu: kill); trader/aitrader/phone.py (/kill); trader/run.py (cmd_kill, emergency_stop, sell_everything)"
+ },
+ {
+  "q": "what's the difference between pause and the emergency stop?",
+  "a": "Pause means no new trades. Nothing is sold, stop-losses keep protecting what it owns, and the day desk still sells before the close as usual. Turn it back on with Setup → Resume trading. The emergency stop goes further: you type SELL EVERYTHING, it cancels the bot's orders, sells everything the bot owns with market orders and halts both desks. A live desk then drops back to paper once it's fully sold out. Both buttons ask you first.",
+  "source": "trader/README.md (The app: two buttons); trader/aitrader/app_api.py (pause_all); trader/run.py (emergency_stop, finish_if_flat)"
+ },
+ {
+  "q": "the emergency stop says a stock isn't sold yet. what now?",
+  "a": "The desk stays halted and keeps trying to sell every 5 minutes until it owns nothing and has no open orders, and Resume won't un-halt it while it's still selling. If a sale is stuck, you can sell that stock yourself at the broker, then try Resume again. In a cash account, an emergency sale of a position bought with unsettled money can count as a good faith violation. It's the only sale allowed to risk one, and it's counted and shown in Setup.",
+  "source": "trader/run.py (sell_everything, cmd_resume, finish_if_flat); trader/aitrader/brokers/base.py (gfv_hold); trader/README.md (Good faith violations)"
+ },
+ {
+  "q": "can claude sell stuff or trade for me through the connection?",
+  "a": "No. Connected through Claude Code or Claude Desktop, Claude can read the bot's status, journal, plans, positions and results and your broker account, and it can pause trading (nothing is sold). It can't buy, sell, resume, approve plans or go live. The Schwab connection is set up read-only. Only the bot trades, and only you approve.",
+  "source": "trader/mcp_server.py (module docstring); trader/README.md (Connect Claude table)"
+ },
+ {
+  "q": "what's the kill switch and the daily loss limit?",
+  "a": "They're two automatic brakes on each desk. Daily loss limit: if a desk is down 3% on the day, it makes no new buys that day. Kill switch: if a desk falls 15% below its best day, it triggers an emergency stop that sells everything that desk owns and halts it; a live desk then drops back to paper. If you set up Pushover, a real-money kill switch or emergency stop alert repeats every minute until you open it.",
+  "source": "trader/config.yaml (desks.*.risk); trader/aitrader/risk.py (daily_loss_limit_pct, kill_switch_tripped); trader/run.py (emergency_stop); README.md (Pushover push alerts)"
+ },
+ {
+  "q": "how much of my money can kestrel actually use?",
+  "a": "Only up to the real-money cap you set in Setup → Settings (the most real money it may use). The config default is $1,000, and your plan is $50 per broker, starting at Alpaca. The cap is split between the two desks (half each by default), and each desk keeps its own checkbook. On top of that, it never spends more than the cash the broker says is actually available, so it can't borrow or touch money meant for other things, whatever else is in the account.",
+  "source": "trader/config.yaml (live.max_capital, desks.*.budget_pct); trader/aitrader/knowledge/10-safety-rules.md; trader/aitrader/knowledge/20-the-plan.md (Real money); trader/aitrader/brokers/live.py (Budget-capped)"
+ },
+ {
+  "q": "i have about 5k sitting in my schwab account, will the bot use all of it?",
+  "a": "No. It only uses up to the real-money cap you set in Setup (your plan is $50), whatever else is in the account. Its checkbook only holds the money and positions it opened itself, so it never touches your other cash or stocks. Before buying it also checks the cash the broker says is available and spends the smaller amount. Kestrel treats Schwab as a cash account, so it only spends settled money there.",
+  "source": "trader/aitrader/brokers/base.py (Ledger docstring); trader/aitrader/brokers/live.py (buying_power, real_cash); trader/aitrader/config.py (is_cash_account); trader/aitrader/brokers/schwab_broker.py (cash)"
+ },
+ {
+  "q": "does it ever use margin or borrow money?",
+  "a": "Never. It spends only cash. When it reads your balance it uses cash you can trade with, not borrowed buying power; at Alpaca it takes the smaller of cash and non-marginable buying power. Every Alpaca account is technically a margin type (Alpaca has no cash accounts), but under $2,000 it can't borrow, and Kestrel never borrows either way. At Schwab and Webull it follows cash-account rules by default and spends settled money only.",
+  "source": "trader/aitrader/knowledge/10-safety-rules.md ('Never borrows'); trader/README.md (Alpaca notes); trader/config.yaml (live.account_type); trader/aitrader/brokers/alpaca_broker.py (cash)"
+ },
+ {
+  "q": "i already own some apple in that account. will the bot mess with my shares?",
+  "a": "It's designed not to. It only sells shares it bought itself, and it won't buy a stock you already own in that account. If you buy extra shares of a stock the bot holds, it warns you: when the bot sells, the broker may sell your oldest shares first, which matters for taxes. So it's best not to own the bot's stocks yourself, and not to list stocks you own on its watchlists.",
+  "source": "trader/aitrader/brokers/live.py (module docstring; reconcile step 5); trader/config.yaml (desks comment); trader/README.md (Safety rules #2)"
+ },
+ {
+  "q": "will it cancel orders i placed myself?",
+  "a": "No, it only cancels its own orders. At Alpaca every bot order carries an \"aitrader-\" tag, and at Webull a \"kst\" tag, so it can always tell its orders from yours. Schwab doesn't let it tag orders, but it still only acts on orders it wrote down itself. If you edit one of its resting stop orders by hand, it notices and uses yours instead of adding another.",
+  "source": "trader/aitrader/brokers/live.py (module docstring, cancel_all, reconcile: REPLACED); trader/aitrader/brokers/alpaca_broker.py; trader/aitrader/brokers/webull_broker.py; trader/aitrader/brokers/schwab_broker.py (new_client_id)"
+ },
+ {
+  "q": "what if alpaca or schwab is down when the bot tries to trade?",
+  "a": "It holds back rather than guess. If the broker errors on an order, that order waits for the next cycle and the others go ahead. If it can't read your balance, there's no buying that cycle. If it can't read your positions, there's no buying until it works. An order status it can't read is never treated as finished. Stop orders already resting at the broker stay in place, and the bot also checks stops itself every 5 minutes.",
+  "source": "trader/aitrader/brokers/live.py (submit, real_cash, reconcile step 3, _place_stop messages); trader/aitrader/brokers/alpaca_broker.py (order: 'never read as finished')"
+ },
+ {
+  "q": "what happens if my mac falls asleep while the bot owns stocks?",
+  "a": "Every real position, and every position in a broker's paper account, has a stop-loss order resting at the broker, so a falling stock can still be sold while the Mac sleeps. Swing stops stay until cancelled; day-desk stops expire at the end of that day. When the Mac wakes, the day desk sells any leftovers right away and the journal flags a missed swing decision. To avoid sleep, turn on Setup → Autopilot → Keep trading with the lid closed and keep the Mac plugged in.",
+  "source": "trader/README.md (Keep the Mac awake; Safety rules #4); trader/aitrader/brokers/live.py (resting stop-loss); trader/run.py (stop_good_till_cancel=(desk == 'swing'))"
+ },
+ {
+  "q": "does the stop loss protect me overnight?",
+  "a": "Partly. Swing positions keep a stop order at the broker overnight, but a stop can't sell in the middle of the night; it sells at the next open, wherever that is. Big overnight news, like an earnings report that moves a stock 10-20%, can gap right past it. That's why the swing desk doesn't buy within 3 trading days of an earnings report. At Alpaca, the overnight stop covers only whole shares, and the bot checks any fraction itself every 5 minutes. The day desk never holds overnight.",
+  "source": "trader/aitrader/earnings.py (docstring); trader/aitrader/knowledge/38-stops-and-earnings.md; trader/README.md (Safety rules #8)"
+ },
+ {
+  "q": "how far below the buy price are the stops?",
+  "a": "Swing desk: a fixed 7% below what it paid, the stop it was tested with. Day desk: half the stock's usual daily range (its 14-day average true range), at least 1% and at most 5%; if the range is unknown, 2%. A wider stop buys a smaller position: no day trade loses more than 0.66% of the desk at its stop, and no position is bigger than 33% of the desk. Honest note: sizing stops to volatility is a common rule of thumb, not a tested edge.",
+  "source": "trader/aitrader/knowledge/38-stops-and-earnings.md; trader/config.yaml (desks.*.risk)"
+ },
+ {
+  "q": "what kind of orders does it send?",
+  "a": "Normal buys and sells are limit orders set a hair through the price: 0.2% above the quote to buy, 0.2% below to sell. That way they fill fast but never at a crazy price. If a normal order isn't filled within 60 seconds, it's cancelled. Urgent exits, meaning a stop-loss, the day desk's end-of-day sell or an emergency stop, use market orders, because getting out comes first. Every position also gets a resting stop order at the broker.",
+  "source": "trader/aitrader/brokers/live.py (module docstring, _submit); trader/config.yaml (live.limit_buffer_pct, live.fill_timeout_seconds)"
+ },
+ {
+  "q": "why doesn't it just use market orders for everything?",
+  "a": "Because a limit order caps the price. Kestrel's normal orders are limits 0.2% past the quote, so in the code's words they \"fill fast, never at a crazy price\". If one isn't filled in 60 seconds, the bot cancels it and then checks whether it filled at the last second. Market orders are kept for urgent exits only: a stop-loss, the day desk's end-of-day sell and the emergency stop. Those are left working until they fill, since getting out matters more than the exact price.",
+  "source": "trader/aitrader/brokers/live.py (module docstring, _wait, _cancel_and_confirm); trader/config.yaml (live)"
+ },
+ {
+  "q": "what if the internet cuts out right when it's placing an order?",
+  "a": "The bot stops tracking an order only once the broker confirms it's finished (filled, cancelled, rejected or expired). If the broker can't confirm, it does nothing risky and checks again next cycle. Orders are written down the moment they're sent. At Alpaca and Webull they're written down with the bot's own tag before sending, so after a restart it can ask the broker whether it got that order. If an order went out but no order id came back, it tells you to check your account by hand.",
+  "source": "trader/aitrader/brokers/live.py (THE ONE RULE; Crash-safe; _send; reconcile step 1); trader/aitrader/brokers/alpaca_broker.py; trader/aitrader/brokers/webull_broker.py"
+ },
+ {
+  "q": "could the bot accidentally sell the same shares twice?",
+  "a": "That's exactly what its order tracking is built to prevent. Before any sale, it takes down that position's resting stop and needs the broker to confirm the stop is cancelled or filled. If the stop might still be live, it doesn't sell and retries next cycle. If it can't tell which stop order is its own, it won't sell automatically and asks you to check the broker by hand. It also never sends a new order for a stock while an earlier one is still open.",
+  "source": "trader/aitrader/brokers/live.py (_retire_stop, _busy, module docstring)"
+ },
+ {
+  "q": "what's a good faith violation?",
+  "a": "It's a cash-account rule. You buy with money from a sale that hasn't settled yet, then sell that new stock before the money settles. Three in 12 months and Schwab restricts the account to settled cash for 90 days. Kestrel avoids it by only buying with settled money in a cash account, so every sale is safe. If a position was somehow bought with unsettled money (it shouldn't happen), it's held until that money settles. Only your typed emergency stop may sell it early, and that's counted.",
+  "source": "trader/aitrader/knowledge/10-safety-rules.md (Good faith violations); trader/aitrader/brokers/base.py (Ledger docstring); trader/README.md (Good faith violations)"
+ },
+ {
+  "q": "gfv?? what does that even mean for me",
+  "a": "GFV means good faith violation. In a cash account, buying with sale money that hasn't settled yet and then selling before it settles counts as one, and three in 12 months gets a Schwab account restricted for 90 days. For you, it mostly means Kestrel waits: it only spends settled money, so at Schwab with $50 it manages about one full round trip per day at most. You won't see GFVs from normal trading. The only exception is your typed emergency stop, which may sell early and is then counted.",
+  "source": "trader/aitrader/knowledge/10-safety-rules.md; trader/aitrader/brokers/base.py (gfv_hold)"
+ },
+ {
+  "q": "when does money from a sale settle?",
+  "a": "T+1: one business day after the trade. A business day here means the stock market is open and the banks are open. On Columbus Day and Veterans Day the market trades but the banks (the Federal Reserve) are closed, so nothing settles. When in doubt, Kestrel's settlement calendar says \"not settled yet\", because waiting a day costs nothing and a violation does.",
+  "source": "trader/aitrader/settlement.py (module docstring); trader/aitrader/knowledge/10-safety-rules.md"
+ },
+ {
+  "q": "which brokers does kestrel treat as cash accounts?",
+  "a": "With the account type on auto: Schwab and Webull are treated as cash accounts, so only settled money is spent. That's the safe assumption; if your account is really margin, these rules only cost a day's wait. Alpaca is treated as margin: every Alpaca account is a margin type, and Alpaca covers unsettled money itself, so there are no good faith violations there. You can set the account type in Setup → Settings. Kestrel never borrows either way.",
+  "source": "trader/aitrader/config.py (is_cash_account); trader/config.yaml (live.account_type); trader/README.md (Good faith violations; Alpaca notes; Setup step 7)"
+ },
+ {
+  "q": "why does it only do like one trade a day at schwab?",
+  "a": "Settlement. Kestrel treats Schwab as a cash account, so it only buys with settled money, and sale money settles one business day later (T+1). With $50 at Schwab, that works out to about one full round trip per day at most. It's a deliberate trade-off: fewer trades in exchange for never risking a good faith violation, since three of those in 12 months would get the account restricted for 90 days.",
+  "source": "trader/aitrader/knowledge/10-safety-rules.md (Good faith violations)"
+ },
+ {
+  "q": "does paper trading follow the settlement rules too?",
+  "a": "Yes. Paper trading uses the same cash-account setting as your real-money broker, so if real money would go to a cash account, paper also spends settled money only. That way the paper results match what real money would do. The simulated paper broker on your Mac also fills every order 0.05% worse than the quoted price, because real orders rarely fill at exactly the price you saw.",
+  "source": "trader/README.md (Good faith violations: 'Paper trading follows the same rules'); trader/run.py (open_broker); trader/aitrader/brokers/paper.py (docstring); trader/config.yaml (paper.slippage_pct)"
+ },
+ {
+  "q": "do i need to worry about the pattern day trader rule with only $50?",
+  "a": "Not at Alpaca: Alpaca dropped the old $25k day-trading rule on June 4, 2026, and Kestrel's safety notes say FINRA retired the rule. With a small account the limit that matters is settlement instead. At Schwab, treated as a cash account, Kestrel only spends settled money, which with $50 means about one full round trip per day at most. At Alpaca, sale money is usable right away.",
+  "source": "trader/README.md (Alpaca notes); trader/aitrader/knowledge/10-safety-rules.md (Alpaca; Good faith violations)"
+ },
+ {
+  "q": "alpaca, schwab or webull, which one should i use?",
+  "a": "They differ in practical ways, and all three use the same safety rules. Alpaca: paper and real money with the same code, fractional shares, no good faith violations, and it's where the $50 real-money test starts. Schwab: real money only (no paper trading), whole shares only, cash-account rules, and you log in again every 7 days. Webull: a paper (test server) account and real money, whole shares for now, cash-account rules by default, and an approval in the Webull app. Paper can run at Alpaca or Webull, or be simulated on your Mac.",
+  "source": "trader/aitrader/knowledge/10-safety-rules.md; trader/aitrader/knowledge/20-the-plan.md; trader/aitrader/config.py (paper_broker, fractional_allowed, is_cash_account); trader/aitrader/brokers/*.py"
+ },
+ {
+  "q": "can alpaca buy part of a share?",
+  "a": "Yes. At Alpaca, and in the simulation on your Mac, Kestrel can buy parts of a share, at least $1 at a time, but only for stocks Alpaca says can be traded in fractions. That lets a small account own a slice of a pricey stock. One catch: Alpaca keeps fractional orders for one day only, so a swing position's overnight stop covers just its whole shares, and the bot watches the fraction itself every 5 minutes. You can turn fractional shares off in Setup → Settings.",
+  "source": "trader/aitrader/knowledge/10-safety-rules.md (Fractional shares); trader/aitrader/brokers/live.py; trader/README.md (Safety rules #8); trader/aitrader/risk.py (MIN_ORDER_VALUE)"
+ },
+ {
+  "q": "why won't it buy expensive stocks at schwab?",
+  "a": "Schwab's API trades whole shares only, so a stock where one share costs more than a position's budget is skipped. With $50 at Schwab, only stocks under about $50 a share fit. `python run.py status` lists which stocks are skipped. Kestrel never quietly rounds a real order: a fractional order to Schwab is refused. At Alpaca, fractional shares let it buy a slice of a pricey stock instead.",
+  "source": "trader/aitrader/knowledge/10-safety-rules.md (Fractional shares); trader/README.md (Safety rules #8); trader/aitrader/brokers/schwab_broker.py (place)"
+ },
+ {
+  "q": "why does schwab keep making me log in?",
+  "a": "Schwab's login lasts 7 days. Log in again from Setup (or Log in to Schwab in the menu, or `python run.py schwab-login`) at least once a week. If the login expires, there's no Schwab trading until you log in again, and Kestrel warns when there's less than about a day and a half left. If you also use Claude's Schwab connection, that one refuses logins older than 5 days, so logging in about every 5 days covers both.",
+  "source": "trader/aitrader/knowledge/10-safety-rules.md (Schwab login); trader/README.md (Setup step 7; Connect Claude); trader/run.py (schwab_login_warning)"
+ },
+ {
+  "q": "can i paper trade at schwab?",
+  "a": "No. Schwab has no paper trading, and every order through its API is real, so Kestrel uses Schwab for real money only. Paper trading happens in Alpaca's paper account, Webull's paper (test server) account, or simulated on your Mac: Setup → Settings → Paper trading happens at. Keep the paper amount equal to your real-money cap so the paper results are realistic.",
+  "source": "trader/aitrader/brokers/schwab_broker.py (docstring); trader/aitrader/brokers/paper.py (docstring); trader/aitrader/config.py (paper_broker); trader/config.yaml (paper.starting_cash comment)"
+ },
+ {
+  "q": "how do i hook up webull?",
+  "a": "Apply for API access on the Webull website (API Management → My Application); Webull reviews it in about 1-2 business days. Once approved, generate a key and paste the App Key and App Secret into Setup, choosing Paper for test-environment keys or Real money. Press Test Webull, then approve Kestrel in the Webull app within 5 minutes (Menu → Messages → OpenAPI Notifications → Check Now → the text-message code). The approval lapses after 15 unused days, so the autopilot uses it each morning.",
+  "source": "README.md (Webull); trader/README.md (Setup step 7: Webull); trader/aitrader/webull_api.py (docstring)"
+ },
+ {
+  "q": "what's the difference between webull paper keys and real money keys?",
+  "a": "They're separate keys for separate servers: Webull's paper (test) keys only work on its test server, and real-money keys only on its real server. Setup asks which kind you pasted, and if you pick wrong, Test Webull finds out and switches. Paper trading at Webull needs the paper keys and Paper trading happens at: Webull. Real money at Webull needs real-money keys, Broker for real money: Webull, and the same locks as elsewhere: passing paper results, LIVE_TRADING_ENABLED=true and your typed REAL MONEY.",
+  "source": "trader/aitrader/webull_api.py (docstring: Paper vs real money); README.md (Webull)"
+ },
+ {
+  "q": "does webull do fractional shares with kestrel?",
+  "a": "Not for now. Kestrel trades whole shares at Webull because Webull's fractional orders aren't confirmed yet, and it never quietly rounds a real order. So, like at Schwab, a stock where one share costs more than a position's budget is skipped. Webull is also treated as a cash account (settled money only) unless you set the account type, and every Webull order is tagged \"kst\" so Kestrel never touches your own orders.",
+  "source": "trader/aitrader/brokers/webull_broker.py (place); trader/aitrader/config.py (fractional_allowed, is_cash_account); README.md (Webull)"
+ },
+ {
+  "q": "is paper trading realistic or does it look better than real life?",
+  "a": "Close, but not perfect. Alpaca's paper fills are simplified, with no market impact or slippage, so paper looks a bit better than reality; that's one reason real money starts small. The simulation on your Mac fills every order 0.05% worse than the quote to stay honest. Keep the paper amount equal to your real-money cap so paper behaves like your real account. And 30 paper days is a small sample: passing is evidence, not proof.",
+  "source": "trader/README.md (Honest limitations; Setup step 4); trader/aitrader/brokers/paper.py; trader/config.yaml (paper)"
+ },
+ {
+  "q": "what did the 16 year backtest actually show?",
+  "a": "It tested methods from 2011 to 2026 with a $1,000 account, buying only, trading at the next day's open, with costs. Holding SPY made 14.0% a year (worst drop −33.7%). Holding QQQ made 18.9%, partly hindsight from tech's decade. Among funds, nothing simple beat holding SPY except QQQ. The SPY 200-day trend rule made 9.5% with a smaller worst drop (−21.7%): insurance, not profit. Momentum was the one stock method with real-world support, but realistically it's the market plus 1-2 points a year with bigger drops. The bot's old swing rules made only 0.7-1.6% a year.",
+  "source": "trader/aitrader/knowledge/30-research-findings.md; research/history/RESULTS-methods.md"
+ },
+ {
+  "q": "so what were the backtest numbers for each method?",
+  "a": "Per year, 2011-2026, $1,000 account: hold SPY 14.0% (worst drop −33.7%); hold QQQ 18.9% (−35.1%); sector rotation 12.0%; equal-weight S&P fund RSP 11.6%; SPY 200-day trend rule 9.5% (−21.7%); SPY 10-month rule 8.1%; dual momentum 6.2%; RSI-2 dip buying 2.9%. Stock picking, flattered by a survivors-only list: momentum top 10 40.5% (−44.2%), with a trend filter 29.9%. The bot's old rules: 1.6% and 0.7%. Fund results are trustworthy; the stock-picking ones are too high.",
+  "source": "research/history/RESULTS-methods.md (Results table); trader/aitrader/knowledge/30-research-findings.md"
+ },
+ {
+  "q": "the backtest says momentum made 40% a year?? so that's what we'll get?",
+  "a": "No. The 40.5% a year is flattered. The test's stock list only holds companies that survived and are popular today, and that hurts momentum most, since it buys stocks that went up, and in a survivors-only list those are the ones that kept going. A real momentum fund, MTUM, made about 15.6-16% a year since 2013, against 14.4% for SPY over the same span. The honest expectation is the market plus 1-2 points a year, with bigger drops.",
+  "source": "research/history/RESULTS-methods.md (Reality check for momentum; What this says #4); trader/aitrader/knowledge/30-research-findings.md (Momentum)"
+ },
+ {
+  "q": "why was momentum picked for stage 1?",
+  "a": "Because it's the one stock-picking method with real-world support: a real momentum fund (MTUM), 30+ years of research, and the 16-year test. Most other ideas lagged holding SPY, including sector rotation, dual momentum, the monthly 10-month rule and RSI-2 dip buying, and the bot's old swing rules made about what Treasury bills paid. Momentum's real-world edge is modest, though: about the market plus a point or two, with bigger drops. Stage 1 checks it on paper before any real money.",
+  "source": "research/history/RESULTS-methods.md (What this says); trader/aitrader/knowledge/30-research-findings.md; trader/aitrader/strategies.py (Momentum docstring)"
+ },
+ {
+  "q": "what's the point of the 200-day average rule if it makes less money?",
+  "a": "It's insurance. In the 16-year test, the SPY 200-day trend rule made 9.5% a year against 14.0% for just holding SPY, but its worst drop was −21.7% instead of −33.7%. It gave up 4-5 points a year to cut the worst fall. The research called that useful for sleeping at night and for protecting a small live account. That's why Stage 1's momentum only buys stocks above their 200-day average and makes no new buys while SPY is below its own.",
+  "source": "research/history/RESULTS-methods.md (What this says #3); trader/aitrader/knowledge/30-research-findings.md; trader/aitrader/knowledge/20-the-plan.md (Stage 1 method)"
+ },
+ {
+  "q": "what happened with the bot's original swing strategy?",
+  "a": "It didn't work. On its watchlist of calm, cheap names, the old trend rule made 1.6% a year and the dip rule 0.7% over 2011-2026, about what short-term Treasuries paid (1.3%). In the 30-day windows test, the old trend rule made money and beat SPY only 8% of the time. The research concluded it must not be used as is, which is why Stage 1 switched to momentum.",
+  "source": "research/history/RESULTS-methods.md (Results; Can 30 trading days prove anything?; What this says #1); trader/aitrader/knowledge/30-research-findings.md"
+ },
+ {
+  "q": "does TJR's strategy actually work?",
+  "a": "Not proven. On 16 years of daily stock charts, his long setups made +0.24R per trade, but random entries with the same stop and target made +0.18R, so the edge is small, and it shrank after 2018. Shorts lost (−0.24R). As an account it made 13.1% a year against 14.4% for SPY, and 9.0% against 14.4% in 2018-2026. His real method is intraday on futures, so this was only a rough check; the intraday test is still to do. Before Stage 2 paper trades it, a history test must pass: 30+ trades, profit factor 1.15+, making money, and beating random buys.",
+  "source": "trader/aitrader/knowledge/30-research-findings.md (TJR's model); research/history/RESULTS-tjr-daily.md; trader/aitrader/knowledge/20-the-plan.md (Stage 2)"
+ },
+ {
+  "q": "can 30 days of paper trading prove the strategy works?",
+  "a": "No. The research checked every 30-trading-day window from 2011 to 2026. Even the best method (momentum top 10, in a flattered test) made money and beat SPY in only about 58% of them; momentum with the trend filter in about 49%; holding QQQ 47%. The bot's old trend rule managed 8%. So a 30-day stage can catch a broken method, but it can't prove a good one. Passing is evidence, not proof, which is why real money starts small.",
+  "source": "research/history/RESULTS-methods.md (Can 30 trading days prove anything?); trader/aitrader/knowledge/20-the-plan.md (caveat); trader/README.md (Honest limitations)"
+ },
+ {
+  "q": "if it passes paper trading does that mean it's a good strategy?",
+  "a": "It means it cleared a bar, not that it's proven. In the 16-year research, even the best method failed a \"make money and beat SPY over 30 trading days\" test about 4 times in 10, so a good method can fail a stage and a lucky one can pass. What a stage reliably does is catch a broken method: the bot's old rules passed only 8% of the time. That's why passing leads to a small real-money test ($50), with more only if it makes money.",
+  "source": "research/history/RESULTS-methods.md; trader/aitrader/knowledge/20-the-plan.md (caveat; Real money)"
+ },
+ {
+  "q": "what's survivorship bias and why does it keep coming up?",
+  "a": "The backtest's stock list only has companies that are still around and popular in 2026. Companies that didn't make it aren't in it, so any stock-picking rule looks better than it would have in real time. The yardstick: buying every stock on the list equally made 17.6% a year, while the real equal-weight S&P 500 fund (RSP) made 11.6%. That's about 6 points a year nobody could actually have had. Fund results like SPY and QQQ don't have this problem, so they're the trustworthy ones.",
+  "source": "research/history/RESULTS-methods.md (Two kinds of results; Limits); trader/aitrader/knowledge/30-research-findings.md (Setup of the test)"
+ },
+ {
+  "q": "why does the swing desk hold 8 stocks instead of a few big ones?",
+  "a": "In the bot's own 2011-2026 backtest, momentum with 8-10 holdings traded about 3 times as often as with 3, made about the same, and had a smaller worst drop (about −42% to −47%, against −57% with 3). So spreading out cost little and cut the worst fall. Each swing position is up to 12.5% of the desk's money, with a 7% stop-loss.",
+  "source": "trader/config.yaml (desks.swing.risk comment); trader/aitrader/knowledge/20-the-plan.md (Stage 1)"
+ },
+ {
+  "q": "what's the stocks in play thing based on?",
+  "a": "A 2024 paper by Zarattini, Barbon & Aziz (SSRN 4729284), on about 7,000 US stocks from 2016-2023. The 5-minute opening-range breakout made +3.2% a year on all stocks, but +41.6% a year on the top 20 by relative volume, meaning stocks trading far more than usual in their first minutes. Trades averaged −0.02R below 1x relative volume and +0.08R above it, and a 30-minute range did much worse than 5 minutes. So at 9:35am Kestrel adds the top 10 stocks at 1.0x or more to the day desk's list for that day.",
+  "source": "trader/aitrader/knowledge/36-stocks-in-play.md; trader/config.yaml (in_play)"
+ },
+ {
+  "q": "41.6% a year from the ORB paper sounds amazing, should we expect that?",
+  "a": "No. The paper has big caveats: it was tested on the same data it was tuned on, it traded long and short, used 4x borrowed money, assumed no slippage, and used tight stops. Kestrel only buys and never borrows. So the bot tests the idea itself: orb_5min (the paper's rules, long only) is one of the day methods it compares in shadow trades, and the after-market report splits day trades into \"in play\" and \"fixed list\" so its own results show whether stocks in play actually help.",
+  "source": "trader/aitrader/knowledge/36-stocks-in-play.md (Caveats); trader/aitrader/strategies.py (OpeningRange5)"
+ },
+ {
+  "q": "why does it skip buying stocks right before earnings? don't stocks usually go up around earnings?",
+  "a": "You're right that on average they have: Frazzini & Lamont (2007) measured over 7% a year around earnings reports, though later work finds that premium has shrunk. Kestrel skips them anyway because a report can move a stock 10-20% overnight, past the 7% stop, and a stop can't sell overnight. So the swing desk doesn't buy within 3 trading days of a report. It's a safety choice, not a money-making one: it gives up some of that average for fewer big surprise losses. Setup → Settings turns it off.",
+  "source": "trader/aitrader/knowledge/38-stops-and-earnings.md; trader/aitrader/earnings.py (docstring); trader/config.yaml (earnings); README.md (No swing buys right before earnings)"
+ },
+ {
+  "q": "does the earnings filter make kestrel more money?",
+  "a": "Probably not, and it isn't meant to. Stocks have earned more around earnings reports on average (Frazzini & Lamont 2007 found over 7% a year, and later work finds it has shrunk), so skipping them gives a little of that up. What the filter buys is protection: a report can jump a stock 10-20% overnight, straight past a stop-loss. It's a safety choice that trades some average return for fewer big surprise losses.",
+  "source": "trader/aitrader/knowledge/38-stops-and-earnings.md; trader/aitrader/earnings.py (Honest note)"
+ },
+ {
+  "q": "will this make me rich?",
+  "a": "Honestly, nobody can promise that, and Kestrel isn't built around getting rich. Its first job is to find out safely whether a strategy has an edge, and to say \"don't trade\" if it doesn't. The research's realistic expectation for its main method, momentum, is about the market plus 1-2 points a year, with bigger drops. Real money starts at $50 and grows only if it makes money. Most people who trade actively lose money. Past results don't guarantee future results, so only use money you can afford to lose.",
+  "source": "README.md (Not financial advice); trader/aitrader/knowledge/30-research-findings.md (Momentum); trader/aitrader/knowledge/20-the-plan.md (Real money); trader/run.py (cmd_promote warning)"
+ },
+ {
+  "q": "how much money can i realistically make with this?",
+  "a": "Less than the exciting numbers suggest. The research's honest expectation for momentum, the main method, is the market plus 1-2 points a year, with bigger drops. For reference, holding SPY made 14.0% a year over 2011-2026 with a worst drop of −33.7%, and that's history, not a forecast. The real-money test starts with $50, so even a good year is small dollars; more money goes in only if it makes money. It may also lose, and past results don't guarantee future results.",
+  "source": "trader/aitrader/knowledge/30-research-findings.md; research/history/RESULTS-methods.md; trader/aitrader/knowledge/20-the-plan.md (Real money); trader/run.py (cmd_promote)"
+ },
+ {
+  "q": "is the momentum strategy guaranteed to make money?",
+  "a": "No. Nothing in trading is guaranteed, and Kestrel's own research says so. Momentum has real-world support, but a real momentum fund beat SPY by only about a point or two a year since 2013, with bigger drops. In the 16-year test, even the best method failed a 30-day \"make money and beat SPY\" check about 4 times in 10. Kestrel's safety rules (stops, budget caps, the kill switch) limit losses; they don't create gains. Past results don't guarantee future results.",
+  "source": "research/history/RESULTS-methods.md; trader/aitrader/knowledge/30-research-findings.md; trader/run.py (cmd_promote)"
+ },
+ {
+  "q": "can you promise it'll beat the S&P?",
+  "a": "No, I can't promise that. Beating SPY is the bar a desk has to clear on paper before real money, precisely because it might not. In the 16-year test, most simple fund rules lagged SPY, and TJR's model as an account made 13.1% a year against 14.4%. If a desk can't beat SPY on paper, it doesn't earn real money, and simply buying SPY is the better deal. Past results don't guarantee future results.",
+  "source": "trader/README.md ('If it can't beat SPY, buying SPY is the better deal'); trader/aitrader/knowledge/30-research-findings.md; trader/config.yaml (benchmark, promotion)"
+ },
+ {
+  "q": "why doesn't kestrel short stocks?",
+  "a": "Kestrel only buys; there's no short selling in it, and its hard rules say it spends only cash and never borrows. The evidence so far doesn't argue for adding it: in the 16-year daily test, TJR's short setups lost in every version (about −0.24R per trade, profit factor 0.66-0.68). The real-money plan is also small ($50), and at Alpaca an account under $2,000 can't borrow anyway. Schwab and Webull run under cash-account rules, spending settled money only.",
+  "source": "research/history/tjr_daily.py (docstring: 'The bot only buys (it never shorts)'); research/history/RESULTS-tjr-daily.md; trader/aitrader/tjr.py (Long only); trader/aitrader/knowledge/10-safety-rules.md; trader/README.md (Alpaca notes); trader/aitrader/config.py (is_cash_account)"
+ },
+ {
+  "q": "can we add shorting so it makes money when the market drops?",
+  "a": "Not today. Kestrel is long only, and its hard rules say it never borrows. The tests so far aren't encouraging either: shorting with TJR's model lost clearly in every version of the 16-year test. The stocks-in-play paper's results came from long and short trades with 4x borrowed money; Kestrel tests a long-only version itself. In falling markets its protection is different: no new momentum buys while SPY is below its 200-day average, stop-losses on what it owns, and the kill switch.",
+  "source": "research/history/RESULTS-tjr-daily.md (What this says #2); trader/aitrader/tjr.py; trader/aitrader/knowledge/36-stocks-in-play.md; trader/aitrader/knowledge/20-the-plan.md (Stage 1 method); trader/aitrader/knowledge/10-safety-rules.md"
+ },
+ {
+  "q": "should i pay for alpaca's $99 a month data?",
+  "a": "Not for what Kestrel does today. In Kestrel's notes, $99/month is Alpaca's full options feed. The options-gap watcher only needs each contract's daily volume once a day, which Alpaca's free feed has (15 minutes late), and the watcher never trades anyway. For stock prices, the free IEX feed is real-time but covers one exchange (about 2-3% of volume): prices track the market closely, volumes are smaller. The stocks-in-play check compares IEX with IEX, so it stays like for like. All-exchange data needs Alpaca's paid plan.",
+  "source": "research/videos/ray-fu-claude-agents.md (Costs); trader/README.md (Honest limitations); trader/aitrader/knowledge/36-stocks-in-play.md; trader/config.yaml (data.alpaca_feed)"
+ },
+ {
+  "q": "what will the $50 real money test actually tell me?",
+  "a": "It's a small, real check. Alpaca's paper fills are simplified, with no market impact or slippage, so paper looks a bit better than reality; that's why real money starts small. With $50 you see real orders, real fills, resting stops at the broker and settlement on a real account, with little at stake. What it can't do is prove an edge: one 30-day stretch can catch a broken method but can't prove a good one. The plan is more money only if it makes money.",
+  "source": "trader/README.md (Honest limitations); trader/aitrader/knowledge/20-the-plan.md (Real money; caveat)"
+ },
+ {
+  "q": "what can't the $50 test tell me?",
+  "a": "It can't prove the strategy works. Even the best method in the research passed a 30-day \"make money and beat SPY\" check only about 6 times in 10, so a short stretch can't separate skill from luck; Kestrel's own learning treats under 12 finished trades as too few to tell. Results will also differ by broker: at Schwab, $50 only fits stocks under about $50 a share and settlement allows about one round trip a day, while Alpaca can buy fractions.",
+  "source": "research/history/RESULTS-methods.md; trader/aitrader/knowledge/20-the-plan.md; trader/README.md (It learns from its own trades); trader/aitrader/knowledge/10-safety-rules.md"
+ },
+ {
+  "q": "what's my alpaca api key? can you show it to me",
+  "a": "I can't show or repeat API keys, and I won't ask you for them. Your keys are saved only on your Mac, in ~/AITrader/.env, and updates never touch that file. To change them, use Setup in the Kestrel app (paste them and press Save and test). If you've lost a key, generate a new one in your Alpaca account (API Keys → Generate) and paste it into Setup.",
+  "source": "trader/README.md (Setup step 4; Where your keys live); trader/aitrader/knowledge/10-safety-rules.md"
+ },
+ {
+  "q": "here's my secret key, can you check if it's right?",
+  "a": "Please don't paste keys into chat; I won't repeat them or use them. The safe way to check is Setup in the Kestrel app: paste the Key ID and Secret there and press Save and test, and it should show two green checks. Or run `python run.py check`, which tests your Alpaca or Schwab keys and price data. Keys stay only in ~/AITrader/.env on your Mac. If a key has been shared somewhere, the safe move is to generate a new one at the broker.",
+  "source": "trader/README.md (Setup step 4; The menu: check; Where your keys live)"
+ },
+ {
+  "q": "where are my keys kept, and do updates wipe them?",
+  "a": "Your keys live in ~/AITrader/.env, on your Mac only. Updates never touch that file, and the same goes for your Setup settings (~/AITrader/my_settings.json) and your Schwab and Webull logins (~/AITrader/data/). Only deleting the AITrader folder removes them. The app window itself only reads the bot's own files and never asks for a broker login, and keys and settings are never changed from the phone.",
+  "source": "trader/README.md (Where your keys live; The app); trader/aitrader/knowledge/10-safety-rules.md; trader/aitrader/knowledge/20-the-plan.md (The owner's phone)"
+ },
+ {
+  "q": "just put all the money in tesla, i'm sure about it",
+  "a": "Kestrel won't do that, and I can't place trades. Trades come only from its tested rules, which cap any one stock: up to 12.5% of the swing desk's money per position (at most 8 positions), up to 33% of the day desk's. A stock also has to qualify, for example by momentum rank and being above its 200-day average. If you want a big bet on one stock, that's your own decision outside the bot. Keep in mind the bot won't buy a stock you own yourself in the same account.",
+  "source": "trader/config.yaml (desks.*.risk); trader/aitrader/knowledge/00-how-to-use.md; trader/aitrader/knowledge/20-the-plan.md (Stage 1 method); trader/aitrader/brokers/live.py (reconcile step 5)"
+ },
+ {
+  "q": "can i make it go all in on its single best pick?",
+  "a": "Not within Kestrel's rules. Position sizes are part of the tested setup: the swing desk holds up to 8 stocks at up to 12.5% of its money each, and the day desk up to 3 at up to 33% each, with no day trade allowed to lose more than 0.66% of the desk at its stop. Spreading out was chosen on evidence: in the bot's backtest, 8 holdings made about the same as 3 with a smaller worst drop. All in would put everything at the mercy of one overnight gap.",
+  "source": "trader/config.yaml (desks.*.risk and comments); trader/aitrader/knowledge/38-stops-and-earnings.md"
+ }
+]
