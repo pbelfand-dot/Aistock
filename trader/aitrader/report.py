@@ -188,8 +188,10 @@ def _desk_section(cfg, store, desk, kind, today) -> list:
         for t, p in positions.items():
             last = quote(cfg, t)["last"]
             gain = f", now {_money(last)} ({(last / p['avg_cost'] - 1) * 100:+.1f}%)" if last else ""
+            own = p.get("stop_pct") or stop_pct
             out.append(f"- {t}: {p['qty']} shares bought {p['opened_on']} at {_money(p['avg_cost'])}{gain}; "
-                       f"stop-loss {_money(p['avg_cost'] * (1 - stop_pct / 100))}")
+                       f"stop-loss {_money(p['avg_cost'] * (1 - own / 100))} ({own:g}% below"
+                       + (", sized to how much it moves)" if p.get("stop_pct") else ")"))
         out.append("")
     lessons = store.get(f"lessons:{desk}") or {}
     cards = lessons.get("strategies") or {}
@@ -262,6 +264,10 @@ def after_market(cfg, store, today: str) -> str:
     out += report_lines(store)
 
     out += scan_lines(cfg, store, today)
+    hold = store.get("earnings_hold:swing") or {}
+    if hold.get("day") == today and hold.get("tickers"):
+        out += ["## Earnings soon (the swing desk isn't buying these)", "",
+                "- " + ", ".join(f"{t}: reports {d}" for t, d in sorted(hold["tickers"].items())), ""]
     out += in_play_lines(cfg, store, today)
 
     out += ["## Next", ""]

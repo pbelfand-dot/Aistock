@@ -62,6 +62,15 @@ code changes.
   facts), **Analyst** (what agrees and what conflicts), **Trader** (the tested strategy's orders),
   **Risk** (checks each buy) and **Reviewer** (after the close). The notes are in the after-market
   report. The rules still decide the trades. The Scout and Analyst also note today's stocks in play.
+- **Stops sized to each stock (day desk).** Each stock's stop is half its usual daily range (14-day
+  ATR), between 1% and 5%, so a jumpy stock in play gets room and a calm one a tight stop. A wider
+  stop means a smaller position: no trade can lose more than 0.66% of the desk at its stop (the old
+  33% position with a 2% stop), so nothing risks more than before. The swing desk keeps its tested 7% stop.
+- **No swing buys right before earnings.** A report can jump a stock 10-20% overnight, past its stop.
+  The swing desk doesn't open a position within 3 trading days of a report (dates from Yahoo, each
+  morning); what it owns is kept. The honest trade-off: stocks have on average done slightly better
+  around earnings, so this gives up a little of that for fewer big surprise losses. Setup -> Settings
+  turns it off.
 - **Mistakes: fine once, not twice.** Every buy is written down with its situation (the stock, in
   play or the fixed list, under $5, the first 30 minutes or after 2pm, chasing a stock already up a
   lot, moving with one it owns, option bets against it). When the same situation keeps losing (the

@@ -43,4 +43,7 @@ class PaperBroker(Broker):
         self.ledger.cash -= self.commission
         fill = Fill(date=date, ticker=order.ticker, side=order.side, qty=qty,
                     price=round(price, 4), reason=order.reason, order_id=f"{self.mode}-{uuid.uuid4().hex[:12]}")
-        return self._book(fill)
+        fill = self._book(fill)
+        if fill and order.side == "BUY":
+            self._remember_stop(order.ticker, order.stop_pct)
+        return fill

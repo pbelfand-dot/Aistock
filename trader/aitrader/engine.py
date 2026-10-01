@@ -31,7 +31,8 @@ from .strategies import current_scores
 
 def decide_orders(scores: pd.Series, prices: pd.Series, positions: dict, buying_power: float,
                   equity: float, strategy, risk: RiskManager, allow_new_buys: bool = True,
-                  stops_only: bool = False) -> list:
+                  stops_only: bool = False, atr_pct: dict = None) -> list:
+    """atr_pct: {ticker: its usual daily range in %} for stops sized to how much each stock moves."""
     orders = []
 
     # 1) EXITS first: they free up cash and slots.
@@ -40,9 +41,11 @@ def decide_orders(scores: pd.Series, prices: pd.Series, positions: dict, buying_
         if price is None or math.isnan(price):
             continue
         score = scores.get(ticker, float("nan"))
-        if risk.stop_loss_hit(pos.avg_cost, price):
+        own = getattr(pos, "stop_pct", 0) or None
+        if risk.stop_loss_hit(pos.avg_cost, price, own):
             drop = (1 - price / pos.avg_cost) * 100
-            orders.append(Order(ticker, "SELL", pos.qty, price, f"stop-loss: down {drop:.1f}% from our buy price",
+            sized = f" (its stop: {own:g}%, sized to how much it moves)" if own else ""
+            orders.append(Order(ticker, "SELL", pos.qty, price, f"stop-loss: down {drop:.1f}% from our buy price{sized}",
                                 urgent=True))
         elif not stops_only and not math.isnan(score) and score < strategy.sell_below:
             orders.append(Order(ticker, "SELL", pos.qty, price,
@@ -66,10 +69,12 @@ def decide_orders(scores: pd.Series, prices: pd.Series, positions: dict, buying_
         if ticker in positions:          # already own it (or selling it now): skip
             continue
         price = prices.get(ticker)
-        qty = risk.position_size(equity, buying_power, price)
+        stop = risk.stop_for((atr_pct or {}).get(ticker)) if risk.stop_atr_multiple else None
+        qty = risk.position_size(equity, buying_power, price, stop)
         if qty <= 0:
             continue                     # can't afford a share (or $1 of one, with fractional shares) within the limits
-        orders.append(Order(ticker, "BUY", qty, price, f"{strategy.name} score {score:.2f} >= {strategy.buy_above}"))
+        orders.append(Order(ticker, "BUY", qty, price, f"{strategy.name} score {score:.2f} >= {strategy.buy_above}",
+                            stop_pct=stop))
         buying_power -= qty * price
         open_slots -= 1
     return orders
@@ -85,7 +90,8 @@ def sell_all(positions: dict, prices: pd.Series, reason: str, tickers=None) -> l
 
 
 def desk_orders(strategy, now, scores: pd.Series, prices: pd.Series, broker, risk: RiskManager,
-                yesterday_equity, desk_cfg: dict, stops_only: bool = False, no_buys: str = "") -> list:
+                yesterday_equity, desk_cfg: dict, stops_only: bool = False, no_buys: str = "",
+                atr_pct: dict = None) -> list:
     today = now.strftime("%Y-%m-%d")
     positions = broker.positions()
     equity = broker.equity(prices)
@@ -100,7 +106,8 @@ def desk_orders(strategy, now, scores: pd.Series, prices: pd.Series, broker, ris
         too_late = left <= desk_cfg["last_entry_minutes_before_close"]
     allowed, _ = risk.new_buys_allowed(equity, yesterday_equity)
     return decide_orders(scores, prices, positions, broker.buying_power(today), equity, strategy, risk,
-                         allow_new_buys=allowed and not too_late and not no_buys, stops_only=stops_only)
+                         allow_new_buys=allowed and not too_late and not no_buys, stops_only=stops_only,
+                         atr_pct=atr_pct)
 
 
 def execute(orders: list, broker, date: str) -> list:
@@ -121,12 +128,39 @@ def closes_table(bars: dict) -> pd.DataFrame:
     return price_table(bars, "close")
 
 
+def atr_pct_table(bars: dict, intraday: bool, recent: bool = False) -> pd.DataFrame:
+    """Each stock's usual daily range (its 14-day average true range) as % of its price, known at each bar
+    from EARLIER days only. recent=True looks at just the last few weeks (enough for today's number)."""
+    from .strategies import daily_atr
+    out = {}
+    for ticker, df in bars.items():
+        if recent:
+            df = df.tail(78 * 20 if intraday else 30)
+        if intraday:
+            atr = daily_atr(df)
+        else:
+            prev = df["close"].shift(1)
+            true_range = pd.concat([df["high"] - df["low"], (df["high"] - prev).abs(), (df["low"] - prev).abs()],
+                                   axis=1).max(axis=1)
+            atr = true_range.rolling(14).mean().shift(1)
+        out[ticker] = atr / df["close"] * 100
+    return pd.DataFrame(out)
+
+
+def latest_atr_pct(bars: dict, intraday: bool) -> dict:
+    table = atr_pct_table(bars, intraday, recent=True)
+    if table.empty:
+        return {}
+    last = table.ffill().iloc[-1]
+    return {t: float(v) for t, v in last.items() if pd.notna(v)}
+
+
 def resting_stop_fills(broker, risk: RiskManager, opens: pd.Series, lows: pd.Series, date: str) -> list:
     """Backtest only: a stop-loss order resting at the broker sells during the day as soon as
     the price touches it (or at the open, if the stock gaps down below it overnight)."""
     fills = []
     for ticker, pos in broker.positions().items():
-        stop = pos.avg_cost * (1 - risk.stop_loss_pct / 100)
+        stop = pos.avg_cost * (1 - (pos.stop_pct or risk.stop_loss_pct) / 100)
         low, open_ = lows.get(ticker), opens.get(ticker)
         if low is None or math.isnan(low) or low > stop:
             continue
@@ -154,6 +188,7 @@ def run_backtest(strategy, bars: dict, market: pd.DataFrame, cfg: dict, desk: st
                          cfg["paper"]["commission_per_trade"], mode="backtest",
                          cash_account=is_cash_account(cfg))
     curve, all_fills, last_equity, day_start, current_day = {}, [], None, None, None
+    atr = atr_pct_table(bars, strategy.style == "day").reindex(closes.index) if risk.stop_atr_multiple else None
 
     for ts in active:
         date = ts.strftime("%Y-%m-%d")
@@ -162,7 +197,8 @@ def run_backtest(strategy, bars: dict, market: pd.DataFrame, cfg: dict, desk: st
         prices = closes.loc[ts]
         if strategy.style == "swing":
             all_fills += resting_stop_fills(broker, risk, opens.loc[ts], lows.loc[ts], date)
-        orders = desk_orders(strategy, ts, scores.loc[ts], prices, broker, risk, day_start, cfg["desks"][desk])
+        orders = desk_orders(strategy, ts, scores.loc[ts], prices, broker, risk, day_start, cfg["desks"][desk],
+                             atr_pct=atr.loc[ts].dropna().to_dict() if atr is not None and ts in atr.index else None)
         all_fills += execute(orders, broker, date)
         curve[ts] = last_equity = broker.equity(prices)
 
@@ -238,8 +274,9 @@ def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd
             store.log(f"[{mode}] no new buys today: {no_buys}")
             store.set(f"{mode}_no_buys_logged", today)
 
+    atr = latest_atr_pct(bars, strategy.style == "day") if risk.stop_atr_multiple and not stops_only else None
     orders = desk_orders(strategy, now, scores, prices, broker, risk, yesterday_equity, desk_cfg, stops_only,
-                         no_buys)
+                         no_buys, atr_pct=atr)
     team = None
     if cfg is not None and not stops_only:
         from .agents import review_orders, settings as team_settings
