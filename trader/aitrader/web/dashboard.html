@@ -14,6 +14,9 @@
     --brand: #0b2a4a; --brand-2: #133b64; --brand-ink: #ffffff; --brand-ink-2: #b9c8da;
     --accent: #2a78d6; --accent-wash: rgba(42,120,214,0.10);
     --up: #006300; --down: #d03b3b; --good: #0ca30c; --warning: #fab219;
+    --gain: #2a78d6; --loss: #e34948;                        /* P&L calendar: blue/red stays readable with color-blindness */
+    --gain-1: rgba(42,120,214,.14); --gain-2: rgba(42,120,214,.30); --gain-3: rgba(42,120,214,.50);
+    --loss-1: rgba(227,73,72,.14); --loss-2: rgba(227,73,72,.30); --loss-3: rgba(227,73,72,.50);
     --bench: #898781; --danger-bg: #fdecec;
     --banner-bg: #fff4d6; --banner-ink: #5c4300;
   }
@@ -26,6 +29,9 @@
       --brand: #0a1a2e; --brand-2: #10253f; --brand-ink: #ffffff; --brand-ink-2: #9fb2c8;
       --accent: #3987e5; --accent-wash: rgba(57,135,229,0.12);
       --up: #0ca30c; --down: #f06262; --bench: #898781; --danger-bg: #3a1c1c;
+      --gain: #3987e5; --loss: #e66767;
+      --gain-1: rgba(57,135,229,.20); --gain-2: rgba(57,135,229,.38); --gain-3: rgba(57,135,229,.60);
+      --loss-1: rgba(230,103,103,.20); --loss-2: rgba(230,103,103,.38); --loss-3: rgba(230,103,103,.60);
       --banner-bg: #3a3012; --banner-ink: #f5dc9a;
     }
   }
@@ -37,6 +43,9 @@
     --brand: #0a1a2e; --brand-2: #10253f; --brand-ink: #ffffff; --brand-ink-2: #9fb2c8;
     --accent: #3987e5; --accent-wash: rgba(57,135,229,0.12);
     --up: #0ca30c; --down: #f06262; --bench: #898781; --danger-bg: #3a1c1c;
+    --gain: #3987e5; --loss: #e66767;
+    --gain-1: rgba(57,135,229,.20); --gain-2: rgba(57,135,229,.38); --gain-3: rgba(57,135,229,.60);
+    --loss-1: rgba(230,103,103,.20); --loss-2: rgba(230,103,103,.38); --loss-3: rgba(230,103,103,.60);
     --banner-bg: #3a3012; --banner-ink: #f5dc9a;
   }
 
@@ -149,6 +158,32 @@
   td { padding: 9px 10px; border-bottom: 1px solid var(--grid); vertical-align: middle; }
   tbody tr:hover { background: var(--surface-2); }
   .sym { font-weight: 600; }
+  /* ---- P&L calendar (weekdays + the week's total) ---- */
+  .cal { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(56px, .8fr); gap: 2px; padding: 0 16px 10px; }
+  .cal .hd { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; padding: 2px 6px 4px; }
+  .cal .c { min-height: 66px; border-radius: 6px; padding: 6px 7px; background: var(--surface-2); display: flex;
+            flex-direction: column; justify-content: space-between; gap: 2px; min-width: 0; }
+  .cal .c[data-day] { cursor: pointer; }
+  .cal .c[data-day]:hover, .cal .c[data-day]:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .cal .c.sel { box-shadow: inset 0 0 0 2px var(--ink); }
+  .cal .c.out { background: transparent; }
+  .cal .n { font-size: 11px; color: var(--muted); }
+  .cal .v { font-weight: 600; font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; }
+  .cal .t { font-size: 11px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cal .wk { background: transparent; border-left: 1px solid var(--grid); border-radius: 0; }
+  .cal .g1 { background: var(--gain-1); } .cal .g2 { background: var(--gain-2); } .cal .g3 { background: var(--gain-3); }
+  .cal .l1 { background: var(--loss-1); } .cal .l2 { background: var(--loss-2); } .cal .l3 { background: var(--loss-3); }
+  .cal-legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12px; color: var(--ink-2); padding: 0 16px 14px; }
+  .cal-legend .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; vertical-align: -2px; margin-right: 5px; }
+  .cal-tip { position: fixed; z-index: 50; pointer-events: none; background: var(--surface); border: 1px solid var(--border);
+             border-radius: 8px; padding: 8px 10px; box-shadow: 0 6px 18px rgba(0,0,0,.18); font-size: 12px; color: var(--ink-2); max-width: 260px; }
+  .cal-tip strong { display: block; color: var(--ink); font-size: 15px; font-variant-numeric: tabular-nums; }
+  .cal-day { padding: 0 16px 14px; }
+  .cal-nav { display: flex; align-items: center; gap: 6px; }
+  .cal-nav span { min-width: 112px; text-align: center; font-weight: 600; }
+  @media (max-width: 560px) { .cal { padding: 0 8px 10px; } .cal .c { min-height: 52px; padding: 4px 5px; }
+    .cal .v { font-size: 11px; } .cal .t { display: none; } .cal-nav span { min-width: 90px; } }
   .sym[data-ticker] { cursor: pointer; text-decoration: underline dotted var(--muted); text-underline-offset: 3px; }
   .sym[data-ticker]:hover { color: var(--accent); text-decoration-color: var(--accent); }
   .sym[data-ticker]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
@@ -310,6 +345,15 @@
       <div class="tiles" id="trade-totals" style="padding:4px 16px 16px; justify-content:flex-start"></div>
     </div>
     <div class="card" style="margin-bottom:16px">
+      <div class="card-head" style="flex-wrap:wrap; gap:8px"><h2>Profit &amp; loss calendar</h2><div class="spacer"></div>
+        <div class="seg" id="cal-mode" role="group" aria-label="What each day shows"></div>
+        <div class="cal-nav" id="cal-nav" role="group" aria-label="Month"></div></div>
+      <p class="ink2" id="cal-summary" style="padding:0 16px; margin:2px 0 10px"></p>
+      <div class="cal" id="cal-grid"></div>
+      <div class="cal-legend" id="cal-legend"></div>
+      <div class="cal-day" id="cal-day"></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
       <div class="card-head"><h2>Finished trades</h2><div class="spacer"></div>
         <div class="seg" id="result-filter" role="group" aria-label="Wins or losses"></div></div>
       <div class="table-scroll" id="trades-done"></div>
@@ -387,6 +431,7 @@
   <div class="dlg-actions"><button data-close>Cancel</button><button class="primary blue" id="do-stage2">Start Stage 2</button></div>
 </dialog>
 
+<div class="cal-tip" id="cal-tip" role="tooltip" hidden></div>
 <dialog id="dlg-stock" class="stock" aria-labelledby="stock-title">
   <h3 id="stock-title"></h3>
   <div id="stock-body"></div>
@@ -561,7 +606,7 @@ const store = {
 };
 
 const state = { snap: null, account: null, tab: "summary", range: "3M", side: "all", desk: "all", result: "all", table: false,
-                demo: false, building: false, notice: null };
+                demo: false, building: false, notice: null, calMonth: null, calMode: "realized", calDay: null };
 const theme = store.get("aitrader-theme");
 if (theme) document.documentElement.dataset.theme = theme;
 
@@ -927,7 +972,124 @@ function renderPositions(a) {
 function segmented(box, options, current, onPick) {
   box.replaceChildren(...options.map(([value, label]) => { const b = el("button", { "aria-pressed": String(current === value), text: label }); b.onclick = () => onPick(value); return b; }));
 }
+/* ---------------- P&L calendar: each weekday's profit or loss, and each week's total ---------------- */
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+                "November", "December"];
+const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+const isoDay = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const shortMoney = (v) => v == null ? "" : (v > 0 ? "+" : v < 0 ? "−" : "") + "$" + plain(Math.abs(v), Math.abs(v) >= 1000 ? 0 : 2);
+const tinyMoney = (v) => v == null ? "" : (v > 0 ? "+" : v < 0 ? "−" : "") + "$" + plain(Math.abs(v), Math.abs(v) >= 10 ? 0 : 1);
+function calValue(r) {
+  if (!r) return null;
+  return state.calMode === "change" ? r.change : (r.trades ? r.realized : null);
+}
+function calTip(cell, r) {
+  const tip = $("#cal-tip");
+  const d = new Date(cell.dataset.day + "T12:00:00");
+  const v = calValue(r);
+  const lines = [el("strong", { text: v == null ? "No trades" : shortMoney(v) }),
+                 el("div", { text: `${WEEKDAYS[d.getDay() - 1]}, ${MONTHS[d.getMonth()]} ${d.getDate()}` })];
+  if (r && r.trades) lines.push(el("div", { text: `${r.trades} finished trade${r.trades === 1 ? "" : "s"}: ${r.wins} won, ${r.losses} lost (${shortMoney(r.realized)})` }));
+  if (r && r.change != null) lines.push(el("div", { text: `Account value: ${shortMoney(r.change)} (includes stocks still held)` }));
+  tip.replaceChildren(...lines);
+  tip.hidden = false;
+  const box = cell.getBoundingClientRect();
+  const left = Math.min(window.innerWidth - tip.offsetWidth - 8, Math.max(8, box.left + box.width / 2 - tip.offsetWidth / 2));
+  const top = box.top - tip.offsetHeight - 8 < 8 ? box.bottom + 8 : box.top - tip.offsetHeight - 8;
+  tip.style.left = `${left}px`; tip.style.top = `${top}px`;
+}
+function renderCalendar(a) {
+  const rows = a.calendar || [];
+  const byDay = Object.fromEntries(rows.map(r => [r.date, r]));
+  const today = isoDay(new Date());
+  const thisMonth = today.slice(0, 7);
+  const first = rows.length ? rows[0].date.slice(0, 7) : thisMonth;
+  const latest = rows.length ? rows[rows.length - 1].date.slice(0, 7) : thisMonth;
+  if (!state.calMonth || state.calMonth < first || state.calMonth > thisMonth) state.calMonth = latest > thisMonth ? thisMonth : latest;
+  const [year, month] = state.calMonth.split("-").map(Number);
+  const shift = (n) => { const d = new Date(year, month - 1 + n, 1); state.calMonth = isoDay(d).slice(0, 7); state.calDay = null; renderCalendar(a); };
+
+  segmented($("#cal-mode"), [["realized", "Finished trades"], ["change", "Account value"]], state.calMode,
+            v => { state.calMode = v; renderCalendar(a); });
+  const prev = el("button", { "aria-label": "Previous month", text: "‹" }), next = el("button", { "aria-label": "Next month", text: "›" });
+  prev.disabled = state.calMonth <= first; next.disabled = state.calMonth >= thisMonth;
+  prev.onclick = () => shift(-1); next.onclick = () => shift(1);
+  $("#cal-nav").replaceChildren(prev, el("span", { text: `${MONTHS[month - 1]} ${year}` }), next);
+
+  // the weekdays of this month, Monday to Friday, week by week
+  const start = new Date(year, month - 1, 1), end = new Date(year, month, 0);
+  const monday = new Date(start); monday.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+  const weeks = [];
+  for (let w = new Date(monday); w <= end; w.setDate(w.getDate() + 7)) {
+    weeks.push([0, 1, 2, 3, 4].map(i => { const d = new Date(w); d.setDate(w.getDate() + i); return d; }));
+  }
+  const inMonth = weeks.flat().filter(d => d.getMonth() === month - 1).map(isoDay);
+  const values = inMonth.map(d => calValue(byDay[d])).filter(v => v != null && v !== 0);
+  const biggest = Math.max(...values.map(Math.abs), 0.01);
+  const fit = window.innerWidth < 560 ? tinyMoney : shortMoney;   // a phone: shorter amounts fit the cells
+  const tint = (v) => v == null || v === 0 ? "" : (v > 0 ? "g" : "l") + Math.min(3, Math.max(1, Math.ceil(3 * Math.abs(v) / biggest)));
+
+  const cells = ["Mon", "Tue", "Wed", "Thu", "Fri", "Week"].map(h => el("div", { class: "hd", text: h }));
+  for (const week of weeks) {
+    let total = null;
+    for (const d of week) {
+      const day = isoDay(d);
+      if (d.getMonth() !== month - 1) { cells.push(el("div", { class: "c out" })); continue; }
+      const r = byDay[day], v = calValue(r);
+      if (v != null) total = (total || 0) + v;
+      const future = day > today;
+      const label = `${WEEKDAYS[d.getDay() - 1]} ${MONTHS[d.getMonth()]} ${d.getDate()}: `
+        + (v == null ? "no trades" : shortMoney(v)) + (r && r.trades ? `, ${r.trades} finished trades, ${r.wins} won` : "");
+      const cell = el("div", future ? { class: "c out" } : {
+        class: `c ${tint(v)}${state.calDay === day ? " sel" : ""}`, "data-day": day, tabindex: "0", role: "button", "aria-label": label },
+        el("div", { class: "n", text: d.getDate() }),
+        el("div", { class: "v", text: v == null ? "" : fit(v) }),
+        el("div", { class: "t", text: r && r.trades ? `${r.trades} trade${r.trades === 1 ? "" : "s"} · ${r.wins} won` : "" }));
+      if (!future) {
+        cell.onpointerenter = () => calTip(cell, r); cell.onfocus = () => calTip(cell, r);
+        cell.onpointerleave = cell.onblur = () => { $("#cal-tip").hidden = true; };
+        cell.onclick = () => { state.calDay = state.calDay === day ? null : day; renderCalendar(a); };
+        cell.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); cell.click(); } };
+      }
+      cells.push(cell);
+    }
+    cells.push(el("div", { class: "c wk" }, el("div", { class: "n", text: "week" }),
+      el("div", { class: "v", text: total == null ? "" : fit(total) }), el("div", { class: "t" })));
+  }
+  $("#cal-grid").replaceChildren(...cells);
+  $("#cal-tip").hidden = true;
+
+  // the month in one line, and the legend
+  const days = inMonth.map(d => [d, calValue(byDay[d])]).filter(([, v]) => v != null);
+  const sum = days.reduce((t, [, v]) => t + v, 0);
+  const up = days.filter(([, v]) => v > 0), down = days.filter(([, v]) => v < 0);
+  const best = days.reduce((b, x) => (!b || x[1] > b[1] ? x : b), null), worst = days.reduce((b, x) => (!b || x[1] < b[1] ? x : b), null);
+  const what = state.calMode === "change" ? "account value" : "finished trades";
+  $("#cal-summary").replaceChildren(!days.length ? el("span", { text: `No ${what} in ${MONTHS[month - 1]} yet.` }) : el("span", {},
+    `${MONTHS[month - 1]} (${what}): `, el("strong", { text: shortMoney(sum) }),
+    ` · ${days.length} day${days.length === 1 ? "" : "s"}: ${up.length} up, ${down.length} down`
+    + (best && best[1] > 0 ? ` · best ${shortMoney(best[1])} (${Number(best[0].slice(8))})` : "")
+    + (worst && worst[1] < 0 ? ` · worst ${shortMoney(worst[1])} (${Number(worst[0].slice(8))})` : "")));
+  $("#cal-legend").replaceChildren(
+    el("span", {}, el("span", { class: "sw", style: "background:var(--gain-3)" }), "Made money"),
+    el("span", {}, el("span", { class: "sw", style: "background:var(--loss-3)" }), "Lost money"),
+    el("span", { text: "Deeper color = a bigger day for this month. Click a day for its trades; the Day by day table below has every number." }));
+
+  // the trades of the day you clicked
+  const day = state.calDay;
+  if (!day) { $("#cal-day").replaceChildren(); return; }
+  const done = (a.trades || []).filter(t => t.sold_on === day);
+  const r = byDay[day];
+  $("#cal-day").replaceChildren(el("h3", { style: "margin:4px 0 8px; font-size:14px", text: `Trades that finished on ${day}` }),
+    !done.length ? el("p", { class: "ink2", text: r && r.change != null ? `None. The account value changed by ${shortMoney(r.change)} because stocks it still holds moved.` : "None." })
+    : el("div", { class: "table-scroll" }, el("table", {}, el("thead", {}, el("tr", {}, ["Stock", "Desk", "Bought", "Made / lost", "Why it sold"].map(h => el("th", { class: h === "Made / lost" ? "num" : null, text: h })))),
+        el("tbody", {}, done.map(t => el("tr", {}, symCell(t.ticker), el("td", { class: "muted", text: t.desk }),
+          el("td", { class: "muted", text: `${t.bought_on} @ ${money(t.buy_price)}` }),
+          el("td", { class: "num " + dir(t.gain), text: `${signedMoney(t.gain)} (${pct(t.gain_pct)})` }),
+          el("td", { class: "reason", text: t.why_sold })))))));
+}
 function renderTrades(a) {
+  renderCalendar(a);
   const t = a.totals || {};
   const names = { study: "In its head (pretend money while studying)", paper: "Paper account (practice money)", live: "Real money" };
   $("#trades-title").textContent = names[state.account] || "How it's doing";

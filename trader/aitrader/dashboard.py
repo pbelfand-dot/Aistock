@@ -135,7 +135,7 @@ def _account(cfg, store, kind: str) -> dict:
     activity.sort(key=lambda a: (a["date"], a["id"]), reverse=True)
 
     # The trade report (report.py): every finished trade, each day's change, and the totals.
-    from .report import daily as daily_rows, totals as totals_row, trades as trade_rows
+    from .report import calendar as calendar_rows, daily as daily_rows, totals as totals_row, trades as trade_rows
     done = sorted((t for d in active_desks(cfg) for t in trade_rows(store.fills(f"{kind}-{d}"), d)),
                   key=lambda t: t["sold_on"], reverse=True)
     holding = [{"desk": p["desk"], "ticker": p["ticker"], "qty": p["qty"], "bought_on": p["opened_on"],
@@ -161,6 +161,7 @@ def _account(cfg, store, kind: str) -> dict:
         "trades": done[:300],
         "holding": holding,
         "daily": daily_rows(total, start_value)[:400] if len(total) else [],
+        "calendar": calendar_rows(done, daily_rows(total, start_value) if len(total) else []),
         "totals": totals_row(done, holding, start_value, value, bench_ret, days=int(len(total))),
     }
 
