@@ -12,6 +12,7 @@ from dataclasses import asdict, dataclass
 
 import pandas as pd
 
+from ..risk import shares
 from ..settlement import settles_on
 
 # Schwab (and most brokers): 3 good faith violations in 12 months = 90 days restricted to settled cash.
@@ -22,7 +23,7 @@ GFV_LIMIT = 3
 class Order:
     ticker: str
     side: str          # "BUY" or "SELL"
-    qty: int
+    qty: float         # whole shares, or parts of a share where the broker allows (risk.shares)
     price: float       # the price we saw when we decided
     reason: str
     urgent: bool = False   # must get out NOW (stop-loss, end of day, emergency): live uses a market order
@@ -34,7 +35,7 @@ class Fill:
     date: str
     ticker: str
     side: str
-    qty: int
+    qty: float
     price: float
     reason: str
     realized_pnl: float = 0.0
@@ -44,7 +45,7 @@ class Fill:
 @dataclass
 class Position:
     ticker: str
-    qty: int
+    qty: float
     avg_cost: float
     opened_on: str
     stop_order_id: str = ""   # live only: the stop-loss order resting at Schwab
@@ -87,13 +88,14 @@ class Ledger:
         return sum(1 for day in self.gfv_events if day > year_ago)
 
     def apply(self, fill: Fill) -> Fill:
+        fill.qty = shares(fill.qty)
         if fill.side == "BUY":
             cost = fill.qty * fill.price
             still_unsettled = self.unsettled_after(fill.date)
             used_unsettled = still_unsettled > 0 and cost > self.cash - still_unsettled + 0.005
             pos = self.positions.get(fill.ticker)
             if pos:
-                total = pos.qty + fill.qty
+                total = shares(pos.qty + fill.qty)
                 pos.avg_cost = (pos.avg_cost * pos.qty + fill.price * fill.qty) / total
                 pos.qty = total
             else:
@@ -105,8 +107,8 @@ class Ledger:
         else:
             pos = self.positions[fill.ticker]
             fill.realized_pnl = round((fill.price - pos.avg_cost) * fill.qty, 2)
-            pos.qty -= fill.qty
-            if pos.qty <= 0:
+            pos.qty = shares(pos.qty - fill.qty)
+            if pos.qty <= 1e-6:                        # all sold (not a rounding crumb left behind)
                 del self.positions[fill.ticker]
             proceeds = fill.qty * fill.price
             self.cash += proceeds

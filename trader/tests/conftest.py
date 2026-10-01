@@ -52,4 +52,5 @@ def cfg(tmp_path):
     c["ai"]["day"].update(min_train=780, retrain_every=390)
     c["live_trading_enabled"] = False
     c["secrets"] = {k: "" for k in c["secrets"]}      # never use the real keys in .env during tests
+    c["fractional"] = {"enabled": False}               # whole shares, unless a test turns fractional on
     return c

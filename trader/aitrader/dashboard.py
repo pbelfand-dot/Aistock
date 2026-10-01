@@ -18,6 +18,7 @@ import pandas as pd
 from .config import active_desks, data_path, data_source, desk_capital
 from .market_hours import now_ny
 from .performance import summarize
+from .risk import shares
 from .phases import STEP_NUMBER, current_phase, study_progress
 from .study import day_forward_report, forward_report
 
@@ -95,7 +96,7 @@ def _account(cfg, store, kind: str) -> dict:
         desks[desk] = {"started": bool(len(curve) or ledger), "capital": capital, "value": _num(now_value),
                        "stats": stats}
         for f in fills.itertuples():
-            activity.append({"id": f.id, "date": f.date, "desk": desk, "side": f.side, "qty": int(f.qty),
+            activity.append({"id": f.id, "date": f.date, "desk": desk, "side": f.side, "qty": shares(float(f.qty)),
                              "ticker": f.ticker, "price": _num(f.price), "amount": _num(f.qty * f.price),
                              "realized_pnl": _num(f.realized_pnl) if f.side == "SELL" else None,
                              "reason": f.reason})

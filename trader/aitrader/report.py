@@ -10,6 +10,8 @@ dollars and percent, win or lose), each day's value and change, and the overall 
 """
 import pandas as pd
 
+from .risk import shares
+
 MODES = ("study", "paper", "live")
 LABELS = {"study": "In its head (while studying)", "paper": "Paper (practice money)", "live": "Real money"}
 
@@ -22,7 +24,7 @@ def trades(fills: pd.DataFrame, desk: str = "") -> list:
     """Finished trades, newest first: each sale matched to what was paid for those shares."""
     lots, out = {}, []
     for f in fills.itertuples(index=False):
-        qty, price = int(f.qty), float(f.price)
+        qty, price = shares(float(f.qty)), float(f.price)
         if f.side == "BUY":
             lot = lots.setdefault(f.ticker, {"qty": 0, "cost": 0.0, "opened": str(f.date)[:10], "why": str(f.reason)})
             lot["qty"] += qty
@@ -125,12 +127,12 @@ def signed(x) -> str:
 def _fill_line(f, spent_by_ticker) -> str:
     amount = float(f.qty) * float(f.price)
     if f.side == "BUY":
-        return f"- BUY {int(f.qty)} {f.ticker} @ ${float(f.price):.2f} (spent ${amount:,.2f}): {f.reason}"
+        return f"- BUY {shares(float(f.qty))} {f.ticker} @ ${float(f.price):.2f} (spent ${amount:,.2f}): {f.reason}"
     pnl = float(f.realized_pnl or 0)
     cost = amount - pnl
     verdict = "WIN" if pnl > 0 else "LOSS" if pnl < 0 else "even"
     pct = f", {pnl / cost * 100:+.1f}%" if cost > 0 else ""
-    return (f"- SELL {int(f.qty)} {f.ticker} @ ${float(f.price):.2f} (got back ${amount:,.2f}; "
+    return (f"- SELL {shares(float(f.qty))} {f.ticker} @ ${float(f.price):.2f} (got back ${amount:,.2f}; "
             f"{verdict} {signed(pnl)}{pct}): {f.reason}")
 
 

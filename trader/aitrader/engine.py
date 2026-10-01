@@ -67,8 +67,8 @@ def decide_orders(scores: pd.Series, prices: pd.Series, positions: dict, buying_
             continue
         price = prices.get(ticker)
         qty = risk.position_size(equity, buying_power, price)
-        if qty < 1:
-            continue                     # can't afford one whole share within the limits
+        if qty <= 0:
+            continue                     # can't afford a share (or $1 of one, with fractional shares) within the limits
         orders.append(Order(ticker, "BUY", qty, price, f"{strategy.name} score {score:.2f} >= {strategy.buy_above}"))
         buying_power -= qty * price
         open_slots -= 1

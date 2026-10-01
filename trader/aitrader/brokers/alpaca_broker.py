@@ -14,6 +14,7 @@ and the LIVE account; only the keys differ.
 """
 import uuid
 
+from ..risk import shares
 from .live import LiveBroker, OrderRejected
 
 TAG = "aitrader-"
@@ -24,6 +25,14 @@ class AlpacaGateway:
 
     def __init__(self, client):
         self.client = client              # alpaca.trading.client.TradingClient
+        self._fractionable = {}
+
+    def fractionable(self, ticker: str) -> bool:
+        """Alpaca says, stock by stock, whether it can be bought in parts of a share."""
+        if ticker not in self._fractionable:
+            asset = self.client.get_asset(ticker)
+            self._fractionable[ticker] = bool(getattr(asset, "fractionable", False) and asset.tradable)
+        return self._fractionable[ticker]
 
     def new_client_id(self) -> str:
         return TAG + uuid.uuid4().hex[:20]
@@ -60,7 +69,7 @@ class AlpacaGateway:
 
     def order(self, order_id: str) -> dict:
         o = self.client.get_order_by_id(order_id)          # raises on errors: never read as "finished"
-        return {"status": _upper(o.status), "filled_qty": int(float(o.filled_qty or 0)),
+        return {"status": _upper(o.status), "filled_qty": shares(float(o.filled_qty or 0)),
                 "avg_price": float(o.filled_avg_price or 0)}
 
     def order_by_client_id(self, client_id: str):
@@ -88,7 +97,7 @@ class AlpacaGateway:
         return min(values)                # never borrowed money
 
     def holdings(self) -> dict:
-        return {p.symbol: max(0, int(float(p.qty))) for p in self.client.get_all_positions()}
+        return {p.symbol: max(0, shares(float(p.qty))) for p in self.client.get_all_positions()}
 
     def find_sell_stops(self, ticker: str) -> list:
         from alpaca.trading.enums import QueryOrderStatus

@@ -37,8 +37,12 @@ live:
 #   * A ticker can be on only ONE desk.
 #   * DON'T list stocks you own yourself. In your shared account the bot skips
 #     them anyway, to keep your shares and tax lots separate from its own.
-#   * Whole shares only (Schwab's API can't do fractional shares). Stocks where
-#     1 share costs more than one position's budget are skipped automatically.
+#   * Fractional shares (parts of a share) where the orders go can do them: Alpaca and the
+#     simulation on this Mac. Schwab's API can't, and Webull's isn't confirmed yet: there it's
+#     whole shares, and stocks where 1 share costs more than a position's budget are skipped.
+fractional:
+  enabled: true            # off = whole shares everywhere (Setup -> Settings)
+
 desks:
   swing:                   # holds days to weeks; decides once a day, 15 min before the close
     enabled: true
@@ -148,7 +152,7 @@ scanner:
   new_listings: 5          # newly listed stocks (under a year of history): watch only
   min_price: 3             # no penny stocks
   min_dollar_volume: 5000000   # average $ traded per day (20 days): easy to get in and out
-  trade_top: 30            # the swing desk considers the 30 strongest stocks it can afford (whole shares)
+  trade_top: 30            # the swing desk considers the 30 strongest stocks it can afford
                            # (enough for its 8 slots: it buys from the top 20% of what it considers)
 
 # ---- Stocks in play (in_play.py): the day desk's extra stocks each morning ----------------------
