@@ -54,3 +54,10 @@ def cfg(tmp_path):
     c["secrets"] = {k: "" for k in c["secrets"]}      # never use the real keys in .env during tests
     c["fractional"] = {"enabled": False}               # whole shares, unless a test turns fractional on
     return c
+
+
+@pytest.fixture(autouse=True)
+def no_yahoo_earnings(monkeypatch):
+    """Earnings dates come from Yahoo on the Mac; in tests nobody goes online (a test can fake its own)."""
+    from aitrader import earnings
+    monkeypatch.setattr(earnings, "_from_yahoo", lambda ticker, today: None)

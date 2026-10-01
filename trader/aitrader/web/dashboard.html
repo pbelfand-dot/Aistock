@@ -482,6 +482,8 @@
         <label>Paper (practice) money ($)<input id="set-paper" inputmode="decimal"></label>
         <label>Fractional shares (Alpaca and the simulation)<select id="set-frac"><option value="on">On: parts of a share</option>
           <option value="off">Off: whole shares only</option></select></label>
+        <label>Don't buy right before earnings (swing desk)<select id="set-earn"><option value="on">On: skip the last 3 trading days</option>
+          <option value="off">Off</option></select></label>
         <label>Scan all US stocks every day<select id="set-scan"><option value="on">On</option>
           <option value="off">Off (only the watchlist)</option></select></label>
         <label>Let Kestrel read the news<select id="set-news"><option value="on">On (Alpaca/Yahoo headlines)</option>
@@ -913,7 +915,7 @@ function positionsTable(rows, full) {
       el("td", { class: "num " + dir(p.day_change_pct), text: pct(p.day_change_pct) }),
       el("td", { class: "num", text: money(p.market_value) }),
       el("td", { class: "num " + dir(p.gain) }, `${signedMoney(p.gain)} `, el("span", { style: "font-size:12px", text: `(${pct(p.gain_pct)})` })),
-      full ? el("td", { class: "num", title: p.stop_at_broker ? "A stop order is resting at the broker" : "The bot checks this every 5 minutes", text: money(p.stop) + (p.stop_at_broker ? " ✓" : "") }) : null,
+      full ? el("td", { class: "num", title: `${plain(p.stop_pct, 1)}% below its buy price. ` + (p.stop_at_broker ? "A stop order is resting at the broker" : "The bot checks this every 5 minutes"), text: money(p.stop) + (p.stop_at_broker ? " ✓" : "") }) : null,
       full ? el("td", { class: "num muted", text: p.opened_on }) : null))));
 }
 function renderPositions(a) {
@@ -1212,6 +1214,7 @@ async function refreshSetup() {
       $("#set-acct").value = set.account_type; $("#set-paper").value = set.paper_cash;
       $("#set-paperat").value = set.paper_broker || "auto";
       $("#set-frac").value = set.fractional || "on";
+      $("#set-earn").value = set.earnings_check || "on";
       $("#set-scan").value = set.scan_all_stocks || "on"; $("#set-news").value = set.read_news || "on";
       $("#sw-callback").value = s.schwab.callback_url || "";
       $("#setup-later").dataset.filled = "1";
@@ -1327,7 +1330,7 @@ $("#screen-send").onclick = (e) => setupAction(e.target, "phone-screen-send", un
 $("#save-settings").onclick = (e) => setupAction(e.target, "save-settings", {
   broker: $("#set-broker").value, real_money_cap: $("#set-cap").value,
   account_type: $("#set-acct").value, paper_cash: $("#set-paper").value, paper_broker: $("#set-paperat").value,
-  fractional: $("#set-frac").value, scan_all_stocks: $("#set-scan").value, read_news: $("#set-news").value });
+  fractional: $("#set-frac").value, earnings_check: $("#set-earn").value, scan_all_stocks: $("#set-scan").value, read_news: $("#set-news").value });
 $("#save-schwab").onclick = (e) => setupAction(e.target, "save-schwab-keys", {
   app_key: $("#sw-key").value, app_secret: $("#sw-secret").value, callback_url: $("#sw-callback").value,
   account_number: $("#sw-acct").value }, async (r) => { $("#sw-key").value = ""; $("#sw-secret").value = ""; notify(r.message); });

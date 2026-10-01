@@ -28,6 +28,7 @@ class Order:
     reason: str
     urgent: bool = False   # must get out NOW (stop-loss, end of day, emergency): live uses a market order
     emergency: bool = False  # your typed emergency stop: the only sale allowed to risk a good faith violation
+    stop_pct: float = None   # buys: this stock's stop-loss distance in % (risk.stop_for); None = the desk's fixed stop
 
 
 @dataclass
@@ -51,6 +52,7 @@ class Position:
     stop_order_id: str = ""   # live only: the stop-loss order resting at Schwab
     funds_settle_on: str = "" # cash accounts: if (part of) the money that bought it was still unsettled, the day
                               # that money settles. Selling before then would be a good faith violation.
+    stop_pct: float = 0.0     # its own stop-loss distance in % (sized to how much it moves); 0 = the desk's fixed stop
 
 
 class Ledger:
@@ -187,6 +189,12 @@ class Broker(ABC):
 
     def cancel_all(self, date: str = None):
         """Cancel the bot's orders still waiting at the broker."""
+
+    def _remember_stop(self, ticker: str, stop_pct):
+        """A new position keeps the stop it was bought with (sized to how much the stock moves)."""
+        pos = self.ledger.positions.get(ticker)
+        if pos and stop_pct and not pos.stop_pct:
+            pos.stop_pct = float(stop_pct)
 
     def _book(self, fill: Fill):
         """Write a fill into the checkbook AND the database, in the same moment."""

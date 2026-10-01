@@ -144,7 +144,7 @@ class LiveBroker(Broker):
 
     def _send(self, kind: str, order: Order, qty: float, limit: float, date: str):
         entry = {"id": None, "ticker": order.ticker, "side": order.side, "reason": order.reason,
-                 "urgent": order.urgent, "client_id": self.gw.new_client_id()}
+                 "urgent": order.urgent, "client_id": self.gw.new_client_id(), "stop_pct": order.stop_pct}
         if entry["client_id"]:                        # our own tag: written down BEFORE sending
             self.ledger.pending.append(entry)
             self.save()
@@ -200,6 +200,8 @@ class LiveBroker(Broker):
         if data["filled_qty"] > 0:
             fill = self._book(Fill(date=date, ticker=entry["ticker"], side=entry["side"], qty=data["filled_qty"],
                                    price=data["avg_price"], reason=entry["reason"], order_id=entry["id"]))
+            if entry["side"] == "BUY":
+                self._remember_stop(entry["ticker"], entry.get("stop_pct"))
         self.save()
         return fill
 
@@ -226,7 +228,7 @@ class LiveBroker(Broker):
         qty = self.stop_qty(pos)
         if qty <= 0:
             return                                    # under one share overnight: the bot's own checks guard it
-        stop = round(pos.avg_cost * (1 - self.stop_loss_pct / 100), 2)
+        stop = round(pos.avg_cost * (1 - (pos.stop_pct or self.stop_loss_pct) / 100), 2)
         try:
             order_id = self.gw.place("stop_sell", pos.ticker, qty, price=stop, gtc=self.stop_gtc,
                                      client_id=self.gw.new_client_id())

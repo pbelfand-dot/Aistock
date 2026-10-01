@@ -88,7 +88,8 @@ def _account(cfg, store, kind: str) -> dict:
             positions.append({"desk": desk, "ticker": t, "qty": p["qty"], "avg_cost": _num(p["avg_cost"]),
                               "last": _num(last), "day_change_pct": q["change_pct"], "market_value": _num(value),
                               "gain": _num(value - cost), "gain_pct": _num((value / cost - 1) * 100) if cost else None,
-                              "stop": _num(p["avg_cost"] * (1 - stop_pct / 100)), "opened_on": p["opened_on"],
+                              "stop": _num(p["avg_cost"] * (1 - (p.get("stop_pct") or stop_pct) / 100)),
+                              "stop_pct": p.get("stop_pct") or stop_pct, "opened_on": p["opened_on"],
                               "stop_at_broker": bool(p.get("stop_order_id"))})
             holdings += value
         # Right now, like a brokerage shows it: cash + what it owns at the latest prices.

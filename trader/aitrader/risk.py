@@ -40,6 +40,12 @@ class RiskManager:
     max_drawdown_pct: float = 15.0     # down this much from the best day -> kill switch
     cash_buffer_pct: float = 1.0       # always keep a little cash
     fractional: bool = False           # may buy parts of a share (where the orders go can: config.fractional_allowed)
+    # Stops sized to how much each stock usually moves (0 = the fixed stop_loss_pct for every stock):
+    stop_atr_multiple: float = 0.0     # stop = this many times the stock's usual daily range (14-day ATR) ...
+    stop_min_pct: float = 1.0          # ... but at least this far below the buy price
+    stop_max_pct: float = 5.0          # ... and at most this far
+    risk_per_trade_pct: float = 0.0    # a wider stop means a smaller position: at most this % of the desk lost at
+                                       # the stop (0 = off). Never bigger than max_position_pct either.
 
     @classmethod
     def for_desk(cls, cfg: dict, desk: str, live: bool = False) -> "RiskManager":
@@ -56,13 +62,23 @@ class RiskManager:
             return float("inf")
         return desk_capital * self.max_position_pct / 100 * (1 - self.cash_buffer_pct / 100)
 
-    def position_size(self, equity: float, buying_power: float, price: float) -> float:
+    def stop_for(self, atr_pct: float = None) -> float:
+        """This stock's stop-loss distance in %: sized to its usual daily range when that's set up and
+        known, otherwise the desk's fixed stop."""
+        if not self.stop_atr_multiple or not atr_pct or math.isnan(atr_pct) or atr_pct <= 0:
+            return self.stop_loss_pct
+        return round(min(self.stop_max_pct, max(self.stop_min_pct, self.stop_atr_multiple * atr_pct)), 2)
+
+    def position_size(self, equity: float, buying_power: float, price: float, stop_pct: float = None) -> float:
         """How many shares to buy: whole shares (Schwab's and Webull's APIs), or down to 0.0001 of a
-        share with fractional shares (at least $1 worth). 0 = nothing affordable."""
+        share with fractional shares (at least $1 worth). 0 = nothing affordable. With risk_per_trade_pct,
+        a wider stop buys less, so a jumpy stock never risks more than a calm one."""
         if not price or math.isnan(price) or price <= 0:
             return 0
         budget = min(equity * self.max_position_pct / 100,
                      buying_power * (1 - self.cash_buffer_pct / 100))
+        if self.risk_per_trade_pct and stop_pct:
+            budget = min(budget, equity * self.risk_per_trade_pct / stop_pct)
         qty = floor_shares(budget / price, self.fractional)
         return qty if qty * price >= (MIN_ORDER_VALUE if self.fractional else 0) else 0
 
@@ -79,8 +95,8 @@ class RiskManager:
         keep = floor_shares(limit / price, self.fractional)
         return max(0, shares(qty - keep))
 
-    def stop_loss_hit(self, avg_cost: float, price: float) -> bool:
-        return price <= avg_cost * (1 - self.stop_loss_pct / 100)
+    def stop_loss_hit(self, avg_cost: float, price: float, stop_pct: float = None) -> bool:
+        return price <= avg_cost * (1 - (stop_pct or self.stop_loss_pct) / 100)
 
     def new_buys_allowed(self, equity: float, yesterday_equity) -> tuple:
         if yesterday_equity and equity < yesterday_equity * (1 - self.daily_loss_limit_pct / 100):

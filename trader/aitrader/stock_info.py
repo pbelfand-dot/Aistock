@@ -150,6 +150,10 @@ def kestrel_view(cfg, store, ticker: str, today: str = None) -> dict:
     news_row = next((r for r in rows if r["symbol"] == ticker and r.get("news")), None)
     news = (news_row or {}).get("news") or ((scan.get("held_news") or {}).get(ticker) or {}).get("news") or []
     lessons = [m for d in desks for m in store.get(f"mistakes:{d}") or [] if m["tag"] == f"buying {ticker}"]
+    from .earnings import cached
+    report_day = cached(cfg, ticker)
+    if report_day:
+        lists.append(f"Next earnings report: {report_day}")
     return {"lists": lists, "holding": holding, "trades": done[:5],
             "won": sum(t["result"] == "win" for t in done), "finished": len(done),
             "scores": scores, "news": news[:3], "danger": scanner.danger_tickers(cfg).get(ticker) or [],

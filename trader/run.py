@@ -278,6 +278,50 @@ def trade_desk(cfg, store, data, desk, now, stops_only=False, dry_run=False, any
         return _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
 
 
+def earnings_hold(cfg, store, desk, broker, bars, now) -> dict:
+    """Stocks this desk won't buy because their earnings report is a few trading days away
+    (earnings.py; the swing desk only). Said once a day in the journal; kept for the report."""
+    from aitrader import earnings
+    if not earnings.is_on(cfg, desk):
+        return {}
+    today = now.strftime("%Y-%m-%d")
+    owned = set(broker.positions())
+    try:
+        soon = {t: d for t, d in earnings.soon(cfg, [t for t in bars if t not in owned], today, limit=30).items()}
+    except Exception as e:                                   # never let a website stop the decision
+        store.log(f"[{broker.mode}] couldn't check earnings dates ({e!r}); buying without that check today")
+        return {}
+    before = store.get(f"earnings_hold:{desk}") or {}
+    store.set(f"earnings_hold:{desk}", {"day": today, "tickers": soon})
+    if soon and (before.get("day") != today or before.get("tickers") != soon):
+        days = earnings.settings(cfg)["days_before"]
+        store.log(f"[{broker.mode}] not buying before earnings (within {days} trading days): "
+                  + ", ".join(f"{t} ({d})" for t, d in sorted(soon.items())))
+    return soon
+
+
+def look_up_earnings(cfg, store, today):
+    """Each morning, in the background: the next earnings dates for the swing desk's stocks, so its
+    3:45pm decision doesn't wait on a website."""
+    import threading
+    from aitrader import earnings
+    from aitrader.scanner import trade_candidates
+    if not earnings.is_on(cfg, "swing") or "swing" not in active_desks(cfg):
+        return
+    held = {t for kind in ("study", "paper", "live") for t in (store.get(f"{kind}-swing_ledger") or {}).get("positions", {})}
+    tickers = list(dict.fromkeys(cfg["desks"]["swing"]["watchlist"] + trade_candidates(cfg) + sorted(held)))
+
+    def work():
+        try:
+            earnings.next_dates(cfg, tickers, today)
+        except Exception:
+            pass                                             # the 3:45pm decision looks up what's missing
+    if SCAN_IN_BACKGROUND:
+        threading.Thread(target=work, daemon=True, name="earnings").start()
+    else:
+        work()
+
+
 def head_strategy(cfg, desk) -> str:
     """The method a studying desk trades in its head (config.yaml: study.in_its_head_strategy)."""
     return (cfg["study"].get("in_its_head_strategy") or {}).get(desk) or \
@@ -298,6 +342,8 @@ def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
     from aitrader.scanner import danger_tickers
     danger = danger_tickers(cfg)                              # danger headlines: not buying these for now
     broker.blocked = frozenset(broker.blocked) | {t for t in danger if t not in broker.positions()}
+    if not stops_only:                                       # earnings report soon: not buying these either
+        broker.blocked = frozenset(broker.blocked) | set(earnings_hold(cfg, store, desk, broker, bars, now))
     risk, change = learned(cfg, store, desk, broker.mode, strategy.name, market, now.strftime("%Y-%m-%d"))
     result = run_cycle(work_store, broker, strategy, risk, bars, market, now,
                        cfg["desks"][desk], stops_only=stops_only, no_buys=change["no_buys"], cfg=cfg)
@@ -542,6 +588,7 @@ def run_job(job, cfg, store, data, now, done) -> str:
         if warning:
             store.log(f"WARNING: {warning}")
         first_scan(cfg, store, today)
+        look_up_earnings(cfg, store, today)
         return ""
     if job == "inplay":
         from aitrader import in_play

@@ -14,6 +14,7 @@ SETTINGS = {
     "broker": (("broker",), ("alpaca", "schwab", "webull"), "Broker for real money"),
     "paper_broker": (("paper", "broker"), ("auto", "alpaca", "webull", "local"), "Where paper trading happens"),
     "fractional": (("fractional", "enabled"), ("on", "off"), "Fractional shares (where the broker allows)"),
+    "earnings_check": (("earnings", "enabled"), ("on", "off"), "Don't buy right before earnings (swing desk)"),
     "real_money_cap": (("live", "max_capital"), (10, 100000), "Most real money the bot may use ($)"),
     "account_type": (("live", "account_type"), ("auto", "cash", "margin"), "Account type"),
     "paper_cash": (("paper", "starting_cash"), (100, 1000000), "Paper (practice) money ($)"),
