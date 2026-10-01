@@ -30,6 +30,10 @@ code changes.
   to the buy and sell lines, what it decided and why (or why not), the team's notes (Scout, Analyst,
   Trader, Risk), how far each holding is from its stop-loss, and every check so far today. It refreshes
   every 5 seconds, also on the phone screen.
+- **Weekend practice** (Saturday and Sunday, on or off in Setup → Settings): Kestrel replays real past
+  trading days from the prices saved on your Mac, fast (about 30 minutes per day), through the desks' own
+  rules, and runs a crypto experiment with $500 of pretend money at live prices. Watch it in the Thinking
+  tab. It's practice only: it never counts toward Stage 1, real money, or what the desks learn.
 - **Trades** (a tab) shows every trade: what it spent, what it got back, the gain or loss in $ and %,
   win or lose, each day's % change, and the totals vs. the S&P 500. It works the same for all three
   accounts (pick one at the top of the Summary tab): *In its head* (pretend trades while a desk

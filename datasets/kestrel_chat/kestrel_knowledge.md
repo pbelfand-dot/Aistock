@@ -39,6 +39,10 @@ code changes.
   to the buy and sell lines, what it decided and why (or why not), the team's notes (Scout, Analyst,
   Trader, Risk), how far each holding is from its stop-loss, and every check so far today. It refreshes
   every 5 seconds, also on the phone screen.
+- **Weekend practice** (Saturday and Sunday, on or off in Setup → Settings): Kestrel replays real past
+  trading days from the prices saved on your Mac, fast (about 30 minutes per day), through the desks' own
+  rules, and runs a crypto experiment with $500 of pretend money at live prices. Watch it in the Thinking
+  tab. It's practice only: it never counts toward Stage 1, real money, or what the desks learn.
 - **Trades** (a tab) shows every trade: what it spent, what it got back, the gain or loss in $ and %,
   win or lose, each day's % change, and the totals vs. the S&P 500. It works the same for all three
   accounts (pick one at the top of the Summary tab): *In its head* (pretend trades while a desk
@@ -547,6 +551,31 @@ from `trades.csv`. Nothing here is proven: the trades are unverified recap drawi
 | H17 | A 4h-close bias rule works: bullish until a bearish 4h close below the last 4h higher low (and vice versa) | Stated as his weekly plan (Jul 6 forecast) | Code it as the only bias filter under H2's entry; compare with no bias filter |
 | H18 | Two-index confirmation: for a long, the weaker index inverts its bearish gap while the stronger breaks structure up (reverse for shorts) | Stated as his rule in the Apr 2026 live session; the confirmed long won | One-index trigger vs two-index confirmation |
 | H19 | No counter-trend entries on a one-way (trend or news) day | Jul 17 and Jul 18 counter-trend longs both lost 1R | Skip entries against the day's direction when the first hour moved more than ~2×ATR(1h) and there's no 5m BOS |
+
+
+---
+
+<!-- from trader/aitrader/knowledge/41-weekend-practice.md -->
+
+# Weekend practice (weekend.py)
+
+On Saturdays and Sundays, while the stock market is closed, Kestrel practices. Two separate experiments,
+each turned on or off in Setup → Settings:
+
+- **Replay** (accounts weekend-swing and weekend-day): real past trading days, from the 5-minute and
+  daily prices saved on the Mac, replayed fast (about 30 minutes per trading day, consecutive days, a
+  different stretch each weekend) through each desk's own strategy, team and risk rules. The swing desk
+  decides at 3:45pm of each replayed day, on that day's closing prices (a 15-minute head start); the day
+  desk every 5 minutes. It's practice, not new evidence: the strategies were chosen by testing this same
+  history.
+- **Crypto** (account weekend-crypto): $500 of pretend money against live crypto prices (Alpaca's free
+  crypto data, no keys), the swing desk's momentum method on hourly bars: a decision at the top of each
+  hour, stop-losses every 5 minutes, everything sold Sunday at 11:50pm. Nothing goes to a broker. An
+  experiment: Kestrel's strategies were only ever tested on stocks.
+
+**None of it counts** toward Stage 1's 30 days, a move to real money, or what the desks learn from their
+own trades (mistake memory and lessons only read the in-its-head, paper and real accounts). Each weekend
+starts fresh; Monday's journal gets one summary line. The Thinking tab shows it live.
 
 
 ---
@@ -1126,6 +1155,19 @@ options_watch:
 news:
   enabled: true
   days: 3
+
+# ---- Weekend practice (Saturday and Sunday; weekend.py) ----------------------
+# Practice only: none of it counts toward Stage 1, real money, or what the desks learn from their
+# own trades. Each weekend starts fresh. Watch it live in the Thinking tab. (Setup -> Settings)
+weekend:
+  replay: on                 # replay real past trading days from the prices saved on this Mac
+  replay_minutes_per_day: 30 # one trading day in about 30 minutes (78 five-minute moments)
+  crypto: on                 # crypto with pretend money at live prices (Alpaca's free crypto data)
+  crypto_budget: 500         # pretend dollars
+  crypto_strategy: momentum  # the swing desk's method, on hourly bars: own the strongest coins
+  crypto_coins: [BTC/USD, ETH/USD, LTC/USD, DOGE/USD, AVAX/USD, LINK/USD, BCH/USD, DOT/USD, UNI/USD, AAVE/USD]
+  crypto_risk: {max_open_positions: 3, max_position_pct: 33, stop_loss_pct: 5, daily_loss_limit_pct: 5,
+                max_drawdown_pct: 20, cash_buffer_pct: 1}
 
 # ---- Optional local LLM (Ollama) for plain-English write-ups ----------------
 # It WRITES the plan, the report summary and the team's notes. It does NOT decide trades.

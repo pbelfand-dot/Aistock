@@ -218,6 +218,19 @@ news:
   enabled: true
   days: 3
 
+# ---- Weekend practice (Saturday and Sunday; weekend.py) ----------------------
+# Practice only: none of it counts toward Stage 1, real money, or what the desks learn from their
+# own trades. Each weekend starts fresh. Watch it live in the Thinking tab. (Setup -> Settings)
+weekend:
+  replay: on                 # replay real past trading days from the prices saved on this Mac
+  replay_minutes_per_day: 30 # one trading day in about 30 minutes (78 five-minute moments)
+  crypto: on                 # crypto with pretend money at live prices (Alpaca's free crypto data)
+  crypto_budget: 500         # pretend dollars
+  crypto_strategy: momentum  # the swing desk's method, on hourly bars: own the strongest coins
+  crypto_coins: [BTC/USD, ETH/USD, LTC/USD, DOGE/USD, AVAX/USD, LINK/USD, BCH/USD, DOT/USD, UNI/USD, AAVE/USD]
+  crypto_risk: {max_open_positions: 3, max_position_pct: 33, stop_loss_pct: 5, daily_loss_limit_pct: 5,
+                max_drawdown_pct: 20, cash_buffer_pct: 1}
+
 # ---- Optional local LLM (Ollama) for plain-English write-ups ----------------
 # It WRITES the plan, the report summary and the team's notes. It does NOT decide trades.
 # Install Ollama (free, ollama.com/download); Kestrel downloads the model by itself (Setup step 7).
