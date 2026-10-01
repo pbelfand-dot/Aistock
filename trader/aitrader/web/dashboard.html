@@ -1408,7 +1408,8 @@ async function refreshSetup() {
     if (sc.link) $("#screen-link").replaceChildren("On your phone, open: ", el("code", { text: sc.link }));
     const ai = s.local_ai || {};
     $("#ai-state").textContent = !ai.enabled ? "off" : !ai.ollama ? "Ollama isn't running" : ai.ready ? `ready · ${ai.model}`
-      : ai.downloading ? `downloading ${ai.model}` + (ai.percent != null ? ` · ${ai.percent}%` : "")
+      : ai.downloading ? "downloading" + (ai.percent != null ? ` · ${ai.percent}%` : "")
+        + (ai.gb_total ? ` (${ai.gb_done || 0} of ${ai.gb_total} GB)` : "")
       : ai.using ? `using ${ai.using} for now` : "model not downloaded";
     $("#ai-download").disabled = !ai.enabled || !ai.ollama || ai.ready || ai.downloading;
     $("#ai-line").textContent = !ai.enabled ? "Turned off in config.yaml (llm.enabled)."
@@ -1417,7 +1418,10 @@ async function refreshSetup() {
           : `This Mac has ${ai.memory_gb} GB of memory, under the ${ai.min_memory_gb} GB that ${ai.big_model} needs next to trading, so it uses the smaller ${ai.model}.`)
         + (ai.error && !ai.downloading && !ai.ready ? ` The last download stopped: ${ai.error}. It tries again by itself within an hour, or press the button.` : "")
         + (!ai.ready && ai.using && ai.using !== ai.model ? ` Until it's downloaded, ${ai.using} writes them.` : "")
-        + (!ai.ollama ? " Without Ollama, Kestrel writes plainer template text instead; everything else works the same." : "");
+        + (!ai.ollama ? " Without Ollama, Kestrel writes plainer template text instead; everything else works the same." : "")
+        + (ai.downloading ? " This updates by itself; when it's done it says ready, and your phone gets a message." : "");
+    clearTimeout(state.aiPoll);                                  // while it downloads, keep the progress live
+    if (ai.downloading) state.aiPoll = setTimeout(() => { if ($("#dlg-setup").open) refreshSetup(); }, 5000);
     const sw = s.schwab;
     $("#schwab-state").textContent = !sw.keys ? "not set up" : sw.days_left == null ? "keys saved · not logged in"
       : sw.days_left <= 0 ? "login expired" : `logged in · ${sw.days_left.toFixed(1)} days left`;

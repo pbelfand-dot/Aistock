@@ -90,9 +90,17 @@ def test_the_download_reports_its_progress_and_its_failures(cfg, ollama, monkeyp
              {"status": "success"}]
     monkeypatch.setattr(llm, "_ollama", lambda cfg, path, body=None, timeout=5:
                         Reply(b"\n".join(json.dumps(x).encode() for x in lines)))
+    sent = []
+    from aitrader import pushover
+    monkeypatch.setattr(pushover, "has_keys", lambda cfg: True)
+    monkeypatch.setattr(pushover, "send", lambda cfg, text, **kw: sent.append((text, kw)))
     assert llm.pull(cfg, "gemma4:12b") is True
     state = llm.download_state(cfg)
     assert state["done"] and state["percent"] == 100 and not state["running"]
+    from aitrader.config import data_path
+    from aitrader.storage import Store
+    assert any("[local AI] ready: gemma4:12b" in m for _, m in Store(data_path(cfg, "aitrader.sqlite")).journal(5))
+    assert len(sent) == 1 and "gemma4:12b is downloaded" in sent[0][0]   # your phone hears it's ready
 
     lines[:] = [{"status": "pulling abc", "total": 200, "completed": 20}, {"error": "disk is full"}]
     assert llm.pull(cfg, "gemma4:12b") is False
