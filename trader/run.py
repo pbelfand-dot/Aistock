@@ -332,6 +332,9 @@ def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
     in_head = phase in IN_ITS_HEAD
     strategy = get_strategy(head_strategy(cfg, desk) if in_head else load_plan(cfg, desk)["strategy"], cfg, desk)
     broker = open_broker(cfg, store, desk, phase, dry_run=dry_run)
+    if not dry_run:
+        from aitrader.engine import say_step
+        say_step(store, broker.mode, "getting the latest prices" + (" (5-minute bars)" if desk == "day" else ""))
     bars, market = load_desk(cfg, store, data, desk, keep=set(broker.positions()), live=phase == Phase.LIVE)
     if not bars:
         return f"{desk}: nothing on the watchlist is affordable (see `status`)"

@@ -156,6 +156,18 @@ def _fill_line(f, spent_by_ticker) -> str:
             f"{verdict} {signed(pnl)}{pct}): {f.reason}")
 
 
+def why_not_buying(thinking: dict) -> str:
+    """Why a decision bought nothing: the reason it gave, or what the scores and slots show."""
+    why = thinking.get("why_no_buys") or ""
+    fresh = [t for t in thinking.get("top") or [] if not t["owned"]]
+    if not why and thinking.get("holding", 0) >= thinking.get("max_positions", 99):
+        why = f"all {thinking['max_positions']} position slots were full"
+    elif not why and fresh and fresh[0]["score"] < thinking.get("buy_above", 1):
+        why = (f"nothing new scored high enough (the best it didn't own was {fresh[0]['ticker']} at "
+               f"{fresh[0]['score']:.2f}; it needs {thinking['buy_above']:.2f})")
+    return why
+
+
 def _desk_section(cfg, store, desk, kind, today) -> list:
     from .config import desk_capital
     from .dashboard import quote
@@ -181,13 +193,7 @@ def _desk_section(cfg, store, desk, kind, today) -> list:
     if len(todays):
         out += [_fill_line(f, {}) for f in todays.itertuples(index=False)]
     else:
-        why = thinking.get("why_no_buys") or ""
-        fresh = [t for t in thinking.get("top") or [] if not t["owned"]]
-        if not why and thinking.get("holding", 0) >= thinking.get("max_positions", 99):
-            why = f"all {thinking['max_positions']} position slots were full"
-        elif not why and fresh and fresh[0]["score"] < thinking.get("buy_above", 1):
-            why = (f"nothing new scored high enough (the best it didn't own was {fresh[0]['ticker']} at "
-                   f"{fresh[0]['score']:.2f}; it needs {thinking['buy_above']:.2f})")
+        why = why_not_buying(thinking)
         out.append(f"- No trades. {why[:1].upper() + why[1:] if why else ''}".rstrip())
     out.append("")
     if thinking.get("top"):

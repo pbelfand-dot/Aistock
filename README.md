@@ -25,6 +25,11 @@ code changes.
 - **Its window** is a brokerage-style dashboard: your account value vs. the S&P 500, positions,
   every trade and why, each desk's progress, the watchlist, and **Pause** / **Emergency stop**
   buttons.
+- **Thinking** (a tab) shows what the bot is thinking, live: what it's doing this moment (getting prices,
+  scoring stocks, the team going over the orders), and for each desk its latest check: the top scores next
+  to the buy and sell lines, what it decided and why (or why not), the team's notes (Scout, Analyst,
+  Trader, Risk), how far each holding is from its stop-loss, and every check so far today. It refreshes
+  every 5 seconds, also on the phone screen.
 - **Trades** (a tab) shows every trade: what it spent, what it got back, the gain or loss in $ and %,
   win or lose, each day's % change, and the totals vs. the S&P 500. It works the same for all three
   accounts (pick one at the top of the Summary tab): *In its head* (pretend trades while a desk

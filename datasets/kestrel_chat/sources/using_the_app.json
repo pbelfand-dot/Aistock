@@ -403,5 +403,15 @@
     "q": "does the local ai send my data anywhere",
     "a": "No. It runs inside Ollama on your own Mac (it talks to localhost:11434), so your trades and notes never leave the computer. The only download is the model itself, once, from Ollama. It also never sees your keys, and it never decides trades.",
     "source": "trader/config.yaml (llm); trader/aitrader/llm.py"
+  },
+  {
+    "q": "can i see what the ai is thinking live",
+    "a": "Yes: the Thinking tab. At the top it says what the autopilot is doing this moment (for example \"A day-desk check: scoring 40 stocks with tjr_model\") or when the next check is. Below, for each desk: its latest check's top scores as bars next to the buy line and the sell line, what it decided and why (or why it didn't buy), the team's notes (Scout, Analyst, Trader, Risk), how far each holding is from its stop-loss, and every check so far today. It refreshes every 5 seconds while you look at it, and works on the phone screen too.",
+    "source": "trader/aitrader/web/dashboard.html (Thinking tab); trader/aitrader/dashboard.py (thinking); README.md"
+  },
+  {
+    "q": "why does the thinking tab say no check yet today",
+    "a": "The desk hasn't made a decision yet today. The day desk checks every 5 minutes while the market is open (it starts after 9:30am New York time); the swing desk decides once a day at 3:45pm and only checks its stop-losses before then. If it still says so during market hours, look at the top line: the autopilot may be off or the Mac asleep (Setup step 2).",
+    "source": "trader/aitrader/web/dashboard.html (Thinking tab); trader/run.py (due_jobs)"
   }
 ]

@@ -28,7 +28,7 @@ from .config import ROOT, data_path
 PORT = 8765
 TAILNET = ipaddress.ip_network("100.64.0.0/10")        # Tailscale gives every device an address in here
 ALLOWED = {"snapshot", "setup-status", "pause", "resume", "kill", "start-stage1", "start-stage2", "phone-test",
-           "stock-info"}                                 # stock-info only reads (what a stock is)
+           "stock-info", "thinking"}                     # stock-info and thinking only read
 WEB = ROOT / "aitrader" / "web"
 SHIM = """<script>
 window.kestrelPhone = true;
