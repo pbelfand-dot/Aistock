@@ -119,7 +119,9 @@ def _paper(cfg, store, desk, bars, strategy_name, upto):
         moments = [d + pd.Timedelta(hours=15, minutes=45) for d in bench[-PAPER_DAYS:]]
     else:
         moments = list(bench[-DAY_DESK_PAPER_DAYS * 78:])
+    last_day = moments[-1].date() if moments else None
     for now in moments:
         watch, market = upto(bars, now)
-        run_cycle(store, broker, strategy, risk, watch, market, now.to_pydatetime(), cfg["desks"][desk])
+        run_cycle(store, broker, strategy, risk, watch, market, now.to_pydatetime(), cfg["desks"][desk],
+                  cfg=cfg if now.date() == last_day else None)   # the team's notes on the last day (Thinking tab)
         store.set(f"{mode}_ledger", ledger.to_dict())

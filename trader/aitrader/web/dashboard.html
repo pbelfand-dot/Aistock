@@ -294,6 +294,7 @@
   .think-checks li { padding: 5px 0; border-top: 1px solid var(--grid); color: var(--ink-2); }
   .think-checks time { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; margin-right: 8px; }
   .score-tip { font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+  @media (max-width: 640px) { .scores { gap: 4px 8px; } .score-tip { font-size: 11px; } }
 
   /* phones (kept last so it wins over the rules above) */
   @media (max-width: 640px) {
@@ -1388,8 +1389,7 @@ function scoreChart(d) {
   const pct = (v) => `${Math.max(0, Math.min(1, v)) * 100}%`;
   const rows = d.top.map(r => {
     const inZone = r.score >= buy, sellZone = r.owned && r.score < sell;
-    const badge = r.owned ? (sellZone ? "owns it · below the sell line" : "owns it")
-      : inZone ? "at or above the buy line" : "";
+    const badge = r.owned ? (sellZone ? "owns it · sell zone" : "owns it") : inZone ? "buy zone" : "";
     const tip = `${r.ticker}: score ${scoreText(r.score)} (buys at ${scoreText(buy)}, sells under ${scoreText(sell)})`
       + (r.price != null ? ` · ${money(r.price)}` : "") + (r.owned ? " · owns it" : "");
     const track = el("div", { class: "score-track", title: tip, role: "img", "aria-label": tip },
@@ -1401,7 +1401,7 @@ function scoreChart(d) {
   });
   return [el("div", { class: "scores" }, ...rows),
     el("div", { class: "score-legend" },
-      el("span", {}, el("span", { class: "sw", style: "background:var(--accent)" }), "at or above the buy line"),
+      el("span", {}, el("span", { class: "sw", style: "background:var(--accent)" }), "buy zone (at or above the buy line)"),
       el("span", {}, el("span", { class: "sw", style: "background:var(--gain-2)" }), "below it"),
       el("span", {}, el("span", { class: "ln" }), `buys at ${scoreText(buy)}`),
       el("span", {}, el("span", { class: "ln sell" }), `sells under ${scoreText(sell)}`))];
@@ -1424,7 +1424,7 @@ function deskThinking(d) {
     kids.push(d.orders.length
       ? el("ul", { class: "think-list" }, ...d.orders.map(o => el("li", {},
           el("strong", { text: `${o.side} ${o.qty} ` }), symCell(o.ticker, "span"), ` @ ${money(o.price)}: ${o.reason}`)))
-      : el("p", { class: "ink2", text: "No trade" + (d.why ? `: ${d.why}.` : ".") }));
+      : el("p", { class: "think-rule", text: "No trade" + (d.why ? `: ${d.why}.` : ".") }));
     kids.push(el("p", { class: "muted", style: "font-size:12px; margin:6px 0 0",
       text: `Holding ${d.holding} of ${d.max_positions} · ${money(d.cash)} cash` }));
     if (d.team || d.team_error) {
