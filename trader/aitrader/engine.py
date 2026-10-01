@@ -266,10 +266,13 @@ def in_play_today(cfg: dict, today: str) -> dict:
 
 
 def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd.DataFrame, now,
-              desk_cfg: dict, stops_only: bool = False, no_buys: str = "", cfg: dict = None) -> dict:
+              desk_cfg: dict, stops_only: bool = False, no_buys: str = "", cfg: dict = None,
+              practice: bool = False) -> dict:
     """One moment of paper or live trading. stops_only: just check stop-losses.
     no_buys: a reason not to open new trades now (e.g. a lesson from its own trades, see learning.py).
-    cfg: when given, the team (agents.py) looks at the orders before they go."""
+    cfg: when given, the team (agents.py) looks at the orders before they go.
+    practice: weekend practice (weekend.py): the team doesn't see today's real option bets or stocks in
+    play, and nothing is written to the desk's mistake memory."""
     mode = broker.mode
     today = now.strftime("%Y-%m-%d")
     prices = closes_table(bars).ffill().iloc[-1]
@@ -310,12 +313,15 @@ def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd
             from .options_flow import gaps_today
             desk = mode.split("-", 1)[-1]
             try:
-                orders, team = review_orders(cfg, orders, scores, prices, broker, bars, gaps_today(store), strategy,
+                orders, team = review_orders(cfg, orders, scores, prices, broker, bars,
+                                             {} if practice else gaps_today(store), strategy,
                                              risk.max_open_positions, lessons=store.get(f"mistakes:{desk}") or [],
-                                             in_play=in_play_today(cfg, today) if strategy.style == "day" else {})
-                from .mistakes import remember_tags
-                remember_tags(store, desk, today, {o.ticker: team["tags"][o.ticker] for o in orders
-                                                   if o.side == "BUY" and o.ticker in team["tags"]})
+                                             in_play=in_play_today(cfg, today) if strategy.style == "day"
+                                             and not practice else {})
+                if not practice:
+                    from .mistakes import remember_tags
+                    remember_tags(store, desk, today, {o.ticker: team["tags"][o.ticker] for o in orders
+                                                       if o.side == "BUY" and o.ticker in team["tags"]})
             except Exception as e:                  # the notes must never block a trade (above all, a stop-loss)
                 team = {"error": f"the team couldn't write its notes ({e!r}); the orders went ahead unchanged"}
     if orders:

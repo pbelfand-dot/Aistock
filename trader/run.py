@@ -796,6 +796,13 @@ def cmd_autopilot(cfg, store, args):
             keep_trying_the_scan(cfg, store, now, done)
         except Exception as e:                               # never crash over the scan
             store.log(f"autopilot: couldn't restart the scan: {e!r}")
+        try:                                                 # Saturday and Sunday: practice (weekend.py)
+            from aitrader import weekend
+            said = weekend.tick(cfg, store, now)
+            if said:
+                print(f"[{now:%H:%M}] {said}")
+        except Exception as e:                               # never crash over practice
+            store.log(f"autopilot: weekend practice problem: {e!r}")
         progress.update(t=time.monotonic(), job=None)
         store.set("autopilot_busy", None)
         week_ago = (now - timedelta(days=7)).strftime("%Y-%m-%d")

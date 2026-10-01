@@ -294,6 +294,10 @@
   .think-checks li { padding: 5px 0; border-top: 1px solid var(--grid); color: var(--ink-2); }
   .think-checks time { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; margin-right: 8px; }
   .score-tip { font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+  .weekend-card { margin-bottom: 16px; }
+  .weekend-card .tiles { justify-content: flex-start; flex: none; }
+  .weekend-cards { margin-bottom: 16px; }
+  .weekend-note { font-size: 13px; color: var(--ink-2); margin: 0 0 12px; }
   @media (max-width: 640px) { .scores { gap: 4px 8px; } .score-tip { font-size: 11px; } }
 
   /* phones (kept last so it wins over the rules above) */
@@ -387,7 +391,9 @@
       <div><strong id="think-text">Asking the bot…</strong><div class="ink2" id="think-also"></div>
         <div class="muted think-meta" id="think-meta"></div></div>
     </div>
+    <div id="think-weekend" hidden></div>
     <div class="think-desks" id="think-desks"></div>
+    <div id="think-lastweekend" hidden></div>
   </section>
 
   <!-- TRADES: every trade, each day, and the totals (the same for in its head, paper and real) -->
@@ -593,6 +599,10 @@
         <label>Scan all US stocks every day<select id="set-scan"><option value="on">On</option>
           <option value="off">Off (only the watchlist)</option></select></label>
         <label>Let Kestrel read the news<select id="set-news"><option value="on">On (Alpaca/Yahoo headlines)</option>
+          <option value="off">Off</option></select></label>
+        <label>Weekend practice: replay real past days<select id="set-wk-replay"><option value="on">On (a day every 30 minutes)</option>
+          <option value="off">Off</option></select></label>
+        <label>Weekend practice: crypto, pretend money<select id="set-wk-crypto"><option value="on">On (live crypto prices)</option>
           <option value="off">Off</option></select></label>
       </div>
       <div class="setup-row"><button id="save-settings">Save settings</button></div>
@@ -1408,8 +1418,9 @@ function scoreChart(d) {
 }
 function deskThinking(d) {
   const name = `${cap(d.desk)} desk`;
+  const replayed = d.mode && d.mode.startsWith("weekend-") && d.desk !== "crypto";
   const kids = [el("div", { class: "card-head" }, el("h2", { text: `${name} · ${d.account}` }), el("div", { class: "spacer" }),
-    el("span", { class: "tag", text: d.today ? `last check ${d.time.slice(-5)}` : "no check yet today" }))];
+    el("span", { class: "tag", text: !d.today ? "no check yet today" : replayed ? `replaying ${d.time}` : `last check ${d.time.slice(-5)}` }))];
   if (d.halted) kids.push(el("p", { class: "ink2", text: "Paused: no new trades (stop-losses still work). Resume in Setup." }));
   if (!d.today) {
     kids.push(el("p", { class: "ink2", text: d.desk === "swing"
@@ -1450,14 +1461,50 @@ function deskThinking(d) {
   }
   return el("div", { class: "card" }, ...kids);
 }
+const WEEKEND_NAMES = { "weekend-day": "Replay · day desk", "weekend-swing": "Replay · swing desk", "weekend-crypto": "Crypto (pretend)" };
+function weekendScoreboard(results) {
+  return el("div", { class: "tiles" }, ...Object.entries(results).map(([mode, x]) =>
+    el("div", { class: "tile", title: `Started with ${money(x.start)}; now worth ${money(x.value)} (open positions included). `
+                                      + `${x.trades} finished trades, ${x.wins} won, ${signedMoney(x.gain)}.` },
+      el("div", { class: "label", text: WEEKEND_NAMES[mode] || mode }),
+      el("div", { class: "value " + ((x.change ?? x.gain) > 0 ? "up" : (x.change ?? x.gain) < 0 ? "down" : ""),
+                  text: signedMoney(x.change ?? x.gain) }),
+      el("div", { class: "label", text: `${x.trades} finished trade${x.trades === 1 ? "" : "s"} · ${x.wins} won` + (x.value != null ? ` · now ${money(x.value)}` : "") }))));
+}
+function renderWeekend(w) {
+  const box = $("#think-weekend"), last = $("#think-lastweekend");
+  box.hidden = !w.active;
+  if (w.active) {
+    const rp = w.replay || {};
+    box.replaceChildren(
+      el("div", { class: "card weekend-card" },
+        el("div", { class: "card-head" }, el("h2", { text: "Weekend practice" }), el("div", { class: "spacer" }),
+          el("span", { class: "tag", text: rp.days_planned ? `${rp.days_done} of ${rp.days_planned} days replayed` : "no replay" })),
+        el("p", { class: "weekend-note", text: "Real past trading days replayed fast through the desks' own rules, plus a crypto experiment with "
+          + "pretend money at live prices. Practice only: none of it counts toward Stage 1, real money, or what the desks learn. "
+          + "It starts fresh each weekend." }),
+        weekendScoreboard(w.results || {})),
+      el("div", { class: "think-desks weekend-cards" }, ...(w.cards || []).map(deskThinking)));
+  }
+  const h = (w.history || [])[0];
+  last.hidden = w.active || !h;
+  if (!w.active && h) {
+    last.replaceChildren(el("div", { class: "card weekend-card", style: "margin-top:16px" },
+      el("div", { class: "card-head" }, el("h2", { text: `Last weekend's practice (${h.weekend})` }), el("div", { class: "spacer" }),
+        el("span", { class: "tag", text: `${h.days.length} day${h.days.length === 1 ? "" : "s"} replayed` })),
+      el("p", { class: "weekend-note", text: "Practice only: it never counts toward Stage 1 or real money. It runs again on Saturday." }),
+      weekendScoreboard(h.results || {})));
+  }
+}
 function renderThinking(r) {
   const busy = r.live.busy;
   $("#think-pulse").className = "pulse" + (busy ? " busy" : r.running ? " waiting" : "");
   $("#think-text").textContent = r.live.text;
   $("#think-also").textContent = r.live.also || "";
-  $("#think-meta").textContent = (busy ? `Started ${r.live.since}. ` : "") + `Updated ${r.time.slice(11, 19)} · refreshes every 5 seconds.`;
+  $("#think-meta").textContent = (busy && r.live.since ? `Started ${r.live.since}. ` : "") + `Updated ${r.time.slice(11, 19)} · refreshes every 5 seconds.`;
   $("#think-tab-dot").classList.toggle("on", busy);
   $("#think-desks").replaceChildren(...r.desks.map(deskThinking));
+  renderWeekend(r.weekend || {});
 }
 document.querySelectorAll(".tab").forEach(b => b.onclick = () => setTab(b.dataset.tab));
 document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => setTab(b.dataset.go));
@@ -1532,6 +1579,7 @@ async function refreshSetup() {
       $("#set-frac").value = set.fractional || "on";
       $("#set-earn").value = set.earnings_check || "on";
       $("#set-scan").value = set.scan_all_stocks || "on"; $("#set-news").value = set.read_news || "on";
+      $("#set-wk-replay").value = set.weekend_replay || "on"; $("#set-wk-crypto").value = set.weekend_crypto || "on";
       $("#sw-callback").value = s.schwab.callback_url || "";
       $("#setup-later").dataset.filled = "1";
     }
@@ -1663,7 +1711,8 @@ $("#screen-send").onclick = (e) => setupAction(e.target, "phone-screen-send", un
 $("#save-settings").onclick = (e) => setupAction(e.target, "save-settings", {
   broker: $("#set-broker").value, real_money_cap: $("#set-cap").value,
   account_type: $("#set-acct").value, paper_cash: $("#set-paper").value, paper_broker: $("#set-paperat").value,
-  fractional: $("#set-frac").value, earnings_check: $("#set-earn").value, scan_all_stocks: $("#set-scan").value, read_news: $("#set-news").value });
+  fractional: $("#set-frac").value, earnings_check: $("#set-earn").value, scan_all_stocks: $("#set-scan").value, read_news: $("#set-news").value,
+  weekend_replay: $("#set-wk-replay").value, weekend_crypto: $("#set-wk-crypto").value });
 $("#save-schwab").onclick = (e) => setupAction(e.target, "save-schwab-keys", {
   app_key: $("#sw-key").value, app_secret: $("#sw-secret").value, callback_url: $("#sw-callback").value,
   account_number: $("#sw-acct").value }, async (r) => { $("#sw-key").value = ""; $("#sw-secret").value = ""; notify(r.message); });

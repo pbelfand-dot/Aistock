@@ -247,11 +247,8 @@ def thinking(cfg, store, now=None) -> dict:
     """The live Thinking tab: what the autopilot is doing this moment, and for each desk its latest check
     (the scores, the team's notes, what it did or why not), what it's watching, and today's earlier checks."""
     from datetime import timedelta
-    from .agents import team_parts
     from .market_hours import in_session
     from .phases import mode_of
-    from .report import why_not_buying
-    from .strategies import all_strategies
     demo = cfg["data"].get("source") == "demo"
     if now is None and demo:                             # the demo's made-up days: show its last check
         from .phases import mode_of as _mode
@@ -285,28 +282,84 @@ def thinking(cfg, store, now=None) -> dict:
 
     desks = []
     for desk in active_desks(cfg):
-        phase = current_phase(store, desk)
-        mode = mode_of(phase, desk)
-        kind = mode.split("-")[0]
-        t = store.get(f"{mode}_thinking") or {}
-        fresh = t.get("time", "").startswith(today)
-        team = t.get("team") if fresh else None
-        description = next((s.description for s in all_strategies(cfg, desk) if s.name == t.get("strategy")), "")
-        watch = store.get(f"{mode}_watch") or {}
-        checks = store.get(f"{mode}_checks") or {}
-        desks.append({
-            "desk": desk, "mode": mode, "account": {"study": "in its head", "paper": "paper",
-                                                    "live": "REAL money"}[kind],
-            "halted": bool(store.get(f"halted:{desk}")), "today": fresh, "time": t.get("time"),
-            "strategy": t.get("strategy"), "description": description,
-            "buy_above": t.get("buy_above"), "sell_below": t.get("sell_below"),
-            "top": t.get("top") or [], "holding": t.get("holding"), "max_positions": t.get("max_positions"),
-            "cash": t.get("cash"), "orders": t.get("orders") or [], "why": why_not_buying(t) if t else "",
-            "team": team_parts(team) if team and not team.get("error") else None,
-            "team_error": (team or {}).get("error"),
-            "watch": watch if watch.get("time", "").startswith(today) else None,
-            "checks": list(reversed(checks.get("items", []))) if checks.get("date") == today else []})
-    return {"time": now.isoformat(timespec="seconds"), "running": running, "live": live, "desks": desks}
+        mode = mode_of(current_phase(store, desk), desk)
+        account = {"study": "in its head", "paper": "paper", "live": "REAL money"}[mode.split("-")[0]]
+        desks.append({**_desk_card(cfg, store, desk, mode, account, today),
+                      "halted": bool(store.get(f"halted:{desk}"))})
+    week = _weekend(cfg, store, now)
+    if week.get("active") and not demo:
+        live = {**live, "text": week["text"], "busy": week["replay"].get("running", False),
+                "also": week.get("also") or live.get("also")}
+    return {"time": now.isoformat(timespec="seconds"), "running": running, "live": live, "desks": desks,
+            "weekend": week}
+
+
+def _desk_card(cfg, store, desk, mode, account, today=None) -> dict:
+    """One desk's latest check for the Thinking tab. today=None: the latest check, whatever its date
+    (weekend practice replays past days)."""
+    from .agents import team_parts
+    from .report import why_not_buying
+    from .strategies import all_strategies
+    t = store.get(f"{mode}_thinking") or {}
+    fresh = bool(t) and (today is None or t.get("time", "").startswith(today))
+    day = t.get("time", "")[:10] if today is None else today
+    team = t.get("team") if fresh else None
+    style = "day" if desk == "day" else "swing"
+    description = next((s.description for s in all_strategies(cfg, style) if s.name == t.get("strategy")), "")
+    if desk == "crypto" and description:
+        description += (" On crypto it runs on hourly bars instead of daily ones (its \"days\" are hours), and "
+                        "Bitcoin stands in for the S&P 500.")
+    watch = store.get(f"{mode}_watch") or {}
+    checks = store.get(f"{mode}_checks") or {}
+    return {
+        "desk": desk, "mode": mode, "account": account, "halted": False, "today": fresh, "time": t.get("time"),
+        "strategy": t.get("strategy"), "description": description,
+        "buy_above": t.get("buy_above"), "sell_below": t.get("sell_below"),
+        "top": t.get("top") or [], "holding": t.get("holding"), "max_positions": t.get("max_positions"),
+        "cash": t.get("cash"), "orders": t.get("orders") or [], "why": why_not_buying(t) if t else "",
+        "team": team_parts(team) if team and not team.get("error") else None,
+        "team_error": (team or {}).get("error"),
+        "watch": watch if day and watch.get("time", "").startswith(day) else None,
+        "checks": list(reversed(checks.get("items", []))) if day and checks.get("date") == day else []}
+
+
+def _weekend(cfg, store, now) -> dict:
+    """Weekend practice (weekend.py) for the Thinking tab: what it's replaying, the crypto experiment,
+    and how each practice account is doing. On weekdays: last weekend's results."""
+    from . import weekend
+    s = weekend.settings(cfg)
+    st = weekend.state(store)
+    active = weekend.is_weekend(now) and st.get("weekend") == weekend.weekend_of(now)
+    out = {"active": active, "replay_on": s["replay"], "crypto_on": s["crypto"],
+           "history": (store.get("weekend_history") or [])[-4:][::-1]}
+    if not active:
+        return out
+    at = store.get("weekend_now") or {}
+    seen = (now - datetime.fromisoformat(at["at"])).total_seconds() if at.get("at") else None
+    replay = {"days_done": len(st.get("done", [])), "days_planned": len(st.get("days", [])),
+              "pace": s["replay_minutes_per_day"], "running": seen is not None and seen < 180}
+    if at.get("day"):
+        replay.update(day=at["day"], label=f"{datetime.strptime(at['day'], '%Y-%m-%d'):%a %b %d, %Y}",
+                      time=at["time"], n=at["n"])
+    crypto = store.get("weekend_crypto") or {}
+    names = {"weekend-day": ("day", "weekend replay"), "weekend-swing": ("swing", "weekend replay"),
+             "weekend-crypto": ("crypto", "pretend money, live prices")}
+    cards = [_desk_card(cfg, store, desk, mode, account) for mode, (desk, account) in names.items()
+             if store.get(f"{mode}_thinking")]
+    if not s["replay"]:
+        text = "Weekend practice: the replay is off (Setup → Settings)."
+    elif replay.get("day"):
+        text = (f"Weekend practice: replaying {replay['label']} at {replay['time']} (day {replay['n']} this "
+                f"weekend; about {replay['pace']} minutes per day).")
+    elif not st.get("days"):
+        text = "Weekend practice: no replay this weekend (not enough 5-minute prices saved on this Mac yet)."
+    else:
+        text = "Weekend practice: the replay starts within 5 minutes."
+    also = ("Crypto: " + ("over for this weekend (everything sold)." if crypto.get("closed") else
+                          "deciding at the top of every hour, stop-losses every 5 minutes, all sold Sunday 11:50pm.")
+            ) if s["crypto"] else ""
+    return {**out, "text": text, "also": also, "replay": replay, "cards": cards,
+            "results": weekend.results(store, cfg)}
 
 
 def _right_now(cfg, store, now=None) -> dict:
