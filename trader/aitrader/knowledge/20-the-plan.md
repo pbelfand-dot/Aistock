@@ -40,7 +40,7 @@ the best day. No minimum number of trades. Then the owner still confirms by hand
 **Reports the owner sees (Trades tab):** every trade with what was spent, what came back, the gain
 or loss in $ and %, win or lose; each day's % change; and the totals vs SPY. The same report
 exists for three accounts: "in its head" (a studying desk trades with pretend money on this Mac:
-swing = momentum, day = opening range breakout), paper, and real money. After each close the
+swing = momentum, day = TJR's model), paper, and real money. After each close the
 journal gets one line per account with today's result and the running totals.
 
 **After-market report (every trading day, ~25 minutes after the close):** per desk, it covers:

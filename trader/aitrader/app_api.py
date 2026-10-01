@@ -159,8 +159,9 @@ def save_schwab_keys(payload: dict) -> dict:
 
 
 def save_webull_keys(cfg, payload: dict) -> dict:
-    """Saves the Webull keys. Webull only lets Kestrel read the account once you approve it in the
-    Webull app (Test Webull asks for that). Nothing trades at Webull."""
+    """Saves the Webull keys. Webull only lets Kestrel use the account once you approve it in the
+    Webull app (Test Webull asks for that). Trading there is a separate choice: Settings -> Paper trading
+    happens at: Webull (paper keys), or Broker for real money: Webull (real-money keys and the usual locks)."""
     from . import webull_api
     app_key = _key(payload.get("app_key"), "Webull App Key", r"[A-Za-z0-9_+/=.-]{8,256}")
     secret = _key(payload.get("app_secret"), "Webull App Secret", r"[A-Za-z0-9_+/=.-]{8,256}")

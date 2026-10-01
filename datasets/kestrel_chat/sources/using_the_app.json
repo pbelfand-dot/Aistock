@@ -1,0 +1,392 @@
+[
+  {
+    "q": "what is kestrel?",
+    "a": "Kestrel is an AI stock-trading bot that runs on your own Mac, with a normal Mac app window (its own window, Dock icon and menus) to watch it. It trades through Alpaca now, with Charles Schwab and Webull as other broker choices. It works as two \"desks\": a swing desk that holds for days to weeks and a day desk that's in and out the same day, each with $500. The plan is careful: study the market, write a plan, prove it with paper (pretend) money, and only then trade real money, capped at $1,000. The \"AI\" is a machine-learning model on your Mac, not a paid service. It isn't financial advice.",
+    "source": "README.md (top, The app); trader/README.md (intro, desks table)"
+  },
+  {
+    "q": "so what does this app actually do, does it trade for me automatically",
+    "a": "Yes, once the autopilot is on, but in stages. First it studies and practices with pretend money. In Setup, the Start Stage 1 paper trading button lets the swing desk paper trade the momentum method right away; it decides 15 minutes before each close. Real money only comes after at least 30 trading days of paper results that pass your rules (made money, beat the S&P 500, never dropped more than 10% from its best day), plus a typed confirmation in the full Setup menu. The window shows your account against the S&P 500, positions, every trade and why, and has Pause and Emergency stop buttons.",
+    "source": "README.md (Install step 5, The app); trader/README.md (The journey, Stage 1 shortcut); trader/config.yaml (promotion)"
+  },
+  {
+    "q": "is kestrel made by schwab or alpaca? will it ask for my brokerage password",
+    "a": "No. Kestrel is its own app with its own design, not a copy of Schwab's or Alpaca's, and it never shows or asks for your broker login. Alpaca connects with API keys you paste into Setup. For Schwab, you sign in on Schwab's own page that Setup opens, then paste the address your browser lands on. The app window itself only reads the bot's own files and holds no broker keys. Every key is saved only on your Mac, in ~/AITrader/.env.",
+    "source": "README.md (The app); trader/README.md (The app); trader/aitrader/web/dashboard.html (Setup: Charles Schwab)"
+  },
+  {
+    "q": "how do i install kestrel on my mac",
+    "a": "It takes about 3 minutes. 1) Click the Download Kestrel for Mac link at the top of the GitHub page and open Kestrel-mac.zip (it unzips itself). 2) Drag Kestrel into your Applications folder; it must live there to update itself. 3) Open it. The first time, macOS blocks it because it isn't from the App Store, so use Open Anyway in System Settings → Privacy & Security. 4) The first time only, a Terminal window installs Python and the bot's libraries, about 2 minutes. 5) The dashboard then appears with the Setup screen on top.",
+    "source": "README.md (Install); trader/README.md (Setup on a Mac)"
+  },
+  {
+    "q": "mac wont let me open kestrel, it says it cant be checked for malicious software",
+    "a": "That's expected the first time: the app isn't signed by Apple (that costs $99 a year), so macOS blocks it. Click Done, then open System Settings → Privacy & Security, scroll down, and click Open Anyway next to Kestrel. You may need your Mac password. If you prefer Terminal, paste this instead: xattr -dr com.apple.quarantine \"/Applications/Kestrel.app\". Make sure Kestrel is in your Applications folder first, since it needs to be there to update itself.",
+    "source": "README.md (Install step 3); trader/README.md (Honest limitations)"
+  },
+  {
+    "q": "is the update out yet? how do i check",
+    "a": "In the menu bar choose Kestrel → Check for Updates…, or press Check for updates at the bottom of the Setup screen. If you're current it says \"You're up to date\". If there's a newer one it shows \"Version X is available (you have Y)\" with Install and Restart or Later. Your installed version appears at the top right of the Setup screen. Usually you don't need to check: while the app is open it looks for updates by itself when it opens and once a day.",
+    "source": "mac/app/updater.swift (checkForUpdates, confirm); mac/app/main.swift (buildMenus); trader/aitrader/web/dashboard.html (Setup footer, setup-version); trader/README.md (Updating)"
+  },
+  {
+    "q": "does kestrel update itself or do i have to download every new version",
+    "a": "It updates itself. While the app is open (it can sit minimized), it checks its download page when it opens and once a day. When there's a newer version it downloads it, checks the download's fingerprint and signature, swaps itself and restarts, and a running background autopilot restarts on the new version. With paper trading only, this happens automatically. If real money is involved, it asks you first. It must be in your Applications folder to replace itself. Versions before 1.0.13 can't update themselves: download the zip once more by hand.",
+    "source": "trader/README.md (Updating: automatic); mac/app/updater.swift (header comment)"
+  },
+  {
+    "q": "why did kestrel ask me before updating this time? it used to just install",
+    "a": "It asks first whenever real money is involved, so new code never takes over real-money trading unannounced. That's the case when real-money trading is switched on in .env (LIVE_TRADING_ENABLED=true), a desk is trading real money, or a desk owns real shares or has real orders open. The prompt lists the reason. With paper trading only, it installs by itself. It also always asks when you use Check for Updates… yourself or have turned off Update Automatically.",
+    "source": "trader/aitrader/app_api.py (real_money_status); mac/app/updater.swift (header, checkForUpdates, confirm)"
+  },
+  {
+    "q": "will an update wipe my keys or settings",
+    "a": "No. Updates never touch ~/AITrader/.env (your keys), your Setup settings in ~/AITrader/my_settings.json, or your Schwab and Webull logins in ~/AITrader/data/, and the bot's memory stays too. What an update can replace is config.yaml, the defaults file; your Setup choices are applied on top of it. If config.yaml changed, your old one is saved as config.yaml.before-<version> and the menu tells you. Only deleting the AITrader folder removes your keys and data.",
+    "source": "trader/README.md (Where your keys live; Updating); trader/aitrader/user_settings.py (header); mac/app/updater.swift (header)"
+  },
+  {
+    "q": "got a popup saying the bot was updated but this window wasnt, what do i do",
+    "a": "It means macOS didn't let the app replace itself in Applications (it has no paid Apple developer ID). The bot's own code was updated, so trading already uses the new version; only the window is older. To let the window update too, go to System Settings → Privacy & Security → App Management and turn Kestrel on. The alert's Open App Management button takes you there. Or press Download and drag the new version into Applications. Later just closes the message.",
+    "source": "mac/app/updater.swift (reportLastUpdate)"
+  },
+  {
+    "q": "can i turn off auto updates",
+    "a": "Yes. In the menu bar, Kestrel → Update Automatically (asks first when real money is on) is a checkmark item; click it to switch it off. With it off, Kestrel still checks when it opens and once a day, but it always asks before installing, with Install and Restart or Later. Click it again to turn automatic updates back on. When real money is involved, it asks first either way.",
+    "source": "mac/app/main.swift (buildMenus); mac/app/updater.swift (toggleAutomaticUpdates, checkForUpdates)"
+  },
+  {
+    "q": "how do i get back to the setup screen",
+    "a": "Click the Setup button at the top right of the Kestrel window; clicking the autopilot status pill next to it opens Setup too. It only pops up by itself the first time, when no Alpaca keys are saved and the autopilot is off. Press Done to close it. For the full Terminal menu (plans, real money, Schwab), use Kestrel → Setup Menu (keys, plans, autopilot)…, press ⌘, (Command-comma), or press Full Setup menu… at the bottom of Setup.",
+    "source": "trader/aitrader/web/dashboard.html (topbar, openSetup, first-run check, Setup footer); mac/app/main.swift (buildMenus)"
+  },
+  {
+    "q": "what are all the steps on the setup screen",
+    "a": "Setup has six numbered steps: 1. Connect your Alpaca paper account. 2. Autopilot, with Keep trading with the lid closed underneath. 3. What happens next, showing each desk's stage plus buttons such as Start Stage 1 paper trading or Resume trading when they apply. 4. Good faith violation protection. 5. Your phone: alerts (Pushover and Telegram). 6. Kestrel screen on your phone (Tailscale). Below them, a fold-out section called Real money, Schwab, Webull and Claude (for later) holds Settings, Charles Schwab, Webull, Alpaca real-money keys and Connect Claude.",
+    "source": "trader/aitrader/web/dashboard.html (dlg-setup)"
+  },
+  {
+    "q": "how do i connect my alpaca account",
+    "a": "Use Setup → 1. Connect your Alpaca paper account. Sign up at app.alpaca.markets (paper trading needs no money and no approval), switch to Paper Trading, then open API Keys → Generate. Paste the Key ID and the Secret key into Setup and press Save and test. You should see two green checks: one for prices and one for the Alpaca paper account. Test connection rechecks later. The keys are saved only on your Mac, in ~/AITrader/.env, and a running autopilot restarts to use them.",
+    "source": "trader/aitrader/web/dashboard.html (Setup step 1); trader/README.md (Setup on a Mac, step 4); trader/aitrader/app_api.py (save_keys, check_keys)"
+  },
+  {
+    "q": "where do i even get the alpaca keys from",
+    "a": "From Alpaca's website. Sign up at app.alpaca.markets, switch to Paper Trading, and open API Keys → Generate. Alpaca shows a Key ID (paper key IDs start with PK) and a Secret. Copy both into Kestrel's Setup, step 1, and press Save and test. Alpaca's default paper account holds $100,000; it's a good idea to make a new paper account with $1,000 so paper behaves like your real account. The bot caps itself at $1,000 either way.",
+    "source": "trader/README.md (Setup on a Mac, step 4); trader/aitrader/app_api.py (save_keys); trader/aitrader/web/dashboard.html (Setup step 1)"
+  },
+  {
+    "q": "it says thats a LIVE (real money) key when i paste my alpaca key??",
+    "a": "Step 1 of Setup only accepts paper keys, on purpose. Live key IDs start with AK, paper key IDs start with PK. In Alpaca, switch to Paper Trading first, generate keys there, and paste those. Real-money keys have their own place: Setup → Real money, Schwab, Webull and Claude (for later) → Alpaca real-money keys → Save real-money keys. Saving them turns nothing on; a desk still has to earn real money and you confirm it by typing in the full Setup menu.",
+    "source": "trader/aitrader/app_api.py (save_keys, save_live_keys); trader/aitrader/web/dashboard.html (Setup step 1, Alpaca real-money keys)"
+  },
+  {
+    "q": "do i need alpaca keys at all",
+    "a": "Not to get started. Without keys, paper trading is simulated on your Mac, and the connection test says so. With Alpaca paper keys, paper trading runs in Alpaca's paper account with real order handling, and the daily scan uses Alpaca's full list of US stocks (without keys it scans about 400 popular names). The keys also bring Alpaca's news feed, and the options-gap watcher and the day desk's stocks-in-play check need Alpaca data.",
+    "source": "trader/aitrader/web/dashboard.html (Setup step 1, options-gap card); trader/aitrader/app_api.py (check_keys); trader/README.md (It scans all US stocks); trader/aitrader/report.py (in_play_lines)"
+  },
+  {
+    "q": "how do i turn on the autopilot",
+    "a": "Open Setup and go to step 2, Autopilot, then press Turn on. It runs the bot in the background: it starts when you log in and restarts itself if it stops. The tag next to Autopilot shows on, off, or \"on · not running\", and a \"Last problem\" line appears if it stopped recently. The pill at the top of the window shows \"Autopilot running\" and when it last checked in. Keep the Mac plugged in, and turn on lid-closed mode just below if you want to close the lid.",
+    "source": "trader/aitrader/web/dashboard.html (Setup step 2, refreshSetup, autopilot pill); trader/aitrader/app_api.py (autopilot-on message)"
+  },
+  {
+    "q": "if i quit the kestrel app does the bot stop trading",
+    "a": "No. The autopilot is a separate background service, so closing the app window doesn't stop it. It keeps running while the Mac is awake and you're logged in, and starts again when you log in. To actually stop it, use Setup → 2. Autopilot → Turn off; to stop new trades without turning it off, use Pause. One catch: automatic updates only happen while the app is open, so leave it open (minimized is fine) if you want them.",
+    "source": "README.md (The app); trader/README.md (Setup on a Mac step 5; Updating); trader/aitrader/mac_service.py (header); trader/aitrader/app_api.py (autopilot-off)"
+  },
+  {
+    "q": "whats lid closed mode",
+    "a": "It's Keep trading with the lid closed, under Setup → 2. Autopilot. Normally closing a MacBook's lid puts it to sleep, and the bot stops. With this on and the Mac plugged in, it stays awake with the lid closed, day and night, and the autopilot keeps trading. On battery it sleeps as usual, and with the lid closed Kestrel puts it to sleep right away, so it never runs hot in a bag. It asks for your Mac password once, and also sets a weekday 8:30am New York time wake-up as a backup.",
+    "source": "trader/aitrader/lid_mode.py (header); trader/aitrader/web/dashboard.html (lid-row); trader/README.md (Keep the Mac awake)"
+  },
+  {
+    "q": "can i close my laptop and still have it trade",
+    "a": "Yes, if it's plugged in and you turn on Setup → 2. Autopilot → Keep trading with the lid closed. Then the Mac stays awake with the lid closed and keeps trading. On battery it sleeps as usual, so unplugged with the lid shut, it isn't trading. Other options: keep the lid open with the charger in, or use clamshell mode (lid closed with an external monitor and power). Lid-closed mode also sets a weekday 8:30am wake-up, but wake-ups with the lid closed aren't guaranteed, so plugged in and awake is the dependable setup.",
+    "source": "trader/README.md (Keep the Mac awake); trader/aitrader/lid_mode.py"
+  },
+  {
+    "q": "why does lid mode need my mac password? is that safe",
+    "a": "Only an administrator can switch macOS's sleep lock, so Kestrel asks for your password once. It adds one rule, /etc/sudoers.d/kestrel-lid, checked by visudo first so a broken rule never gets installed. The rule lets Kestrel run exactly three commands without a password: pmset -a disablesleep 1, pmset -a disablesleep 0 and pmset repeat cancel, nothing else. The same step sets the weekday 8:30am New York time wake-up. If you cancel the password prompt, lid-closed mode just isn't turned on.",
+    "source": "trader/aitrader/lid_mode.py (header, admin_script, turn_on); trader/README.md (Keep the Mac awake)"
+  },
+  {
+    "q": "apple menu > sleep isnt doing anything",
+    "a": "That's lid-closed mode at work. While it's on and the Mac is plugged in, macOS's sleep lock is on, so Apple menu → Sleep does nothing. To sleep the Mac by hand, first go to Setup → 2. Autopilot and turn Keep trading with the lid closed off (turning the autopilot off also releases it). Then the Mac sleeps normally again, and closing the lid puts it to sleep. If macOS still shows the lock on, Kestrel tells you to run sudo pmset -a disablesleep 0 in Terminal.",
+    "source": "trader/aitrader/lid_mode.py (header, turn_off, release_if_on); trader/aitrader/web/dashboard.html (lid-row); trader/README.md (Keep the Mac awake)"
+  },
+  {
+    "q": "what does 'what happens next' in setup mean, and whats start stage 1",
+    "a": "Step 3 says in plain English where each desk is (studying, plan ready, paper trading or live) and how many study days are done. When the swing desk can start, a Start Stage 1 paper trading button appears. Stage 1 skips the study month: the swing desk paper trades the momentum method with pretend money, owning the strongest stocks from your watchlist and the daily scan, buying only while the stock and the S&P 500 are above their 200-day averages. It decides 15 minutes before each close, and a tag shows its progress toward 30 trading days.",
+    "source": "trader/aitrader/web/dashboard.html (Setup step 3, dlg-stage1, refreshSetup); trader/aitrader/app_api.py (NEXT_STEP, setup_status); trader/README.md (Stage 1 shortcut)"
+  },
+  {
+    "q": "whats the good faith violation protection thing in step 4",
+    "a": "A good faith violation is buying with money from a sale that hasn't settled, then selling before it settles. Three in 12 months and Schwab limits the account to settled cash for 90 days. When cash rules are on (broker Schwab or Webull with account type Automatic, or account type Cash), the bot only spends settled money: sale money waits one business day, with bank holidays counted. Step 4 then shows \"on\" and your violations out of 3. With Alpaca it says \"not needed\", because Alpaca covers unsettled money itself.",
+    "source": "trader/aitrader/web/dashboard.html (Setup step 4, refreshSetup gfv text); trader/aitrader/app_api.py (gfv_status); trader/aitrader/config.py (is_cash_account); trader/README.md (Good faith violations)"
+  },
+  {
+    "q": "what settings can i change in kestrel",
+    "a": "Open Setup, expand Real money, Schwab, Webull and Claude (for later), and look under Settings: Broker for real money (Alpaca, Charles Schwab or Webull), Paper trading happens at, Most real money the bot may use ($), Account type, Paper (practice) money ($), Fractional shares, Don't buy right before earnings (swing desk), Scan all US stocks every day, and Let Kestrel read the news. Press Save settings. They're kept when the app updates, and a running autopilot restarts to use them.",
+    "source": "trader/aitrader/web/dashboard.html (Settings section); trader/aitrader/app_api.py (save-settings); trader/aitrader/user_settings.py"
+  },
+  {
+    "q": "how do i turn off fractional shares",
+    "a": "Setup → Real money, Schwab, Webull and Claude (for later) → Settings → Fractional shares (Alpaca and the simulation) → Off: whole shares only, then press Save settings. With it on, the bot can buy parts of a share at Alpaca and in the simulation, at least $1 at a time, only for stocks Alpaca allows. Schwab and Webull are whole shares only either way, so pricey stocks are skipped there. A stock whose single share costs more than a position's budget gets a \"too pricey\" tag on the watchlist.",
+    "source": "trader/aitrader/web/dashboard.html (set-frac, renderWatchlist); trader/README.md (Safety rules 8)"
+  },
+  {
+    "q": "wheres the setting that stops it buying right before earnings",
+    "a": "It's Don't buy right before earnings (swing desk) in Setup → Settings. On (skip the last 3 trading days) means the swing desk won't open a new position within 3 trading days of a company's earnings report, because a report can jump a stock 10-20% overnight, past its stop. What it already owns is kept. Dates come from Yahoo each morning. The honest trade-off: stocks have on average done slightly better around earnings, so this gives up a little of that for fewer big surprise losses. Pick Off to disable it.",
+    "source": "trader/aitrader/web/dashboard.html (set-earn); README.md (No swing buys right before earnings); trader/config.yaml (earnings.days_before)"
+  },
+  {
+    "q": "can i stop it scanning every stock or reading the news",
+    "a": "Yes, both are in Setup → Settings. Scan all US stocks every day → Off (only the watchlist) makes the swing desk pick only from its watchlist. Let Kestrel read the news → Off stops the headlines. With news on, it reads Alpaca's feed (Benzinga) with your keys, or Yahoo's without, shows headlines next to stocks, and won't buy a stock with danger headlines in the last 3 days, like a share offering, bankruptcy or trading halt. News never makes it buy. Press Save settings after changing either.",
+    "source": "trader/aitrader/web/dashboard.html (set-scan, set-news); trader/README.md (It scans all US stocks every day, and reads the news)"
+  },
+  {
+    "q": "what does 'paper trading happens at' mean",
+    "a": "It picks where the pretend-money trading runs. Automatic (Alpaca paper if its keys are saved) is the default; you can also pick Alpaca paper account, Webull paper account, or Simulated on this Mac. A broker is only used when its paper keys are saved; otherwise it's simulated on your Mac. You can't switch while a desk still holds paper positions where it trades now: wait until they're sold (the day desk sells before each close), then switch and press Save settings.",
+    "source": "trader/aitrader/web/dashboard.html (set-paperat); trader/aitrader/config.py (paper_broker); trader/aitrader/app_api.py (check_paper_move)"
+  },
+  {
+    "q": "how do i set how much real money it can use",
+    "a": "In Setup → Real money, Schwab, Webull and Claude (for later) → Settings, type the amount in Most real money the bot may use ($); it accepts $10 to $100,000. Choose the broker in Broker for real money, then press Save settings. This only sets a limit; it doesn't switch real money on. A desk trades real money only after its paper results pass the rules, LIVE_TRADING_ENABLED=true is set, and you type the confirmation in the full Setup menu. Each desk also keeps its own $500 budget and never borrows.",
+    "source": "trader/aitrader/web/dashboard.html (set-cap, set-broker); trader/aitrader/user_settings.py (real_money_cap range); trader/README.md (Safety rules 1 and 6)"
+  },
+  {
+    "q": "how do i connect my schwab account",
+    "a": "Setup → Real money, Schwab, Webull and Claude (for later) → Charles Schwab. From developer.schwab.com, paste your app's App Key, Secret and Callback address exactly as registered (for example https://127.0.0.1:8182, no slash at the end); add the account number only if you have several. Press Save Schwab keys, then Open Schwab login, sign in and approve. Your browser ends on a page that won't load; that's expected. Paste that page's whole address into The address you landed on, press Finish login, then Test Schwab. Log in about once a week: Schwab's limit is 7 days.",
+    "source": "trader/aitrader/web/dashboard.html (Charles Schwab section); trader/aitrader/app_api.py (save_schwab_keys)"
+  },
+  {
+    "q": "can kestrel use webull",
+    "a": "Yes. Setup → Real money, Schwab, Webull and Claude (for later) → Webull. First apply on Webull's website (API Management → My Application; Webull reviews it in about 1-2 business days). Once approved, Generate Key, paste the App Key and App Secret, pick Paper (test) or Real money, and press Save Webull keys. Then approve Kestrel in the Webull app within 5 minutes (Menu → Messages → OpenAPI Notifications → newest message → Check Now → the text-message code). To paper trade there, set Settings → Paper trading happens at → Webull paper account.",
+    "source": "trader/aitrader/web/dashboard.html (Webull section); trader/aitrader/webull_api.py (APPROVE); trader/aitrader/app_api.py (save_webull_keys, check_webull); README.md (Webull)"
+  },
+  {
+    "q": "how do i connect claude to kestrel",
+    "a": "In Setup, open Real money, Schwab, Webull and Claude (for later) → Connect Claude and press Claude Code or Claude Desktop. For Claude Code, start a new Claude Code session and type /mcp to see the connections. For Claude Desktop, quit it with Cmd+Q and reopen it. Claude can then see the bot's status, journal, plans, positions and results, read your Schwab account read-only once Schwab is set up, and pause trading. It can't buy, sell, resume, approve plans or go live.",
+    "source": "trader/aitrader/web/dashboard.html (Connect Claude); trader/README.md (Connect Claude (MCP)); trader/aitrader/claude_setup.py (header)"
+  },
+  {
+    "q": "can i approve the trading plan or switch to real money from the app window",
+    "a": "Not from the window. Approving a study plan and moving a desk to real money stay in the full Setup menu in Terminal, where each big step needs a typed confirmation: YES to approve a plan, REAL MONEY to promote a desk. Open it with Kestrel → Setup Menu (keys, plans, autopilot)…, ⌘, or the Full Setup menu… button in Setup. Real money also needs every paper rule to pass and LIVE_TRADING_ENABLED=true in ~/AITrader/.env.",
+    "source": "trader/aitrader/web/dashboard.html (Setup footer note); trader/README.md (The journey, The menu, Safety rule 6); mac/app/main.swift (buildMenus)"
+  },
+  {
+    "q": "what am i looking at on the summary tab",
+    "a": "Summary is the overview. On top: a Right now line saying what the autopilot and each desk are doing, the account picker, the account value and today's change, and tiles for Cash, Total return, Worst drop from peak and Win rate. Then a chart of your account against the S&P 500 from the same starting amount (ranges 1W, 1M, 3M, 1Y, All; hover or use the arrow keys, or press Table for the numbers), the Desks card with each desk's step (Study, Plan, Paper, Live), a Positions preview, and the Watchlist.",
+    "source": "trader/aitrader/web/dashboard.html (Summary section, renderSummary, renderChart, renderDesks); trader/aitrader/dashboard.py (_right_now)"
+  },
+  {
+    "q": "how do i switch between my paper account and real money in the app",
+    "a": "Use the account picker at the top of the Summary tab. It has three choices: In its head (while studying), Paper account (practice money) and Live account (real money). The live choice stays greyed out until a desk actually trades real money. Whatever you pick applies to the Summary, Positions, Trades (including the P&L calendar) and Activity tabs.",
+    "source": "trader/aitrader/web/dashboard.html (render: account select, renderTrades, renderActivity); README.md (Trades)"
+  },
+  {
+    "q": "on the positions tab what does the check mark next to the stop loss mean",
+    "a": "The ✓ means a stop-loss order is resting at the broker for that position. Without it, the bot checks the stop itself every 5 minutes. Hover over the stop price to see how far below the buy price it sits. The Positions tab lists Symbol, Desk, Qty, Avg cost, Last, Today, Market value, Gain / loss, Stop-loss and Since, with a line on top showing the number of positions, how much is invested and the cash.",
+    "source": "trader/aitrader/web/dashboard.html (positionsTable, renderPositions); trader/README.md (The app: Positions)"
+  },
+  {
+    "q": "whats on the trades tab",
+    "a": "Trades shows how the chosen account is doing. How it's doing has tiles: Made / lost overall, Beat the S&P 500?, Trades finished, Win rate, Average win / loss, Money put into trades, Taken profit / on paper now, and Best / worst trade. Below are the Profit & loss calendar; Finished trades (filter All, Wins or Losses) with what it spent, got back, made or lost, and why it sold; Still holding; and Day by day, each day's value at the close and change. It works the same for in its head, paper and real money.",
+    "source": "trader/aitrader/web/dashboard.html (Trades section, renderTrades); README.md (Trades)"
+  },
+  {
+    "q": "what is the new p&l calendar",
+    "a": "It's the Profit & loss calendar on the Trades tab. Each weekday of the month shows the money made or lost on trades that finished that day, how many trades and how many won, and a Week column totals each week. A line above it sums the month: the total, up and down days, and the best and worst day. Blue is a gain and red a loss, and a deeper color means a bigger day for that month. Hover a day for details, click it for its trades, and use ‹ › for other months.",
+    "source": "trader/aitrader/web/dashboard.html (renderCalendar, calTip); README.md (P&L calendar); trader/aitrader/report.py (calendar)"
+  },
+  {
+    "q": "how can i see what i made on one specific day",
+    "a": "Open the Trades tab and find the Profit & loss calendar. Use ‹ › to get to the month, then hover over the day for a quick summary (finished trades, how many won and lost, and the account value change) or click it. Clicking lists the trades that finished that day: the stock, desk, when and at what price it was bought, what it made or lost, and why it sold. If none finished, it tells you how much the account value moved because of stocks it still holds. The Day by day table below has every day's numbers too.",
+    "source": "trader/aitrader/web/dashboard.html (renderCalendar, calTip); README.md (P&L calendar)"
+  },
+  {
+    "q": "why is the calendar blue and red instead of green",
+    "a": "Blue means a gain and red a loss, a pair that stays readable with color-blindness. Every day also shows its amount with a plus or minus sign, so you never have to rely on color alone. A deeper shade means a bigger day compared with the rest of that month. The legend under the calendar labels them Made money and Lost money.",
+    "source": "README.md (P&L calendar); trader/aitrader/web/dashboard.html (CSS --gain/--loss colors, cal-legend)"
+  },
+  {
+    "q": "calendar has finished trades and account value buttons, whats the difference",
+    "a": "Finished trades, the default, counts only money made or lost on trades that closed that day, so a day without finished trades stays blank. Account value shows the whole account's change that day, which includes the moves of stocks it still holds. So a day can show a loss in Account value with no trades at all, because something it owns dropped. The week totals and the month line follow whichever one you pick.",
+    "source": "trader/aitrader/web/dashboard.html (renderCalendar cal-mode, calValue, calTip); trader/aitrader/report.py (calendar)"
+  },
+  {
+    "q": "what does the activity tab show",
+    "a": "Activity is every buy and sell with the bot's reason. Each row has the Date, Action (Buy or Sell), Symbol, Desk, Qty, Price, Amount, Profit / loss for sales, and Why. Filter with All, Buys or Sells, and with Both desks, Swing or Day. It shows whichever account is picked at the top of the Summary tab. Click any symbol to see what the company is and what Kestrel knows about it.",
+    "source": "trader/aitrader/web/dashboard.html (renderActivity, symCell); trader/README.md (The app)"
+  },
+  {
+    "q": "whats in research & plans",
+    "a": "It shows the longer-term picture. Stocks it likes is the daily scan of all US stocks, ranked by the past year's rise, with each stock's price, days on the list and latest news; new listings sit in a separate watch-only list. TJR's model (Stage 2) shows its history test against random buys. The Options-gap watcher is testing only and never trades. Then each desk gets a card with its study report card, its trading plan, and What it learned from its own trades, where a losing strategy goes to half size and then a pause.",
+    "source": "trader/aitrader/web/dashboard.html (renderResearch, scanCard, tjrCard, optionsGapCard, lessonsView); README.md"
+  },
+  {
+    "q": "what's the journal tab for",
+    "a": "Journal has two parts. On top is the After-market report, with a date picker for the last week of reports. Below is What the bot did, and why: a time-stamped log of its recent actions and messages, like the daily check-in, trades, pauses, warnings and lessons learned. If something looks off, the journal usually says why. The first report shows up after the first close with the autopilot on.",
+    "source": "trader/aitrader/web/dashboard.html (Journal section, renderJournal); trader/aitrader/dashboard.py (snapshot, _reports)"
+  },
+  {
+    "q": "how do i see the demo data",
+    "a": "Choose View → Show Demo Data (made-up prices), or press ⌘D. It takes about a minute to build: made-up prices run through the bot's real code, including the study month, the plans and a few weeks of paper trading, so you can see every tab before the bot has traded. A DEMO banner stays at the top the whole time. Choose the same menu item again to switch back to your real data.",
+    "source": "mac/app/main.swift (View menu); trader/aitrader/web/dashboard.html (aitraderSetDemo, banner); trader/aitrader/demo.py (header)"
+  },
+  {
+    "q": "is the demo using my real account? will it mess anything up",
+    "a": "No. Demo data lives in its own folder (data/demo) and your real data is never touched. The prices are made up (a random walk), and the banner says \"Not your account.\" The Setup screen keeps working on your real setup even while the demo is showing. Turn the demo off with View → Show Demo Data again.",
+    "source": "trader/aitrader/demo.py (header); trader/aitrader/web/dashboard.html (banner text, setupCall)"
+  },
+  {
+    "q": "pause button vs emergency stop button, which one should i use",
+    "a": "Pause means no new trades. Nothing is sold now: stop-losses keep protecting what the bot owns, and the day desk still sells before the close because it never holds overnight. Emergency stop cancels the bot's orders, sells everything the bot owns right away, and halts both desks; you have to type SELL EVERYTHING to confirm. Neither one touches your own investments. Use Pause when you just want it to stop buying, and Emergency stop when you want out now.",
+    "source": "trader/aitrader/web/dashboard.html (dlg-pause, dlg-kill); trader/aitrader/app_api.py (pause_all, kill); trader/README.md (Two buttons)"
+  },
+  {
+    "q": "how do i stop the bot right now",
+    "a": "It depends what you want. To stop new trades but keep what it owns, press Pause at the top of the window and confirm; stop-losses keep working. To get out completely, press Emergency stop, type SELL EVERYTHING and press Sell everything and stop: it cancels the bot's orders, sells everything it owns and halts both desks. From your phone, send /pause or /kill SELL EVERYTHING to your Telegram bot. To switch off the background autopilot itself, use Setup → 2. Autopilot → Turn off.",
+    "source": "trader/aitrader/web/dashboard.html (topbar, dlg-pause, dlg-kill, Setup step 2); trader/aitrader/phone.py (commands)"
+  },
+  {
+    "q": "i paused it, how do i turn it back on",
+    "a": "Open Setup and look at step 3, What happens next. While a desk is paused, a Resume trading button appears there; press it and the desks can trade again. From your phone, send /resume to your paired Telegram bot. After an emergency stop, resuming only works once the bot has sold everything: if a desk is still selling, it stays halted and retries every 5 minutes. Claude can pause the bot but can't resume it.",
+    "source": "trader/aitrader/web/dashboard.html (Setup step 3, resume button); trader/aitrader/app_api.py (resume); trader/aitrader/phone.py; trader/run.py (cmd_resume); trader/README.md (Connect Claude table)"
+  },
+  {
+    "q": "the sell everything button is greyed out",
+    "a": "That's on purpose. In the Emergency stop window, the Sell everything and stop button stays disabled until you type SELL EVERYTHING exactly, in capital letters, into the box. Once it matches, the button turns on. If you don't actually want to sell, press Cancel. Remember it sells everything the bot owns right away and halts both desks; to just stop new trades, use Pause instead.",
+    "source": "trader/aitrader/web/dashboard.html (dlg-kill, kill-confirm input check)"
+  },
+  {
+    "q": "will the emergency stop sell stocks i bought myself",
+    "a": "No. Emergency stop only cancels the bot's own orders and sells what the bot itself bought; your own investments are never touched. The bot only sells shares it bought, never buys a stock you already own in that account, and only cancels its own orders (with Alpaca, every bot order carries an aitrader- tag). After the stop it keeps selling until it truly owns nothing.",
+    "source": "trader/aitrader/web/dashboard.html (dlg-kill text); trader/README.md (Safety rules 2 and 5)"
+  },
+  {
+    "q": "whats in the after market report",
+    "a": "It opens with an In plain English summary when the local AI is on, then how the S&P 500 (SPY) closed. For each desk: its strategy, today's result and since the start, what it bought and sold and why (or why it didn't trade), its top picks and why it didn't buy more, the team's notes (Scout, Analyst, Trader, Risk, Reviewer), what it holds overnight with each stop-loss, what it learned, and all finished trades so far. Then how the strategies it compares are doing, the options-gap watcher, its stock list from the daily scan, earnings it's avoiding, stocks in play, and what's next.",
+    "source": "trader/aitrader/report.py (after_market, _desk_section, write_after_market); README.md (After-market report)"
+  },
+  {
+    "q": "when does the after market report come out and where do i find it",
+    "a": "About 25 minutes after each close (New York time), as long as the autopilot is on. It's at the top of the Journal tab under After-market report, with a date picker for the last week. It's also saved on your Mac in ~/AITrader/data/reports/ as after-market-<date>.md, and python run.py report prints it. If Telegram is paired, you get the whole report there; with Pushover you get its summary. Telegram's /report command sends it on request.",
+    "source": "trader/run.py (due_jobs: report job); trader/aitrader/dashboard.py (_right_now); README.md (After-market report); trader/aitrader/phone.py (forwarder, /report)"
+  },
+  {
+    "q": "how do i get alerts on my phone",
+    "a": "Setup step 5, Your phone: alerts, offers two ways, and you can use either or both. Pushover sends push notifications: every buy and sell, the after-market summary and anything urgent, loud enough to wake you for a real-money emergency. It only delivers alerts. Telegram uses your own private bot: it messages you every trade, the after-close results and the full after-market report, and it also takes commands like /status, /pause and /kill SELL EVERYTHING. Either way the alerts come from your Mac, so it has to be awake and online.",
+    "source": "trader/aitrader/web/dashboard.html (Setup step 5); trader/aitrader/phone.py (header); trader/aitrader/pushover.py (header); README.md (Your phone)"
+  },
+  {
+    "q": "can kestrel text me when it buys or sells something",
+    "a": "Yes. Set up Telegram in Setup step 5 and your private Kestrel bot messages you every buy and sell, with what it spent, what it got back and whether it was a win or a loss, plus the after-close results, the after-market report and anything urgent like a pause or the kill switch. If you'd rather have push notifications, add Pushover in the same step; it sends every buy and sell too. You can use both. The Mac sends them, so it needs to be awake and online.",
+    "source": "trader/aitrader/phone.py (header, forwarder, ALERT_MARKS); trader/aitrader/pushover.py; trader/aitrader/web/dashboard.html (Setup step 5)"
+  },
+  {
+    "q": "how do i set up telegram alerts",
+    "a": "In Setup step 5, under Telegram (alerts and commands): 1) In Telegram, open @BotFather, send /newbot and pick any name; it gives you a token. 2) Paste it into Bot token and press Save. 3) Setup then shows a message to send: /start followed by a 6-digit pairing code. Open your new bot and send exactly that. The tag changes to paired and Send a test message starts working. Only your phone is ever answered. The token is saved on your Mac in ~/AITrader/.env, and the autopilot has to be running to receive your messages.",
+    "source": "trader/aitrader/web/dashboard.html (Telegram section, refreshSetup); trader/aitrader/app_api.py (save_phone, phone_test); trader/aitrader/phone.py (pairing_code, listen); trader/run.py (start_phone)"
+  },
+  {
+    "q": "what commands does the telegram bot understand",
+    "a": "Send your Kestrel bot: /status for how each account is doing and when the autopilot was last seen; /trades for the last 10 finished trades; /report for the latest after-market report (add a date, YYYY-MM-DD, for an earlier one); /pause for no new trades, with stop-losses still working; /resume to let the desks trade again; and /kill SELL EVERYTHING for the emergency stop. Anything else, including /help, gets you the list. It only answers the phone you paired.",
+    "source": "trader/aitrader/phone.py (HELP, handle)"
+  },
+  {
+    "q": "can i do the emergency stop from my phone",
+    "a": "Yes, two ways. On Telegram, send /kill SELL EVERYTHING to your paired Kestrel bot; if you send /kill without the exact phrase, nothing happens and it replies with what to send. Or, if you've set up the Kestrel screen over Tailscale, press Emergency stop there and type SELL EVERYTHING, just like on the Mac. Either way it cancels the bot's orders, sells everything the bot owns and halts both desks. Pushover can't do this, since it only delivers alerts.",
+    "source": "trader/aitrader/phone.py (handle /kill); trader/aitrader/phone_screen.py (ALLOWED); trader/aitrader/pushover.py (header)"
+  },
+  {
+    "q": "could someone else message my telegram bot and control kestrel",
+    "a": "No. Kestrel only answers the one chat that paired using the code from your Setup screen. Before pairing, anyone who writes just gets told to send /start with the pairing code; after pairing, messages from anyone else get no answer at all. Saving a new bot token clears the old pairing, so you pair again. The Mac only calls out to Telegram, with no open ports and no web server, and the token stays in ~/AITrader/.env.",
+    "source": "trader/aitrader/phone.py (header, listen, save_owner); trader/aitrader/app_api.py (save_phone)"
+  },
+  {
+    "q": "how do i set up pushover",
+    "a": "In Setup step 5: 1) Install Pushover on your iPhone and sign up at pushover.net. 2) Copy Your User Key from your Pushover dashboard. 3) Create an application at pushover.net/apps/build, name it Kestrel, and copy its API Token. 4) Paste both into User Key and API Token and press Save. Each is 30 letters and digits. Kestrel checks them with Pushover and sends a test alert right away; Send a test alert does it again later. The keys are saved only in ~/AITrader/.env on your Mac.",
+    "source": "trader/aitrader/web/dashboard.html (Setup step 5, Pushover); trader/aitrader/app_api.py (save_pushover, pushover_test); trader/aitrader/pushover.py (header, KEY_PATTERN)"
+  },
+  {
+    "q": "how much does pushover cost",
+    "a": "The Pushover app is free for 30 days, then a one-time $4.99 per platform (iPhone/iPad, Android or Desktop). Sending is free up to 10,000 messages a month. Setup's step 5 tag shows how many Kestrel has sent this month out of 10,000, and near that limit only urgent alerts go out. If you'd rather not use Pushover, Telegram also delivers alerts, and Telegram is the only way to send Kestrel commands from your phone.",
+    "source": "trader/aitrader/pushover.py (header); README.md (Your phone); trader/aitrader/web/dashboard.html (push-state)"
+  },
+  {
+    "q": "which pushover alerts make noise",
+    "a": "Kestrel uses Pushover's priorities. Emergency (2): a real-money kill switch or emergency stop repeats every minute, for up to an hour, until you open it. High (1): anything urgent, like a pause, a kill switch or a !!! warning, sounds even in quiet hours. Normal (0): every buy and sell, the after-market report, phase changes and warnings. Quiet (-1): everything else it forwards, such as daily results and lessons learned, arrives with no sound.",
+    "source": "trader/aitrader/pushover.py (header, priority_of, send)"
+  },
+  {
+    "q": "what happens if i hit the pushover monthly limit",
+    "a": "Kestrel keeps count of what it sends each month. Pushover's free sending limit is 10,000 messages a month, and once Kestrel has sent 9,500 it only sends urgent alerts (high and emergency priority), keeping the last 500 for those. Routine alerts like buys, sells and daily results are skipped until the next month. A skipped or failed alert never stops trading, and Telegram alerts aren't affected by this count.",
+    "source": "trader/aitrader/pushover.py (MONTHLY_LIMIT, URGENT_ONLY_AFTER, send)"
+  },
+  {
+    "q": "can i see the kestrel dashboard on my iphone",
+    "a": "Yes, with Setup step 6, Kestrel screen on your phone (Tailscale). Tailscale is a free private network between your own devices. 1) Install Tailscale on the Mac and the iPhone and log in to the same account on both. 2) Press Turn on in step 6. 3) Open the link Setup shows on your phone (Send the link to my phone sends it through Telegram), then Share → Add to Home Screen so it opens like an app. It works from anywhere, but the Mac serves it, so the Mac must be awake with the autopilot on.",
+    "source": "trader/aitrader/web/dashboard.html (Setup step 6); trader/aitrader/phone_screen.py (header); trader/aitrader/app_api.py (phone_screen_send); trader/run.py (start_phone)"
+  },
+  {
+    "q": "is the phone screen thing safe, is my account on the internet now",
+    "a": "It isn't on the open internet. Kestrel serves the phone screen only on the Mac's Tailscale address, never on your Wi-Fi or the internet, and Tailscale encrypts everything between your devices. Every request also needs Kestrel's access key, which is in the link from Setup and then remembered by the phone. The phone can only watch and use the safety buttons; keys and settings are changed on the Mac only.",
+    "source": "trader/aitrader/phone_screen.py (header, answer); trader/aitrader/web/dashboard.html (Setup step 6)"
+  },
+  {
+    "q": "setup says phone screen on but tailscale isnt running",
+    "a": "Step 6 shows \"on · Tailscale isn't running\" when the Mac has no Tailscale address. Open the Tailscale app on the Mac and log in, using the same Tailscale account as on your iPhone. Once it's connected, the screen starts within a minute and Setup shows the link to open. Send the link to my phone needs Telegram paired; otherwise just type the link Setup shows into your phone's browser.",
+    "source": "trader/aitrader/web/dashboard.html (refreshSetup screen-state, screen-toggle message); trader/aitrader/app_api.py (phone_screen_send)"
+  },
+  {
+    "q": "what can i do from the phone version",
+    "a": "You see the same Kestrel screen as on the Mac: Summary, Positions, Trades with the P&L calendar, Activity, Research & plans and Journal, refreshing every 30 seconds. You can press Pause and Emergency stop (with the typed SELL EVERYTHING), and tap any stock symbol for its company card. Keys, settings and updates aren't there: the Setup button, Full Setup menu and Check for updates are hidden on the phone, and those things are done on the Mac.",
+    "source": "trader/aitrader/phone_screen.py (header, ALLOWED); trader/aitrader/web/dashboard.html (.on-phone CSS, setInterval)"
+  },
+  {
+    "q": "what happens when i click a stock ticker",
+    "a": "A card opens explaining the stock. On top: the company's name, whether it's a stock, ETF or fund, its exchange, sector, industry, size and country, a short description and its website. Under What Kestrel knows: which of its lists it's on and why, whether it's in play today, its next earnings date, its latest score, what each account holds, danger news, and any mistake it won't repeat with it. Then its finished trades in that stock and recent news. It works in the watchlist, positions, trades, activity, the stock list, and on the phone screen.",
+    "source": "trader/aitrader/web/dashboard.html (openStock, renderStock, symCell); trader/aitrader/stock_info.py; README.md (Click any stock symbol)"
+  },
+  {
+    "q": "where does the company info on the stock card come from",
+    "a": "The name and exchange come from Alpaca when your keys are saved, and the description, sector, industry, website and size from Yahoo Finance. Each stock is looked up once and kept for 30 days, so clicking around never slows the bot down. If the Mac is offline, the card says it couldn't look up the company and still shows what Kestrel knows from its own files. Nothing on the card can trade.",
+    "source": "trader/aitrader/stock_info.py (header, company); trader/aitrader/web/dashboard.html (renderStock fallback text)"
+  },
+  {
+    "q": "what does my mac need to do to keep trading",
+    "a": "Three things. The autopilot must be on (Setup → 2. Autopilot → Turn on). The Mac must be awake and online; the autopilot already stops idle sleep while it runs. And it should be plugged in, because closing a MacBook's lid puts it to sleep unless Keep trading with the lid closed is on, which only works on the charger. The app window can be closed. On a MacBook, also check System Settings → Battery → Options → \"Prevent automatic sleeping on power adapter when the display is off\".",
+    "source": "trader/README.md (Keep the Mac awake); trader/aitrader/mac_service.py (header); trader/aitrader/lid_mode.py; README.md (The app)"
+  },
+  {
+    "q": "my mac was on wifi all day but it didnt trade, why",
+    "a": "Being on Wi-Fi isn't enough by itself: the Mac also has to be awake with the autopilot running. Most often a MacBook fell asleep because the lid was closed, which sleeps it unless lid-closed mode is on and it's plugged in. Check the pill at the top of the window: \"Autopilot off\" or \"Autopilot last seen ... min ago\" means it wasn't checking in. Turn the autopilot on in Setup step 2, plug in, and turn on Keep trading with the lid closed if you close the lid. The Journal flags a missed swing decision.",
+    "source": "trader/README.md (Keep the Mac awake); trader/aitrader/web/dashboard.html (autopilot pill); trader/run.py (study job warning); trader/aitrader/dashboard.py (_right_now)"
+  },
+  {
+    "q": "top of the app says autopilot last seen 45 min ago",
+    "a": "The autopilot checks in every 5 minutes, and the pill turns to a warning once it hasn't checked in for 12 minutes or more. Usually the Mac was asleep; the Right now line on the Summary tab asks the same. Wake the Mac, keep it plugged in, and if you close the lid, turn on lid-closed mode in Setup step 2. If Setup shows \"on · not running\" or a Last problem line, the autopilot itself stopped; it normally restarts on its own. A job that gets stuck makes it restart itself after 30 minutes.",
+    "source": "trader/aitrader/web/dashboard.html (render autopilot pill, refreshSetup); trader/aitrader/dashboard.py (_right_now); trader/run.py (cmd_autopilot, STUCK_MINUTES); trader/aitrader/mac_service.py (KeepAlive)"
+  },
+  {
+    "q": "what if the mac goes to sleep while the bot owns stocks",
+    "a": "There are backups, though staying awake is the dependable setup. Every real position has a stop-loss order resting at the broker. When the Mac wakes, the day desk sells any leftovers the moment it can, since it never means to hold overnight. If the swing desk missed its daily decision, the Journal flags it. With lid-closed mode on, a weekday 8:30am New York time wake-up is also set, but wake-ups with the lid closed aren't guaranteed.",
+    "source": "trader/README.md (Keep the Mac awake); trader/aitrader/lid_mode.py (MORNING_WAKE_NY)"
+  },
+  {
+    "q": "what time does kestrel trade each day",
+    "a": "On weekdays, New York time, with the autopilot waking every 5 minutes: at 9:25am a morning check-in; at 9:35am the day desk picks today's stocks in play; while the market is open the day desk decides every 5 minutes and sells everything before the close; the swing desk decides once, 15 minutes before the close (3:45pm on a normal day), and watches its stop-losses every 5 minutes. After the close it studies (about 10 minutes later), runs the options-gap watcher, scans all US stocks, and writes the after-market report about 25 minutes after the close.",
+    "source": "trader/run.py (due_jobs, cmd_autopilot); trader/aitrader/report.py (Next section); trader/README.md (desks table)"
+  },
+  {
+    "q": "where are my api keys stored",
+    "a": "In one file on your Mac: ~/AITrader/.env, in the AITrader folder in your home folder. That's where the Alpaca paper and real-money keys, the Schwab and Webull keys, the Telegram bot token and the Pushover keys are saved. Kestrel writes it so only your Mac user can read it. Updates never touch it, and only deleting the AITrader folder removes it. Your Setup settings are in ~/AITrader/my_settings.json, and your Schwab and Webull logins in ~/AITrader/data/.",
+    "source": "trader/aitrader/app_api.py (write_env, save_keys, save_live_keys, save_schwab_keys, save_webull_keys, save_phone, save_pushover); trader/README.md (Where your keys live)"
+  },
+  {
+    "q": "is it safe to paste my keys into kestrel, do they get sent anywhere",
+    "a": "They're saved only on your Mac, in ~/AITrader/.env, which only your Mac user can read. Each key is used only to talk to the service it belongs to, like Alpaca, Schwab, Telegram or Pushover. The app window doesn't hold broker keys, and the phone screen never sees them: keys and settings stay on the Mac. One thing to know: if you connect Claude Desktop while Schwab is set up, your Schwab key and secret are written into Claude Desktop's settings file, also on your Mac.",
+    "source": "trader/aitrader/app_api.py (write_env); trader/aitrader/phone_screen.py (header); trader/README.md (The app; Connect Claude (MCP)); trader/aitrader/web/dashboard.html (Setup step 1)"
+  }
+]

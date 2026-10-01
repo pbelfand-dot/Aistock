@@ -26,7 +26,7 @@ It learns only from the past, and a test proves it can't peek at future prices.
  1. STUDY  (≥30 days)      Swing: every strategy writes down an opinion on each stock daily,
                            graded 5 days later. Day: every strategy "shadow trades" each day
                            with pretend money. No orders at all. Each desk also trades "in its
-                           head" (swing: momentum, day: opening range breakout; config.yaml
+                           head" (swing: momentum, day: TJR's model; config.yaml
                            study.in_its_head), and the app's Trades tab reports every trade.
           │  menu: Write the trading plans
           ▼
@@ -85,8 +85,9 @@ SPY, buying SPY is the better deal.
      **Paper** for Webull test-environment keys or **Real money** (a wrong pick is fixed by the test). Press
      **Test Webull**, then approve Kestrel in the Webull app within 5 minutes (Menu → Messages →
      OpenAPI Notifications → Check Now → the text-message code). The autopilot uses that approval each
-     morning so it doesn't lapse (Webull drops it after 15 unused days). For now Kestrel only reads the
-     Webull account; it doesn't trade there.
+     morning so it doesn't lapse (Webull drops it after 15 unused days). To paper trade at Webull:
+     Settings → Paper trading happens at → Webull (needs the paper keys, approved). Real money at Webull
+     needs its real-money keys, Broker for real money: Webull, and the usual locks. Whole shares only there.
    - **Alpaca real-money keys:** saving them turns nothing on.
    - **Connect Claude** (Code or Desktop).
 
