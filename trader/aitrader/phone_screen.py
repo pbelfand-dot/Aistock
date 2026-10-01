@@ -27,7 +27,8 @@ from .config import ROOT, data_path
 
 PORT = 8765
 TAILNET = ipaddress.ip_network("100.64.0.0/10")        # Tailscale gives every device an address in here
-ALLOWED = {"snapshot", "setup-status", "pause", "resume", "kill", "start-stage1", "start-stage2", "phone-test"}
+ALLOWED = {"snapshot", "setup-status", "pause", "resume", "kill", "start-stage1", "start-stage2", "phone-test",
+           "stock-info"}                                 # stock-info only reads (what a stock is)
 WEB = ROOT / "aitrader" / "web"
 SHIM = """<script>
 window.kestrelPhone = true;
@@ -89,7 +90,8 @@ def answer(cfg, raw: bytes, key: str) -> tuple:
         if action not in ALLOWED:
             return 200, json.dumps({"error": "That's done on the Mac (Kestrel's Setup screen)."})
         with contextlib.redirect_stdout(io.StringIO()):        # the bot's own messages stay out of the answer
-            result = handle(action, load_config(), bool(msg.get("demo")), msg.get("confirm"), None)
+            payload = json.loads(msg.get("input") or "{}") if action == "stock-info" else None
+            result = handle(action, load_config(), bool(msg.get("demo")), msg.get("confirm"), payload)
     except Exception as e:
         result = {"error": str(e) or type(e).__name__}
     return 200, json.dumps(plain_json(result), default=str, allow_nan=False)
