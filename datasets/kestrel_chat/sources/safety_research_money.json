@@ -61,7 +61,7 @@
  },
  {
   "q": "will an update mess with my live trades?",
-  "a": "It shouldn't surprise you. When a newer version exists, the app checks the download's fingerprint and signature before swapping itself in. If real money is involved (switched on in .env, a desk live, or real shares owned), it asks you first instead of updating on its own. Your keys in ~/AITrader/.env and your data stay, and a running background autopilot restarts on the new version. Resting stop orders sit at the broker, so they keep protecting positions during the restart.",
+  "a": "Not without asking you. When a newer version exists, the app checks the download's fingerprint and signature before swapping itself in. If real money is involved (switched on in .env, a desk live, or real shares owned), it asks you first instead of updating on its own. Your keys in ~/AITrader/.env and your data stay, and a running background autopilot restarts on the new version. Resting stop orders sit at the broker, so they keep protecting positions during the restart.",
   "source": "trader/README.md (Updating: automatic; Safety rules #4); trader/aitrader/brokers/live.py (resting stop-loss)"
  },
  {
@@ -192,7 +192,7 @@
  {
   "q": "alpaca, schwab or webull, which one should i use?",
   "a": "They differ in practical ways, and all three use the same safety rules. Alpaca: paper and real money with the same code, fractional shares, no good faith violations, and it's where the $50 real-money test starts. Schwab: real money only (no paper trading), whole shares only, cash-account rules, and you log in again every 7 days. Webull: a paper (test server) account and real money, whole shares for now, cash-account rules by default, and an approval in the Webull app. Paper can run at Alpaca or Webull, or be simulated on your Mac.",
-  "source": "trader/aitrader/knowledge/10-safety-rules.md; trader/aitrader/knowledge/20-the-plan.md; trader/aitrader/config.py (paper_broker, fractional_allowed, is_cash_account); trader/aitrader/brokers/*.py"
+  "source": "trader/aitrader/knowledge/10-safety-rules.md; trader/aitrader/knowledge/20-the-plan.md; trader/aitrader/config.py (paper_broker, fractional_allowed, is_cash_account); trader/aitrader/brokers/alpaca_broker.py; trader/aitrader/brokers/schwab_broker.py; trader/aitrader/brokers/webull_broker.py"
  },
  {
   "q": "can alpaca buy part of a share?",
@@ -378,5 +378,30 @@
   "q": "can i make it go all in on its single best pick?",
   "a": "Not within Kestrel's rules. Position sizes are part of the tested setup: the swing desk holds up to 8 stocks at up to 12.5% of its money each, and the day desk up to 3 at up to 33% each, with no day trade allowed to lose more than 0.66% of the desk at its stop. Spreading out was chosen on evidence: in the bot's backtest, 8 holdings made about the same as 3 with a smaller worst drop. All in would put everything at the mercy of one overnight gap.",
   "source": "trader/config.yaml (desks.*.risk and comments); trader/aitrader/knowledge/38-stops-and-earnings.md"
+ },
+ {
+  "q": "can kestrel short stocks?",
+  "a": "No. Kestrel only buys; it never sells short and never borrows. Your real-money plan couldn't short anyway: Alpaca only allows shorting with $2,000 or more of account equity, and only for easy-to-borrow stocks, while the plan is $50. Kestrel also runs Schwab and Webull as cash accounts, and shorting needs a margin account. Paper shorts would test something your real account can't do, so their results wouldn't carry over.",
+  "source": "trader/aitrader/knowledge/39-shorting.md; trader/aitrader/knowledge/30-research-findings.md"
+ },
+ {
+  "q": "would adding shorting make the ai better",
+  "a": "Not proven, and the evidence leans against it right now. TJR's model tested on daily charts lost on its shorts (-0.24R per trade). The stocks-in-play breakout study traded both ways but never reported the short side on its own. For momentum, the short side is where 'momentum crashes' come from: beaten-down stocks rebound violently after a market drop (Daniel & Moskowitz, 2016). And a short's loss has no ceiling. The safe next step would be pretend-only short trades in the strategy comparison, which was proposed but isn't built yet.",
+  "source": "trader/aitrader/knowledge/39-shorting.md; trader/aitrader/knowledge/30-research-findings.md"
+ },
+ {
+  "q": "why cant i short with my $50 alpaca account",
+  "a": "Alpaca requires at least $2,000 of account equity to sell short (or to use margin at all), and even then only easy-to-borrow stocks can be shorted. A $50 account is far below that, so the broker itself won't allow it. Kestrel's other brokers, Schwab and Webull, are run as cash accounts, which can't short either. If shorting ever made sense, it would need $2,000 or more at a broker that allows it, plus evidence from pretend trades first.",
+  "source": "trader/aitrader/knowledge/39-shorting.md; trader/aitrader/knowledge/30-research-findings.md"
+ },
+ {
+  "q": "whats a momentum crash",
+  "a": "It's when a momentum strategy that owns the recent winners and is short the recent losers suddenly loses a lot. It usually happens right after a big market drop: the beaten-down losers rebound much harder than the winners, so the short side gets crushed exactly when the market recovers (Daniel & Moskowitz, Journal of Financial Economics, 2016). Kestrel's momentum method is long only, owning the strongest stocks, and buys nothing new while SPY is below its 200-day average, so it avoids the short side that causes those crashes.",
+  "source": "trader/aitrader/knowledge/39-shorting.md; trader/aitrader/strategies.py (Momentum)"
+ },
+ {
+  "q": "isnt shorting how you make money when the market drops",
+  "a": "It can be, but it carries risks Kestrel avoids. A short's loss has no ceiling because a stock can keep rising, and busy, fast-moving stocks can get squeezed. In Kestrel's own tests, TJR's shorts lost money. When the market is weak, Kestrel protects itself differently: the swing desk stops new buys while SPY is below its 200-day average, every position has a stop-loss, a desk down 3% in a day stops buying, and a desk down 15% from its best day sells everything.",
+  "source": "trader/aitrader/knowledge/39-shorting.md; trader/aitrader/knowledge/10-safety-rules.md; trader/config.yaml (risk)"
  }
 ]

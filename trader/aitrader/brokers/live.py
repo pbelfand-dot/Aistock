@@ -1,7 +1,7 @@
 """
 brokers/live.py: the safety rules for sending orders to a REAL broker account
-(Alpaca paper, Alpaca live, or Schwab). The broker-specific details live in
-small "gateways" (alpaca_broker.py, schwab_broker.py); everything that keeps
+(Alpaca paper or live, Schwab, Webull paper or live). The broker-specific details live in
+small "gateways" (alpaca_broker.py, schwab_broker.py, webull_broker.py); everything that keeps
 your money safe is here, written once, used by all of them.
 
   * Budget-capped: each desk's checkbook (Ledger) starts at its share of the
