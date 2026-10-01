@@ -388,5 +388,20 @@
     "q": "is it safe to paste my keys into kestrel, do they get sent anywhere",
     "a": "They're saved only on your Mac, in ~/AITrader/.env, which only your Mac user can read. Each key is used only to talk to the service it belongs to, like Alpaca, Schwab, Telegram or Pushover. The app window doesn't hold broker keys, and the phone screen never sees them: keys and settings stay on the Mac. One thing to know: if you connect Claude Desktop while Schwab is set up, your Schwab key and secret are written into Claude Desktop's settings file, also on your Mac.",
     "source": "trader/aitrader/app_api.py (write_env); trader/aitrader/phone_screen.py (header); trader/README.md (The app; Connect Claude (MCP)); trader/aitrader/web/dashboard.html (Setup step 1)"
+  },
+  {
+    "q": "what local ai model does kestrel use",
+    "a": "Google's Gemma 4 12B (gemma4:12b in Ollama), about an 8 GB download. It writes the plain-English parts: the plan, the after-market report's summary and the team's notes; it never decides trades. A Mac with less than 16 GB of memory uses the small Qwen3 4B (qwen3:4b, about 2.5 GB) instead, so the AI never slows down trading. Setup step 7 shows which one your Mac uses.",
+    "source": "trader/config.yaml (llm); trader/aitrader/llm.py"
+  },
+  {
+    "q": "how do i turn on the local ai",
+    "a": "Install Ollama (free) from ollama.com/download and open it once. Kestrel then downloads its model by itself the next time it writes something, or press Setup step 7 → Download the model now. Step 7 shows the download's progress and says ready when it's done. Until then the small model writes the summaries if it's already on your Mac; otherwise Kestrel uses plainer template text, and everything else works the same.",
+    "source": "trader/aitrader/llm.py; trader/aitrader/web/dashboard.html (Setup step 7); README.md"
+  },
+  {
+    "q": "does the local ai send my data anywhere",
+    "a": "No. It runs inside Ollama on your own Mac (it talks to localhost:11434), so your trades and notes never leave the computer. The only download is the model itself, once, from Ollama. It also never sees your keys, and it never decides trades.",
+    "source": "trader/config.yaml (llm); trader/aitrader/llm.py"
   }
 ]

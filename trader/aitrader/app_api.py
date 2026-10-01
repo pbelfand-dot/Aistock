@@ -392,7 +392,7 @@ def setup_status(cfg, store) -> dict:
                         else f"; still needed: {', '.join(progress['missing'])}."))
         desks.append({"desk": desk, "phase": phase, "halted": bool(store.get(f"halted:{desk}")),
                       "exiting": bool(store.get(f"exiting:{desk}")), "next": text})
-    from . import user_settings
+    from . import llm, user_settings
     from .schwab_api import token_days_left
     secrets = cfg["secrets"]
     return {"paper_keys": has_keys(cfg, True), "live_keys": has_keys(cfg, False),
@@ -408,7 +408,24 @@ def setup_status(cfg, store) -> dict:
             "autopilot_problem": autopilot_problem(store),
             "autopilot_seen": store.get("autopilot_heartbeat"), "can_autopilot": sys.platform == "darwin",
             "desks": desks, "stage1": stage1, "stage2": stage2_status(store), "phone": phone_status(cfg),
-            "lid": lid_status()}
+            "lid": lid_status(), "local_ai": llm.status(cfg)}
+
+
+def llm_download(cfg) -> dict:
+    """Setup step 7: download the local AI's model now (normally it starts by itself the first time it's needed)."""
+    from . import llm
+    if not cfg["llm"].get("enabled"):
+        raise RuntimeError("The local AI is turned off in config.yaml (llm.enabled).")
+    names = llm.downloaded(cfg)
+    if names is None:
+        raise RuntimeError("Ollama isn't running. Install it (free) from ollama.com/download, open it once, "
+                           "then try again.")
+    model = llm.wanted_model(cfg)
+    if llm.has(names, model):
+        return {"message": f"The local AI ({model}) is already downloaded and ready."}
+    llm.start_download(cfg, model, force=True)
+    return {"message": f"Downloading {model} in the background. It can take a while; Setup shows how far it got, "
+                       f"and the write-ups use it as soon as it's done."}
 
 
 def check_paper_move(cfg, choice: str):
@@ -543,6 +560,8 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         return pushover_test(cfg)
     if action == "phone-screen-send":
         return phone_screen_send(cfg)
+    if action == "llm-download":
+        return llm_download(cfg)
     if action in ("lid-mode-on", "lid-mode-off"):
         from . import lid_mode
         return lid_mode.turn_on() if action == "lid-mode-on" else lid_mode.turn_off()
@@ -626,7 +645,7 @@ def main(argv=None) -> int:
         "autopilot-on", "autopilot-off", "resume", "save-settings", "save-live-keys", "save-schwab-keys",
         "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude", "start-stage1",
         "save-phone", "phone-test", "phone-screen-send", "save-webull-keys", "check-webull", "lid-mode-on",
-        "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test", "stock-info"])
+        "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test", "stock-info", "llm-download"])
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)

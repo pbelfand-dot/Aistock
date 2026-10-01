@@ -511,6 +511,15 @@
     <div class="setup-row"><button class="primary" id="screen-toggle">Turn on</button><button id="screen-send">Send the link to my phone</button></div>
     <p class="ink2" id="screen-link" hidden></p>
   </section>
+  <section class="setup-step">
+    <h4><span class="num">7</span> Local AI: the plain-English write-ups <span class="tag" id="ai-state"></span></h4>
+    <p class="ink2">A free AI that runs on this Mac and writes the plain-English parts: the plan, the after-market
+       summary and the team's notes. It never decides trades, and nothing is sent anywhere. <strong>1.</strong>
+       Install <a href="https://ollama.com/download">Ollama</a> (free) and open it once. <strong>2.</strong> Kestrel
+       downloads its model by itself; or press the button.</p>
+    <div class="setup-row"><button id="ai-download">Download the model now</button></div>
+    <p class="ink2" id="ai-line"></p>
+  </section>
   <details class="setup-more" id="setup-later">
     <summary>Real money, Schwab, Webull and Claude (for later)</summary>
     <section class="setup-step">
@@ -1397,6 +1406,18 @@ async function refreshSetup() {
     $("#screen-send").disabled = !sc.link;
     $("#screen-link").hidden = !sc.link;
     if (sc.link) $("#screen-link").replaceChildren("On your phone, open: ", el("code", { text: sc.link }));
+    const ai = s.local_ai || {};
+    $("#ai-state").textContent = !ai.enabled ? "off" : !ai.ollama ? "Ollama isn't running" : ai.ready ? `ready · ${ai.model}`
+      : ai.downloading ? `downloading ${ai.model}` + (ai.percent != null ? ` · ${ai.percent}%` : "")
+      : ai.using ? `using ${ai.using} for now` : "model not downloaded";
+    $("#ai-download").disabled = !ai.enabled || !ai.ollama || ai.ready || ai.downloading;
+    $("#ai-line").textContent = !ai.enabled ? "Turned off in config.yaml (llm.enabled)."
+      : (ai.model === ai.big_model
+          ? `This Mac uses ${ai.model} (about 8 GB to download).`
+          : `This Mac has ${ai.memory_gb} GB of memory, under the ${ai.min_memory_gb} GB that ${ai.big_model} needs next to trading, so it uses the smaller ${ai.model}.`)
+        + (ai.error && !ai.downloading && !ai.ready ? ` The last download stopped: ${ai.error}. It tries again by itself within an hour, or press the button.` : "")
+        + (!ai.ready && ai.using && ai.using !== ai.model ? ` Until it's downloaded, ${ai.using} writes them.` : "")
+        + (!ai.ollama ? " Without Ollama, Kestrel writes plainer template text instead; everything else works the same." : "");
     const sw = s.schwab;
     $("#schwab-state").textContent = !sw.keys ? "not set up" : sw.days_left == null ? "keys saved · not logged in"
       : sw.days_left <= 0 ? "login expired" : `logged in · ${sw.days_left.toFixed(1)} days left`;
@@ -1473,6 +1494,7 @@ async function setupAction(button, action, payload, after) {
   finally { button.disabled = false; await refreshSetup(); load(); }
 }
 $("#lid-toggle").onclick = (e) => setupAction(e.target, e.target.dataset.on ? "lid-mode-off" : "lid-mode-on");
+$("#ai-download").onclick = (e) => setupAction(e.target, "llm-download");
 $("#save-phone").onclick = (e) => {
   const token = $("#phone-token").value.trim();
   if (!token) { notify("Paste the bot token from @BotFather first.", true); return; }

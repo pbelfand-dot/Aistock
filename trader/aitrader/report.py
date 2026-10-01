@@ -209,7 +209,8 @@ def _desk_section(cfg, store, desk, kind, today) -> list:
             last = quote(cfg, t)["last"]
             gain = f", now {_money(last)} ({(last / p['avg_cost'] - 1) * 100:+.1f}%)" if last else ""
             own = p.get("stop_pct") or stop_pct
-            out.append(f"- {t}: {p['qty']} shares bought {p['opened_on']} at {_money(p['avg_cost'])}{gain}; "
+            out.append(f"- {t}: {p['qty']:g} share{'' if p['qty'] == 1 else 's'} bought {p['opened_on']} at "
+                       f"{_money(p['avg_cost'])}{gain}; "
                        f"stop-loss {_money(p['avg_cost'] * (1 - own / 100))} ({own:g}% below"
                        + (", sized to how much it moves)" if p.get("stop_pct") else ")"))
         out.append("")

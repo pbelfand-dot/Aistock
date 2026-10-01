@@ -242,13 +242,13 @@ def _records(frame: pd.DataFrame) -> list:
 # ------------------------------------------------------------------ news
 def fetch_news(cfg: dict, symbols: list, days: int = 3) -> dict:
     """{symbol: [{"time", "headline", "source", "url"}]} (Alpaca's news feed, or Yahoo without keys)."""
-    from .alpaca_api import has_keys, keys
+    from .alpaca_api import has_keys, keys, timed
     since = datetime.now(timezone.utc) - timedelta(days=days)
     out = {s: [] for s in symbols}
     if has_keys(cfg, True) or has_keys(cfg, False):
         from alpaca.data.historical.news import NewsClient
         from alpaca.data.requests import NewsRequest
-        client = NewsClient(*keys(cfg, has_keys(cfg, True)))
+        client = timed(NewsClient(*keys(cfg, has_keys(cfg, True))))
         for i in range(0, len(symbols), 25):
             chunk = symbols[i:i + 25]
             result = client.get_news(NewsRequest(symbols=",".join(chunk), start=since, limit=50))

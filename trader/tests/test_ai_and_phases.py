@@ -120,11 +120,14 @@ def test_the_local_ai_gets_the_knowledge_pack_with_every_request(cfg, monkeypatc
             return False
 
     def fake_urlopen(request, timeout):
+        if request.full_url.endswith("/api/tags"):
+            return Reply(_json.dumps({"models": [{"name": "gemma4:12b"}]}).encode())
         sent.update(_json.loads(request.data))
         return Reply(_json.dumps({"response": "ok"}).encode())
 
     monkeypatch.setattr(llm.urllib.request, "urlopen", fake_urlopen)
-    cfg["llm"].update(enabled=True, url="http://localhost:11434", model="qwen3:4b")
+    monkeypatch.setattr(llm, "mac_memory_gb", lambda: 16.0)
+    cfg["llm"].update(enabled=True, url="http://localhost:11434", model="gemma4:12b")
     assert llm.ask_local_llm(cfg, "Write the plan.") == "ok"
     assert sent["prompt"] == "Write the plan." and sent["options"]["num_ctx"] >= 8192
     for must_know in ("good faith violation", "Stage 1", "MTUM", "TJR", "never decide trades"):

@@ -52,6 +52,10 @@ code changes.
   - **The Kestrel screen on your iPhone.** It works over Tailscale, a free private network between
     your own devices. It's served only on the Mac's Tailscale address and needs Kestrel's access key.
     Add it to your Home Screen and it opens like an app. Keys and settings stay on the Mac.
+- **Local AI** (Setup step 7): a free AI on your Mac writes the plain-English parts (the plan, the
+  report's summary, the team's notes). It never decides trades and nothing leaves the Mac. Install
+  [Ollama](https://ollama.com/download) and Kestrel downloads Google's Gemma 4 12B (about 8 GB) by itself.
+  A Mac with less than 16 GB of memory uses the small Qwen3 4B instead, so trading never slows down.
 - **View → Show Demo Data** shows it with made-up prices right away.
 - **Setup** (the button) connects Alpaca, switches the autopilot and says what's next.
 - **Stage 2: TJR's model** (day desk). It waits for a sweep below a low, a break back up, then buys
