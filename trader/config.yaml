@@ -218,6 +218,17 @@ news:
   enabled: true
   days: 3
 
+# ---- SEC filings (sec_filings.py; free, no key: needs your contact email in Setup step 8) -------------
+# Every 30 minutes on trading days: the official filings of what it owns or is considering. Serious
+# ones (bankruptcy, delisting notice, "past financials can't be relied on", a cyber attack, a late
+# annual/quarterly report) stop it buying that stock for 30 days, like danger headlines.
+sec:
+  enabled: on
+
+# ---- Big economic news (macro.py; a free FRED key in Setup step 8) ----------------------------------
+# CPI, the jobs report and Fed decisions: a countdown in the Thinking tab and the report, and every buy
+# on those days is tagged so the mistake memory learns whether they lose. No rule avoids them.
+
 # ---- Weekend practice (Saturday and Sunday; weekend.py) ----------------------
 # Practice only: none of it counts toward Stage 1, real money, or what the desks learn from their
 # own trades. Each weekend starts fresh. Watch it live in the Thinking tab. (Setup -> Settings)

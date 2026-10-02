@@ -296,6 +296,12 @@ def after_market(cfg, store, today: str) -> str:
         out += ["## Earnings soon (the swing desk isn't buying these)", "",
                 "- " + ", ".join(f"{t}: reports {d}" for t, d in sorted(hold["tickers"].items())), ""]
     out += in_play_lines(cfg, store, today)
+    for section in (lambda: why_lines(cfg, store, today), lambda: filing_lines(cfg, today),
+                    lambda: _macro_lines(cfg, today)):
+        try:                                               # a missing source never stops the report
+            out += section()
+        except Exception as e:
+            out += [f"- (couldn't add a section: {e!r})", ""]
 
     out += ["## Next", ""]
     for desk in active_desks(cfg):
@@ -334,6 +340,44 @@ def scan_lines(cfg, store, today: str) -> list:
             f"- New today: {', '.join(joined) or 'none'}; dropped off: {', '.join(left) or 'none'}",
             f"- Danger news (won't buy): {', '.join(danger) or 'none'}", ""]
     return out
+
+
+def why_lines(cfg, store, today: str) -> list:
+    """Why they moved: what it owns, and the scan's top picks that moved 3%+ today, with the latest
+    headline and SEC filing for each (a hint, not proof: news can follow a move as well as cause it)."""
+    from .scanner import load_list
+    from .stock_info import why_moved
+    held = list(dict.fromkeys(t for kind in MODES for d in cfg["desks"]
+                              for t in ((store.get(f"{kind}-{d}_ledger") or {}).get("positions") or {})))
+    picks = [r["symbol"] for r in (load_list(cfg).get("swing_picks") or [])[:10]]
+    out = []
+    for t in list(dict.fromkeys(held + picks))[:20]:
+        w = why_moved(cfg, t)
+        if w["today_pct"] is None or (t not in held and abs(w["today_pct"]) < 3):
+            continue
+        said = [f"{h['headline']} ({h.get('source') or 'news'}, {str(h.get('time') or '')[11:16] or h.get('time', '')})"
+                for h in w["headlines"][:1]]
+        said += [f"SEC {f['what']} ({f['ago']})" for f in w["filings"][:1]]
+        week = f", {w['week_pct']:+.1f}% in 5 days" if w["week_pct"] is not None else ""
+        out.append(f"- {t} {w['today_pct']:+.1f}% today{week}" + (" (owns it)" if t in held else "")
+                   + (": " + "; ".join(said) if said else ": no news or filings found"))
+    return (["## Why they moved", "", *out, ""]) if out else []
+
+
+def _macro_lines(cfg, today: str) -> list:
+    from datetime import datetime
+    from . import macro
+    return macro.lines(cfg, datetime.strptime(today, "%Y-%m-%d").replace(hour=16, minute=25))
+
+
+def filing_lines(cfg, today: str) -> list:
+    """Serious SEC filings: the stocks it won't buy because of them."""
+    from . import sec_filings
+    danger = sec_filings.danger_tickers(cfg)
+    if not danger:
+        return []
+    return ["## SEC filings: not buying", "",
+            *[f"- {t}: {', '.join(r.removeprefix('SEC: ') for r in reasons)}" for t, reasons in danger.items()], ""]
 
 
 def in_play_lines(cfg, store, today: str) -> list:

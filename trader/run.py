@@ -342,8 +342,7 @@ def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
         return f"{desk}: no prices today (market holiday?)"
 
     work_store = Store(":memory:") if dry_run else store     # a dry run saves nothing
-    from aitrader.scanner import danger_tickers
-    danger = danger_tickers(cfg)                              # danger headlines: not buying these for now
+    danger = danger_now(cfg)                                  # danger headlines or SEC filings: not buying these
     broker.blocked = frozenset(broker.blocked) | {t for t in danger if t not in broker.positions()}
     if not stops_only:                                       # earnings report soon: not buying these either
         broker.blocked = frozenset(broker.blocked) | set(earnings_hold(cfg, store, desk, broker, bars, now))
@@ -368,6 +367,16 @@ def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
         return f"{desk}: KILL SWITCH TRIPPED"
     save_broker(store, broker)
     return f"{desk} [{broker.mode}]: value ${result['equity']:,.2f}"
+
+
+def danger_now(cfg) -> dict:
+    """{ticker: [reasons]} not to buy for now: danger headlines (scanner.py) and serious SEC filings."""
+    from aitrader import sec_filings
+    from aitrader.scanner import danger_tickers
+    out = {t: list(r) for t, r in danger_tickers(cfg).items()}
+    for t, reasons in sec_filings.danger_tickers(cfg).items():
+        out[t] = out.get(t, []) + reasons
+    return out
 
 
 def learned(cfg, store, desk, mode, strategy_name, market, today=None):
@@ -612,6 +621,17 @@ def run_job(job, cfg, store, data, now, done) -> str:
             store.log(f"WARNING: {warning}")
         first_scan(cfg, store, today)
         look_up_earnings(cfg, store, today)
+        try:                                                 # the big economic news dates (macro.py)
+            from aitrader import macro
+            if macro.has_key(cfg):
+                cal = macro.refresh(cfg, today)
+                if cal.get("error"):
+                    store.log(f"[macro] couldn't get every date from FRED: {cal['error']}")
+                for e in [x for x in macro.upcoming(cfg, now) if x["today"]]:
+                    store.log(f"[macro] big news today: {e['name']} at {e['label'].split(', ')[-1]} New York "
+                              "time. Buys today are tagged so the mistake memory can learn from them.")
+        except Exception as e:                               # never let a website stop the day
+            store.log(f"[macro] couldn't update the calendar ({e!r})")
         return ""
     if job == "inplay":
         from aitrader import in_play
@@ -796,6 +816,11 @@ def cmd_autopilot(cfg, store, args):
             keep_trying_the_scan(cfg, store, now, done)
         except Exception as e:                               # never crash over the scan
             store.log(f"autopilot: couldn't restart the scan: {e!r}")
+        try:                                                 # SEC filings, every 30 minutes (sec_filings.py)
+            from aitrader import sec_filings
+            sec_filings.keep_checking(cfg, store, now)
+        except Exception as e:
+            store.log(f"autopilot: couldn't start the SEC filings check: {e!r}")
         try:                                                 # Saturday and Sunday: practice (weekend.py)
             from aitrader import weekend
             said = weekend.tick(cfg, store, now)

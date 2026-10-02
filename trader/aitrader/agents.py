@@ -105,7 +105,8 @@ def correlations(bars: dict, ticker: str, others, lookback: int) -> dict:
 
 
 def risk(orders: list, positions: dict, bars: dict, gaps: dict, equity: float, cfg_agents: dict,
-         lessons: list = None, in_play: dict = None, style: str = "swing", tags_out: dict = None) -> tuple:
+         lessons: list = None, in_play: dict = None, style: str = "swing", tags_out: dict = None,
+         events: list = None) -> tuple:
     """(orders it lets through, its notes). Sells always go through (getting out is never riskier).
     tags_out: filled with the situation of each buy that goes through (mistakes.py)."""
     from .mistakes import matching, tags_for
@@ -127,7 +128,7 @@ def risk(orders: list, positions: dict, bars: dict, gaps: dict, equity: float, c
             checks.append("puts are piling up against it")
             if "options_gap" in cfg_agents["risk_vetoes"] and not veto:
                 veto = "option bets lean against it"
-        tags = tags_for(o, bars, gaps, together, in_play, style)
+        tags = tags_for(o, bars, gaps, together, in_play, style, events)
         repeat = matching(tags, lessons) if cfg_agents.get("learn_from_mistakes", True) else None
         if repeat and not veto:
             veto = f"that would repeat a mistake: {repeat['tag']} ({repeat['why']})"
@@ -152,11 +153,14 @@ def review_orders(cfg: dict, orders: list, scores: pd.Series, prices: pd.Series,
     equity = broker.equity(prices)
     facts = scout(scores, prices, positions, broker.cash(), broker.blocked, gaps, strategy, max_positions,
                   in_play=in_play, lessons=lessons)
+    from . import macro
+    day = max(df.index[-1] for df in bars.values()).strftime("%Y-%m-%d") if bars else ""
+    facts["events"] = [macro.EVENTS[k]["name"] for k in macro.events_on(cfg, day)] if day else []
     views = analyst(facts, strategy)
     plan = trader(orders)
     tags = {}
     keep, checks = risk(orders, positions, bars, gaps, equity, s, lessons=lessons, in_play=in_play,
-                        style=strategy.style, tags_out=tags)
+                        style=strategy.style, tags_out=tags, events=macro.tags(cfg, day) if day else [])
     if len(keep) != len(orders):
         plan = trader(keep) if keep else ["no orders (Risk skipped the buys)"]
     return keep, {"scout": facts, "analyst": views, "trader": plan, "risk": checks, "tags": tags}
@@ -197,7 +201,8 @@ def team_parts(team: dict) -> dict:
              f"danger news: {', '.join(f['danger']) or 'none'}; option gaps: "
              f"{', '.join(f'{t} {d}' for t, d in f['options_gaps'].items()) or 'none'}; rule: {f['rule']}"
              + (f"; in play: {', '.join(f'{t} {r}x' for t, r in f['in_play'].items())}" if f.get("in_play") else "")
-             + (f"; won't repeat: {', '.join(f['wont_repeat'])}" if f.get("wont_repeat") else "") + ".")
+             + (f"; won't repeat: {', '.join(f['wont_repeat'])}" if f.get("wont_repeat") else "")
+             + (f"; big news today: {', '.join(f['events'])}" if f.get("events") else "") + ".")
     return {"scout": facts, "analyst": "; ".join(team["analyst"]) or "nothing stood out",
             "trader": "; ".join(team["trader"]), "risk": "; ".join(team["risk"])}
 

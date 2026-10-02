@@ -433,5 +433,30 @@
     "q": "how do i turn off weekend practice",
     "a": "Setup → Real money, Schwab, Webull and Claude (for later) → Settings → Weekend practice: replay real past days, and Weekend practice: crypto, pretend money. Set either one to Off and press Save settings.",
     "source": "trader/aitrader/user_settings.py; trader/aitrader/web/dashboard.html (Settings)"
+  },
+  {
+    "q": "how do i set up sec filings",
+    "a": "Setup step 8 (News and data sources): type your email in \"Your email (for the SEC)\" and press Save. The SEC's filings are free with no key, but it asks every program for a contact email; it's sent with each request and nowhere else. The first check runs within 30 minutes on a trading day, then every 30 minutes from 7am to 8pm.",
+    "source": "trader/aitrader/sec_filings.py; trader/aitrader/web/dashboard.html (Setup step 8)"
+  },
+  {
+    "q": "why won't kestrel buy a stock with an sec filing",
+    "a": "Only serious filings stop it, for 30 days: an 8-K saying bankruptcy (item 1.03), a delisting notice (3.01), that past financial statements can't be relied on (4.02) or a material cyber attack (1.05), or a late annual or quarterly report (NT 10-K / NT 10-Q). Ordinary filings like earnings results, insider trades or quarterly reports just show on the stock card with a link. If it owns the stock, you get a WARNING; the stop-loss still protects it.",
+    "source": "trader/aitrader/sec_filings.py (DANGER_ITEMS, DANGER_FORMS); trader/aitrader/knowledge/42-news-and-filings.md"
+  },
+  {
+    "q": "how do i get a fred api key",
+    "a": "It's free: sign up at fredaccount.stlouisfed.org, then API Keys → Request API Key. Paste the 32-character key into Setup step 8 (FRED API key) and press Save; Kestrel checks it with FRED before saving it in ~/AITrader/.env. Then the Thinking tab shows the next CPI, jobs report and Fed decision with a countdown.",
+    "source": "trader/aitrader/macro.py; trader/aitrader/app_api.py (save_data_sources)"
+  },
+  {
+    "q": "does kestrel stop trading on fed or cpi days",
+    "a": "No, not by rule. The evidence is mixed: a famous pre-Fed rally faded after 2015, and other releases showed no such pattern. Instead every buy made on a CPI, jobs-report or Fed-decision day is tagged (\"on a CPI day\"). If those trades keep losing, the mistake memory catches the pattern and the Risk agent skips buys on those days from then on.",
+    "source": "trader/aitrader/macro.py; trader/aitrader/mistakes.py (tags_for); trader/aitrader/knowledge/42-news-and-filings.md"
+  },
+  {
+    "q": "what does why it moved show",
+    "a": "On a stock's card (click any ticker) and in the after-market report: how much it moved today and over the last 5 trading days, next to the latest headlines (with source and time) and SEC filings. The report lists what it owns and any of the scan's top picks that moved 3% or more. It's a hint, not proof: news can follow a move as well as cause it.",
+    "source": "trader/aitrader/stock_info.py (why_moved); trader/aitrader/report.py (why_lines)"
   }
 ]

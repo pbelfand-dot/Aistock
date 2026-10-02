@@ -294,6 +294,8 @@
   .think-checks li { padding: 5px 0; border-top: 1px solid var(--grid); color: var(--ink-2); }
   .think-checks time { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; margin-right: 8px; }
   .score-tip { font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+  .think-macro { margin: -6px 0 16px; font-size: 13px; color: var(--ink-2); }
+  .think-macro strong { color: var(--ink); }
   .weekend-card { margin-bottom: 16px; }
   .weekend-card .tiles { justify-content: flex-start; flex: none; }
   .weekend-cards { margin-bottom: 16px; }
@@ -391,6 +393,7 @@
       <div><strong id="think-text">Asking the bot…</strong><div class="ink2" id="think-also"></div>
         <div class="muted think-meta" id="think-meta"></div></div>
     </div>
+    <p class="think-macro" id="think-macro" hidden></p>
     <div id="think-weekend" hidden></div>
     <div class="think-desks" id="think-desks"></div>
     <div id="think-lastweekend" hidden></div>
@@ -577,6 +580,21 @@
        downloads its model by itself; or press the button.</p>
     <div class="setup-row"><button id="ai-download">Download the model now</button></div>
     <p class="ink2" id="ai-line"></p>
+  </section>
+  <section class="setup-step">
+    <h4><span class="num">8</span> News and data sources <span class="tag" id="data-state"></span></h4>
+    <p class="ink2"><strong>Big economic news:</strong> the dates of CPI, the jobs report and the Fed's decisions, with a
+       countdown; buys on those days are tagged so Kestrel learns whether they lose. Get a free key at
+       <a href="https://fredaccount.stlouisfed.org/apikeys">fredaccount.stlouisfed.org</a> (sign up, then API Keys →
+       Request API Key). <strong>SEC filings:</strong> official company filings for what it owns or considers, with
+       links; serious ones (bankruptcy, delisting, restated financials) stop it buying. The SEC asks every program
+       for a contact email, sent with each request and nowhere else.</p>
+    <div class="setup-grid">
+      <label>FRED API key<input id="fred-key" type="password" autocomplete="off" spellcheck="false" placeholder="32 letters and digits"></label>
+      <label>Your email (for the SEC)<input id="sec-email" type="email" autocomplete="off" spellcheck="false" placeholder="you@example.com"></label>
+    </div>
+    <div class="setup-row"><button class="primary" id="save-data">Save</button></div>
+    <p class="ink2" id="data-line"></p>
   </section>
   <details class="setup-more" id="setup-later">
     <summary>Real money, Schwab, Webull and Claude (for later)</summary>
@@ -984,7 +1002,7 @@ function renderStock(r) {
     + `${plain(s.score, 2)}; it buys at ${s.buy_above}+ and sells under ${s.sell_below}`));
   (k.holding || []).forEach(h => known.push(`Holding ${h.qty} share${h.qty === 1 ? "" : "s"} (${h.desk} desk, `
     + `${h.account}) at ${money(h.avg_cost)} since ${h.since}`));
-  if ((k.danger || []).length) known.push(el("strong", { class: "down", text: `⚠ Danger news (${k.danger.join(", ")}): not buying it for now` }));
+  if ((k.danger || []).length) known.push(el("strong", { class: "down", text: `⚠ Danger (${k.danger.join(", ")}): not buying it for now` }));
   (k.lessons || []).forEach(l => known.push(el("strong", { text: l })));
   parts.push(known.length ? list(known) : el("p", { class: "ink2", text: "It isn't on any of Kestrel's lists and it has never traded it." }));
   if (k.finished) {
@@ -992,9 +1010,26 @@ function renderStock(r) {
     parts.push(list(k.trades.map(t => el("span", {}, `${t.bought_on} → ${t.sold_on} (${t.account}): `,
       el("span", { class: dir(t.gain), text: `${signedMoney(t.gain)} (${pct(t.gain_pct)})` }), ` · ${t.why_sold}`))));
   }
-  if ((k.news || []).length) {
+  const w = k.why_moved || {};
+  if (w.today_pct != null) {
+    parts.push(el("h4", { text: "Why it moved" }));
+    parts.push(el("p", {}, el("span", { class: dir(w.today_pct), text: `${pct(w.today_pct)} today` }),
+      w.week_pct != null ? el("span", { class: "ink2", text: ` · ${pct(w.week_pct)} in 5 days` }) : "",
+      w.last != null ? el("span", { class: "ink2", text: ` · ${money(w.last)}` }) : ""));
+    const said = [...(w.headlines || []).map(n => el("a", { href: n.url || null,
+                    text: n.headline + ` · ${[n.source, (n.time || "").slice(11, 16) || n.time].filter(Boolean).join(", ")}` })),
+                  ...(w.filings || []).map(f => el("a", { href: f.url, text: `SEC: ${f.what} · ${f.ago}` }))];
+    parts.push(said.length ? list(said) : el("p", { class: "ink2", text: "No news or SEC filings found for it in the last few days." }));
+    parts.push(el("p", { class: "muted", style: "font-size:12px; margin-top:4px",
+      text: "A hint, not proof: news can follow a move as well as cause it." }));
+  } else if ((k.news || []).length) {
     parts.push(el("h4", { text: "Recent news" }));
     parts.push(list(k.news.map(n => el("a", { href: n.url || null, text: n.headline + (n.source ? ` · ${n.source}` : "") }))));
+  }
+  if ((k.filings || []).length) {
+    parts.push(el("h4", { text: "SEC filings (last 2 weeks)" }));
+    parts.push(list(k.filings.map(f => el("span", {}, el("a", { href: f.url, text: f.what }), ` · ${f.ago}`,
+      (f.danger || []).length ? el("strong", { class: "down", text: ` · ⚠ ${f.danger.join(", ")}` }) : ""))));
   }
   $("#stock-body").replaceChildren(...parts);
 }
@@ -1505,6 +1540,11 @@ function renderThinking(r) {
   $("#think-tab-dot").classList.toggle("on", busy);
   $("#think-desks").replaceChildren(...r.desks.map(deskThinking));
   renderWeekend(r.weekend || {});
+  const m = r.macro || {}, ev = m.upcoming || [];
+  $("#think-macro").hidden = !m.has_key;
+  if (m.has_key) $("#think-macro").replaceChildren(el("strong", { text: "Big economic news: " }),
+    ev.length ? ev.slice(0, 3).map(e => `${e.name} ${e.today ? "today " + e.label.split(", ").pop() : e.label} (${e.countdown})`).join(" · ")
+              : "nothing in the next three weeks");
 }
 document.querySelectorAll(".tab").forEach(b => b.onclick = () => setTab(b.dataset.tab));
 document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => setTab(b.dataset.go));
@@ -1615,6 +1655,16 @@ async function refreshSetup() {
         + (ai.downloading ? " This updates by itself; when it's done it says ready, and your phone gets a message." : "");
     clearTimeout(state.aiPoll);                                  // while it downloads, keep the progress live
     if (ai.downloading) state.aiPoll = setTimeout(() => { if ($("#dlg-setup").open) refreshSetup(); }, 5000);
+    const ds = s.data_sources || {}, fr = ds.fred || {}, sec = ds.sec || {};
+    $("#data-state").textContent = [fr.has_key ? "FRED on" : "", sec.on ? "SEC on" : ""].filter(Boolean).join(" · ") || "not set up";
+    const nextUp = (fr.upcoming || [])[0];
+    $("#data-line").textContent = [
+      fr.has_key ? (nextUp ? `Next big news: ${nextUp.name}, ${nextUp.label} (${nextUp.countdown}).` : "FRED: no dates yet (they come with the morning check-in).")
+                   + (fr.error ? ` Problem: ${fr.error}` : "") : "",
+      sec.on ? (sec.checked ? `SEC filings: ${sec.stocks} stocks checked at ${sec.checked.slice(11, 16)}`
+                 + (Object.keys(sec.danger || {}).length ? `; not buying: ${Object.keys(sec.danger).join(", ")}.` : ".")
+               : "SEC filings: the first check runs within 30 minutes on a trading day.") + (sec.error ? ` Problem: ${sec.error}` : "") : ""
+    ].filter(Boolean).join(" ");
     const sw = s.schwab;
     $("#schwab-state").textContent = !sw.keys ? "not set up" : sw.days_left == null ? "keys saved · not logged in"
       : sw.days_left <= 0 ? "login expired" : `logged in · ${sw.days_left.toFixed(1)} days left`;
@@ -1692,6 +1742,12 @@ async function setupAction(button, action, payload, after) {
 }
 $("#lid-toggle").onclick = (e) => setupAction(e.target, e.target.dataset.on ? "lid-mode-off" : "lid-mode-on");
 $("#ai-download").onclick = (e) => setupAction(e.target, "llm-download");
+$("#save-data").onclick = (e) => {
+  const fred_key = $("#fred-key").value.trim(), sec_email = $("#sec-email").value.trim();
+  if (!fred_key && !sec_email) { notify("Fill in the FRED key, your email for the SEC, or both.", true); return; }
+  setupAction(e.target, "save-data-sources", { fred_key, sec_email }, async (r) => {
+    $("#fred-key").value = ""; $("#sec-email").value = ""; notify(r.message); });
+};
 $("#save-phone").onclick = (e) => {
   const token = $("#phone-token").value.trim();
   if (!token) { notify("Paste the bot token from @BotFather first.", true); return; }
