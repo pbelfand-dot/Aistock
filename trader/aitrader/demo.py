@@ -14,6 +14,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from . import challengers
 from .brokers import Ledger, PaperBroker
 from .config import active_desks, desk_capital, is_cash_account
 from .engine import run_cycle
@@ -125,3 +126,7 @@ def _paper(cfg, store, desk, bars, strategy_name, upto):
         run_cycle(store, broker, strategy, risk, watch, market, now.to_pydatetime(), cfg["desks"][desk],
                   cfg=cfg if now.date() == last_day else None)   # the team's notes on the last day (Thinking tab)
         store.set(f"{mode}_ledger", ledger.to_dict())
+        challengers.run_shadows(cfg, store, desk, watch, market, now.to_pydatetime(), strategy_name)
+    if challengers.ring(cfg, desk, strategy_name):           # the challengers' race (Thinking tab)
+        challengers.evaluate(cfg, store, desk, *upto(bars, moments[-1]), strategy_name, strategy_name,
+                             today=moments[-1].strftime("%Y-%m-%d"))

@@ -95,7 +95,7 @@ def priority_of(message: str) -> int:
         return 2
     if urgent:
         return 1
-    if any(m in message for m in ("] BUY ", "] SELL ", "PHASE CHANGE", "WARNING:")) or \
+    if any(m in message for m in ("] BUY ", "] SELL ", "PHASE CHANGE", "WARNING:", "CHALLENGER ")) or \
             message.startswith("After-market report"):
         return 0
     return -1

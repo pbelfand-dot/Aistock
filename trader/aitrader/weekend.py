@@ -179,7 +179,7 @@ def _strategy(cfg, store, desk):
     from .phases import current_phase
     from .strategies import get_strategy
     phase = current_phase(store, desk)
-    name = run.head_strategy(cfg, desk) if phase in run.IN_ITS_HEAD else run.load_plan(cfg, desk)["strategy"]
+    name = run.desk_strategy_name(cfg, store, desk, phase)
     return get_strategy(name, cfg, desk)
 
 

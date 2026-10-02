@@ -39,6 +39,13 @@ code changes.
   to the buy and sell lines, what it decided and why (or why not), the team's notes (Scout, Analyst,
   Trader, Risk), how far each holding is from its stop-loss, and every check so far today. It refreshes
   every 5 seconds, also on the phone screen.
+- **Challengers** (Thinking tab): new versions of a desk's method race the current one. The swing desk's
+  `momentum` has three: `momentum_plus` (residual momentum, smooth climbs, near 52-week highs), `momentum_calm`
+  (smaller buys when its stocks get stormy) and both together. Each is replayed on all 8 years of saved
+  prices and shadow trades with pretend money next to the desk. It takes over only when tests built to
+  catch luck say it's really better (a bootstrap test, and a deflated Sharpe ratio whose bar rises with every
+  idea ever tried), its worst drop isn't much deeper, and it isn't behind after 20 days of shadow trading.
+  Pretend-money desks switch by themselves and tell you; a real-money desk waits for you to press **Use it**.
 - **News and data sources** (Setup → AI & news): SEC filings for what it owns or considers (free; the SEC asks for
   your email), with links on each stock card; serious ones (bankruptcy, delisting, restated financials) stop
   it buying. The dates of CPI, the jobs report and Fed decisions (a free FRED key), with a countdown; buys on
@@ -611,6 +618,41 @@ starts fresh; Monday's journal gets one summary line. The Thinking tab shows it 
 
 ---
 
+<!-- from trader/aitrader/knowledge/43-challengers.md -->
+
+# Challengers: new ideas must prove themselves before they trade
+
+- **What** (challengers.py): other versions of a desk's method race the current one. The swing desk's
+  challengers of `momentum`:
+  - `momentum_plus`: ranks by residual momentum (the stock's own 12-1 month climb with the market's part
+    taken out, divided by how jumpy it was; Blitz, Huij & Martens 2011), then prefers smooth climbs made of
+    many small up days (frog in the pan; Da, Gurun & Warachka 2014) and stocks near their 52-week high
+    (George & Hwang 2004). Same buy/sell bars, 200-day filter and S&P 500 filter.
+  - `momentum_calm`: plain momentum with volatility scaling (Barroso & Santa-Clara 2015): new buys shrink
+    (down to 30%) when its stocks have been much jumpier than usual over 6 months; below half size,
+    holdings over twice the smaller limit are trimmed. Momentum's worst crashes came in stormy markets.
+  - `momentum_plus_calm`: both.
+- **Evidence, two kinds, always against the current method on the same stocks, money, rules and costs:**
+  - history: all 8 years of daily prices replayed after every close. The stock list is today's (survivors),
+    which flatters momentum; comparing two methods on the same list cancels much of that, not all.
+  - forward: a shadow account per method (pretend money, simulated on the Mac) deciding at the desk's real
+    decision time from the day the challenger was added. Journal lines from shadows are dropped.
+- **Proven better means all of:** ahead over the history by a bootstrap p-value of 0.05 or less (stationary
+  bootstrap, Politis & Romano 1994, keeps streaks together); a deflated Sharpe ratio of 0.95+ (Bailey & Lopez
+  de Prado 2014: every idea ever tried is logged in the `trials` table and raises the bar); a worst drop at
+  most 5 points deeper; at least 20 trading days of shadow trading and not behind there.
+- **Then:** a pretend-money desk (in its head, paper) switches by itself ("CHALLENGER WON", journal and
+  phone). A real-money desk never switches by itself: "CHALLENGER PROVEN", and the owner presses Use it in
+  the Thinking tab. The old method stays in the race and can win its place back the same way.
+- **Honest expectations:** most challengers will stay "not better" or "promising" for a long time. Thirty
+  days of shadow trading can't prove a small edge; the history test does the heavy lifting, and the
+  research effects shrink once published (McLean & Pontiff 2016: on average 26% lower out of sample and
+  58% lower after publication).
+- Where to see it: Thinking tab → Challengers, the after-market report, Research tab (the plan notes a switch).
+
+
+---
+
 <!-- from trader/README.md -->
 
 # Kestrel (formerly AI Trader)
@@ -1104,6 +1146,23 @@ plan:
   min_trades: 30           # need enough trades for the numbers to mean anything
   min_forward_signals: 10  # swing: graded "buy" opinions in the study month
   min_forward_trades: 10   # day: shadow trades in the study month
+
+# ---- Challengers (challengers.py): new ideas must beat the desk's current method first ------------
+# Each one is replayed on all the history next to the current method and shadow trades with pretend money
+# beside it. It takes over only when it's PROVEN better: ahead over the history with a bootstrap p-value of
+# 0.05 or less AND a deflated Sharpe ratio of 0.95+ (the bar rises with every idea ever tried), a worst drop
+# at most 5 points deeper, and not behind after the shadow-trading days. A pretend-money desk (in its head,
+# paper) switches by itself and tells you; a real-money desk waits for you to press Use it (Thinking tab).
+challengers:
+  enabled: true
+  swing: [momentum, momentum_plus, momentum_calm, momentum_plus_calm]
+  day: []
+  min_forward_days: {swing: 20, day: 10}
+  min_history_days: 250
+  max_p_value: 0.05
+  min_deflated_sharpe: 0.95
+  max_extra_drawdown_pct: 5
+  auto_switch: true
 
 # ---- Your phone -----------------------------------------------------------------
 # Alerts and commands: a private Telegram bot (set up in the app's Setup screen, phone.py).

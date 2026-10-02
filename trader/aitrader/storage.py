@@ -10,6 +10,7 @@ Tables:
   fills        every buy/sell (paper, live, or backtest)
   equity       account value at the end of each trading day
   journal      a plain-English diary of what the bot did and why
+  trials       every challenger ever compared with a desk's method, and how it did (challengers.py)
 """
 import json
 import sqlite3
@@ -41,6 +42,12 @@ CREATE TABLE IF NOT EXISTS equity (
 );
 
 CREATE TABLE IF NOT EXISTS journal (id INTEGER PRIMARY KEY, ts TEXT, message TEXT);
+
+CREATE TABLE IF NOT EXISTS trials (
+    desk TEXT, name TEXT, against TEXT, first_tried TEXT, last_tested TEXT,
+    days INTEGER, sharpe REAL, p_value REAL, deflated_sharpe REAL, verdict TEXT,
+    PRIMARY KEY (desk, name, against)
+);
 """
 
 
@@ -128,6 +135,26 @@ class Store:
         df = pd.read_sql_query("SELECT date, equity FROM equity WHERE mode = ? ORDER BY date",
                                self.db, params=(mode,))
         return pd.Series(df["equity"].values, index=pd.to_datetime(df["date"]), dtype=float)
+
+    # ---- every idea tried (challengers.py) -------------------------------------
+    def record_trial(self, desk, name, against, day, days, sharpe, p_value):
+        with self.db:
+            self.db.execute("INSERT OR IGNORE INTO trials (desk, name, against, first_tried) VALUES (?, ?, ?, ?)",
+                            (desk, name, against, day))
+            self.db.execute("UPDATE trials SET last_tested = ?, days = ?, sharpe = ?, p_value = ? "
+                            "WHERE desk = ? AND name = ? AND against = ?",
+                            (day, int(days), float(sharpe), float(p_value), desk, name, against))
+
+    def finish_trial(self, desk, name, against, deflated_sharpe, verdict):
+        with self.db:
+            self.db.execute("UPDATE trials SET deflated_sharpe = ?, verdict = ? WHERE desk = ? AND name = ? AND against = ?",
+                            (float(deflated_sharpe), verdict, desk, name, against))
+
+    def trials(self, desk) -> list:
+        rows = self.db.execute("SELECT name, against, first_tried, last_tested, days, sharpe, p_value, deflated_sharpe, "
+                               "verdict FROM trials WHERE desk = ? ORDER BY first_tried, name", (desk,))
+        keys = ("name", "against", "first_tried", "last_tested", "days", "sharpe", "p_value", "deflated_sharpe", "verdict")
+        return [dict(zip(keys, r)) for r in rows.fetchall()]
 
     def clear_mode(self, mode: str):
         """Wipe the paper (or live) track record so a fresh period starts from zero."""

@@ -23,7 +23,7 @@ from .config import ROOT, data_path
 TOKEN_PATTERN = r"\d{5,15}:[A-Za-z0-9_-]{30,60}"
 MAX_TEXT = 3900                                        # Telegram's limit is 4096 characters per message
 ALERT_MARKS = ("] BUY ", "] SELL ", "!!!", "KILL SWITCH", "EMERGENCY", "PAUSED by", "Resumed",
-               "PHASE CHANGE", "LEARNED:", "since the start", "WARNING:")
+               "PHASE CHANGE", "LEARNED:", "since the start", "WARNING:", "CHALLENGER ")
 HELP = ("Kestrel on your phone:\n"
         "/status  how each account is doing\n"
         "/trades  the last 10 finished trades\n"

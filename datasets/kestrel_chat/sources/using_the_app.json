@@ -458,5 +458,20 @@
     "q": "what does why it moved show",
     "a": "On a stock's card (click any ticker) and in the after-market report: how much it moved today and over the last 5 trading days, next to the latest headlines (with source and time) and SEC filings. The report lists what it owns and any of the scan's top picks that moved 3% or more. It's a hint, not proof: news can follow a move as well as cause it.",
     "source": "trader/aitrader/stock_info.py (why_moved); trader/aitrader/report.py (why_lines)"
+  },
+  {
+    "q": "what are challengers in the thinking tab",
+    "a": "New versions of a desk's method that race the one it uses now. The swing desk trades momentum; its challengers are momentum_plus (ranks by the stock's own climb with the market's part taken out, prefers smooth climbs and stocks near their 52-week high), momentum_calm (the same picks, smaller buys when its stocks get stormy) and momentum_plus_calm (both). Each is replayed on all the saved price history and shadow trades with pretend money next to the desk. None of them trades until it's proven better.",
+    "source": "trader/aitrader/challengers.py; trader/aitrader/strategies.py (MomentumPlus, MomentumCalm); README.md (The app: Challengers)"
+  },
+  {
+    "q": "when does a challenger actually start trading instead of momentum",
+    "a": "Only when it's proven better: ahead of the current method over the history with a bootstrap p-value of 0.05 or less, a deflated Sharpe ratio of at least 0.95 (the bar rises with every idea ever tried, so testing lots of ideas can't produce a lucky winner), a worst drop no more than 5 points deeper, and at least 20 trading days of shadow trading without being behind. A pretend-money desk (in its head or paper) then switches by itself and tells you in the journal and on your phone (CHALLENGER WON). A real-money desk never switches by itself: you press Use it in the Thinking tab.",
+    "source": "trader/aitrader/challengers.py (judge, evaluate, use); trader/config.yaml (challengers)"
+  },
+  {
+    "q": "a challenger says promising, why isnt it trading yet",
+    "a": "Promising means the history test says it's better, but it hasn't finished its shadow trading yet (20 trading days on the swing desk), or it's behind the current method there. It keeps being checked after every close, and takes over once both are true. Not better means the history didn't show a real edge (it could be luck, or its worst drop was deeper); too early means there isn't a year of history to compare yet.",
+    "source": "trader/aitrader/challengers.py (judge)"
   }
 ]

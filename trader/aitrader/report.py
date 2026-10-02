@@ -286,6 +286,11 @@ def after_market(cfg, store, today: str) -> str:
                          f"{row.get('total_return_pct', '--')}%, win rate {row.get('win_rate_pct', '--')}%") if row else "no shadow trades yet"
             out.append(f"- **{desk} / {s.name}**: {score}. {s.description}")
     out.append("")
+    try:                                                   # new ideas racing the current method (challengers.py)
+        from .challengers import lines as challenger_lines
+        out += challenger_lines(store, active_desks(cfg))
+    except Exception as e:
+        out += [f"- (couldn't add the challengers: {e!r})", ""]
 
     from .options_flow import report_lines
     out += report_lines(store)
