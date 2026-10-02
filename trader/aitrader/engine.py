@@ -80,6 +80,15 @@ def decide_orders(scores: pd.Series, prices: pd.Series, positions: dict, buying_
     return orders
 
 
+def scaled_risk(risk: RiskManager, size: float) -> RiskManager:
+    """The same rules with new buys at `size` (0..1) of their usual size (a calm strategy in a stormy market)."""
+    if size is None or pd.isna(size) or size >= 1:
+        return risk
+    import dataclasses
+    return dataclasses.replace(risk, max_position_pct=risk.max_position_pct * size,
+                               risk_per_trade_pct=risk.risk_per_trade_pct * size)
+
+
 def sell_all(positions: dict, prices: pd.Series, reason: str, tickers=None) -> list:
     orders = []
     for ticker, pos in positions.items():
@@ -172,10 +181,12 @@ def resting_stop_fills(broker, risk: RiskManager, opens: pd.Series, lows: pd.Ser
 
 
 def run_backtest(strategy, bars: dict, market: pd.DataFrame, cfg: dict, desk: str,
-                 scores: pd.DataFrame = None, start=None) -> dict:
+                 scores: pd.DataFrame = None, start=None, curve: bool = False) -> dict:
     """Replay history bar by bar with fake money. Returns the scorecard.
-    start: only trade from this date on (used for the study month's 'shadow trading')."""
+    start: only trade from this date on (used for the study month's 'shadow trading').
+    curve: also return the account's value at the end of each day ("daily", a Series)."""
     scores = strategy.scores(bars, market) if scores is None else scores
+    sizes = strategy.exposure(bars, market, scores)
     closes = closes_table(bars)
     opens, lows = price_table(bars, "open"), price_table(bars, "low")
     scores = scores.reindex(index=closes.index, columns=closes.columns)
@@ -197,7 +208,8 @@ def run_backtest(strategy, bars: dict, market: pd.DataFrame, cfg: dict, desk: st
         prices = closes.loc[ts]
         if strategy.style == "swing":
             all_fills += resting_stop_fills(broker, risk, opens.loc[ts], lows.loc[ts], date)
-        orders = desk_orders(strategy, ts, scores.loc[ts], prices, broker, risk, day_start, cfg["desks"][desk],
+        now_risk = scaled_risk(risk, sizes.get(ts)) if sizes is not None else risk
+        orders = desk_orders(strategy, ts, scores.loc[ts], prices, broker, now_risk, day_start, cfg["desks"][desk],
                              atr_pct=atr.loc[ts].dropna().to_dict() if atr is not None and ts in atr.index else None)
         all_fills += execute(orders, broker, date)
         curve[ts] = last_equity = broker.equity(prices)
@@ -208,6 +220,8 @@ def run_backtest(strategy, bars: dict, market: pd.DataFrame, cfg: dict, desk: st
     result = summarize(daily, fills)
     result["start"] = active[0].strftime("%Y-%m-%d") if len(active) else None
     result["end"] = active[-1].strftime("%Y-%m-%d") if len(active) else None
+    if curve:
+        result["daily"] = daily
     return result
 
 
@@ -290,7 +304,19 @@ def run_cycle(store, broker, strategy, risk: RiskManager, bars: dict, market: pd
     say_step(store, mode, f"checking the stop-losses on {len(broker.positions())} holdings" if stops_only
              else f"scoring {len(bars)} stocks with {strategy.name}")
     if not stops_only:
-        scores = current_scores(strategy, bars, market)
+        if strategy.calm:                           # a calm strategy buys smaller when its stocks are stormy
+            table = strategy.scores(bars, market)
+            scores = table.reindex(columns=list(bars)).iloc[-1] if len(table) else pd.Series(float("nan"), index=list(bars))
+            sizes = strategy.exposure(bars, market, table)
+            size = float(sizes.iloc[-1]) if sizes is not None and len(sizes) else 1.0
+            if size < 1 and store.get(f"{mode}_size_logged") != today:
+                store.log(f"[{mode}] stormy: {strategy.name}'s stocks have been jumpier than usual, so new buys are "
+                          f"{size:.0%} of the usual size today" + (" (holdings over twice that are trimmed)"
+                                                                   if size < 0.5 else ""))
+                store.set(f"{mode}_size_logged", today)
+            risk = scaled_risk(risk, size)
+        else:
+            scores = current_scores(strategy, bars, market)
         for ticker in broker.blocked:               # e.g. stocks you own yourself
             if ticker not in broker.positions():
                 scores[ticker] = float("nan")

@@ -81,7 +81,7 @@ def real_money_status(cfg, store) -> dict:
 
 # ---------------------------------------------------------------- the Setup screen
 PAPER_KEYS = ("ALPACA_PAPER_API_KEY", "ALPACA_PAPER_SECRET_KEY")
-STDIN_ACTIONS = {"save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
+STDIN_ACTIONS = {"use-challenger", "save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
                  "connect-claude", "save-phone", "save-webull-keys", "save-pushover", "stock-info",
                  "check-webull", "save-data-sources"}               # these read their details from stdin (never argv)
 
@@ -645,6 +645,10 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
             return setup_status(cfg, store)
         if action == "thinking":
             return dashboard.thinking(cfg, store)
+        if action == "use-challenger":                  # you pressed Use it (a proven challenger, real-money desk)
+            from . import challengers
+            p = payload or {}
+            return {"message": challengers.use(store, str(p.get("desk")), str(p.get("name")))}
         if action == "resume":
             import run                                  # run.py, next to the aitrader folder
             run.cmd_resume(cfg, store, SimpleNamespace(desk=None))
@@ -696,7 +700,8 @@ def main(argv=None) -> int:
         "autopilot-on", "autopilot-off", "resume", "save-settings", "save-live-keys", "save-schwab-keys",
         "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude", "start-stage1",
         "save-phone", "phone-test", "phone-screen-send", "save-webull-keys", "check-webull", "lid-mode-on",
-        "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test", "stock-info", "llm-download", "thinking", "save-data-sources"])
+        "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test", "stock-info", "llm-download", "thinking", "save-data-sources",
+        "use-challenger"])
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)

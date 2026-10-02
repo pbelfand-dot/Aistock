@@ -133,6 +133,23 @@ plan:
   min_forward_signals: 10  # swing: graded "buy" opinions in the study month
   min_forward_trades: 10   # day: shadow trades in the study month
 
+# ---- Challengers (challengers.py): new ideas must beat the desk's current method first ------------
+# Each one is replayed on all the history next to the current method and shadow trades with pretend money
+# beside it. It takes over only when it's PROVEN better: ahead over the history with a bootstrap p-value of
+# 0.05 or less AND a deflated Sharpe ratio of 0.95+ (the bar rises with every idea ever tried), a worst drop
+# at most 5 points deeper, and not behind after the shadow-trading days. A pretend-money desk (in its head,
+# paper) switches by itself and tells you; a real-money desk waits for you to press Use it (Thinking tab).
+challengers:
+  enabled: true
+  swing: [momentum, momentum_plus, momentum_calm, momentum_plus_calm]
+  day: []
+  min_forward_days: {swing: 20, day: 10}
+  min_history_days: 250
+  max_p_value: 0.05
+  min_deflated_sharpe: 0.95
+  max_extra_drawdown_pct: 5
+  auto_switch: true
+
 # ---- Your phone -----------------------------------------------------------------
 # Alerts and commands: a private Telegram bot (set up in the app's Setup screen, phone.py).
 # The Kestrel screen on your phone over your private Tailscale network (phone_screen.py): on/off.

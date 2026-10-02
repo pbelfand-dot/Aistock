@@ -29,11 +29,17 @@ class Strategy:
     description = ""
     buy_above = 0.6
     sell_below = 0.4
+    calm = False                             # True = smaller buys when its stocks get stormy (see exposure)
 
     def scores(self, bars: dict, market: pd.DataFrame, since=None) -> pd.DataFrame:
         """Rows = times, columns = tickers, values = score 0..1 (NaN = no opinion).
         `since` lets slow strategies skip work on old rows (rule-based ones ignore it)."""
         raise NotImplementedError
+
+    def exposure(self, bars: dict, market: pd.DataFrame, scores: pd.DataFrame):
+        """How big its new buys are at each moment, as a share of the usual size (1.0 = full size), or None
+        for always full size. Calm strategies scale down when the stocks they pick get stormy."""
+        return basket_exposure(bars, scores, self.buy_above) if self.calm else None
 
 
 # ---------------------------------------------------------------- swing desk
@@ -71,6 +77,22 @@ class MeanReversion(Strategy):
         return pd.DataFrame(out)
 
 
+def basket_exposure(bars: dict, scores: pd.DataFrame, buy_above: float, window: int = 126,
+                    floor: float = 0.3) -> pd.Series:
+    """Volatility scaling (Barroso & Santa-Clara 2015, "Momentum has its moments"; Moreira & Muir 2017):
+    the daily return of an equal-weight basket of the stocks it wanted to buy the day before, its realized
+    volatility over the last 6 months, and the size of new buys = its usual (median) volatility so far
+    divided by today's, at most 1.0 (no borrowing) and at least `floor`. Momentum's worst crashes came in
+    stormy markets, so this buys less exactly then. Only past prices are used."""
+    closes = pd.DataFrame({t: df["close"] for t, df in bars.items()}).sort_index()
+    wanted = (scores.reindex(index=closes.index, columns=closes.columns) >= buy_above).shift(1)
+    wanted = wanted.astype("boolean").fillna(False).astype(bool)
+    basket = closes.pct_change(fill_method=None).where(wanted).mean(axis=1)
+    vol = basket.rolling(window, min_periods=window // 2).std() * np.sqrt(252)
+    usual = vol.expanding(min_periods=window).median()
+    return (usual / vol).clip(lower=floor, upper=1.0).fillna(1.0)
+
+
 class Momentum(Strategy):
     """Stage 1's method: the one the 16-year research backed (research/history/RESULTS-methods.md).
     The score is the stock's rank among everything on the list by its 12-1 month return, so 1.0 is
@@ -86,19 +108,76 @@ class Momentum(Strategy):
     sell_below = 0.5
     months, skip = 252, 21                   # trading days in 12 months and in the skipped latest month
 
+    def ranking(self, bars: dict, market: pd.DataFrame) -> pd.DataFrame:
+        """What it ranks the stocks by (higher = stronger): the 12-1 month return."""
+        return pd.DataFrame({t: df["close"].shift(self.skip) / df["close"].shift(self.months) - 1
+                             for t, df in bars.items()})
+
     def scores(self, bars, market, since=None):
-        momentum, uptrend = {}, {}
-        for ticker, df in bars.items():
-            close = df["close"]
-            momentum[ticker] = close.shift(self.skip) / close.shift(self.months) - 1
-            uptrend[ticker] = (close > sma(close, 200)).where(sma(close, 200).notna())
-        momentum, uptrend = pd.DataFrame(momentum), pd.DataFrame(uptrend)
+        uptrend = pd.DataFrame({t: (df["close"] > sma(df["close"], 200)).where(sma(df["close"], 200).notna())
+                                for t, df in bars.items()})
+        momentum = self.ranking(bars, market).reindex(index=uptrend.index, columns=uptrend.columns)
         score = momentum.rank(axis=1, pct=True)
-        score = score.where(uptrend.fillna(False).astype(bool), 0.0).where(momentum.notna())
+        score = score.where(uptrend.astype("boolean").fillna(False).astype(bool), 0.0).where(momentum.notna())
         benchmark = market["close"]
         market_up = (benchmark > sma(benchmark, 200)).reindex(score.index, method="ffill").fillna(False)
         capped = score.clip(upper=self.buy_above - 0.01)       # keep what it owns, buy nothing new
         return score.where(market_up.astype(bool), capped, axis=0)
+
+
+class MomentumPlus(Momentum):
+    """Challenger (challengers.py): momentum ranked with three findings that held up in published research,
+    all from the daily prices Kestrel already has:
+      residual momentum  (Blitz, Huij & Martens 2011): the stock's own climb with the market's part taken
+                         out, divided by how jumpy that climb was. Their test: about the same return as plain
+                         momentum with roughly half the risk, and far smaller crashes.
+      frog in the pan    (Da, Gurun & Warachka 2014): a climb made of many small up days keeps going more
+                         reliably than one made of a few big jumps (the news that drove it sank in slowly).
+      52-week high       (George & Hwang 2004): stocks near their 52-week high kept rising more often.
+    Half the rank is residual momentum, a quarter each the other two. Same buy and sell bars, 200-day trend
+    filter and S&P 500 filter as momentum."""
+    name = "momentum_plus"
+    description = ("Momentum, sharper: ranks stocks by their own climb over 12 months (skipping the latest month) "
+                   "with the market's part taken out, divided by how jumpy the climb was; prefers smooth climbs "
+                   "made of many small up days and stocks near their 52-week high. Same buy/sell rules, 200-day "
+                   "filter and S&P 500 filter as momentum.")
+
+    def ranking(self, bars, market):
+        closes = pd.DataFrame({t: df["close"] for t, df in bars.items()}).sort_index()
+        highs = pd.DataFrame({t: df["high"] for t, df in bars.items()}).reindex(closes.index)
+        returns = np.log(closes).diff()
+        m = np.log(market["close"].reindex(closes.index).ffill()).diff()
+        w = self.months - self.skip                                     # the 11-month formation window
+        mean_r, mean_m = returns.rolling(w).mean(), m.rolling(w).mean()
+        cov = returns.mul(m, axis=0).rolling(w).mean() - mean_r.mul(mean_m, axis=0)
+        var_m = (m ** 2).rolling(w).mean() - mean_m ** 2
+        beta = cov.div(var_m, axis=0)
+        var_resid = ((returns ** 2).rolling(w).mean() - mean_r ** 2 - (beta ** 2).mul(var_m, axis=0)).clip(lower=1e-12)
+        residual = (returns.rolling(w).sum() - beta.mul(m.rolling(w).sum(), axis=0)) / np.sqrt(var_resid * w)
+        up, down = (returns > 0).rolling(w).mean(), (returns < 0).rolling(w).mean()
+        smooth = np.sign(returns.rolling(w).sum()) * (up - down)        # frog in the pan, flipped: higher = smoother
+        residual, smooth = residual.shift(self.skip), smooth.shift(self.skip)
+        near_high = closes / highs.rolling(self.months, min_periods=self.months).max()
+        rank = lambda x: x.rank(axis=1, pct=True)
+        blend = 0.5 * rank(residual) + 0.25 * rank(smooth) + 0.25 * rank(near_high)
+        return blend.where(residual.notna() & smooth.notna() & near_high.notna())
+
+
+class MomentumCalm(Momentum):
+    """Challenger: plain momentum, with smaller buys when its stocks get stormy (basket_exposure)."""
+    name = "momentum_calm"
+    calm = True
+    description = ("Momentum with volatility scaling: the same picks, but new buys get smaller (down to 30% of "
+                   "the usual size) when the stocks momentum picks have been much jumpier than usual over the "
+                   "last 6 months, the conditions in which momentum crashed in the past.")
+
+
+class MomentumPlusCalm(MomentumPlus):
+    """Challenger: momentum_plus with momentum_calm's volatility scaling."""
+    name = "momentum_plus_calm"
+    calm = True
+    description = ("momentum_plus's sharper ranking with momentum_calm's volatility scaling: smaller new buys "
+                   "when its stocks have been much jumpier than usual.")
 
 
 # ---------------------------------------------------------------- day desk
@@ -206,7 +285,8 @@ def all_strategies(cfg: dict, style: str) -> list:
         brain = Brain(horizon=cfg["study"]["horizon_days"], retrain_every=ai["retrain_every"],
                       min_train=ai["min_train"])
         return [TrendFollowing(), MeanReversion(), Momentum(),
-                AIModel("swing", brain, ai["buy_above"], ai["sell_below"])]
+                AIModel("swing", brain, ai["buy_above"], ai["sell_below"]),
+                MomentumPlus(), MomentumCalm(), MomentumPlusCalm()]           # challengers (challengers.py)
     brain = Brain(horizon=ai["horizon"], retrain_every=ai["retrain_every"], min_train=ai["min_train"],
                   intraday=True)
     from .tjr import TJRModel                            # Stage 2: TJR's model (tjr.py)

@@ -328,9 +328,21 @@ def head_strategy(cfg, desk) -> str:
         {"swing": "momentum", "day": "opening_range_breakout"}[desk]
 
 
+def base_strategy(cfg, store, desk, phase=None) -> str:
+    """The method the desk's phase says: its in-its-head method while studying, its plan's otherwise."""
+    phase = phase or current_phase(store, desk)
+    return head_strategy(cfg, desk) if phase in IN_ITS_HEAD else load_plan(cfg, desk)["strategy"]
+
+
+def desk_strategy_name(cfg, store, desk, phase=None) -> str:
+    """The method the desk trades now: base_strategy, unless a challenger proved better (challengers.py)."""
+    from aitrader import challengers
+    return challengers.current(store, desk, base_strategy(cfg, store, desk, phase))
+
+
 def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway) -> str:
     in_head = phase in IN_ITS_HEAD
-    strategy = get_strategy(head_strategy(cfg, desk) if in_head else load_plan(cfg, desk)["strategy"], cfg, desk)
+    strategy = get_strategy(desk_strategy_name(cfg, store, desk, phase), cfg, desk)
     broker = open_broker(cfg, store, desk, phase, dry_run=dry_run)
     if not dry_run:
         from aitrader.engine import say_step
@@ -366,6 +378,14 @@ def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
                        f"{cfg['desks'][desk]['risk']['max_drawdown_pct']}% below its peak ${result['peak']:,.2f}")
         return f"{desk}: KILL SWITCH TRIPPED"
     save_broker(store, broker)
+    if not stops_only:                                       # the challengers decide too, in shadow accounts
+        try:
+            from aitrader import challengers
+            challengers.run_shadows(cfg, store, desk, bars, market, now, strategy.name, broker.blocked)
+        except Exception as e:                               # never let an experiment touch real trading
+            if store.get(f"shadow_error:{desk}") != now.strftime("%Y-%m-%d"):
+                store.log(f"[challengers] {desk}: the shadow accounts couldn't decide ({e!r})")
+                store.set(f"shadow_error:{desk}", now.strftime("%Y-%m-%d"))
     return f"{desk} [{broker.mode}]: value ${result['equity']:,.2f}"
 
 
@@ -433,6 +453,29 @@ def run_study(cfg, store, data) -> list:
             store.log(f"[study] {desk} desk failed: {e!r}")
             failed.append(desk)
     return failed
+
+
+def check_challengers(cfg, store, data, today) -> list:
+    """After the study: each desk's challengers against its current method (challengers.py). A proven one
+    takes over a pretend-money desk by itself; a real-money desk waits for you."""
+    from aitrader import challengers
+    done = []
+    for desk in active_desks(cfg):
+        phase = current_phase(store, desk)
+        if phase not in IN_ITS_HEAD + TRADING:
+            continue
+        try:
+            base = base_strategy(cfg, store, desk, phase)
+            now_using = challengers.current(store, desk, base)
+            if not challengers.ring(cfg, desk, now_using):
+                continue
+            bars, market = load_desk(cfg, store, data, desk)
+            report = challengers.evaluate(cfg, store, desk, bars, market, now_using, base,
+                                          real_money=phase == Phase.LIVE, today=today)
+            done.append(f"{desk}: " + ", ".join(f"{r['name']} {r['verdict']}" for r in report.get("rows", [])))
+        except Exception as e:                               # the comparison must never stop the evening
+            store.log(f"[challengers] {desk}: couldn't compare the challengers today ({e!r})")
+    return done
 
 
 def prove_live_connection(cfg):
@@ -655,6 +698,9 @@ def run_job(job, cfg, store, data, now, done) -> str:
         if run_study(cfg, store, data):
             raise RuntimeError("study incomplete")      # not marked done, so it retries in 5 minutes
         report_days(cfg, store, today)
+        compared = check_challengers(cfg, store, data, today)
+        if compared:
+            store.log("[challengers] " + "; ".join(compared), echo=False)
         return "study done for today"
     if job == "tjr":
         return run_tjr_test(cfg, store, data, today)

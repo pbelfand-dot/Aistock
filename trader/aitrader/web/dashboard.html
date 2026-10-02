@@ -337,6 +337,15 @@
   .think-macro { margin: -6px 0 16px; font-size: 13px; color: var(--ink-2); }
   .think-macro strong { color: var(--ink); }
   .weekend-card { margin-bottom: 16px; }
+  .chal-card { margin-top: 16px; }
+  .chal-list { list-style: none; margin: 0; padding: 0; }
+  .chal-list li { padding: 10px 0; border-top: 1px solid var(--grid); font-size: 13px; }
+  .chal-list .chal-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .chal-list .chal-head strong { font-size: 14px; }
+  .chal-list .chal-nums { color: var(--ink); margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .chal-list .chal-why { color: var(--ink-2); margin-top: 2px; }
+  .tag.proven { border-color: var(--good); color: var(--up); font-weight: 600; }
+  .tag.promising { border-color: var(--warning); }
   .weekend-card .tiles { justify-content: flex-start; flex: none; }
   .weekend-cards { margin-bottom: 16px; }
   .weekend-note { font-size: 13px; color: var(--ink-2); margin: 0 0 12px; }
@@ -436,6 +445,7 @@
     <p class="think-macro" id="think-macro" hidden></p>
     <div id="think-weekend" hidden></div>
     <div class="think-desks" id="think-desks"></div>
+    <div id="think-challengers" hidden></div>
     <div id="think-lastweekend" hidden></div>
   </section>
 
@@ -1464,6 +1474,8 @@ function renderResearch(s) {
       el("h3", { style: "font-size:13px;margin:16px 0 8px", text: "Trading plan" }),
       plan ? el("div", {},
         el("p", {}, el("strong", { text: plan.verdict === "TRADE" ? `Trade ${plan.strategy}` : "Don't trade yet" }), el("span", { class: "muted", text: `  ·  written ${plan.created_on}` })),
+        plan.switched ? el("p", { class: "muted", text: `The plan said ${plan.planned}; ${plan.strategy} took over on ${plan.switched.on} `
+          + `(${plan.switched.by === "you" ? "you pressed Use it" : "proven better"}: ${plan.switched.why}). See Thinking → Challengers.` }) : null,
         plan.narrative ? el("p", { class: "narrative", text: plan.narrative }) : null,
         el("div", { class: "table-scroll" }, el("table", {},
           el("thead", {}, el("tr", {}, ["Strategy", "Backtest return %", "Sharpe", "Worst drop %", "Trades", "Study month", "Picked?"].map((h, i) => el("th", { class: i && i < 5 ? "num" : null, text: h })))),
@@ -1471,7 +1483,7 @@ function renderResearch(s) {
             el("td", { class: "sym", text: r.strategy }), el("td", { class: "num " + dir(r.return_pct), text: plain(r.return_pct) }),
             el("td", { class: "num", text: plain(r.sharpe) }), el("td", { class: "num", text: plain(r.max_drawdown_pct) }),
             el("td", { class: "num", text: r.trades }), el("td", { class: "ink2", text: r.study_month || "" }),
-            el("td", { title: r.why_not, text: r.eligible ? (r.strategy === plan.strategy ? "✓ Picked" : "Passed") : "No" })))))))
+            el("td", { title: r.why_not, text: r.eligible ? (r.strategy === (plan.planned || plan.strategy) ? "✓ Picked" : "Passed") : "No" })))))))
         : el("div", { class: "empty", text: "The plan is written after the study month." }),
       el("h3", { style: "font-size:13px;margin:16px 0 8px", text: "What it learned from its own trades" }),
       lessonsView(d.lessons));
@@ -1653,6 +1665,40 @@ function renderWeekend(w) {
       weekendScoreboard(h.results || {})));
   }
 }
+const VERDICT = { proven: "proven better", promising: "promising", "not better": "not better", "too early": "too early" };
+function challengerRow(desk, rep, c) {
+  const h = c.history || {}, f = c.forward || {};
+  const pct = (v) => v == null ? "–" : `${v > 0 ? "+" : ""}${Number(v).toFixed(1)}%`;
+  const nums = `History (${h.years} yrs): ${pct(h.extra_per_year_pct)} a year vs ${rep.current}, worst drop ${h.max_drawdown_pct?.toFixed(1)}% `
+    + `vs ${h.current_max_drawdown_pct?.toFixed(1)}%. Shadow trading: `
+    + (f.return_pct == null ? "just started" : `${pct(f.return_pct)} vs ${pct(f.current_return_pct)} over ${f.days} day${f.days === 1 ? "" : "s"}`);
+  const head = el("div", { class: "chal-head" }, el("strong", { text: c.name }),
+    el("span", { class: "tag " + c.verdict.replace(" ", "-"), text: VERDICT[c.verdict] || c.verdict }));
+  if (rep.waiting_for_you === c.name && !window.kestrelPhone) {
+    const b = el("button", { class: "primary", text: "Use it" });
+    b.onclick = async () => {
+      if (!confirm(`Switch the ${desk} desk (real money) from ${rep.current} to ${c.name}? It was proven better: ${c.why}.`)) return;
+      b.disabled = true;
+      try { notify((await call("use-challenger", { demo: false, input: JSON.stringify({ desk, name: c.name }) })).message); }
+      catch (e) { notify(e.message, true); b.disabled = false; }
+    };
+    head.append(b);
+  }
+  return el("li", { title: c.description }, head, el("div", { class: "chal-nums", text: nums }),
+    el("div", { class: "chal-why", text: c.why[0].toUpperCase() + c.why.slice(1) + "." }));
+}
+function renderChallengers(all) {
+  const box = $("#think-challengers"), desks = Object.entries(all || {}).filter(([, rep]) => rep && (rep.rows || []).length);
+  box.hidden = !desks.length;
+  if (!desks.length) return;
+  box.replaceChildren(...desks.map(([desk, rep]) => el("div", { class: "card chal-card" },
+    el("div", { class: "card-head" }, el("h2", { text: `Challengers · ${desk} desk` }), el("div", { class: "spacer" }),
+      el("span", { class: "tag", text: `checked ${niceDate(rep.as_of)}` })),
+    el("p", { class: "weekend-note", text: `Trading ${rep.current} now. Each new idea is replayed on all the history and shadow trades with `
+      + `pretend money next to it; it takes over only when the tests for luck say it's really better`
+      + (desk === "swing" ? " and it isn't behind after 20 days of shadow trading." : ".") }),
+    el("ul", { class: "chal-list" }, ...rep.rows.map(c => challengerRow(desk, rep, c))))));
+}
 function renderThinking(r) {
   const busy = r.live.busy;
   $("#think-pulse").className = "pulse" + (busy ? " busy" : r.running ? " waiting" : "");
@@ -1662,6 +1708,7 @@ function renderThinking(r) {
   $("#think-tab-dot").classList.toggle("on", busy);
   $("#think-desks").replaceChildren(...r.desks.map(deskThinking));
   renderWeekend(r.weekend || {});
+  renderChallengers(r.challengers);
   const m = r.macro || {}, ev = m.upcoming || [];
   $("#think-macro").hidden = !m.has_key;
   if (m.has_key) $("#think-macro").replaceChildren(el("strong", { text: "Big economic news: " }),

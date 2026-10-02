@@ -30,6 +30,13 @@ code changes.
   to the buy and sell lines, what it decided and why (or why not), the team's notes (Scout, Analyst,
   Trader, Risk), how far each holding is from its stop-loss, and every check so far today. It refreshes
   every 5 seconds, also on the phone screen.
+- **Challengers** (Thinking tab): new versions of a desk's method race the current one. The swing desk's
+  `momentum` has three: `momentum_plus` (residual momentum, smooth climbs, near 52-week highs), `momentum_calm`
+  (smaller buys when its stocks get stormy) and both together. Each is replayed on all 8 years of saved
+  prices and shadow trades with pretend money next to the desk. It takes over only when tests built to
+  catch luck say it's really better (a bootstrap test, and a deflated Sharpe ratio whose bar rises with every
+  idea ever tried), its worst drop isn't much deeper, and it isn't behind after 20 days of shadow trading.
+  Pretend-money desks switch by themselves and tell you; a real-money desk waits for you to press **Use it**.
 - **News and data sources** (Setup → AI & news): SEC filings for what it owns or considers (free; the SEC asks for
   your email), with links on each stock card; serious ones (bankruptcy, delisting, restated financials) stop
   it buying. The dates of CPI, the jobs report and Fed decisions (a free FRED key), with a countdown; buys on

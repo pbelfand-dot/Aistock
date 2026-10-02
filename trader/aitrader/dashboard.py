@@ -190,7 +190,10 @@ def _desk_info(cfg, store, desk) -> dict:
     plan_path = data_path(cfg, f"trading_plan_{desk}.json")
     if plan_path.exists():
         plan = json.loads(plan_path.read_text())
-        info["plan"] = {"verdict": plan.get("verdict"), "strategy": plan.get("strategy"),
+        from .challengers import current
+        switched = store.get(f"strategy_switch:{desk}") if current(store, desk, plan.get("strategy")) != plan.get("strategy") else None
+        info["plan"] = {"verdict": plan.get("verdict"), "strategy": current(store, desk, plan.get("strategy")),
+                        "planned": plan.get("strategy"), "switched": switched,
                         "created_on": plan.get("created_on"), "narrative": plan.get("narrative"),
                         "scorecard": [{"strategy": r["strategy"], "eligible": r["eligible"],
                                        "return_pct": r["backtest"].get("total_return_pct"),
@@ -290,9 +293,10 @@ def thinking(cfg, store, now=None) -> dict:
     if week.get("active") and not demo:
         live = {**live, "text": week["text"], "busy": week["replay"].get("running", False),
                 "also": week.get("also") or live.get("also")}
-    from . import macro
+    from . import challengers, macro
     return {"time": now.isoformat(timespec="seconds"), "running": running, "live": live, "desks": desks,
-            "weekend": week, "macro": macro.status(cfg, now)}
+            "weekend": week, "macro": macro.status(cfg, now),
+            "challengers": challengers.summary(store, active_desks(cfg))}
 
 
 def _desk_card(cfg, store, desk, mode, account, today=None) -> dict:
