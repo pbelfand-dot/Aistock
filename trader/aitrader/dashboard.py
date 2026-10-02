@@ -290,8 +290,9 @@ def thinking(cfg, store, now=None) -> dict:
     if week.get("active") and not demo:
         live = {**live, "text": week["text"], "busy": week["replay"].get("running", False),
                 "also": week.get("also") or live.get("also")}
+    from . import macro
     return {"time": now.isoformat(timespec="seconds"), "running": running, "live": live, "desks": desks,
-            "weekend": week}
+            "weekend": week, "macro": macro.status(cfg, now)}
 
 
 def _desk_card(cfg, store, desk, mode, account, today=None) -> dict:

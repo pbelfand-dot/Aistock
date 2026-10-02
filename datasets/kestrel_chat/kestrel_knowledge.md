@@ -39,6 +39,11 @@ code changes.
   to the buy and sell lines, what it decided and why (or why not), the team's notes (Scout, Analyst,
   Trader, Risk), how far each holding is from its stop-loss, and every check so far today. It refreshes
   every 5 seconds, also on the phone screen.
+- **News and data sources** (Setup step 8): SEC filings for what it owns or considers (free; the SEC asks for
+  your email), with links on each stock card; serious ones (bankruptcy, delisting, restated financials) stop
+  it buying. The dates of CPI, the jobs report and Fed decisions (a free FRED key), with a countdown; buys on
+  those days are tagged so it learns whether they lose. Each stock card and the report also show **why it
+  moved**: the move next to the latest headlines and filings.
 - **Weekend practice** (Saturday and Sunday, on or off in Setup → Settings): Kestrel replays real past
   trading days from the prices saved on your Mac, fast (about 30 minutes per day), through the desks' own
   rules, and runs a crypto experiment with $500 of pretend money at live prices. Watch it in the Thinking
@@ -576,6 +581,30 @@ each turned on or off in Setup → Settings:
 **None of it counts** toward Stage 1's 30 days, a move to real money, or what the desks learn from their
 own trades (mistake memory and lessons only read the in-its-head, paper and real accounts). Each weekend
 starts fresh; Monday's journal gets one summary line. The Thinking tab shows it live.
+
+
+---
+
+<!-- from trader/aitrader/knowledge/42-news-and-filings.md -->
+
+# News, SEC filings and big economic news
+
+- **Headlines** (scanner.py): Alpaca's news feed (Benzinga), or Yahoo without keys. Danger headlines
+  (share offering, bankruptcy, halt, delisting, fraud) stop buying that stock. News never makes it buy.
+- **SEC filings** (sec_filings.py): official filings from the SEC's EDGAR system, free, no key. The SEC asks
+  every program for a contact email (Setup step 8). Every 30 minutes on trading days it checks what it owns
+  or considers (watchlists, the top of the scan, stocks in play). The stock card shows the last two weeks of
+  filings with links. Serious ones block buying for 30 days: 8-K item 1.03 (bankruptcy), 3.01 (delisting
+  notice), 4.02 (past financial statements can't be relied on), 1.05 (a material cyber attack), and late
+  annual/quarterly reports (NT 10-K / NT 10-Q). On a stock it owns, that's a WARNING; the stop-loss still
+  protects it.
+- **Big economic news** (macro.py): the dates of CPI (8:30am), the jobs report (8:30am) and the Fed's rate
+  decisions (2pm), from FRED with a free key (Setup step 8). A countdown in the Thinking tab and the report.
+  Kestrel does NOT avoid these days by rule: the famous pre-Fed rally (Lucca & Moench, 2015) faded after 2015,
+  and other releases showed no such pattern. Instead every buy on those days is tagged ("on a CPI day"),
+  so the mistake memory learns from the desk's own results whether they lose, and skips them if they do.
+- **Why it moved**: the stock card and the report show a stock's move today and over 5 days, next to the
+  latest headlines and filings. A hint, not proof: news can follow a move as well as cause it.
 
 
 ---
@@ -1155,6 +1184,17 @@ options_watch:
 news:
   enabled: true
   days: 3
+
+# ---- SEC filings (sec_filings.py; free, no key: needs your contact email in Setup step 8) -------------
+# Every 30 minutes on trading days: the official filings of what it owns or is considering. Serious
+# ones (bankruptcy, delisting notice, "past financials can't be relied on", a cyber attack, a late
+# annual/quarterly report) stop it buying that stock for 30 days, like danger headlines.
+sec:
+  enabled: on
+
+# ---- Big economic news (macro.py; a free FRED key in Setup step 8) ----------------------------------
+# CPI, the jobs report and Fed decisions: a countdown in the Thinking tab and the report, and every buy
+# on those days is tagged so the mistake memory learns whether they lose. No rule avoids them.
 
 # ---- Weekend practice (Saturday and Sunday; weekend.py) ----------------------
 # Practice only: none of it counts toward Stage 1, real money, or what the desks learn from their

@@ -30,6 +30,11 @@ code changes.
   to the buy and sell lines, what it decided and why (or why not), the team's notes (Scout, Analyst,
   Trader, Risk), how far each holding is from its stop-loss, and every check so far today. It refreshes
   every 5 seconds, also on the phone screen.
+- **News and data sources** (Setup step 8): SEC filings for what it owns or considers (free; the SEC asks for
+  your email), with links on each stock card; serious ones (bankruptcy, delisting, restated financials) stop
+  it buying. The dates of CPI, the jobs report and Fed decisions (a free FRED key), with a countdown; buys on
+  those days are tagged so it learns whether they lose. Each stock card and the report also show **why it
+  moved**: the move next to the latest headlines and filings.
 - **Weekend practice** (Saturday and Sunday, on or off in Setup → Settings): Kestrel replays real past
   trading days from the prices saved on your Mac, fast (about 30 minutes per day), through the desks' own
   rules, and runs a crypto experiment with $500 of pretend money at live prices. Watch it in the Thinking

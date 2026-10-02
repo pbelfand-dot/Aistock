@@ -39,6 +39,8 @@ def load_config(path=None) -> dict:
         "telegram_chat": os.environ.get("TELEGRAM_CHAT_ID", ""),
         "pushover_user": os.environ.get("PUSHOVER_USER_KEY", ""),        # push alerts (pushover.py)
         "pushover_token": os.environ.get("PUSHOVER_APP_TOKEN", ""),
+        "fred_key": os.environ.get("FRED_API_KEY", ""),                 # big economic news dates (macro.py)
+        "sec_email": os.environ.get("SEC_CONTACT_EMAIL", ""),           # SEC filings: who's asking (sec_filings.py)
     }
     cfg["live_trading_enabled"] = os.environ.get("LIVE_TRADING_ENABLED", "").strip().lower() == "true"
     cfg.setdefault("data_dir", str(DATA_DIR))

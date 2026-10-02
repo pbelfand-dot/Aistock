@@ -34,9 +34,10 @@ KINDS = ("study", "paper", "live")
 
 
 # ------------------------------------------------------------------ tags: the situation of a buy
-def tags_for(order, bars: dict, gaps: dict, moves_with: dict, in_play: dict, style: str) -> list:
-    """The situation this buy is made in, as plain-English tags."""
-    tags = [f"buying {order.ticker}"]
+def tags_for(order, bars: dict, gaps: dict, moves_with: dict, in_play: dict, style: str, events: list = None) -> list:
+    """The situation this buy is made in, as plain-English tags. events: the big economic news today
+    (macro.py: "on a CPI day", "on a Fed-decision day"), so it learns whether those days lose."""
+    tags = [f"buying {order.ticker}"] + list(events or [])
     df = bars.get(order.ticker)
     price = float(order.price)
     if price < 5:

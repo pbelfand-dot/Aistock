@@ -154,10 +154,36 @@ def kestrel_view(cfg, store, ticker: str, today: str = None) -> dict:
     report_day = cached(cfg, ticker)
     if report_day:
         lists.append(f"Next earnings report: {report_day}")
+    from . import sec_filings
     return {"lists": lists, "holding": holding, "trades": done[:5],
             "won": sum(t["result"] == "win" for t in done), "finished": len(done),
-            "scores": scores, "news": news[:3], "danger": scanner.danger_tickers(cfg).get(ticker) or [],
-            "lessons": [f"Won't buy it again for now: {m['why']}" for m in lessons]}
+            "scores": scores, "news": news[:3],
+            "danger": (scanner.danger_tickers(cfg).get(ticker) or []) + (sec_filings.danger_tickers(cfg).get(ticker) or []),
+            "lessons": [f"Won't buy it again for now: {m['why']}" for m in lessons],
+            "why_moved": why_moved(cfg, ticker, news), "filings": sec_filings.recent(cfg, ticker)}
+
+
+def move(cfg, ticker: str) -> dict:
+    """How much it moved: today (since the last close) and over the last 5 trading days."""
+    from .dashboard import _price_history, quote
+    q = quote(cfg, ticker)
+    out = {"last": q.get("last"), "today_pct": q.get("change_pct"), "week_pct": None}
+    daily = _price_history(cfg, ticker)[0]
+    if daily is not None and len(daily) > 5 and q.get("last"):
+        out["week_pct"] = round((q["last"] / float(daily.iloc[-6]) - 1) * 100, 2)
+    return out
+
+
+def why_moved(cfg, ticker: str, news: list = None) -> dict:
+    """The move and what came out about it: the latest headlines (the news Kestrel already reads) and
+    SEC filings, with their times. A hint, not a proof: news can follow a move as well as cause it."""
+    from . import scanner, sec_filings
+    if news is None:
+        scan = scanner.load_list(cfg)
+        rows = (scan.get("liked") or []) + (scan.get("new_listings") or []) + (scan.get("swing_picks") or [])
+        row = next((r for r in rows if r["symbol"] == ticker and r.get("news")), None)
+        news = (row or {}).get("news") or ((scan.get("held_news") or {}).get(ticker) or {}).get("news") or []
+    return {**move(cfg, ticker), "headlines": news[:3], "filings": sec_filings.recent(cfg, ticker, days=3)[:3]}
 
 
 def info(cfg, store, ticker) -> dict:

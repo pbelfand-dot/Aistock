@@ -83,7 +83,7 @@ def real_money_status(cfg, store) -> dict:
 PAPER_KEYS = ("ALPACA_PAPER_API_KEY", "ALPACA_PAPER_SECRET_KEY")
 STDIN_ACTIONS = {"save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
                  "connect-claude", "save-phone", "save-webull-keys", "save-pushover", "stock-info",
-                 "check-webull"}                                    # these read their details from stdin (never argv)
+                 "check-webull", "save-data-sources"}               # these read their details from stdin (never argv)
 
 NEXT_STEP = {
     "STUDY": "Studying: the bot watches the market and grades its strategies with no money involved. "
@@ -408,7 +408,54 @@ def setup_status(cfg, store) -> dict:
             "autopilot_problem": autopilot_problem(store),
             "autopilot_seen": store.get("autopilot_heartbeat"), "can_autopilot": sys.platform == "darwin",
             "desks": desks, "stage1": stage1, "stage2": stage2_status(store), "phone": phone_status(cfg),
-            "lid": lid_status(), "local_ai": llm.status(cfg)}
+            "lid": lid_status(), "local_ai": llm.status(cfg), "data_sources": data_sources_status(cfg)}
+
+
+def data_sources_status(cfg) -> dict:
+    from datetime import datetime
+    from . import macro, sec_filings
+    return {"fred": macro.status(cfg, datetime.now()), "sec": sec_filings.status(cfg)}
+
+
+def save_data_sources(cfg, payload: dict) -> dict:
+    """Setup step 8: the free FRED key (economic news dates) and the contact email the SEC asks for.
+    Each is tried before it's saved; only what you fill in changes."""
+    from datetime import datetime
+    from . import macro, sec_filings
+    key = str(payload.get("fred_key", "")).strip().lower()
+    email = str(payload.get("sec_email", "")).strip()
+    if not key and not email:
+        raise ValueError("Fill in the FRED key, your email for the SEC, or both.")
+    saved, said = {}, []
+    if key:
+        if not re.fullmatch(macro.KEY_PATTERN, key):
+            raise ValueError("That FRED key doesn't look right: it's 32 lower-case letters and digits. Copy it again "
+                             "from fredaccount.stlouisfed.org → API Keys.")
+        cfg["secrets"]["fred_key"] = key
+        try:
+            macro.release_name(cfg, 10)
+        except Exception as e:
+            raise ValueError(f"FRED didn't accept that key ({e}).") from None
+        saved["FRED_API_KEY"] = key
+    if email:
+        if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[A-Za-z]{2,}", email):
+            raise ValueError("That email doesn't look right.")
+        cfg["secrets"]["sec_email"] = email
+        try:
+            sec_filings._fetch(cfg, sec_filings.SUBMISSIONS_URL.format(cik=320193))
+        except Exception as e:
+            raise ValueError(f"The SEC didn't answer ({e}). Try again in a minute.") from None
+        saved["SEC_CONTACT_EMAIL"] = email
+    write_env(env_file(), saved)
+    if key:
+        cal = macro.refresh(cfg, datetime.now().strftime("%Y-%m-%d"), force=True)
+        nxt = macro.upcoming(cfg, datetime.now())
+        said.append("FRED connected" + (f": next up, {nxt[0]['name']} {nxt[0]['label']} ({nxt[0]['countdown']})"
+                                         if nxt else "") + (f" (note: {cal['error']})" if cal.get("error") else ""))
+    if email:
+        said.append("SEC filings on: the first check runs within 30 minutes on a trading day")
+    restart_autopilot()
+    return {"message": "Saved on this Mac only. " + "; ".join(said) + "."}
 
 
 def llm_download(cfg) -> dict:
@@ -562,6 +609,8 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         return phone_screen_send(cfg)
     if action == "llm-download":
         return llm_download(cfg)
+    if action == "save-data-sources":
+        return save_data_sources(cfg, payload or {})
     if action in ("lid-mode-on", "lid-mode-off"):
         from . import lid_mode
         return lid_mode.turn_on() if action == "lid-mode-on" else lid_mode.turn_off()
@@ -647,7 +696,7 @@ def main(argv=None) -> int:
         "autopilot-on", "autopilot-off", "resume", "save-settings", "save-live-keys", "save-schwab-keys",
         "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude", "start-stage1",
         "save-phone", "phone-test", "phone-screen-send", "save-webull-keys", "check-webull", "lid-mode-on",
-        "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test", "stock-info", "llm-download", "thinking"])
+        "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test", "stock-info", "llm-download", "thinking", "save-data-sources"])
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)
