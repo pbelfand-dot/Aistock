@@ -473,5 +473,20 @@
     "q": "a challenger says promising, why isnt it trading yet",
     "a": "Promising means the history test says it's better, but it hasn't finished its shadow trading yet (20 trading days on the swing desk), or it's behind the current method there. It keeps being checked after every close, and takes over once both are true. Not better means the history didn't show a real edge (it could be luck, or its worst drop was deeper); too early means there isn't a year of history to compare yet.",
     "source": "trader/aitrader/challengers.py (judge)"
+  },
+  {
+    "q": "what does beyond the price mean on a stock card",
+    "a": "Three facts about the company besides its chart. Quality: its gross profits divided by its total assets, from the SEC, ranked against every US company (more profitable companies have earned higher returns). Insider buys: an officer or director buying the stock on the open market in recent Form 4 filings, not under a pre-planned schedule. Short interest: how much of the float is sold short and how many days of normal trading it would take to buy it back. Funds and banks often have no quality number.",
+    "source": "trader/aitrader/fundamentals.py; trader/aitrader/web/dashboard.html (stock card)"
+  },
+  {
+    "q": "does kestrel avoid heavily shorted stocks now",
+    "a": "Not yet for real trades: plain momentum still decides. The momentum_quality challenger won't buy a heavily shorted stock (8+ days to cover or 20%+ of the float sold short) or a company in the bottom 30% by quality, and favors stocks an insider just bought. It has to prove itself against momentum first (Thinking → Challengers). Meanwhile the team notes those facts and the mistake memory tags buys with them, so the desk learns whether such buys lose.",
+    "source": "trader/aitrader/strategies.py (MomentumQuality); trader/aitrader/agents.py; trader/aitrader/mistakes.py"
+  },
+  {
+    "q": "do i need anything to get the quality and insider info",
+    "a": "Just the SEC contact email in Setup → AI & news (the SEC asks every program to say who's asking; it's free). Quality and insider buys come from the SEC; short interest comes from Yahoo Finance and needs nothing. Kestrel fetches them in the background each morning and with its SEC filings check every 30 minutes, so trading never waits on them.",
+    "source": "trader/aitrader/fundamentals.py; trader/run.py (look_up_fundamentals)"
   }
 ]

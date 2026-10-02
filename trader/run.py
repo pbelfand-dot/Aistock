@@ -322,6 +322,18 @@ def look_up_earnings(cfg, store, today):
         work()
 
 
+def look_up_fundamentals(cfg, store, today):
+    """Each morning, in the background: company quality (weekly) and short interest for the swing desk's
+    stocks (fundamentals.py), for the momentum_quality challenger and the stock cards."""
+    from aitrader import fundamentals
+    from aitrader.scanner import trade_candidates
+    if "swing" not in active_desks(cfg):
+        return
+    held = {t for kind in ("study", "paper", "live") for t in (store.get(f"{kind}-swing_ledger") or {}).get("positions", {})}
+    tickers = list(dict.fromkeys(cfg["desks"]["swing"]["watchlist"] + trade_candidates(cfg) + sorted(held)))
+    fundamentals.refresh_in_background(cfg, store, tickers, today, inline=not SCAN_IN_BACKGROUND)
+
+
 def head_strategy(cfg, desk) -> str:
     """The method a studying desk trades in its head (config.yaml: study.in_its_head_strategy)."""
     return (cfg["study"].get("in_its_head_strategy") or {}).get(desk) or \
@@ -664,6 +676,7 @@ def run_job(job, cfg, store, data, now, done) -> str:
             store.log(f"WARNING: {warning}")
         first_scan(cfg, store, today)
         look_up_earnings(cfg, store, today)
+        look_up_fundamentals(cfg, store, today)
         try:                                                 # the big economic news dates (macro.py)
             from aitrader import macro
             if macro.has_key(cfg):

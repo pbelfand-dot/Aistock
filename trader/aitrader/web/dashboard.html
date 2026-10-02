@@ -1158,6 +1158,17 @@ function renderStock(r) {
     parts.push(el("h4", { text: "Recent news" }));
     parts.push(list(k.news.map(n => el("a", { href: n.url || null, text: n.headline + (n.source ? ` · ${n.source}` : "") }))));
   }
+  const b = k.beyond_price || {};
+  if (b.quality || b.short || (b.insider_buys || []).length) {
+    parts.push(el("h4", { text: "Beyond the price" }));
+    parts.push(list([
+      b.quality ? el("span", {}, el("strong", { text: "Quality: " }), b.quality.text) : null,
+      ...(b.insider_buys || []).map(x => el("span", {}, el("strong", { text: "Insider buy: " }), el("a", { href: x.url, text: x.text }))),
+      b.short ? el("span", { class: b.short.heavy ? "down" : null }, el("strong", { text: "Short interest: " }), b.short.text) : null,
+    ].filter(Boolean)));
+    parts.push(el("p", { class: "muted", style: "font-size:12px; margin-top:4px",
+      text: "Facts the momentum_quality challenger uses (Thinking → Challengers). The desk's current method still decides until that one is proven better." }));
+  }
   if ((k.filings || []).length) {
     parts.push(el("h4", { text: "SEC filings (last 2 weeks)" }));
     parts.push(list(k.filings.map(f => el("span", {}, el("a", { href: f.url, text: f.what }), ` · ${f.ago}`,

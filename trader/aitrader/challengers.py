@@ -36,7 +36,7 @@ from .market_hours import now_ny
 
 DEFAULTS = {
     "enabled": True,
-    "swing": ["momentum", "momentum_plus", "momentum_calm", "momentum_plus_calm"],
+    "swing": ["momentum", "momentum_plus", "momentum_calm", "momentum_plus_calm", "momentum_quality"],
     "day": [],
     "min_forward_days": {"swing": 20, "day": 10},
     "min_history_days": 250,          # a year of paired days before the history can prove anything

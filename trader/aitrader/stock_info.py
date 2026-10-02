@@ -160,7 +160,8 @@ def kestrel_view(cfg, store, ticker: str, today: str = None) -> dict:
             "scores": scores, "news": news[:3],
             "danger": (scanner.danger_tickers(cfg).get(ticker) or []) + (sec_filings.danger_tickers(cfg).get(ticker) or []),
             "lessons": [f"Won't buy it again for now: {m['why']}" for m in lessons],
-            "why_moved": why_moved(cfg, ticker, news), "filings": sec_filings.recent(cfg, ticker)}
+            "why_moved": why_moved(cfg, ticker, news), "filings": sec_filings.recent(cfg, ticker),
+            "beyond_price": _beyond_price(cfg, ticker)}
 
 
 def move(cfg, ticker: str) -> dict:
@@ -172,6 +173,15 @@ def move(cfg, ticker: str) -> dict:
     if daily is not None and len(daily) > 5 and q.get("last"):
         out["week_pct"] = round((q["last"] / float(daily.iloc[-6]) - 1) * 100, 2)
     return out
+
+
+def _beyond_price(cfg, ticker: str) -> dict:
+    """Quality, insider buys and short interest (fundamentals.py), when Kestrel has them."""
+    try:
+        from .fundamentals import card
+        return card(cfg, ticker)
+    except Exception:
+        return {}
 
 
 def why_moved(cfg, ticker: str, news: list = None) -> dict:
