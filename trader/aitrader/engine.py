@@ -22,7 +22,7 @@ import math
 import pandas as pd
 
 from .brokers import Ledger, Order, PaperBroker
-from .config import desk_capital, is_cash_account
+from .config import cents_per_share, desk_capital, is_cash_account
 from .market_hours import minutes_to_close, now_ny
 from .performance import summarize
 from .risk import RiskManager
@@ -197,7 +197,7 @@ def run_backtest(strategy, bars: dict, market: pd.DataFrame, cfg: dict, desk: st
     risk = RiskManager.for_desk(cfg, desk)
     broker = PaperBroker(Ledger(desk_capital(cfg, desk, live=False)), cfg["paper"]["slippage_pct"],
                          cfg["paper"]["commission_per_trade"], mode="backtest",
-                         cash_account=is_cash_account(cfg))
+                         cash_account=is_cash_account(cfg), cents_per_share=cents_per_share(cfg, desk))
     curve, all_fills, last_equity, day_start, current_day = {}, [], None, None, None
     atr = atr_pct_table(bars, strategy.style == "day").reindex(closes.index) if risk.stop_atr_multiple else None
 

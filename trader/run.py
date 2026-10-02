@@ -33,7 +33,7 @@ from datetime import datetime, time as dtime, timedelta
 import pandas as pd
 
 from aitrader.brokers import Ledger, Order, PaperBroker
-from aitrader.config import (active_desks, data_path, data_source, desk_capital, is_cash_account, load_config,
+from aitrader.config import (active_desks, cents_per_share, data_path, data_source, desk_capital, is_cash_account, load_config,
                              paper_broker, uses_broker_paper)
 from aitrader.engine import run_backtest, run_cycle
 from aitrader.market_data import MarketData
@@ -126,7 +126,7 @@ def open_broker(cfg, store, desk, phase, dry_run=False, emergency=False):
     cash_account = is_cash_account(cfg)                     # cash accounts: never spend unsettled money
     if not broker_backed(cfg, phase):                        # paper, simulated on this laptop
         broker = PaperBroker(ledger, cfg["paper"]["slippage_pct"], cfg["paper"]["commission_per_trade"],
-                             mode=mode, cash_account=cash_account)
+                             mode=mode, cash_account=cash_account, cents_per_share=cents_per_share(cfg, desk))
         broker.on_fill = fill_recorder(store, mode, dry_run)
         broker.note = lambda message: store.log(f"[{mode}] {message}")
         return broker
@@ -393,7 +393,14 @@ def _trade_desk(cfg, store, data, desk, phase, now, stops_only, dry_run, anyway)
     if not stops_only:                                       # the challengers decide too, in shadow accounts
         try:
             from aitrader import challengers
-            challengers.run_shadows(cfg, store, desk, bars, market, now, strategy.name, broker.blocked)
+            lists = {}
+            if desk == "day" and "premarket" in challengers.list_names(cfg, desk) \
+                    and not challengers.list_on(store, desk, "premarket"):   # the pre-market movers, shadow traded
+                from aitrader.in_play import premarket_today
+                movers = premarket_today(cfg, now.strftime("%Y-%m-%d"))
+                if movers:
+                    lists["premarket"] = data.load(desk, extra=list(broker.positions()) + movers)[0]
+            challengers.run_shadows(cfg, store, desk, bars, market, now, strategy.name, broker.blocked, lists=lists)
         except Exception as e:                               # never let an experiment touch real trading
             if store.get(f"shadow_error:{desk}") != now.strftime("%Y-%m-%d"):
                 store.log(f"[challengers] {desk}: the shadow accounts couldn't decide ({e!r})")
@@ -514,7 +521,7 @@ def schwab_login_warning(cfg):
 
 
 # ================================================================ autopilot
-ONCE_A_DAY = ("morning", "inplay", "swing", "study", "options", "tjr", "scan", "report")
+ONCE_A_DAY = ("morning", "premarket", "inplay", "swing", "study", "options", "tjr", "scan", "report")
 
 
 def due_jobs(now: datetime, done: set) -> list:
@@ -525,6 +532,8 @@ def due_jobs(now: datetime, done: set) -> list:
     jobs = []
     if now.time() >= dtime(9, 25) and f"morning:{today}" not in done:
         jobs.append("morning")
+    if dtime(9, 20) <= now.time() < dtime(9, 30) and f"premarket:{today}" not in done:
+        jobs.append("premarket")                             # pre-market movers (in_play.py), 15-minute-old SIP data
     if in_session(now):
         if dtime(9, 35) <= now.time() < dtime(9, 50) and f"inplay:{today}" not in done:
             jobs.append("inplay")                            # today's stocks in play (in_play.py), before the day desk
@@ -689,6 +698,14 @@ def run_job(job, cfg, store, data, now, done) -> str:
         except Exception as e:                               # never let a website stop the day
             store.log(f"[macro] couldn't update the calendar ({e!r})")
         return ""
+    if job == "premarket":
+        from aitrader import in_play
+        if "day" not in active_desks(cfg):
+            return ""
+        message = in_play.premarket(cfg, store, today, now)
+        if message:
+            store.log(f"[day] {message}")
+        return message
     if job == "inplay":
         from aitrader import in_play
         if "day" not in active_desks(cfg):

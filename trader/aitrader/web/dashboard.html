@@ -443,6 +443,7 @@
         <div class="muted think-meta" id="think-meta"></div></div>
     </div>
     <p class="think-macro" id="think-macro" hidden></p>
+    <p class="think-macro" id="think-premarket" hidden></p>
     <div id="think-weekend" hidden></div>
     <div class="think-desks" id="think-desks"></div>
     <div id="think-challengers" hidden></div>
@@ -1694,15 +1695,17 @@ const VERDICT = { proven: "proven better", promising: "promising", "not better":
 function challengerRow(desk, rep, c) {
   const h = c.history || {}, f = c.forward || {};
   const pct = (v) => v == null ? "–" : `${v > 0 ? "+" : ""}${Number(v).toFixed(1)}%`;
-  const nums = `History (${h.years} yrs): ${pct(h.extra_per_year_pct)} a year vs ${rep.current}, worst drop ${h.max_drawdown_pct?.toFixed(1)}% `
-    + `vs ${h.current_max_drawdown_pct?.toFixed(1)}%. Shadow trading: `
+  const nums = (c.history ? `History (${h.years} yrs): ${pct(h.extra_per_year_pct)} a year vs ${rep.current}, worst drop `
+      + `${h.max_drawdown_pct?.toFixed(1)}% vs ${h.current_max_drawdown_pct?.toFixed(1)}%. `
+      : `${rep.current} with these stocks added. No history to replay: judged on shadow trading alone. `) + "Shadow trading: "
     + (f.return_pct == null ? "just started" : `${pct(f.return_pct)} vs ${pct(f.current_return_pct)} over ${f.days} day${f.days === 1 ? "" : "s"}`);
-  const head = el("div", { class: "chal-head" }, el("strong", { text: c.name }),
+  const head = el("div", { class: "chal-head" }, el("strong", { text: c.label || c.name }),
     el("span", { class: "tag " + c.verdict.replace(" ", "-"), text: VERDICT[c.verdict] || c.verdict }));
   if (rep.waiting_for_you === c.name && !window.kestrelPhone) {
     const b = el("button", { class: "primary", text: "Use it" });
     b.onclick = async () => {
-      if (!confirm(`Switch the ${desk} desk (real money) from ${rep.current} to ${c.name}? It was proven better: ${c.why}.`)) return;
+      if (!confirm(c.kind === "list" ? `Add the ${c.label} to the ${desk} desk's list (real money)? It was proven better: ${c.why}.`
+                   : `Switch the ${desk} desk (real money) from ${rep.current} to ${c.name}? It was proven better: ${c.why}.`)) return;
       b.disabled = true;
       try { notify((await call("use-challenger", { demo: false, input: JSON.stringify({ desk, name: c.name }) })).message); }
       catch (e) { notify(e.message, true); b.disabled = false; }
@@ -1719,9 +1722,9 @@ function renderChallengers(all) {
   box.replaceChildren(...desks.map(([desk, rep]) => el("div", { class: "card chal-card" },
     el("div", { class: "card-head" }, el("h2", { text: `Challengers · ${desk} desk` }), el("div", { class: "spacer" }),
       el("span", { class: "tag", text: `checked ${niceDate(rep.as_of)}` })),
-    el("p", { class: "weekend-note", text: `Trading ${rep.current} now. Each new idea is replayed on all the history and shadow trades with `
-      + `pretend money next to it; it takes over only when the tests for luck say it's really better`
-      + (desk === "swing" ? " and it isn't behind after 20 days of shadow trading." : ".") }),
+    el("p", { class: "weekend-note", text: `Trading ${rep.current} now${(rep.lists_on || []).length ? " (with the pre-market movers)" : ""}. `
+      + `Each new idea is replayed on all the history and shadow trades with pretend money next to it; it takes over only when `
+      + `the tests for luck say it's really better and it isn't behind after 20 days of shadow trading.` }),
     el("ul", { class: "chal-list" }, ...rep.rows.map(c => challengerRow(desk, rep, c))))));
 }
 function renderThinking(r) {
@@ -1734,6 +1737,11 @@ function renderThinking(r) {
   $("#think-desks").replaceChildren(...r.desks.map(deskThinking));
   renderWeekend(r.weekend || {});
   renderChallengers(r.challengers);
+  const pm = r.premarket;
+  $("#think-premarket").hidden = !pm;
+  if (pm) $("#think-premarket").replaceChildren(el("strong", { text: "Pre-market movers: " }),
+    (pm.picks || []).length ? pm.picks.map(p => `${p.symbol} ${p.gap_pct > 0 ? "+" : ""}${p.gap_pct}% on ${p.volume_pct}% of a day's volume`).join(" · ")
+      + (pm.trade ? " (on the day desk's list)" : " (shadow traded only, until they prove they help)") : "none moving on heavy volume today");
   const m = r.macro || {}, ev = m.upcoming || [];
   $("#think-macro").hidden = !m.has_key;
   if (m.has_key) $("#think-macro").replaceChildren(el("strong", { text: "Big economic news: " }),

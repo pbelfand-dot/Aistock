@@ -67,6 +67,9 @@ desks:
     # (Tickers that are also yes/no words, like "ON", must be in quotes, or they're read as true/false.)
     watchlist: [SOFI, F, INTC, AAL, SNAP, RIVN, NIO, T,
                 HPE, ORCL, SHOP, "ON", RBLX, HPQ, PCG, FCX]
+    # Realistic costs for simulated day trades (in its head, shadow accounts, history tests): each fill is
+    # also this many cents a share worse (about 1-2 cents of slippage plus half the bid-ask spread).
+    cents_per_share: 2
     last_entry_minutes_before_close: 30    # no new trades in the last 30 minutes
     flatten_minutes_before_close: 10       # sell everything 10 minutes before the close
     risk:
@@ -142,9 +145,12 @@ plan:
 challengers:
   enabled: true
   swing: [momentum, momentum_plus, momentum_calm, momentum_plus_calm, momentum_quality]
-  day: []
-  min_forward_days: {swing: 20, day: 10}
-  min_history_days: 250
+  # Day desk: TJR's model and the 5-minute breakout, each also with the market-intraday-momentum exit (_mim:
+  # at 3:30pm it sells unless SPY was up from yesterday's close to 10am), with realistic costs (cents_per_share).
+  day: [tjr_model, tjr_model_mim, orb_5min, orb_5min_mim]
+  lists: {day: [premarket]}    # the pre-market movers: shadow traded, judged going forward only
+  min_forward_days: {swing: 20, day: 20}
+  min_history_days: {swing: 250, day: 100}
   max_p_value: 0.05
   min_deflated_sharpe: 0.95
   max_extra_drawdown_pct: 5

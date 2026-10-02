@@ -30,7 +30,8 @@ _pause = time.sleep                            # tests don't wait
 
 def settings(cfg: dict) -> dict:
     s = {"enabled": True, "pool": 300, "picks": 10, "min_rvol": 1.0, "min_price": 5.0,
-         "min_avg_volume": 1_000_000, "min_atr": 0.5, "history_days": 14}
+         "min_avg_volume": 1_000_000, "min_atr": 0.5, "history_days": 14,
+         "premarket_min_gap_pct": 3.0, "premarket_min_volume_pct": 3.0, "premarket_picks": 8}
     s.update(cfg.get("in_play") or {})
     return s
 
@@ -55,7 +56,8 @@ def pool(table: pd.DataFrame, cfg: dict) -> list:
     ok = table[(table["price"] >= s["min_price"]) & (table["price"] <= day_price_limit(cfg))
                & (table["avg_volume"] >= s["min_avg_volume"]) & (table["atr"] >= s["min_atr"])]
     ok = ok.sort_values("dollar_volume", ascending=False).head(int(s["pool"]))
-    return [{"symbol": r.symbol, "price": float(r.price), "atr": round(float(r.atr), 2)} for r in ok.itertuples()]
+    return [{"symbol": r.symbol, "price": float(r.price), "atr": round(float(r.atr), 2),
+             "avg_volume": float(r.avg_volume)} for r in ok.itertuples()]
 
 
 def swing_names(cfg: dict, store) -> set:
@@ -189,14 +191,114 @@ def load(cfg: dict) -> dict:
 
 
 def today_picks(cfg: dict, today: str = None) -> list:
-    """The day desk's extra stocks for today ([] before 9:35, or if the morning check didn't work)."""
+    """The day desk's extra stocks for today: the 9:35 picks ([] before then, or if the morning check didn't
+    work), plus the pre-market movers once they've proven they help (challengers.py; until then they're
+    only shadow traded)."""
     from .market_hours import now_ny
     if not is_on(cfg):
         return []
-    state = load(cfg)
-    if state.get("day") != (today or now_ny().strftime("%Y-%m-%d")):
-        return []
-    return [p["symbol"] for p in state.get("picks") or []]
+    today = today or now_ny().strftime("%Y-%m-%d")
+    state, early = load(cfg), load_premarket(cfg)
+    picks = [p["symbol"] for p in state.get("picks") or []] if state.get("day") == today else []
+    if early.get("day") == today and early.get("trade"):
+        picks += [p["symbol"] for p in early.get("picks") or [] if p["symbol"] not in picks]
+    return picks
+
+
+# ------------------------------------------------------------------ before the open: pre-market movers
+PREMARKET_FILE = "premarket.json"
+
+
+def premarket_volumes(cfg: dict, symbols: list, today: str, now: datetime) -> dict:
+    """{symbol: {"volume", "last"}}: today's trading from 4:00am until 15 minutes ago, from the SIP feed (every
+    exchange; the free plan may read it once it's 15 minutes old). One request per 200 stocks."""
+    from alpaca.data.enums import DataFeed
+    from alpaca.data.requests import StockBarsRequest
+    from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
+
+    from .alpaca_api import data_client
+    from .market_hours import NEW_YORK
+    start = datetime.strptime(today, "%Y-%m-%d").replace(hour=4, tzinfo=NEW_YORK).astimezone(timezone.utc)
+    end = min(now.replace(tzinfo=NEW_YORK) if now.tzinfo is None else now, opening_bar_start(today)) \
+        .astimezone(timezone.utc) - timedelta(minutes=16)
+    client, out = data_client(cfg), {}
+    for i in range(0, len(symbols), 200):
+        df = client.get_stock_bars(StockBarsRequest(
+            symbol_or_symbols=symbols[i:i + 200], timeframe=TimeFrame(15, TimeFrameUnit.Minute), start=start, end=end,
+            feed=DataFeed.SIP)).df
+        if df is None or df.empty:
+            continue
+        for sym, part in df.groupby(level="symbol"):
+            out[sym] = {"volume": float(part["volume"].sum()), "last": float(part["close"].iloc[-1])}
+    return out
+
+
+def premarket_rank(volumes: dict, pool_rows: list, cfg: dict) -> list:
+    """Stocks gapping at least `premarket_min_gap_pct` from yesterday's close (either way) on heavy early
+    trading (at least `premarket_min_volume_pct` of a normal day's volume before the open), busiest first."""
+    s, rows = settings(cfg), []
+    known = {r["symbol"]: r for r in pool_rows}
+    for sym, v in volumes.items():
+        r = known.get(sym) or {}
+        prev, usual = r.get("price"), r.get("avg_volume")
+        if not prev or not usual or v["volume"] <= 0:
+            continue
+        gap, share = (v["last"] / prev - 1) * 100, v["volume"] / usual * 100
+        if abs(gap) >= s["premarket_min_gap_pct"] and share >= s["premarket_min_volume_pct"] \
+                and s["min_price"] <= v["last"] <= day_price_limit(cfg):
+            rows.append({"symbol": sym, "gap_pct": round(gap, 1), "volume_pct": round(share, 1),
+                         "price": round(v["last"], 2)})
+    rows.sort(key=lambda r: r["volume_pct"], reverse=True)
+    return rows[:int(s["premarket_picks"])]
+
+
+def premarket(cfg: dict, store, today: str, now: datetime, get_volumes=premarket_volumes, get_news=None) -> str:
+    """About 9:20: the stocks moving on heavy trading before the open. Shown in the Thinking tab and the
+    journal; the day desk trades them only once its shadow account with them has proven better."""
+    from .alpaca_api import has_keys
+    from .scanner import danger, fetch_news, load_list, news_on
+    if not is_on(cfg):
+        return ""
+    if not (has_keys(cfg, True) or has_keys(cfg, False)):
+        return "pre-market movers: needs Alpaca keys (the free plan is enough)"
+    skip = swing_names(cfg, store)
+    rows = [r for r in load_list(cfg).get("day_pool") or [] if r["symbol"] not in skip and r.get("avg_volume")]
+    if not rows:
+        return "pre-market movers: no pool yet (it comes from the evening scan)"
+    picks = premarket_rank(get_volumes(cfg, [r["symbol"] for r in rows], today, now), rows, cfg)
+    skipped = []
+    if picks and news_on(cfg):
+        try:
+            news = (get_news or fetch_news)(cfg, [p["symbol"] for p in picks], 3)
+        except Exception:
+            news = {}
+        skipped = [p["symbol"] for p in picks if danger(news.get(p["symbol"], []))]
+        picks = [p for p in picks if p["symbol"] not in skipped]
+    trade = bool(store.get("list_on:day:premarket"))
+    state = {"day": today, "checked": len(rows), "picks": picks, "skipped": skipped, "trade": trade,
+             "at": datetime.now(timezone.utc).isoformat(timespec="minutes")}
+    path = data_path(cfg, PREMARKET_FILE)
+    path.write_text(json.dumps(state, indent=1))
+    history = store.get("premarket_history") or {}
+    history[today] = [p["symbol"] for p in picks]
+    store.set("premarket_history", {d: v for d, v in sorted(history.items())[-60:]})
+    names = ", ".join(f"{p['symbol']} {p['gap_pct']:+.1f}% on {p['volume_pct']:.0f}% of a day's volume" for p in picks)
+    return (f"pre-market movers ({len(rows)} busy stocks checked): {names or 'none moving on heavy volume'}"
+            + ("" if trade or not picks else "; watched in a shadow account until they prove they help"))
+
+
+def load_premarket(cfg: dict) -> dict:
+    path = data_path(cfg, PREMARKET_FILE)
+    try:
+        return json.loads(path.read_text()) if path.exists() else {}
+    except ValueError:
+        return {}
+
+
+def premarket_today(cfg: dict, today: str) -> list:
+    """Today's pre-market movers (symbols), whether or not the day desk trades them yet."""
+    state = load_premarket(cfg)
+    return [p["symbol"] for p in state.get("picks") or []] if state.get("day") == today else []
 
 
 def results(fills: pd.DataFrame, history: dict) -> dict:

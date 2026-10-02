@@ -12,6 +12,8 @@
   - `momentum_plus_calm`: both.
   - `momentum_quality`: momentum that won't buy low-quality or heavily shorted companies and favors fresh
     insider buys (see 44-beyond-the-price.md). Only quality has history; the rest is judged going forward.
+- The day desk's challengers of TJR's model: `tjr_model_mim`, `orb_5min`, `orb_5min_mim`, and the pre-market
+  movers list (judged going forward only). See 46-day-desk-upgrades.md.
 - **Evidence, two kinds, always against the current method on the same stocks, money, rules and costs:**
   - history: all 8 years of daily prices replayed after every close. The stock list is today's (survivors),
     which flatters momentum; comparing two methods on the same list cancels much of that, not all.

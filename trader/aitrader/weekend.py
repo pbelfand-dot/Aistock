@@ -185,11 +185,11 @@ def _strategy(cfg, store, desk):
 
 def _broker(cfg, store, desk, mode):
     from .brokers import Ledger, PaperBroker
-    from .config import is_cash_account
+    from .config import cents_per_share, is_cash_account
     saved = store.get(f"{mode}_ledger")
     ledger = Ledger.from_dict(saved) if saved else Ledger(desk_capital(cfg, desk, False))
     broker = PaperBroker(ledger, cfg["paper"]["slippage_pct"], cfg["paper"]["commission_per_trade"], mode=mode,
-                         cash_account=is_cash_account(cfg))
+                         cash_account=is_cash_account(cfg), cents_per_share=cents_per_share(cfg, desk))
     broker.on_fill = lambda f: store.record_fill(mode, f)
     return broker
 

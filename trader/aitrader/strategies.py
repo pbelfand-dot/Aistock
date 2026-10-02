@@ -297,6 +297,42 @@ class VwapReversion(Strategy):
         return pd.DataFrame(out)
 
 
+def market_first_half_hour(market: pd.DataFrame) -> pd.Series:
+    """For 5-minute bars of the market (SPY): each day's return from the previous day's close to 10:00am,
+    on every bar of that day from 10:00 on (NaN before 10:00: it isn't known yet)."""
+    day, close = session_day(market), market["close"]
+    last = close.groupby(day).last()
+    prev_close = pd.Series(day.map(last.shift(1)).to_numpy(), index=market.index)
+    at_ten = close.where(minutes_since_open(market) == 25).groupby(day).transform("max")   # the 9:55 bar's close
+    return (at_ten / prev_close - 1).where(minutes_since_open(market) >= 30)
+
+
+class CloseWithTheMarket(Strategy):
+    """Challenger (challengers.py): a day method that holds into the last half hour only when the market's
+    first half hour was up. Market intraday momentum (Gao, Han, Li & Zhou 2018, Journal of Financial
+    Economics): the S&P 500's return from the previous close to 10:00am predicted its last half hour
+    (3:30-4:00pm), stronger on volatile, busy and big-news days. So at 3:30pm, when SPY's first half hour
+    was down, it sells everything instead of holding until the usual exit at 3:50."""
+    style = "day"
+
+    def __init__(self, base: Strategy):
+        self.base = base
+        self.name = f"{base.name}_mim"
+        self.buy_above, self.sell_below = base.buy_above, base.sell_below
+        self.description = (base.description + " Plus: at 3:30pm, if the S&P 500 was down from yesterday's close "
+                            "to 10am, it sells instead of holding into the last half hour (market intraday momentum).")
+
+    def scores(self, bars, market, since=None):
+        table = self.base.scores(bars, market, since=since)
+        if not len(table):
+            return table
+        first = market_first_half_hour(market).reindex(table.index)
+        late = pd.Series(minutes_since_open(pd.DataFrame(index=table.index)).to_numpy() >= 360, index=table.index)
+        out = table.copy()
+        out.loc[late & (first <= 0)] = 0.0                     # get out now (a NaN first half hour: no change)
+        return out
+
+
 # ---------------------------------------------------------------- the AI (both desks)
 class AIModel(Strategy):
     def __init__(self, style: str, brain: Brain, buy_above: float, sell_below: float):
@@ -327,7 +363,8 @@ def all_strategies(cfg: dict, style: str) -> list:
                   intraday=True)
     from .tjr import TJRModel                            # Stage 2: TJR's model (tjr.py)
     return [OpeningRangeBreakout(), OpeningRange5(), VwapReversion(),
-            AIModel("day", brain, ai["buy_above"], ai["sell_below"]), TJRModel()]
+            AIModel("day", brain, ai["buy_above"], ai["sell_below"]), TJRModel(),
+            CloseWithTheMarket(TJRModel()), CloseWithTheMarket(OpeningRange5())]      # challengers (challengers.py)
 
 
 def get_strategy(name: str, cfg: dict, style: str) -> Strategy:

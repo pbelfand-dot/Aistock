@@ -293,10 +293,12 @@ def thinking(cfg, store, now=None) -> dict:
     if week.get("active") and not demo:
         live = {**live, "text": week["text"], "busy": week["replay"].get("running", False),
                 "also": week.get("also") or live.get("also")}
-    from . import challengers, macro
+    from . import challengers, in_play, macro
+    early = in_play.load_premarket(cfg)
     return {"time": now.isoformat(timespec="seconds"), "running": running, "live": live, "desks": desks,
             "weekend": week, "macro": macro.status(cfg, now),
-            "challengers": challengers.summary(store, active_desks(cfg))}
+            "challengers": challengers.summary(store, active_desks(cfg)),
+            "premarket": early if early.get("day") == today and "day" in active_desks(cfg) else None}
 
 
 def _desk_card(cfg, store, desk, mode, account, today=None) -> dict:

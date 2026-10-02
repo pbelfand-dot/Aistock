@@ -37,14 +37,20 @@ from .market_hours import now_ny
 DEFAULTS = {
     "enabled": True,
     "swing": ["momentum", "momentum_plus", "momentum_calm", "momentum_plus_calm", "momentum_quality"],
-    "day": [],
-    "min_forward_days": {"swing": 20, "day": 10},
-    "min_history_days": 250,          # a year of paired days before the history can prove anything
+    "day": ["tjr_model", "tjr_model_mim", "orb_5min", "orb_5min_mim"],
+    "lists": {"day": ["premarket"]},  # stock lists judged going forward only (no history to replay)
+    "min_forward_days": {"swing": 20, "day": 20},
+    "min_history_days": {"swing": 250, "day": 100},   # paired days before the history can prove anything
     "max_p_value": 0.05,
     "min_deflated_sharpe": 0.95,
     "max_extra_drawdown_pct": 5,
     "auto_switch": True,              # pretend-money desks switch by themselves (a real-money desk never does)
 }
+LISTS = {"premarket": {
+    "label": "pre-market movers",
+    "description": ("The day desk's current method, also trading the stocks moving on heavy volume before the open "
+                    "(a 3%+ gap from yesterday's close on 3%+ of a normal day's volume by about 9:05am, from the "
+                    "free SIP feed). There's no history of these lists, so it's judged on shadow trading alone.")}}
 EULER = 0.5772156649015329
 N01 = NormalDist()
 
@@ -79,6 +85,21 @@ def ring(cfg: dict, desk: str, now_using: str) -> list:
     return [n for n in names if n != now_using and n in known]
 
 
+def list_names(cfg: dict, desk: str) -> list:
+    """The stock lists being tried on this desk (config.yaml challengers.lists), not yet in use."""
+    s = settings(cfg)
+    return [k for k in ((s.get("lists") or {}).get(desk) or []) if s["enabled"] and k in LISTS]
+
+
+def list_on(store, desk: str, key: str) -> bool:
+    return bool(store.get(f"list_on:{desk}:{key}"))
+
+
+def _need(s: dict, key: str, desk: str, default: int) -> int:
+    value = s.get(key)
+    return int(value.get(desk, default) if isinstance(value, dict) else value or default)
+
+
 def switch(store, desk: str, base: str, to: str, why: str, by: str = "Kestrel"):
     old = current(store, desk, base)
     history = (store.get(f"strategy_switch:{desk}") or {}).get("history", [])
@@ -107,34 +128,38 @@ class _Quiet:
 
 
 def run_shadows(cfg: dict, store, desk: str, bars: dict, market: pd.DataFrame, now, now_using: str,
-                blocked=()) -> list:
+                blocked=(), lists: dict = None) -> list:
     """At the desk's real decision: each method on the ring (and the current one) decides in its own
-    shadow account, simulated on this Mac. Their journal lines are dropped (the real journal stays about
-    real trades). Returns the modes that ran."""
+    shadow account, simulated on this Mac; so does the current method on each stock list being tried
+    (lists: {key: its bars}). Their journal lines are dropped (the real journal stays about real trades).
+    Returns the modes that ran."""
     names = ring(cfg, desk, now_using)
-    if not names:
+    lists = {k: b for k, b in (lists or {}).items() if b and not list_on(store, desk, k)}
+    if not names and not lists:
         return []
     from .brokers import Ledger, PaperBroker
-    from .config import desk_capital, is_cash_account
+    from .config import cents_per_share, desk_capital, is_cash_account
     from .engine import price_table, resting_stop_fills, run_cycle, sell_all, execute
     from .risk import RiskManager
     from .strategies import get_strategy
     store = _Quiet(store)
     today = now.strftime("%Y-%m-%d")
     ran = []
-    for name in [now_using] + names:
-        mode = shadow_mode(desk, name)
+    jobs = [(name, name, bars) for name in [now_using] + names] + \
+        [(now_using, f"list-{k}", b) for k, b in lists.items()]
+    for name, account, its_bars in jobs:
+        mode = shadow_mode(desk, account)
         saved = store.get(f"{mode}_ledger")
         ledger = Ledger.from_dict(saved) if saved else Ledger(desk_capital(cfg, desk, False))
         broker = PaperBroker(ledger, cfg["paper"]["slippage_pct"], cfg["paper"]["commission_per_trade"],
-                             mode=mode, cash_account=is_cash_account(cfg))
+                             mode=mode, cash_account=is_cash_account(cfg), cents_per_share=cents_per_share(cfg, desk))
         broker.on_fill = lambda f, m=mode: store.record_fill(m, f)
         broker.blocked = frozenset(blocked)
         risk = RiskManager.for_desk(cfg, desk)
         if desk == "swing":                          # stop-losses resting at the broker during the day
-            opens, lows = price_table(bars, "open").iloc[-1], price_table(bars, "low").iloc[-1]
+            opens, lows = price_table(its_bars, "open").iloc[-1], price_table(its_bars, "low").iloc[-1]
             resting_stop_fills(broker, risk, opens, lows, today)
-        result = run_cycle(store, broker, get_strategy(name, cfg, desk), risk, bars, market, now,
+        result = run_cycle(store, broker, get_strategy(name, cfg, desk), risk, its_bars, market, now,
                            cfg["desks"][desk])
         if result["kill_switch"]:                    # pretend money: sell, start the count again
             execute(sell_all(broker.positions(), result["prices"], "kill switch (shadow account)"), broker, today)
@@ -216,9 +241,9 @@ def forward(store, desk: str, name: str, now_using: str) -> dict:
 
 def judge(s: dict, desk: str, history: dict, fwd: dict) -> tuple:
     """(verdict, why): proven / promising / not better / too early."""
-    need_days = int((s["min_forward_days"] or {}).get(desk, 20))
-    if history["days"] < s["min_history_days"]:
-        return "too early", f"only {history['days']} days of history to compare (needs {s['min_history_days']})"
+    need_days, need_history = _need(s, "min_forward_days", desk, 20), _need(s, "min_history_days", desk, 250)
+    if history["days"] < need_history:
+        return "too early", f"only {history['days']} days of history to compare (needs {need_history})"
     problems = []
     if history["extra_per_year_pct"] <= 0:
         problems.append(f"it did worse over the history ({history['extra_per_year_pct']:+.1f}% a year)")
@@ -246,6 +271,27 @@ def judge(s: dict, desk: str, history: dict, fwd: dict) -> tuple:
                       f"{fwd['days']} days of shadow trading")
 
 
+def judge_forward(s: dict, desk: str, fwd: dict) -> tuple:
+    """For a stock list (no history): proven only on its shadow trading, by the same tests for luck."""
+    need = _need(s, "min_forward_days", desk, 20)
+    if fwd["days"] < need:
+        return "too early", f"shadow trading {fwd['days']} of {need} days (no history: judged only going forward)"
+    if (fwd["ahead_pct"] or 0) <= 0:
+        return "not better", f"behind in shadow trading ({fwd['ahead_pct']:+.2f}% over {fwd['days']} days)"
+    if fwd["p_value"] > s["max_p_value"] or fwd["deflated_sharpe"] < s["min_deflated_sharpe"]:
+        return "promising", (f"{fwd['ahead_pct']:+.2f}% ahead over {fwd['days']} days, but that could still be luck "
+                             f"(p {fwd['p_value']:.2f}, deflated Sharpe {fwd['deflated_sharpe']:.2f})")
+    return "proven", (f"{fwd['ahead_pct']:+.2f}% ahead over {fwd['days']} days of shadow trading (p "
+                      f"{fwd['p_value']:.3f}, deflated Sharpe {fwd['deflated_sharpe']:.2f} after {fwd['trials']} ideas tried)")
+
+
+def _forward_diff(store, desk: str, name: str, now_using: str) -> np.ndarray:
+    a = _returns(store.equity_curve(shadow_mode(desk, name)))
+    b = _returns(store.equity_curve(shadow_mode(desk, now_using)))
+    days = a.index.intersection(b.index)
+    return (a.loc[days] - b.loc[days]).to_numpy()
+
+
 def evaluate(cfg: dict, store, desk: str, bars: dict, market: pd.DataFrame, now_using: str, base: str,
              real_money: bool = False, today: str = None) -> dict:
     """After the close: every challenger against the current method (history + forward), the tests for
@@ -255,12 +301,13 @@ def evaluate(cfg: dict, store, desk: str, bars: dict, market: pd.DataFrame, now_
     s = settings(cfg)
     names = ring(cfg, desk, now_using)
     today = today or now_ny().strftime("%Y-%m-%d")
-    if not names:
+    lists = [k for k in list_names(cfg, desk) if not list_on(store, desk, k)]
+    if not names and not lists:
         store.set(f"challengers:{desk}", None)
         return {}
-    champ = run_backtest(get_strategy(now_using, cfg, desk), bars, market, cfg, desk, curve=True)
-    champ_daily = _returns(champ.pop("daily"))
-    tested = []
+    champ = run_backtest(get_strategy(now_using, cfg, desk), bars, market, cfg, desk, curve=True) if names else {}
+    champ_daily = _returns(champ.pop("daily")) if names else None
+    tested, list_diffs = [], {}
     for name in names:                                  # 1) replay each one; write every idea tried down first
         strategy = get_strategy(name, cfg, desk)
         bt = run_backtest(strategy, bars, market, cfg, desk, curve=True)
@@ -271,6 +318,12 @@ def evaluate(cfg: dict, store, desk: str, bars: dict, market: pd.DataFrame, now_
         p = bootstrap_p(diff)
         store.record_trial(desk, name, now_using, today, len(diff), sharpe, p)
         tested.append((name, strategy, bt, diff, p))
+    for key in lists:                                   # the stock lists: their shadow trading so far
+        diff = _forward_diff(store, desk, f"list-{key}", now_using)
+        sharpe = float(diff.mean() / diff.std(ddof=1)) if len(diff) > 2 and diff.std() > 0 else 0.0
+        p = bootstrap_p(diff)
+        store.record_trial(desk, f"list-{key}", now_using, today, len(diff), sharpe, p)
+        list_diffs[key] = (diff, p)
     trials = store.trials(desk)                         # 2) judge each against every idea ever tried
     variance = float(np.var([t["sharpe"] for t in trials], ddof=1)) if len(trials) > 1 else 0.0
     rows = []
@@ -291,13 +344,36 @@ def evaluate(cfg: dict, store, desk: str, bars: dict, market: pd.DataFrame, now_
         store.finish_trial(desk, name, now_using, history["deflated_sharpe"], verdict)
         rows.append({"name": name, "description": strategy.description, "history": history, "forward": fwd,
                      "verdict": verdict, "why": why})
+    for key, (diff, p) in list_diffs.items():
+        name = f"list-{key}"
+        fwd = {**forward(store, desk, name, now_using), "p_value": round(p, 4), "trials": len(trials),
+               "deflated_sharpe": round(deflated_sharpe(diff, len(trials), variance), 3)}
+        verdict, why = judge_forward(s, desk, fwd)
+        store.finish_trial(desk, name, now_using, fwd["deflated_sharpe"], verdict)
+        rows.append({"name": name, "kind": "list", "label": LISTS[key]["label"], "description": LISTS[key]["description"],
+                     "history": None, "forward": fwd, "verdict": verdict, "why": why})
 
-    proven = [r for r in rows if r["verdict"] == "proven"]
+    proven_lists = [r for r in rows if r.get("kind") == "list" and r["verdict"] == "proven"]
+    rows_for_switch = [r for r in rows if r.get("kind") != "list"]
+    proven = [r for r in rows_for_switch if r["verdict"] == "proven"]
     winner = max(proven, key=lambda r: r["history"]["deflated_sharpe"]) if proven else None
     report = {"desk": desk, "as_of": today, "current": now_using, "base": base, "rows": rows,
               "current_description": get_strategy(now_using, cfg, desk).description,
               "switches": (store.get(f"strategy_switch:{desk}") or {}).get("history", []),
-              "waiting_for_you": None}
+              "lists_on": [k for k in LISTS if list_on(store, desk, k)], "waiting_for_you": None}
+    for r in proven_lists:                              # a proven stock list joins the desk's list
+        key = r["name"][5:]
+        if real_money:
+            if not report["waiting_for_you"]:
+                report["waiting_for_you"] = r["name"]
+            if (store.get(f"challenger_offer:{desk}") or {}).get("name") != r["name"]:
+                store.log(f"CHALLENGER PROVEN ({desk} desk, real money): adding the {r['label']} helped: {r['why']}. "
+                          "A real-money desk only changes when you press Use it (Thinking tab).")
+                store.set(f"challenger_offer:{desk}", {"name": r["name"], "on": today})
+        elif s["auto_switch"]:
+            store.set(f"list_on:{desk}:{key}", {"on": today, "why": r["why"], "by": "Kestrel"})
+            store.log(f"CHALLENGER WON ({desk} desk): the {r['label']} join its list from the next trading day. {r['why']}")
+            report["lists_on"].append(key)
     if winner and real_money:
         report["waiting_for_you"] = winner["name"]
         before = store.get(f"challenger_offer:{desk}") or {}
@@ -319,8 +395,14 @@ def use(store, desk: str, name: str) -> str:
     if not row or row["verdict"] != "proven":
         raise ValueError(f"{name} isn't proven better on the {desk} desk (latest comparison: "
                          f"{row['verdict'] if row else 'not compared'})")
-    switch(store, desk, report["base"], name, row["why"], by="you")
     store.set(f"challenger_offer:{desk}", None)
+    if row.get("kind") == "list":
+        store.set(f"list_on:{desk}:{name[5:]}", {"on": now_ny().strftime("%Y-%m-%d"), "why": row["why"], "by": "you"})
+        store.log(f"CHALLENGER WON ({desk} desk): you added the {row['label']} to its list. {row['why']}")
+        report.update(waiting_for_you=None, lists_on=sorted(set(report.get("lists_on") or []) | {name[5:]}))
+        store.set(f"challengers:{desk}", report)
+        return f"The {desk} desk now also trades the {row['label']} (from the next trading day)."
+    switch(store, desk, report["base"], name, row["why"], by="you")
     report.update(current=name, waiting_for_you=None, switched_to=name)
     store.set(f"challengers:{desk}", report)
     return f"The {desk} desk now trades {name}."
@@ -340,9 +422,11 @@ def lines(store, desks) -> list:
             h, f = r["history"], r["forward"]
             fwd = (f"shadow trading {f['days']} days: {f['return_pct']:+.2f}% vs {f['current_return_pct']:+.2f}%"
                    if f.get("return_pct") is not None else "shadow trading just started")
-            out.append(f"- `{r['name']}`: **{r['verdict']}**. History: {h['extra_per_year_pct']:+.1f}% a year vs the "
-                       f"current method over {h['years']} years, worst drop {h['max_drawdown_pct']:.1f}% vs "
-                       f"{h['current_max_drawdown_pct']:.1f}%. {fwd}. {r['why'][0].upper() + r['why'][1:]}.")
+            past = (f"History: {h['extra_per_year_pct']:+.1f}% a year vs the current method over {h['years']} years, "
+                    f"worst drop {h['max_drawdown_pct']:.1f}% vs {h['current_max_drawdown_pct']:.1f}%. " if h else
+                    "No history to replay (a stock list). ")
+            out.append(f"- `{r.get('label') or r['name']}`: **{r['verdict']}**. {past}{fwd[0].upper() + fwd[1:]}. "
+                       f"{r['why'][0].upper() + r['why'][1:]}.")
         if report.get("waiting_for_you"):
             out.append(f"- **{report['waiting_for_you']} is proven better: the real-money desk switches only when you "
                        "press Use it in the Thinking tab.**")
