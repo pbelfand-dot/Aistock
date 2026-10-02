@@ -281,7 +281,11 @@ def thinking(cfg, store, now=None) -> dict:
         live = {"busy": False, "text": _right_now(cfg, store, now)["headline"]}
     scan = store.get("scan_status") or {}
     if scan.get("day") == today and scan.get("started") and not scan.get("finished") and not scan.get("error"):
-        live["also"] = f"In the background: scanning all US stocks (started {scan['started'][11:16]})."
+        from .scanner import read_progress
+        p = read_progress(cfg)
+        where = (f"; {p['step']}: {p['done']:,} of {p['total']:,}" if p.get("total") and p.get("step") != "finished"
+                 else "")
+        live["also"] = f"In the background: scanning all US stocks (started {scan['started'][11:16]}{where})."
 
     desks = []
     for desk in active_desks(cfg):

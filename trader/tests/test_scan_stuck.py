@@ -53,10 +53,13 @@ def test_a_stuck_scan_is_given_up_on_and_started_over(cfg, monkeypatch):
     stuck = run._scanning
     assert started.wait(5)
     assert "already running" in run.run_job("scan", cfg, store, None, now, set())     # still young: leave it
-    monkeypatch.setattr(run, "_scan_began", time.monotonic() - 46 * 60)
+    monkeypatch.setattr(run, "_scan_began", time.monotonic() - 60 * 60)               # an hour in...
+    monkeypatch.setitem(scanner.progress, "at", time.monotonic() - 60)                # ...but moving a minute ago
+    assert "already running" in run.run_job("scan", cfg, store, None, now, set())     # slow but alive: leave it
+    monkeypatch.setitem(scanner.progress, "at", time.monotonic() - 16 * 60)           # no progress for 16 minutes
     assert run.run_job("scan", cfg, store, None, now, set()) == "scan started in the background"
     run._scanning.join(5)
-    assert any("stuck for over 45 minutes" in m for _, m in store.journal(10))
+    assert any("no progress for over 15 minutes" in m for _, m in store.journal(10))
     assert run.scan_state(store, "2026-10-01")["summary"] == "scan: fresh"
     assert run.scan_state(store, "2026-10-01")["tries"] == 2
     release.set()                                               # the stuck one finally returns...

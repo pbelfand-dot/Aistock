@@ -257,7 +257,7 @@ def test_an_older_list_without_picks_still_works(cfg, monkeypatch):
 
 
 def test_the_scan_counts_as_done_only_when_it_finished(cfg, monkeypatch):
-    """A scan cut short (the Mac restarted, an update) or one that failed runs again; three failures wait
+    """A scan cut short (the Mac restarted, an update) or one that failed runs again; six failures wait
     for the next day. Before, it was never marked done and started over every 5 minutes all evening."""
     import run
     monkeypatch.setattr(run, "SCAN_IN_BACKGROUND", False)
@@ -272,7 +272,7 @@ def test_the_scan_counts_as_done_only_when_it_finished(cfg, monkeypatch):
     monkeypatch.setattr(scanner, "run", fake_run)
     run.run_job("scan", cfg, store, None, now, set())
     assert not run.job_complete("scan", store, today)                   # failed once: tries again
-    assert "try 1 of 3" in store.journal(5)[-1][1] and "tries again in 5 minutes" in store.journal(5)[-1][1]
+    assert "try 1 of 6" in store.journal(5)[-1][1] and "tries again in 5 minutes" in store.journal(5)[-1][1]
     run.run_job("scan", cfg, store, None, now, set())
     assert run.job_complete("scan", store, today)                       # finished
     assert run.scan_state(store, today)["summary"] == "scan: 9000 stocks checked"
@@ -280,7 +280,7 @@ def test_the_scan_counts_as_done_only_when_it_finished(cfg, monkeypatch):
 
     store = Store(":memory:")
     monkeypatch.setattr(scanner, "run", lambda cfg, store, day: 1 / 0)
-    for _ in range(3):
+    for _ in range(run.SCAN_TRIES):
         run.run_job("scan", cfg, store, None, now, set())
     assert run.job_complete("scan", store, today)                       # gave up until tomorrow
     assert "gave up" in run.run_job("scan", cfg, store, None, now, set())
@@ -361,3 +361,76 @@ def test_the_report_says_whether_the_scan_is_working(cfg, monkeypatch):
     text = "\n".join(scan_lines(cfg, store, "2026-09-30"))
     assert "Last scan (2026-09-30 16:31): 6 stocks checked" in text and "ROCKET" in text
     assert "The swing desk also considers" in text
+
+
+def test_a_scan_cut_short_resumes_from_its_saved_pieces(cfg, monkeypatch):
+    """Each piece of the scan is saved the moment it arrives: after a restart or an update the scan picks up
+    where it stopped instead of starting over (before, an update could kill it every time)."""
+    monkeypatch.setattr(scanner, "GROUP", 2)
+    monkeypatch.setattr(scanner, "universe", lambda cfg: sorted(fake_market()))
+    asked, crash = [], {"after": 2}
+
+    def fetch(cfg, symbols, days):
+        if days == 45 and crash["after"] == 0:
+            raise RuntimeError("the Mac restarted")
+        asked.append((days, tuple(symbols)))
+        if days == 45:
+            crash["after"] -= 1
+        return {s: df for s, df in fake_market().items() if s in symbols}
+    cfg["scanner"] = {**scanner.settings(cfg), "top": 5}
+    with pytest.raises(RuntimeError):
+        scanner.run(cfg, Store(":memory:"), "2026-09-29", fetch=fetch, get_news=lambda c, s, d: {})
+    assert [a for a in asked if a[0] == 45] == [(45, ("NEWCO", "PENNY")), (45, ("QUIET", "ROCKET"))]
+    crash["after"], asked[:] = 99, []
+    summary = scanner.run(cfg, Store(":memory:"), "2026-09-29", fetch=fetch, get_news=lambda c, s, d: {})
+    assert [a for a in asked if a[0] == 45] == [(45, ("SINKER", "STEADY"))]          # only the piece it hadn't got
+    assert summary.startswith("scan: 6 stocks checked, 4 actively traded")
+    assert scanner.read_progress(cfg)["step"] == "finished"
+
+
+def test_the_next_days_scan_reuses_the_saved_year_of_prices(cfg, monkeypatch):
+    monkeypatch.setattr(scanner, "universe", lambda cfg: sorted(fake_market()))
+    asked = []
+
+    def fetch(cfg, symbols, days):
+        asked.append((days, sorted(symbols)))
+        out = {s: df for s, df in fake_market().items() if s in symbols}
+        return {s: df.tail(30) for s, df in out.items()} if days == 45 else out
+    cfg["scanner"] = {**scanner.settings(cfg), "top": 5}
+    first = scanner.run(cfg, Store(":memory:"), "2026-09-28", fetch=fetch, get_news=lambda c, s, d: {})
+    assert (400, ["NEWCO", "ROCKET", "SINKER", "STEADY"]) in asked
+    asked.clear()
+    second = scanner.run(cfg, Store(":memory:"), "2026-09-29", fetch=fetch, get_news=lambda c, s, d: {})
+    assert [a for a in asked if a[0] == 400] == []                                  # nothing downloaded twice
+    assert "(4 from the saved year of prices)" in second
+    assert scanner.load_list(cfg)["liked"][0]["symbol"] == "ROCKET"
+
+    split = {s: df.copy() for s, df in fake_market().items()}                       # ROCKET splits 2-for-1
+    split["ROCKET"][["open", "high", "low", "close"]] /= 2
+    asked.clear()
+    scanner.run(cfg, Store(":memory:"), "2026-09-30",
+                fetch=lambda c, symbols, days: (asked.append((days, sorted(symbols))) or
+                                                {s: (df.tail(30) if days == 45 else df) for s, df in split.items()
+                                                 if s in symbols}), get_news=lambda c, s, d: {})
+    assert (400, ["ROCKET"]) in asked                                                # its history is fetched again
+
+
+def test_the_report_waits_for_a_running_scan_until_530(cfg, monkeypatch):
+    import run
+    from aitrader import report
+    monkeypatch.setattr(run, "scan_running", lambda: True)
+    written = []
+    monkeypatch.setattr(report, "write_after_market", lambda cfg, store, day: written.append(day))
+    store = Store(":memory:")
+    said = run.run_job("report", cfg, store, None, datetime(2026, 10, 2, 16, 30), set())
+    assert said.startswith("after-market report: waiting for the scan") and not written
+    assert not run.job_complete("report", store, "2026-10-02")                    # tries again in 5 minutes
+    run.run_job("report", cfg, store, None, datetime(2026, 10, 2, 17, 31), set())  # 5:30pm: writes it anyway
+    assert written == ["2026-10-02"] and run.job_complete("report", store, "2026-10-02")
+
+
+def test_the_local_ais_summary_is_kept_short():
+    from aitrader.report import trim_words
+    long = "\n".join(f"* point {i} " + "word " * 40 for i in range(10))
+    short = trim_words(long, 160)
+    assert short.count("\n") == 2 and short.startswith("* point 0")                # whole lines, about 160 words

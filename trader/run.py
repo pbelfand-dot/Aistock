@@ -558,8 +558,11 @@ def due_jobs(now: datetime, done: set) -> list:
 
 
 SCAN_IN_BACKGROUND = True                               # tests run it inline
-SCAN_TRIES = 3                                          # a scan that keeps failing waits for the next day
-SCAN_STUCK_MINUTES = 45                                 # a scan "running" longer than this is stuck: start over
+SCAN_TRIES = 6                                          # a scan that keeps failing waits for the next day
+SCAN_STUCK_MINUTES = 15                                 # a scan that hasn't moved forward for this long is stuck
+                                                        # (a slow one that keeps moving is left alone: it may take
+                                                        # an hour on the free data plan; each piece it finishes is
+                                                        # saved, so starting over loses little)
 _scanning = None                                        # the running scan thread, if any
 _scan_began = 0.0                                       # when it started (monotonic clock: Mac sleep doesn't count)
 
@@ -577,10 +580,25 @@ def scan_state(store, today, kind="evening") -> dict:
 def job_complete(job, store, today) -> bool:
     """Most daily jobs are done once they ran. The scan runs in the background, so it's done only when it
     finished (or failed SCAN_TRIES times); a scan cut short (the Mac restarted, an update) runs again."""
+    if job == "report":
+        return store.get("report_written") == today
     if job != "scan":
         return True
     state = scan_state(store, today)
     return bool(state.get("finished")) or (not scan_running() and state.get("tries", 0) >= SCAN_TRIES)
+
+
+def note_try(store, today, kind, tries, **fields):
+    """Each scan try today, kept for the report: when it started, and how it ended (or that it was cut short)."""
+    saved = store.get("scan_tries") or {}
+    items = saved.get("items", []) if saved.get("day") == today else []
+    for item in items:
+        if item.get("kind") == kind and item.get("try") == tries:
+            item.update(fields)
+            break
+    else:
+        items.append({"kind": kind, "try": tries, **fields})
+    store.set("scan_tries", {"day": today, "items": items[-12:]})
 
 
 def scan_in_background(cfg, store, today, why, kind="evening") -> str:
@@ -591,12 +609,14 @@ def scan_in_background(cfg, store, today, why, kind="evening") -> str:
     from aitrader import scanner
     global _scanning, _scan_began
     if scan_running():
-        if time.monotonic() - _scan_began < SCAN_STUCK_MINUTES * 60:
+        last_move = max(_scan_began, scanner.progress.get("at") or 0)
+        if time.monotonic() - last_move < SCAN_STUCK_MINUTES * 60:
             return "scan: already running in the background"
         stuck = scan_state(store, today, kind) or store.get("scan_status") or {}
-        store.set("scan_status", {**stuck, "error": f"stuck for over {SCAN_STUCK_MINUTES} minutes (a network "
-                                                    "call never answered)", "failed_at": now_ny().isoformat(timespec="minutes")})
-        store.log(f"[scan] stuck for over {SCAN_STUCK_MINUTES} minutes (a network call never answered): starting over")
+        why = f"no progress for over {SCAN_STUCK_MINUTES} minutes (a network call never answered)"
+        store.set("scan_status", {**stuck, "error": why, "failed_at": now_ny().isoformat(timespec="minutes")})
+        note_try(store, today, kind, stuck.get("tries"), error=why)
+        store.log(f"[scan] {why}: starting over (the pieces it finished are kept)")
         _scanning = None                                     # leave it behind: it can't overwrite the new one
     state = scan_state(store, today, kind)
     if state.get("finished"):
@@ -606,6 +626,7 @@ def scan_in_background(cfg, store, today, why, kind="evening") -> str:
         return f"scan: gave up for today after {SCAN_TRIES} tries ({state.get('error') or 'cut short'})"
     store.set("scan_status", {"day": today, "kind": kind, "tries": tries,
                               "started": now_ny().isoformat(timespec="minutes")})
+    note_try(store, today, kind, tries, started=now_ny().isoformat(timespec="minutes"))
     path = data_path(cfg, "aitrader.sqlite")
 
     def work():
@@ -617,11 +638,13 @@ def scan_in_background(cfg, store, today, why, kind="evening") -> str:
             if threading.current_thread() is not _scanning and SCAN_IN_BACKGROUND:
                 return                                       # given up on as stuck; a newer scan took over
             own.set("scan_status", {**base, "finished": now_ny().isoformat(timespec="minutes"), "summary": summary})
+            note_try(own, today, kind, tries, finished=now_ny().isoformat(timespec="minutes"))
             own.log(f"[scan] {summary}")
         except Exception as e:                               # the autopilot tries again in 5 minutes
             if threading.current_thread() is not _scanning and SCAN_IN_BACKGROUND:
                 return
             own.set("scan_status", {**base, "error": repr(e)[:300], "failed_at": now_ny().isoformat(timespec="minutes")})
+            note_try(own, today, kind, tries, error=repr(e)[:200])
             again = "tries again in 5 minutes" if tries < SCAN_TRIES else "gave up until tomorrow"
             own.log(f"[scan] failed (try {tries} of {SCAN_TRIES}: {e!r}); {again}")
         finally:
@@ -739,7 +762,10 @@ def run_job(job, cfg, store, data, now, done) -> str:
         return watch_options(cfg, store, data, today)
     if job == "report":
         from aitrader.report import write_after_market
+        if scan_running() and now.time() < dtime(17, 30):
+            return "after-market report: waiting for the scan to finish, so it has today's stock list"
         write_after_market(cfg, store, today)
+        store.set("report_written", today)
         return f"after-market report for {today} written"
     if job == "scan":
         from aitrader import scanner

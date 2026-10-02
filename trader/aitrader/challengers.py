@@ -245,6 +245,10 @@ def judge(s: dict, desk: str, history: dict, fwd: dict) -> tuple:
     if history["days"] < need_history:
         return "too early", f"only {history['days']} days of history to compare (needs {need_history})"
     problems = []
+    if history.get("identical"):
+        return "no different", ("it made exactly the same trades as the current method over the history, so "
+                                "there's nothing to tell them apart (for momentum_quality: its extra facts aren't "
+                                "known for these stocks yet)")
     if history["extra_per_year_pct"] <= 0:
         problems.append(f"it did worse over the history ({history['extra_per_year_pct']:+.1f}% a year)")
     else:
@@ -338,7 +342,7 @@ def evaluate(cfg: dict, store, desk: str, bars: dict, market: pd.DataFrame, now_
             "max_drawdown_pct": bt["max_drawdown_pct"], "current_max_drawdown_pct": champ["max_drawdown_pct"],
             "extra_drawdown_pct": round(bt["max_drawdown_pct"] - champ["max_drawdown_pct"], 2),
             "trades": bt["num_closed_trades"], "current_trades": champ["num_closed_trades"],
-            "start": bt.get("start")}
+            "start": bt.get("start"), "identical": bool(len(diff)) and bool(np.allclose(diff, 0, atol=1e-12))}
         fwd = forward(store, desk, name, now_using)
         verdict, why = judge(s, desk, history, fwd)
         store.finish_trial(desk, name, now_using, history["deflated_sharpe"], verdict)

@@ -127,7 +127,7 @@ def test_challengers_shadow_trade_next_to_the_desk_without_touching_it(studying)
     assert report["current"] == "momentum" and [r["name"] for r in report["rows"]] == \
         ["momentum_plus", "momentum_calm", "momentum_plus_calm", "momentum_quality"]
     row = report["rows"][0]
-    assert row["history"]["days"] > 250 and row["forward"]["days"] == 5 and row["verdict"] in ("not better", "promising")
+    assert row["history"]["days"] > 250 and row["forward"]["days"] == 5 and row["verdict"] in ("not better", "promising", "no different")
     assert [t["name"] for t in store.trials("swing")] == ["momentum_calm", "momentum_plus", "momentum_plus_calm",
                                                           "momentum_quality"]
     assert all(t["deflated_sharpe"] is not None for t in store.trials("swing"))
@@ -184,3 +184,9 @@ def test_which_challengers_each_desk_has(cfg):
     cfg["challengers"] = {"enabled": "off"}
     assert challengers.ring(cfg, "swing", "momentum") == []
     assert get_strategy("momentum_plus", cfg, "swing").name == "momentum_plus"
+
+
+def test_a_challenger_that_made_the_same_trades_says_so(cfg):
+    s = challengers.settings(cfg)
+    verdict, why = challengers.judge(s, "swing", history(identical=True, extra_per_year_pct=0.0), {"days": 25, "ahead_pct": 0})
+    assert verdict == "no different" and "exactly the same trades" in why

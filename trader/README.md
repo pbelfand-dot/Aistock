@@ -111,8 +111,12 @@ Only deleting the AITrader folder removes them.
   shares, any price; with whole shares, ones where a share fits a position), not the day desk's
   stocks, and holds up to 8. Its own rules and budget still decide every trade.
 - **If a scan doesn't finish** (the Mac slept, an update restarted it, Alpaca refused too many
-  requests), it tries again in 5 minutes, up to 3 times, and again the next morning if the list is
-  old. The after-market report says when the list was last made, or why not.
+  requests), it tries again in 5 minutes, up to 6 times, and again the next morning if the list is
+  old. Each piece of 1,000 stocks is saved the moment it arrives, so a new try picks up where the last
+  one stopped, and each evening it reuses the saved year of prices and only downloads the newest weeks
+  (a stock whose history changed, after a split, is downloaded again in full). A slow scan is never
+  abandoned while it keeps moving; only one with no progress for 15 minutes is. The after-market report
+  waits for a running scan (until 5:30pm), and says how far it got and how each try ended.
 - **Stocks in play (day desk):** the evening scan also keeps a pool of the busiest stocks the day
   desk could trade. At 9:35am it compares each one's first 5 minutes of trading with its usual first
   5 minutes (14-day average) and adds the top 10 (at least 1x usual, no danger news, not the swing

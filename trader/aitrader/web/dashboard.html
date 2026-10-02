@@ -1691,7 +1691,8 @@ function renderWeekend(w) {
       weekendScoreboard(h.results || {})));
   }
 }
-const VERDICT = { proven: "proven better", promising: "promising", "not better": "not better", "too early": "too early" };
+const VERDICT = { proven: "proven better", promising: "promising", "not better": "not better", "too early": "too early",
+                  "no different": "no different" };
 function challengerRow(desk, rep, c) {
   const h = c.history || {}, f = c.forward || {};
   const pct = (v) => v == null ? "–" : `${v > 0 ? "+" : ""}${Number(v).toFixed(1)}%`;

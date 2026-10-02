@@ -14,8 +14,10 @@ scanner.py: once a day, look at ALL US stocks, keep a list of the ones worth tra
 
 The swing desk also considers the top of the list (it still buys only what fits its budget and rules).
 """
+import hashlib
 import json
 import math
+import shutil
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -25,6 +27,13 @@ import pandas as pd
 from .config import data_path
 
 UNIVERSE_FILE = Path(__file__).resolve().parent / "universe.txt"
+GROUP = 1000                     # stocks per saved piece: a scan cut short (an update, a restart, sleep) picks up there
+PARTS = "scan/parts"             # today's pieces
+HISTORY = "scan/history.pkl"     # the last scan's year of prices, so the next one only fetches the newest weeks
+PROGRESS = "scan/progress.json"  # how far the running scan is (the Thinking tab, the report)
+KEEP_ROWS = 300                  # trading days kept per stock (12-month momentum needs 253)
+COLUMNS = ["open", "high", "low", "close", "volume"]
+progress = {"at": None}          # this process: when the running scan last moved forward (run.py's stuck check)
 LIST_FILE = "liked_stocks.json"
 NOTE = "stocks-i-like.md"
 EXCHANGES = {"NYSE", "NASDAQ", "ARCA", "AMEX", "BATS", "NYSEARCA"}
@@ -115,6 +124,7 @@ def _alpaca_bars(cfg, symbols, days) -> dict:
                     df, error = None, e
             if df is not None:
                 break
+        progress["at"] = time.monotonic()                           # still moving (run.py's stuck check)
         if df is None:
             failed += 1
             continue
@@ -285,6 +295,116 @@ def danger(headlines: list) -> list:
 
 
 # ------------------------------------------------------------------ the list
+# ------------------------------------------------------------------ in pieces, resumable, incremental
+def _tick(cfg, step: str, done: int, total: int, started: str = None):
+    progress["at"] = time.monotonic()
+    state = {"step": step, "done": done, "total": total, "at": datetime.now().isoformat(timespec="seconds")}
+    if started:
+        state["started"] = started
+    try:
+        path = data_path(cfg, PROGRESS)
+        old = json.loads(path.read_text()) if path.exists() else {}
+        path.write_text(json.dumps({**old, **state}))
+    except (OSError, ValueError):
+        pass
+
+
+def read_progress(cfg) -> dict:
+    try:
+        return json.loads(data_path(cfg, PROGRESS).read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def _stage() -> str:
+    """Pieces from before the close aren't reused after it (they lack today's closing prices)."""
+    from .market_hours import now_ny
+    return "late" if now_ny().hour >= 16 else "early"
+
+
+def in_pieces(cfg: dict, fetch, symbols: list, days: int, today: str, step: str) -> dict:
+    """fetch() GROUP stocks at a time, saving each piece the moment it arrives. A scan that was cut short
+    reuses today's saved pieces instead of starting over."""
+    folder = data_path(cfg, f"{PARTS}/{today}-{_stage()}/x").parent
+    out, total = {}, len(symbols)
+    _tick(cfg, step, 0, total)
+    for i in range(0, total, GROUP):
+        chunk = symbols[i:i + GROUP]
+        path = folder / f"{days}-{hashlib.md5(','.join(chunk).encode()).hexdigest()[:12]}.pkl"
+        part = None
+        if path.exists():
+            try:
+                part = pd.read_pickle(path)
+            except Exception:
+                part = None
+        if part is None:
+            part = fetch(cfg, chunk, days)
+            tmp = path.with_suffix(".tmp")
+            pd.to_pickle(part, tmp)
+            tmp.replace(path)
+        out.update(part)
+        _tick(cfg, step, min(i + GROUP, total), total)
+    return out
+
+
+def clean_pieces(cfg: dict, today: str):
+    """Pieces from earlier days are never reused."""
+    folder = data_path(cfg, f"{PARTS}/x").parent
+    for old in folder.iterdir():
+        if old.is_dir() and not old.name.startswith(today):
+            shutil.rmtree(old, ignore_errors=True)
+
+
+def load_history(cfg: dict) -> dict:
+    path = data_path(cfg, HISTORY)
+    try:
+        frame = pd.read_pickle(path) if path.exists() else None
+    except Exception:
+        return {}
+    if frame is None or frame.empty:
+        return {}
+    return {sym: part.droplevel(0) for sym, part in frame.groupby(level=0)}
+
+
+def save_history(cfg: dict, bars: dict):
+    frames = {s: df[COLUMNS].tail(KEEP_ROWS).astype("float32") for s, df in bars.items() if len(df)}
+    if not frames:
+        return
+    path = data_path(cfg, HISTORY)
+    tmp = path.with_suffix(".tmp")
+    pd.concat(frames).to_pickle(tmp)
+    tmp.replace(path)
+
+
+def joinable(old: pd.DataFrame, new: pd.DataFrame) -> bool:
+    """Saved prices can be extended with fresh ones only if they agree where they overlap (a split or a
+    dividend rewrites a stock's adjusted history: then its full year is fetched again). The newest saved
+    day is left out of the check: a scan before the close saved a day that wasn't finished."""
+    overlap = old.index[:-1].intersection(new.index)
+    if len(overlap) < 5:
+        return False
+    ratio = (new.loc[overlap, "close"] / old.loc[overlap, "close"].astype(float)).dropna()
+    return len(ratio) >= 5 and float((ratio - 1).abs().max()) < 0.002
+
+
+def with_history(cfg: dict, fetch, recent: dict, active: list, today: str) -> tuple:
+    """A year of prices for every actively traded stock: the saved year extended with the fresh weeks
+    where they agree, a full download only for the rest. Returns (bars, how many reused)."""
+    saved = load_history(cfg)
+    reuse = {s for s in active if s in saved and s in recent and joinable(saved[s], recent[s])}
+    need = [s for s in active if s not in reuse]
+    full = in_pieces(cfg, fetch, need, 400, today, "a full year of prices") if need else {}
+    bars = {}
+    for s in active:
+        if s in full:
+            bars[s] = full[s]
+        elif s in reuse:
+            old, new = saved[s], recent[s]
+            bars[s] = pd.concat([old[old.index < new.index[0]].astype(float), new[COLUMNS]])
+    save_history(cfg, bars)
+    return bars, len(reuse)
+
+
 def load_list(cfg: dict) -> dict:
     path = data_path(cfg, LIST_FILE)
     try:
@@ -369,11 +489,14 @@ def run(cfg: dict, store, today: str, fetch=fetch_bars, get_news=fetch_news) -> 
     if not is_on(s["enabled"]):
         return "scan: off (Setup)"
     symbols = universe(cfg)
-    recent = fetch(cfg, symbols, 45)                 # a quick look first (about 30 trading days) ...
+    clean_pieces(cfg, today)
+    _tick(cfg, "a quick look at every stock", 0, len(symbols), started=datetime.now().isoformat(timespec="seconds"))
+    recent = in_pieces(cfg, fetch, symbols, 45, today, "a quick look at every stock")   # about 30 trading days...
     if not recent:
         raise RuntimeError(f"no prices came back for any of the {len(symbols)} stocks")
     active = actively_traded(recent, cfg)
-    bars = fetch(cfg, active, 400) if active else {}  # ... then a full year only for the ones worth it
+    bars, reused = with_history(cfg, fetch, recent, active, today)   # ...then a year only for the ones worth it
+    _tick(cfg, "ranking and reading the news", len(active), len(active))
     table = score(bars, cfg)
     liked, newcomers = pick(table, cfg)
     picks = swing_picks(table, cfg)
@@ -389,7 +512,9 @@ def run(cfg: dict, store, today: str, fetch=fetch_bars, get_news=fetch_news) -> 
     from .in_play import pool
     state = update_list(cfg, liked, newcomers, news, today, picks, day_pool=pool(table, cfg))
     flagged = [r["symbol"] for r in state["liked"] if r.get("danger")]
-    return (f"scan: {len(recent)} stocks checked, {len(active)} actively traded, "
+    _tick(cfg, "finished", len(active), len(active))
+    return (f"scan: {len(recent)} stocks checked, {len(active)} actively traded"
+            + (f" ({reused} from the saved year of prices)" if reused else "") + ", "
             f"{len(liked)} on the list (top: {', '.join(r['symbol'] for r in liked[:5]) or 'none'}), "
             f"{len(picks)} the swing desk can afford, {len(state['day_pool'])} busy enough for the day desk"
             + (f"; danger news, not buying: {', '.join(flagged)}" if flagged else ""))
