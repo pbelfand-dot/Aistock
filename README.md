@@ -76,6 +76,12 @@ code changes.
     after-close results and the after-market report. Send it `/status`, `/trades`, `/report`,
     `/pause`, `/resume`, or `/kill SELL EVERYTHING`. It only answers the phone you paired with the
     code from Setup.
+  - **Alert me if Kestrel stops** (a dead-man's switch). A Mac that's asleep, unplugged or offline can't
+    warn you itself, so Kestrel checks in with [healthchecks.io](https://healthchecks.io) (free for up to
+    20 checks) every 5 minutes. If the check-ins stop, or trading keeps failing for 15 minutes,
+    healthchecks.io alerts you (Pushover, Telegram or email, set up there). Give the check the Cron
+    schedule `*/5 9-15 * * 1-5` in the `America/New_York` time zone with 15 minutes of grace, then paste
+    its Ping URL into Setup.
   - **The Kestrel screen on your iPhone.** It works over Tailscale, a free private network between
     your own devices. It's served only on the Mac's Tailscale address and needs Kestrel's access key.
     Add it to your Home Screen and it opens like an app. Keys and settings stay on the Mac.

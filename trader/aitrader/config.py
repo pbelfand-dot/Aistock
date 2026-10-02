@@ -41,6 +41,7 @@ def load_config(path=None) -> dict:
         "pushover_token": os.environ.get("PUSHOVER_APP_TOKEN", ""),
         "fred_key": os.environ.get("FRED_API_KEY", ""),                 # big economic news dates (macro.py)
         "sec_email": os.environ.get("SEC_CONTACT_EMAIL", ""),           # SEC filings: who's asking (sec_filings.py)
+        "healthcheck_url": os.environ.get("HEALTHCHECK_URL", ""),       # the dead-man's switch (uptime.py)
     }
     cfg["live_trading_enabled"] = os.environ.get("LIVE_TRADING_ENABLED", "").strip().lower() == "true"
     cfg.setdefault("data_dir", str(DATA_DIR))
@@ -130,6 +131,12 @@ def desk_capital(cfg: dict, desk: str, live: bool) -> float:
     """How much money this desk gets (paper or live)."""
     total = cfg["live"]["max_capital"] if live else cfg["paper"]["starting_cash"]
     return total * cfg["desks"][desk]["budget_pct"] / 100
+
+
+def cents_per_share(cfg: dict, desk: str) -> float:
+    """Extra cost per share on each simulated fill (config.yaml desks.<desk>.cents_per_share): day trades pay
+    the spread and some slippage on every trade, which a percentage alone understates for cheap stocks."""
+    return float(((cfg.get("desks") or {}).get(desk) or {}).get("cents_per_share") or 0)
 
 
 def data_path(cfg: dict, name: str) -> Path:

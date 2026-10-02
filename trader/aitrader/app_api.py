@@ -81,7 +81,7 @@ def real_money_status(cfg, store) -> dict:
 
 # ---------------------------------------------------------------- the Setup screen
 PAPER_KEYS = ("ALPACA_PAPER_API_KEY", "ALPACA_PAPER_SECRET_KEY")
-STDIN_ACTIONS = {"use-challenger", "save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
+STDIN_ACTIONS = {"use-challenger", "save-healthcheck", "save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
                  "connect-claude", "save-phone", "save-webull-keys", "save-pushover", "stock-info",
                  "check-webull", "save-data-sources"}               # these read their details from stdin (never argv)
 
@@ -408,7 +408,30 @@ def setup_status(cfg, store) -> dict:
             "autopilot_problem": autopilot_problem(store),
             "autopilot_seen": store.get("autopilot_heartbeat"), "can_autopilot": sys.platform == "darwin",
             "desks": desks, "stage1": stage1, "stage2": stage2_status(store), "phone": phone_status(cfg),
-            "lid": lid_status(), "local_ai": llm.status(cfg), "data_sources": data_sources_status(cfg)}
+            "lid": lid_status(), "local_ai": llm.status(cfg), "data_sources": data_sources_status(cfg),
+            "uptime": uptime_status(cfg, store)}
+
+
+def uptime_status(cfg, store) -> dict:
+    from . import uptime
+    return uptime.status(cfg, store)
+
+
+def save_healthcheck(cfg, payload: dict) -> dict:
+    """Setup → Your phone: the dead-man's switch. The address is tried (one ping) before it's saved."""
+    from . import uptime
+    address = str(payload.get("url", "")).strip().rstrip("/")
+    if not uptime.valid(address):
+        raise ValueError("That doesn't look like a ping address. On healthchecks.io open your check and copy the "
+                         "address under \"Ping URL\" (it starts with https://hc-ping.com/).")
+    cfg["secrets"]["healthcheck_url"] = address
+    problem = uptime.send(cfg)
+    if problem:
+        raise ValueError(f"The ping didn't go through: {problem}. Check the address and try again.")
+    write_env(env_file(), {"HEALTHCHECK_URL": address})
+    restart_autopilot()
+    return {"message": "Saved on this Mac only, and the first ping went through: your check on healthchecks.io "
+                       "should say \"up\". From now on Kestrel pings it every 5 minutes."}
 
 
 def data_sources_status(cfg) -> dict:
@@ -611,6 +634,8 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         return llm_download(cfg)
     if action == "save-data-sources":
         return save_data_sources(cfg, payload or {})
+    if action == "save-healthcheck":
+        return save_healthcheck(cfg, payload or {})
     if action in ("lid-mode-on", "lid-mode-off"):
         from . import lid_mode
         return lid_mode.turn_on() if action == "lid-mode-on" else lid_mode.turn_off()
@@ -701,7 +726,7 @@ def main(argv=None) -> int:
         "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude", "start-stage1",
         "save-phone", "phone-test", "phone-screen-send", "save-webull-keys", "check-webull", "lid-mode-on",
         "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test", "stock-info", "llm-download", "thinking", "save-data-sources",
-        "use-challenger"])
+        "use-challenger", "save-healthcheck"])
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)

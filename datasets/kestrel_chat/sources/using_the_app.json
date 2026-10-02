@@ -488,5 +488,15 @@
     "q": "do i need anything to get the quality and insider info",
     "a": "Just the SEC contact email in Setup → AI & news (the SEC asks every program to say who's asking; it's free). Quality and insider buys come from the SEC; short interest comes from Yahoo Finance and needs nothing. Kestrel fetches them in the background each morning and with its SEC filings check every 30 minutes, so trading never waits on them.",
     "source": "trader/aitrader/fundamentals.py; trader/run.py (look_up_fundamentals)"
+  },
+  {
+    "q": "how do i know if my mac fell asleep and kestrel stopped trading",
+    "a": "Set up Setup → Your phone → Alert me if Kestrel stops. Kestrel checks in with healthchecks.io (free) every 5 minutes; if the check-ins stop because the Mac slept, lost power or internet, or Kestrel froze, healthchecks.io alerts your phone through Pushover, Telegram or email. It also alerts you if trading keeps failing for about 15 minutes while the Mac is on. A sleeping Mac can't warn you by itself, which is why the alert comes from outside.",
+    "source": "trader/aitrader/uptime.py; trader/aitrader/web/dashboard.html (Setup → Your phone)"
+  },
+  {
+    "q": "what schedule do i give the healthchecks check",
+    "a": "In healthchecks.io set the check's schedule to Cron with the expression */5 9-15 * * 1-5, the time zone America/New_York, and a grace time of 15 minutes. That way it only expects Kestrel while the market is open on weekdays, so a Mac that sleeps at night or on weekends doesn't set off an alert. Then copy the check's Ping URL into Setup and press Save; Kestrel pings it once right away to make sure it works.",
+    "source": "trader/aitrader/uptime.py; README.md (Your phone)"
   }
 ]
