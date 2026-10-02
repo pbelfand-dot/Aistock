@@ -179,7 +179,7 @@ def check(state: dict, log) -> dict:
             state.pop("warned", None)
         elif not state.get("warned"):
             log("!!! Lid-closed mode couldn't keep the Mac awake. Turn it off and on again in Setup "
-                "(it needs your Mac password once).")
+                "→ Autopilot (it needs your Mac password once).")
             state["warned"] = True
     elif not ac and locked:
         set_lock(False)

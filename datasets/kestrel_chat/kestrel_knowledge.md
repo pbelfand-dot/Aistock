@@ -39,7 +39,7 @@ code changes.
   to the buy and sell lines, what it decided and why (or why not), the team's notes (Scout, Analyst,
   Trader, Risk), how far each holding is from its stop-loss, and every check so far today. It refreshes
   every 5 seconds, also on the phone screen.
-- **News and data sources** (Setup step 8): SEC filings for what it owns or considers (free; the SEC asks for
+- **News and data sources** (Setup → AI & news): SEC filings for what it owns or considers (free; the SEC asks for
   your email), with links on each stock card; serious ones (bankruptcy, delisting, restated financials) stop
   it buying. The dates of CPI, the jobs report and Fed decisions (a free FRED key), with a countdown; buys on
   those days are tagged so it learns whether they lose. Each stock card and the report also show **why it
@@ -60,7 +60,7 @@ code changes.
   - how the strategies it compares are doing;
   - changes to its stock list, and what's next.
   It's also saved in `~/AITrader/data/reports/`, and you can print it with `python run.py report`.
-- **Your phone** (Setup steps 5 and 6):
+- **Your phone** (Setup → Your phone):
   - **Pushover push alerts.** Install [Pushover](https://apps.apple.com/app/id506088175) (free for 30
     days, then a one-time $4.99 per platform; sending is free up to 10,000 messages a month). Paste
     your User Key and the API Token of an application named Kestrel
@@ -75,16 +75,18 @@ code changes.
   - **The Kestrel screen on your iPhone.** It works over Tailscale, a free private network between
     your own devices. It's served only on the Mac's Tailscale address and needs Kestrel's access key.
     Add it to your Home Screen and it opens like an app. Keys and settings stay on the Mac.
-- **Local AI** (Setup step 7): a free AI on your Mac writes the plain-English parts (the plan, the
+- **Local AI** (Setup → AI & news): a free AI on your Mac writes the plain-English parts (the plan, the
   report's summary, the team's notes). It never decides trades and nothing leaves the Mac. Install
   [Ollama](https://ollama.com/download) and Kestrel downloads Google's Gemma 4 12B (about 8 GB) by itself.
   A Mac with less than 16 GB of memory uses the small Qwen3 4B instead, so trading never slows down.
 - **View → Show Demo Data** shows it with made-up prices right away.
-- **Setup** (the button) connects Alpaca, switches the autopilot and says what's next.
+- **Setup** (the button) has a sidebar of sections: **Start here** (what's connected and what happens next),
+  **Autopilot**, **Brokers & keys**, **Your phone**, **AI & news**, **Settings** and **More**. Green dots are set up,
+  amber ones need you.
 - **Stage 2: TJR's model** (day desk). It waits for a sweep below a low, a break back up, then buys
   the pullback into the gap, 9:35-11:30am, with the hourly trend. The day desk practices it in its
   head. A weekly history test on your Mac's 5-minute data compares it with random buys; once it
-  passes, **Setup → Start Stage 2** paper trades it next to Stage 1. Results are in Research.
+  passes, **Setup → Start here → Start Stage 2** paper trades it next to Stage 1. Results are in Research.
 - **The team.** Every decision passes through five agents, each writing a short note: **Scout** (the
   facts), **Analyst** (what agrees and what conflicts), **Trader** (the tested strategy's orders),
   **Risk** (checks each buy) and **Reviewer** (after the close). The notes are in the after-market
@@ -592,14 +594,14 @@ starts fresh; Monday's journal gets one summary line. The Thinking tab shows it 
 - **Headlines** (scanner.py): Alpaca's news feed (Benzinga), or Yahoo without keys. Danger headlines
   (share offering, bankruptcy, halt, delisting, fraud) stop buying that stock. News never makes it buy.
 - **SEC filings** (sec_filings.py): official filings from the SEC's EDGAR system, free, no key. The SEC asks
-  every program for a contact email (Setup step 8). Every 30 minutes on trading days it checks what it owns
+  every program for a contact email (Setup → AI & news). Every 30 minutes on trading days it checks what it owns
   or considers (watchlists, the top of the scan, stocks in play). The stock card shows the last two weeks of
   filings with links. Serious ones block buying for 30 days: 8-K item 1.03 (bankruptcy), 3.01 (delisting
   notice), 4.02 (past financial statements can't be relied on), 1.05 (a material cyber attack), and late
   annual/quarterly reports (NT 10-K / NT 10-Q). On a stock it owns, that's a WARNING; the stop-loss still
   protects it.
 - **Big economic news** (macro.py): the dates of CPI (8:30am), the jobs report (8:30am) and the Fed's rate
-  decisions (2pm), from FRED with a free key (Setup step 8). A countdown in the Thinking tab and the report.
+  decisions (2pm), from FRED with a free key (Setup → AI & news). A countdown in the Thinking tab and the report.
   Kestrel does NOT avoid these days by rule: the famous pre-Fed rally (Lucca & Moench, 2015) faded after 2015,
   and other releases showed no such pattern. Instead every buy on those days is tagged ("on a CPI day"),
   so the mistake memory learns from the desk's own results whether they lose, and skips them if they do.
@@ -676,24 +678,27 @@ SPY, buying SPY is the better deal.
    `xattr -dr com.apple.quarantine "/Applications/Kestrel.app"`.)
 3. The app's window opens. **The first time only**, a Terminal window also opens to install
    Python and the bot's libraries (about 2 minutes). Then the dashboard appears with the **Setup**
-   screen on top. The Setup screen is always one click away: the **Setup** button.
-4. **Setup → 1. Connect your Alpaca paper account** (free, about 5 minutes):
+   screen on top. The Setup screen is always one click away: the **Setup** button. It has a sidebar of
+   sections: **Start here** (what's connected, and what happens next), **Autopilot**, **Brokers & keys**,
+   **Your phone**, **AI & news**, **Settings** and **More**. A dot by each one shows green when it's set up
+   and amber when it needs you.
+4. **Setup → Brokers & keys → Alpaca paper account** (free, about 5 minutes):
    - Sign up at <https://app.alpaca.markets>. Paper trading needs no money and no approval.
    - The default paper account holds $100,000. Make a new paper account with **$1,000** so paper
      behaves like your real account (the bot caps itself at $1,000 either way).
    - In the paper account: **API Keys → Generate**. Paste the Key ID and Secret into Setup and
      press **Save and test**. It should show two green checks. The keys are saved only on your Mac
      (`~/AITrader/.env`). Live (real-money) keys are refused here on purpose.
-5. **Setup → 2. Autopilot → Turn on.** Done: it studies every trading day, starts when you log
+5. **Setup → Autopilot → Turn on.** Done: it studies every trading day, starts when you log
    in, and restarts itself if it crashes (closing the app doesn't stop it).
-6. **Setup → 3. What happens next** tells each desk's step in plain English.
-7. **Later, when you're ready:** **Setup → Real money, Schwab, Webull and Claude.**
-   - **Settings:** which broker gets real money, the most real money it may use (e.g. $50), the
-     account type, and the paper amount. They're kept when the app updates.
-   - **Charles Schwab:** paste the App Key, the Secret and the callback address, then **Open Schwab
+6. **Setup → Start here → What happens next** tells each desk's step in plain English.
+7. **Later, when you're ready:**
+   - **Setup → Settings:** which broker gets real money, the most real money it may use (e.g. $50), the
+     account type, the paper amount, and what it looks at. They're kept when the app updates.
+   - **Setup → Brokers & keys → Charles Schwab:** paste the App Key, the Secret and the callback address, then **Open Schwab
      login**. Sign in, then paste the address your browser lands on (that page won't load; that's
      expected). Log in again at least once a week: Schwab's limit is 7 days.
-   - **Webull:** apply on the Webull website (API Management → My Application; Webull reviews it in
+   - **Setup → Brokers & keys → Webull:** apply on the Webull website (API Management → My Application; Webull reviews it in
      about 1–2 business days). Once approved, Generate Key and paste the App Key and App Secret, with
      **Paper** for Webull test-environment keys or **Real money** (a wrong pick is fixed by the test). Press
      **Test Webull**, then approve Kestrel in the Webull app within 5 minutes (Menu → Messages →
@@ -701,8 +706,8 @@ SPY, buying SPY is the better deal.
      morning so it doesn't lapse (Webull drops it after 15 unused days). To paper trade at Webull:
      Settings → Paper trading happens at → Webull (needs the paper keys, approved). Real money at Webull
      needs its real-money keys, Broker for real money: Webull, and the usual locks. Whole shares only there.
-   - **Alpaca real-money keys:** saving them turns nothing on.
-   - **Connect Claude** (Code or Desktop).
+   - **Setup → Brokers & keys → Alpaca real-money keys:** saving them turns nothing on.
+   - **Setup → More → Connect Claude** (Code or Desktop).
 
 **Where your keys live:** `~/AITrader/.env`, on your Mac only. Updates never touch it. The same goes
 for your Setup settings (`~/AITrader/my_settings.json`) and your Schwab and Webull logins (`~/AITrader/data/`).

@@ -382,10 +382,10 @@ def _right_now(cfg, store, now=None) -> dict:
         headline = (f"The autopilot is busy with {names.get(busy['job'], busy['job'])} (since {since:%H:%M}, "
                     f"{took:.0f} min)." + (" If it's stuck, it restarts itself after 30 minutes." if took > 10 else ""))
     elif not running:
-        headline = ("The autopilot isn't running, so nothing is being tested. Turn it on in Setup (step 2) "
+        headline = ("The autopilot isn't running, so nothing is being tested. Turn it on in Setup → Autopilot "
                     "and keep the Mac awake.") if minutes is None or minutes > 60 else \
                    (f"The autopilot hasn't checked in for {minutes:.0f} minutes (is the Mac asleep? To keep "
-                    "trading with the lid closed, turn on lid-closed mode in Setup, step 2).")
+                    "trading with the lid closed, turn on lid-closed mode in Setup → Autopilot).")
     elif not trading_day:
         headline = "The market is closed today. Kestrel picks up again on the next trading day."
     elif now.time() < dtime(9, 30):
@@ -412,7 +412,7 @@ def _right_now(cfg, store, now=None) -> dict:
             if thinking.get("time", "").startswith(now.strftime("%Y-%m-%d")) else ""
         trades = f" {today_fills} trade{'s' if today_fills != 1 else ''} today." if today_fills else ""
         if store.get(f"halted:{desk}") and mode.split("-")[0] != "study":
-            doing = "paused: no new trades (stop-losses still work). Resume in Setup."
+            doing = "paused: no new trades (stop-losses still work). Resume in Setup → Start here."
         elif not open_now:
             doing = ("decides at 3:45pm on trading days." if desk == "swing"
                      else "trades between 10:00am and 3:30pm on trading days, and never holds overnight.")

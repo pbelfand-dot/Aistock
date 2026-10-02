@@ -169,7 +169,7 @@ def wanted(cfg, store) -> list:
 def check(cfg, store, now: datetime) -> str:
     """Looks up the filings of every stock it cares about; says so when a new danger filing appears."""
     if not is_on(cfg):
-        return "SEC filings: off (add your contact email in Setup)"
+        return "SEC filings: off (add your contact email in Setup → AI & news)"
     today = now.strftime("%Y-%m-%d")
     tickers, held = wanted(cfg, store)
     ciks = cik_map(cfg, today)
