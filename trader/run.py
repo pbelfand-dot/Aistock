@@ -860,6 +860,7 @@ def cmd_autopilot(cfg, store, args):
         today = now.strftime("%Y-%m-%d")
         store.set("autopilot_heartbeat", now.isoformat(timespec="seconds"))
         done = set(store.get("autopilot_done", []))
+        failed = {}
         for job in due_jobs(now, done):
             progress.update(t=time.monotonic(), job=job)
             store.set("autopilot_busy", {"job": job, "since": now_ny().isoformat(timespec="seconds")})
@@ -871,6 +872,7 @@ def cmd_autopilot(cfg, store, args):
                     done.add(f"{job}:{today}")
             except Exception as e:                           # never crash; try again next cycle
                 store.log(f"autopilot: {job} failed: {e!r} (will retry in 5 minutes)")
+                failed[job] = repr(e)[:300]
         try:
             keep_trying_the_scan(cfg, store, now, done)
         except Exception as e:                               # never crash over the scan
@@ -887,6 +889,12 @@ def cmd_autopilot(cfg, store, args):
                 print(f"[{now:%H:%M}] {said}")
         except Exception as e:                               # never crash over practice
             store.log(f"autopilot: weekend practice problem: {e!r}")
+        try:                                                 # the dead-man's switch (uptime.py)
+            from aitrader import uptime
+            if uptime.after_cycle(cfg, store, failed) and store.get("uptime_fail_streak") == uptime.FAILS_BEFORE_ALERT:
+                store.log(f"WARNING: trading keeps failing ({', '.join(failed)}); told healthchecks.io")
+        except Exception as e:
+            store.log(f"autopilot: couldn't ping healthchecks.io: {e!r}")
         progress.update(t=time.monotonic(), job=None)
         store.set("autopilot_busy", None)
         week_ago = (now - timedelta(days=7)).strftime("%Y-%m-%d")

@@ -705,6 +705,20 @@
         <p class="ink2" id="phone-pair" hidden></p>
       </div>
       <div class="setup-card">
+        <h4>Alert me if Kestrel stops <span class="tag" id="hc-state"></span></h4>
+        <p class="ink2">A Mac that's asleep, unplugged or offline can't warn you itself. Kestrel checks in with
+           <a href="https://healthchecks.io">healthchecks.io</a> (free) every 5 minutes; if the check-ins stop, or trading
+           keeps failing for 15 minutes, healthchecks.io alerts your phone.</p>
+        <details class="how" id="how-hc"><summary>How do I set it up?</summary>
+          <p class="ink2"><strong>1.</strong> Sign up free at <a href="https://healthchecks.io/accounts/signup/">healthchecks.io</a>.
+             <strong>2.</strong> Add a check, set its schedule to <em>Cron</em> <code>*/5 9-15 * * 1-5</code>, time zone
+             <code>America/New_York</code>, grace time 15 minutes (it then only expects Kestrel while the market is open).
+             <strong>3.</strong> Under Integrations, add Pushover or Telegram (or keep email). <strong>4.</strong> Copy the
+             check's Ping URL (https://hc-ping.com/…), paste it here and press Save: Kestrel pings it right away.</p></details>
+        <label>Ping URL<input id="hc-url" type="password" autocomplete="off" spellcheck="false" placeholder="https://hc-ping.com/…"></label>
+        <div class="setup-row"><button class="primary" id="save-hc">Save</button></div>
+      </div>
+      <div class="setup-card">
         <h4>Kestrel screen on your iPhone <span class="tag" id="screen-state"></span></h4>
         <p class="ink2">This screen on your iPhone from anywhere, with Pause and Emergency stop. It goes over
            <a href="https://tailscale.com/download">Tailscale</a> (free), a private network between your own devices.</p>
@@ -1808,6 +1822,9 @@ async function refreshSetup() {
     $("#push-state").textContent = po.keys ? `Pushover on · ${po.sent} of ${(po.limit || 10000).toLocaleString()} this month` : "Pushover not set up";
     $("#push-test").disabled = !po.keys;
     $("#phone-state").textContent = ph.paired ? "paired" : ph.token ? "waiting for your phone" : "not set up";
+    const up = s.uptime || {}, last = up.last || {};
+    $("#hc-state").textContent = !up.on ? "not set up" : !last.at ? "on · first ping on the next cycle"
+      : last.ok ? `on · last ping ${last.at.slice(11, 16)}${last.fail ? " (said: trading is failing)" : ""}` : `on · last ping failed: ${last.problem}`;
     $("#phone-pair").hidden = !ph.code;
     if (ph.code) $("#phone-pair").replaceChildren("Now send your bot this message: ", el("code", { text: `/start ${ph.code}` }));
     $("#phone-test").disabled = !ph.paired;
@@ -1875,6 +1892,9 @@ function renderSetupOverview(s) {
       po.keys || ph.paired ? "ok" : "off", "phone"],
     ["Kestrel screen on your phone", sc.on ? (sc.tailscale ? "on" : "on · Tailscale isn't running") : "off",
       sc.on && sc.tailscale ? "ok" : "off", "phone"],
+    ["Alert if Kestrel stops (healthchecks.io)", !(s.uptime || {}).on ? "not set up"
+      : ((s.uptime.last || {}).ok === false ? "last ping failed" : "on"),
+      !(s.uptime || {}).on ? "off" : (s.uptime.last || {}).ok === false ? "todo" : "ok", "phone"],
     ["Local AI", !ai.enabled ? "off" : !ai.ollama ? "Ollama isn't running" : ai.ready ? `ready (${ai.model})`
       : ai.downloading ? `downloading${ai.percent != null ? ` · ${ai.percent}%` : ""}` : "model not downloaded yet",
       ai.ready ? "ok" : ai.enabled && ai.ollama ? "todo" : "off", "ai"],
@@ -1901,6 +1921,7 @@ function renderSetupOverview(s) {
   const auto = (id, open) => { const d = $(id); if (d && !d.dataset.user) d.open = open; };
   auto("#how-alpaca", !s.paper_keys); auto("#how-push", !po.keys); auto("#how-tg", !ph.token);
   auto("#how-screen", !sc.on); auto("#how-data", !fr.has_key && !sec.on); auto("#how-webull", !wb.keys);
+  auto("#how-hc", !(s.uptime || {}).on);
 }
 function showSetupPane(name) {
   document.querySelectorAll("#dlg-setup [data-pane]").forEach(p => p.hidden = p.dataset.pane !== name);
@@ -1986,6 +2007,11 @@ $("#save-data").onclick = (e) => {
   if (!fred_key && !sec_email) { notify("Fill in the FRED key, your email for the SEC, or both.", true); return; }
   setupAction(e.target, "save-data-sources", { fred_key, sec_email }, async (r) => {
     $("#fred-key").value = ""; $("#sec-email").value = ""; notify(r.message); });
+};
+$("#save-hc").onclick = (e) => {
+  const url = $("#hc-url").value.trim();
+  if (!url) { notify("Paste your check's Ping URL from healthchecks.io first.", true); return; }
+  setupAction(e.target, "save-healthcheck", { url }, async (r) => { $("#hc-url").value = ""; notify(r.message); });
 };
 $("#save-phone").onclick = (e) => {
   const token = $("#phone-token").value.trim();

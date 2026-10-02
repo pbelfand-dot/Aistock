@@ -85,6 +85,12 @@ code changes.
     after-close results and the after-market report. Send it `/status`, `/trades`, `/report`,
     `/pause`, `/resume`, or `/kill SELL EVERYTHING`. It only answers the phone you paired with the
     code from Setup.
+  - **Alert me if Kestrel stops** (a dead-man's switch). A Mac that's asleep, unplugged or offline can't
+    warn you itself, so Kestrel checks in with [healthchecks.io](https://healthchecks.io) (free for up to
+    20 checks) every 5 minutes. If the check-ins stop, or trading keeps failing for 15 minutes,
+    healthchecks.io alerts you (Pushover, Telegram or email, set up there). Give the check the Cron
+    schedule `*/5 9-15 * * 1-5` in the `America/New_York` time zone with 15 minutes of grace, then paste
+    its Ping URL into Setup.
   - **The Kestrel screen on your iPhone.** It works over Tailscale, a free private network between
     your own devices. It's served only on the Mac's Tailscale address and needs Kestrel's access key.
     Add it to your Home Screen and it opens like an app. Keys and settings stay on the Mac.
@@ -682,6 +688,26 @@ starts fresh; Monday's journal gets one summary line. The Thinking tab shows it 
 - **The mistake memory** tags buys with these facts ("heavily shorted", "weak quality ..."), so the desk
   learns from its own results whether such buys lose.
 - **Needs**: the SEC contact email (Setup → AI & news) for quality and insider buys; short interest needs nothing.
+
+
+---
+
+<!-- from trader/aitrader/knowledge/45-uptime.md -->
+
+# Alert me if Kestrel stops (the dead-man's switch)
+
+- **Why**: a Mac that's asleep, unplugged, offline or frozen can't send its own alert, so an outside service
+  has to notice the silence.
+- **How** (uptime.py): after every autopilot cycle (every 5 minutes) Kestrel pings the owner's check on
+  healthchecks.io (free for up to 20 checks). If the pings stop, healthchecks.io alerts the owner through
+  what they connected there (Pushover, Telegram, email). If a trading job (day desk, swing decision, swing
+  stop checks) fails 3 cycles in a row (about 15 minutes), Kestrel pings "fail" with the reason; the next good
+  cycle clears it.
+- **Setup → Your phone → Alert me if Kestrel stops**: the check's Ping URL (https://hc-ping.com/...) is tried
+  with one ping before it's saved to ~/AITrader/.env (HEALTHCHECK_URL). Recommended check: Cron schedule
+  `*/5 9-15 * * 1-5`, time zone America/New_York, grace time 15 minutes, so it only expects Kestrel while the
+  market is open.
+- Pings go out in the background with a 10-second timeout: they never slow down or block trading.
 
 
 ---
