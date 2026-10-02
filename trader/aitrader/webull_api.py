@@ -293,7 +293,7 @@ def keep_alive(cfg) -> str:
     try:
         state = token_state(cfg, create=False)
         if state.get("status") != "NORMAL":
-            return "Webull: the app login lapsed. Open Setup → Test Webull and approve it in the Webull app."
+            return "Webull: the app login lapsed. Open Setup → Brokers & keys → Test Webull and approve it in the Webull app."
         accounts(cfg, state["token"])
         return ""
     except WebullError as e:

@@ -63,24 +63,27 @@ SPY, buying SPY is the better deal.
    `xattr -dr com.apple.quarantine "/Applications/Kestrel.app"`.)
 3. The app's window opens. **The first time only**, a Terminal window also opens to install
    Python and the bot's libraries (about 2 minutes). Then the dashboard appears with the **Setup**
-   screen on top. The Setup screen is always one click away: the **Setup** button.
-4. **Setup → 1. Connect your Alpaca paper account** (free, about 5 minutes):
+   screen on top. The Setup screen is always one click away: the **Setup** button. It has a sidebar of
+   sections: **Start here** (what's connected, and what happens next), **Autopilot**, **Brokers & keys**,
+   **Your phone**, **AI & news**, **Settings** and **More**. A dot by each one shows green when it's set up
+   and amber when it needs you.
+4. **Setup → Brokers & keys → Alpaca paper account** (free, about 5 minutes):
    - Sign up at <https://app.alpaca.markets>. Paper trading needs no money and no approval.
    - The default paper account holds $100,000. Make a new paper account with **$1,000** so paper
      behaves like your real account (the bot caps itself at $1,000 either way).
    - In the paper account: **API Keys → Generate**. Paste the Key ID and Secret into Setup and
      press **Save and test**. It should show two green checks. The keys are saved only on your Mac
      (`~/AITrader/.env`). Live (real-money) keys are refused here on purpose.
-5. **Setup → 2. Autopilot → Turn on.** Done: it studies every trading day, starts when you log
+5. **Setup → Autopilot → Turn on.** Done: it studies every trading day, starts when you log
    in, and restarts itself if it crashes (closing the app doesn't stop it).
-6. **Setup → 3. What happens next** tells each desk's step in plain English.
-7. **Later, when you're ready:** **Setup → Real money, Schwab, Webull and Claude.**
-   - **Settings:** which broker gets real money, the most real money it may use (e.g. $50), the
-     account type, and the paper amount. They're kept when the app updates.
-   - **Charles Schwab:** paste the App Key, the Secret and the callback address, then **Open Schwab
+6. **Setup → Start here → What happens next** tells each desk's step in plain English.
+7. **Later, when you're ready:**
+   - **Setup → Settings:** which broker gets real money, the most real money it may use (e.g. $50), the
+     account type, the paper amount, and what it looks at. They're kept when the app updates.
+   - **Setup → Brokers & keys → Charles Schwab:** paste the App Key, the Secret and the callback address, then **Open Schwab
      login**. Sign in, then paste the address your browser lands on (that page won't load; that's
      expected). Log in again at least once a week: Schwab's limit is 7 days.
-   - **Webull:** apply on the Webull website (API Management → My Application; Webull reviews it in
+   - **Setup → Brokers & keys → Webull:** apply on the Webull website (API Management → My Application; Webull reviews it in
      about 1–2 business days). Once approved, Generate Key and paste the App Key and App Secret, with
      **Paper** for Webull test-environment keys or **Real money** (a wrong pick is fixed by the test). Press
      **Test Webull**, then approve Kestrel in the Webull app within 5 minutes (Menu → Messages →
@@ -88,8 +91,8 @@ SPY, buying SPY is the better deal.
      morning so it doesn't lapse (Webull drops it after 15 unused days). To paper trade at Webull:
      Settings → Paper trading happens at → Webull (needs the paper keys, approved). Real money at Webull
      needs its real-money keys, Broker for real money: Webull, and the usual locks. Whole shares only there.
-   - **Alpaca real-money keys:** saving them turns nothing on.
-   - **Connect Claude** (Code or Desktop).
+   - **Setup → Brokers & keys → Alpaca real-money keys:** saving them turns nothing on.
+   - **Setup → More → Connect Claude** (Code or Desktop).
 
 **Where your keys live:** `~/AITrader/.env`, on your Mac only. Updates never touch it. The same goes
 for your Setup settings (`~/AITrader/my_settings.json`) and your Schwab and Webull logins (`~/AITrader/data/`).

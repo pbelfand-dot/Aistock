@@ -30,7 +30,7 @@ code changes.
   to the buy and sell lines, what it decided and why (or why not), the team's notes (Scout, Analyst,
   Trader, Risk), how far each holding is from its stop-loss, and every check so far today. It refreshes
   every 5 seconds, also on the phone screen.
-- **News and data sources** (Setup step 8): SEC filings for what it owns or considers (free; the SEC asks for
+- **News and data sources** (Setup → AI & news): SEC filings for what it owns or considers (free; the SEC asks for
   your email), with links on each stock card; serious ones (bankruptcy, delisting, restated financials) stop
   it buying. The dates of CPI, the jobs report and Fed decisions (a free FRED key), with a countdown; buys on
   those days are tagged so it learns whether they lose. Each stock card and the report also show **why it
@@ -51,7 +51,7 @@ code changes.
   - how the strategies it compares are doing;
   - changes to its stock list, and what's next.
   It's also saved in `~/AITrader/data/reports/`, and you can print it with `python run.py report`.
-- **Your phone** (Setup steps 5 and 6):
+- **Your phone** (Setup → Your phone):
   - **Pushover push alerts.** Install [Pushover](https://apps.apple.com/app/id506088175) (free for 30
     days, then a one-time $4.99 per platform; sending is free up to 10,000 messages a month). Paste
     your User Key and the API Token of an application named Kestrel
@@ -66,16 +66,18 @@ code changes.
   - **The Kestrel screen on your iPhone.** It works over Tailscale, a free private network between
     your own devices. It's served only on the Mac's Tailscale address and needs Kestrel's access key.
     Add it to your Home Screen and it opens like an app. Keys and settings stay on the Mac.
-- **Local AI** (Setup step 7): a free AI on your Mac writes the plain-English parts (the plan, the
+- **Local AI** (Setup → AI & news): a free AI on your Mac writes the plain-English parts (the plan, the
   report's summary, the team's notes). It never decides trades and nothing leaves the Mac. Install
   [Ollama](https://ollama.com/download) and Kestrel downloads Google's Gemma 4 12B (about 8 GB) by itself.
   A Mac with less than 16 GB of memory uses the small Qwen3 4B instead, so trading never slows down.
 - **View → Show Demo Data** shows it with made-up prices right away.
-- **Setup** (the button) connects Alpaca, switches the autopilot and says what's next.
+- **Setup** (the button) has a sidebar of sections: **Start here** (what's connected and what happens next),
+  **Autopilot**, **Brokers & keys**, **Your phone**, **AI & news**, **Settings** and **More**. Green dots are set up,
+  amber ones need you.
 - **Stage 2: TJR's model** (day desk). It waits for a sweep below a low, a break back up, then buys
   the pullback into the gap, 9:35-11:30am, with the hourly trend. The day desk practices it in its
   head. A weekly history test on your Mac's 5-minute data compares it with random buys; once it
-  passes, **Setup → Start Stage 2** paper trades it next to Stage 1. Results are in Research.
+  passes, **Setup → Start here → Start Stage 2** paper trades it next to Stage 1. Results are in Research.
 - **The team.** Every decision passes through five agents, each writing a short note: **Scout** (the
   facts), **Analyst** (what agrees and what conflicts), **Trader** (the tested strategy's orders),
   **Risk** (checks each buy) and **Reviewer** (after the close). The notes are in the after-market

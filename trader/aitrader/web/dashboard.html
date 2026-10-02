@@ -226,32 +226,72 @@
   .dlg-actions button { padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); }
   .dlg-actions .primary { background: var(--down); border-color: var(--down); color: #fff; }
   .dlg-actions .primary.blue { background: var(--accent); border-color: var(--accent); }
-  dialog.setup { max-width: 560px; width: calc(100vw - 48px); max-height: calc(100vh - 48px); overflow: auto; }
-  .setup-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-  .setup-step { border-top: 1px solid var(--border); padding: 14px 0 6px; }
-  .setup-step h4 { margin: 0 0 6px; display: flex; align-items: center; gap: 8px; font-size: 15px; }
-  .setup-step .num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent-wash); color: var(--ink);
-                     display: inline-grid; place-items: center; font-size: 12px; font-weight: 700; }
-  .setup-step p { margin: 4px 0 8px; font-size: 13px; }
-  .lid-row { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
-  .setup-step label { display: block; font-size: 13px; color: var(--ink-2); }
-  .setup-step input { margin: 4px 0 10px; }
-  .setup-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .setup-row button, .setup-step > button { padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border);
-                     background: var(--surface); color: var(--ink); font: inherit; }
-  .setup-row button.primary, .setup-step > button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .setup-row button:disabled, .setup-step > button:disabled { opacity: .55; }
-  .checks { list-style: none; padding: 0; margin: 10px 0 4px; font-size: 13px; }
+  /* Setup: a sidebar of sections (a row of chips on a phone) and one section at a time */
+  dialog.setup { max-width: 920px; width: calc(100vw - 48px); height: min(760px, calc(100vh - 48px)); padding: 0;
+                 overflow: hidden; }
+  dialog.setup[open] { display: flex; flex-direction: column; }
+  .setup-head { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  .setup-head h3 { margin: 0; font-size: 18px; }
+  .setup-head .spacer { flex: 1; }
+  .setup-done { padding: 7px 16px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent);
+                color: #fff; font-weight: 600; }
+  .setup-main { display: flex; flex: 1; min-height: 0; }
+  .setup-nav { display: flex; flex-direction: column; gap: 2px; padding: 12px 10px; width: 190px; flex: none;
+               border-right: 1px solid var(--border); background: var(--surface-2); overflow-y: auto; }
+  .setup-nav button { display: flex; align-items: center; gap: 10px; text-align: left; padding: 9px 12px; border: 0;
+                      border-radius: 7px; background: none; color: var(--ink-2); font-size: 14px; }
+  .setup-nav button:hover { background: var(--accent-wash); color: var(--ink); }
+  .setup-nav button[aria-current="page"] { background: var(--accent-wash); color: var(--ink); font-weight: 600; }
+  .sdot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--axis); }
+  .sdot.ok { background: var(--good); } .sdot.todo { background: var(--warning); } .sdot.none { visibility: hidden; }
+  .setup-body { flex: 1; overflow-y: auto; padding: 18px 22px 28px; min-width: 0; }
+  .pane-title { font-size: 20px; margin: 0 0 4px; }
+  .pane-lead { margin: 0 0 14px; font-size: 13px; color: var(--ink-2); }
+  .setup-card { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px 10px; margin-bottom: 12px;
+                background: var(--surface); }
+  .setup-card h4 { margin: 0 0 6px; display: flex; align-items: center; gap: 8px; font-size: 15px; flex-wrap: wrap; }
+  .setup-card p { margin: 4px 0 8px; font-size: 13px; }
+  .setup-card label { display: block; font-size: 13px; color: var(--ink-2); }
+  .setup-card input { margin: 4px 0 10px; }
+  .setup-card select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--axis);
+                       background: var(--surface); color: var(--ink); margin: 4px 0 10px; font: inherit; }
+  .setup-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 2px 0 6px; }
+  .setup-row button { padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border);
+                      background: var(--surface); color: var(--ink); font: inherit; }
+  .setup-row button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .setup-row button:disabled { opacity: .55; }
+  .sticky-save { position: sticky; bottom: -28px; padding: 10px 0; background: var(--surface); z-index: 1; }
+  .how { margin: 2px 0 8px; font-size: 13px; }
+  .how > summary { cursor: pointer; color: var(--accent); width: fit-content; }
+  .how[open] > summary { margin-bottom: 4px; }
+  .checks { list-style: none; padding: 0; margin: 6px 0 4px; font-size: 13px; }
   .checks li { display: flex; gap: 8px; padding: 3px 0; }
   .checks .ok { color: var(--up); font-weight: 700; } .checks .bad { color: var(--down); font-weight: 700; }
   .next-desk { font-size: 13px; margin: 4px 0 8px; }
   #autopilot { cursor: pointer; }
-  .setup-more { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px; }
-  .setup-more > summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
-  .setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 14px; }
-  .setup-step select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--axis);
-                       background: var(--surface); color: var(--ink); margin: 4px 0 10px; font: inherit; }
-  .setup-step h4 .muted { font-weight: 400; font-size: 12px; }
+  .setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 14px; }
+  .ov-list { list-style: none; margin: 0 0 14px; padding: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .ov-list li + li { border-top: 1px solid var(--border); }
+  .ov-list button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 14px; border: 0;
+                    background: var(--surface); color: var(--ink); text-align: left; font-size: 14px; }
+  .ov-list button:hover { background: var(--accent-wash); }
+  .ov-list .what { flex: 1; font-weight: 600; }
+  .ov-list .state { color: var(--ink-2); font-size: 13px; text-align: right; }
+  .ov-list .icon { width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center; flex: none;
+                   font-size: 12px; font-weight: 700; color: #fff; background: var(--axis); }
+  .ov-list .icon.ok { background: var(--good); } .ov-list .icon.todo { background: var(--warning); color: #3a2a00; }
+  .ov-list .go { color: var(--muted); }
+  #setup .attention { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--warning);
+                      margin-left: 6px; vertical-align: 1px; }
+  @media (max-width: 720px) {
+    dialog.setup { width: 100vw; max-width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; }
+    .setup-main { flex-direction: column; }
+    .setup-nav { flex-direction: row; width: auto; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border);
+                 padding: 8px 10px; }
+    .setup-nav button { white-space: nowrap; padding: 7px 11px; }
+    .setup-body { padding: 14px 14px 24px; }
+    .sticky-save { bottom: -24px; }
+  }
   [hidden] { display: none !important; }
   .loading { opacity: .6; transition: opacity .2s; }
 
@@ -500,189 +540,271 @@
 </dialog>
 
 <dialog id="dlg-setup" class="setup" aria-labelledby="setup-title">
-  <div class="setup-head"><h3 id="setup-title">Setup</h3><span class="muted" id="setup-version"></span></div>
-  <section class="setup-step">
-    <h4><span class="num">1</span> Connect your Alpaca paper account <span class="tag" id="keys-state"></span></h4>
-    <p class="ink2">Free, with pretend money. <a href="https://app.alpaca.markets/signup">Sign up at Alpaca</a>,
-       switch to <strong>Paper Trading</strong>, open <strong>API Keys → Generate</strong>, and paste both keys here.
-       They're saved only on this Mac. (Optional: without keys the bot simulates paper trading on this Mac.)</p>
-    <label>Key ID<input id="key-id" autofocus autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="PK…"></label>
-    <label>Secret key<input id="key-secret" type="password" autocomplete="off" spellcheck="false"></label>
-    <div class="setup-row"><button class="primary" id="save-keys">Save and test</button><button id="test-keys">Test connection</button></div>
-    <ul class="checks" id="key-results" aria-live="polite"></ul>
-  </section>
-  <section class="setup-step">
-    <h4><span class="num">2</span> Autopilot <span class="tag" id="auto-state"></span></h4>
-    <p class="ink2">Runs the bot in the background: it starts when you log in and restarts itself if it stops.
-       Keep the Mac plugged in.</p>
-    <button class="primary" id="auto-toggle">Turn on</button>
-    <p class="ink2 bad-text" id="auto-problem" hidden></p>
-    <div class="lid-row" id="lid-row" hidden>
-      <p class="ink2"><strong>Keep trading with the lid closed</strong> <span class="tag" id="lid-state"></span><br>
-         While it's plugged in, the Mac stays awake with the lid closed. On battery it sleeps as usual (closed, right
-         away), so it never runs hot in a bag. Asks for your Mac password once. While it's on and plugged in,
-         Apple menu → Sleep does nothing; turn this off first.</p>
-      <div class="setup-row"><button id="lid-toggle">Turn on</button></div>
+  <header class="setup-head">
+    <h3 id="setup-title">Setup</h3><span class="muted" id="setup-version"></span>
+    <div class="spacer"></div><button class="setup-done" data-close>Done</button>
+  </header>
+  <div class="setup-main">
+    <nav class="setup-nav" id="setup-nav" aria-label="Setup sections">
+      <button data-go-pane="overview"><span class="sdot" data-dot="overview"></span>Start here</button>
+      <button data-go-pane="autopilot"><span class="sdot" data-dot="autopilot"></span>Autopilot</button>
+      <button data-go-pane="brokers"><span class="sdot" data-dot="brokers"></span>Brokers &amp; keys</button>
+      <button data-go-pane="phone"><span class="sdot" data-dot="phone"></span>Your phone</button>
+      <button data-go-pane="ai"><span class="sdot" data-dot="ai"></span>AI &amp; news</button>
+      <button data-go-pane="settings"><span class="sdot" data-dot="settings"></span>Settings</button>
+      <button data-go-pane="more"><span class="sdot" data-dot="more"></span>More</button>
+    </nav>
+    <div class="setup-body" id="setup-body">
+
+    <!-- START HERE: what's set up, and what happens next -->
+    <section class="setup-pane" data-pane="overview">
+      <h2 class="pane-title">Start here</h2>
+      <p class="pane-lead">What's connected, and what Kestrel does next. Click a row to open its section.</p>
+      <ul class="ov-list" id="ov-list"></ul>
+      <div class="setup-card">
+        <h4>What happens next <span class="tag" id="stage-state" hidden></span></h4>
+        <div id="next-steps" class="ink2"></div>
+        <p class="ink2" id="tjr-line" hidden></p>
+        <div class="setup-row"><button class="primary" id="stage1" hidden>Start Stage 1 paper trading</button>
+          <button class="primary" id="stage2" hidden>Start Stage 2 (TJR) paper trading</button>
+          <button id="tjr-test" hidden>Test TJR's model now</button>
+          <button id="resume" hidden>Resume trading</button></div>
+      </div>
+    </section>
+
+    <!-- AUTOPILOT -->
+    <section class="setup-pane" data-pane="autopilot" hidden>
+      <h2 class="pane-title">Autopilot</h2>
+      <p class="pane-lead">The bot runs in the background on this Mac. Keep it on and the Mac plugged in.</p>
+      <div class="setup-card">
+        <h4>Autopilot <span class="tag" id="auto-state"></span></h4>
+        <p class="ink2">It starts when you log in and restarts itself if it stops.</p>
+        <div class="setup-row"><button class="primary" id="auto-toggle">Turn on</button></div>
+        <p class="ink2 bad-text" id="auto-problem" hidden></p>
+      </div>
+      <div class="setup-card" id="lid-row" hidden>
+        <h4>Keep trading with the lid closed <span class="tag" id="lid-state"></span></h4>
+        <p class="ink2">While it's plugged in, the Mac stays awake with the lid closed. On battery it sleeps as usual,
+           so it never runs hot in a bag. It asks for your Mac password once. While this is on and the Mac is plugged
+           in, Apple menu → Sleep does nothing; turn this off first.</p>
+        <div class="setup-row"><button id="lid-toggle">Turn on</button></div>
+      </div>
+    </section>
+
+    <!-- BROKERS & KEYS -->
+    <section class="setup-pane" data-pane="brokers" hidden>
+      <h2 class="pane-title">Brokers &amp; keys</h2>
+      <p class="pane-lead">Every key is saved only on this Mac (in ~/AITrader/.env), never on GitHub. Saving real-money
+         keys turns nothing on: real money always needs a typed confirmation in the full Setup menu.</p>
+      <div class="setup-card">
+        <h4>Alpaca paper account <span class="tag" id="keys-state"></span></h4>
+        <p class="ink2">Free, with pretend money. This is where Stage 1 paper trades.</p>
+        <details class="how" id="how-alpaca"><summary>How do I get these keys?</summary>
+          <p class="ink2"><a href="https://app.alpaca.markets/signup">Sign up at Alpaca</a>, switch to
+             <strong>Paper Trading</strong>, open <strong>API Keys → Generate</strong>, and paste both keys here.
+             Without keys, the bot simulates paper trading on this Mac.</p></details>
+        <div class="setup-grid">
+          <label>Key ID<input id="key-id" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="PK…"></label>
+          <label>Secret key<input id="key-secret" type="password" autocomplete="off" spellcheck="false"></label>
+        </div>
+        <div class="setup-row"><button class="primary" id="save-keys">Save and test</button><button id="test-keys">Test connection</button></div>
+        <ul class="checks" id="key-results" aria-live="polite"></ul>
+      </div>
+      <div class="setup-card">
+        <h4>Alpaca real-money keys <span class="tag" id="live-state"></span></h4>
+        <p class="ink2">Only needed once a desk earns real money.</p>
+        <div class="setup-grid">
+          <label>Live Key ID<input id="live-key" autocomplete="off" spellcheck="false" placeholder="AK…"></label>
+          <label>Live Secret<input id="live-secret" type="password" autocomplete="off"></label>
+        </div>
+        <div class="setup-row"><button id="save-live">Save real-money keys</button></div>
+      </div>
+      <div class="setup-card">
+        <h4>Webull <span class="tag" id="webull-state"></span></h4>
+        <p class="ink2">Paper trading at Webull: Settings → <strong>Paper trading happens at: Webull</strong>. Real money at
+           Webull needs its real-money keys, Settings → Broker for real money: Webull, and the usual typed OK.</p>
+        <details class="how" id="how-webull"><summary>How do I get Webull keys?</summary>
+          <p class="ink2"><strong>1.</strong> On the Webull website: API Management → My Application → apply (Webull reviews
+             it in about 1–2 business days). <strong>2.</strong> Once approved: Generate Key (Webull texts you a code) and
+             paste the App Key and App Secret here. <strong>3.</strong> Press Test Webull, then approve Kestrel in the
+             Webull app within 5 minutes. Pick <strong>Paper</strong> for Webull test-environment keys (if you pick wrong,
+             Test Webull switches it).</p></details>
+        <div class="setup-grid">
+          <label>Which keys<select id="wb-env"><option value="paper">Paper (test)</option>
+            <option value="live">Real money</option></select></label>
+          <label>App Key<input id="wb-key" autocomplete="off" spellcheck="false"></label>
+          <label>App Secret<input id="wb-secret" type="password" autocomplete="off"></label>
+          <label>Account ID (only if you have several)<input id="wb-acct" autocomplete="off" spellcheck="false"></label>
+        </div>
+        <div class="setup-row"><button id="save-webull">Save Webull keys</button><button id="webull-test">Test Webull</button></div>
+        <ul class="checks" id="webull-results" aria-live="polite"></ul>
+      </div>
+      <div class="setup-card">
+        <h4>Charles Schwab <span class="tag" id="schwab-state"></span></h4>
+        <p class="ink2">From <a href="https://developer.schwab.com">developer.schwab.com</a> → your app: the App Key,
+           the Secret, and the callback address exactly as you registered it.</p>
+        <div class="setup-grid">
+          <label>App Key<input id="sw-key" autocomplete="off" spellcheck="false"></label>
+          <label>Secret<input id="sw-secret" type="password" autocomplete="off"></label>
+          <label>Callback address<input id="sw-callback" spellcheck="false" placeholder="https://127.0.0.1:8182"></label>
+          <label>Account number (only if you have several)<input id="sw-acct" inputmode="numeric"></label>
+        </div>
+        <div class="setup-row"><button id="save-schwab">Save Schwab keys</button></div>
+        <details class="how"><summary>Log in to Schwab (about once a week)</summary>
+          <p class="ink2">Schwab's login lasts 7 days. <strong>1.</strong> Open Schwab login, sign in and approve.
+             <strong>2.</strong> Your browser ends on a page that won't load; that's expected. Copy that page's whole
+             address and paste it here.</p>
+          <div class="setup-row"><button class="primary" id="schwab-login">Open Schwab login</button></div>
+          <label>The address you landed on<input id="sw-landed" spellcheck="false" placeholder="https://127.0.0.1:8182/?code=…"></label>
+          <div class="setup-row"><button id="schwab-finish">Finish login</button><button id="schwab-test">Test Schwab</button></div>
+        </details>
+        <ul class="checks" id="schwab-results" aria-live="polite"></ul>
+      </div>
+    </section>
+
+    <!-- YOUR PHONE -->
+    <section class="setup-pane" data-pane="phone" hidden>
+      <h2 class="pane-title">Your phone</h2>
+      <p class="pane-lead">Alerts for every trade and anything urgent, and the Kestrel screen on your iPhone. Use any or all.</p>
+      <div class="setup-card">
+        <h4>Pushover push alerts <span class="tag" id="push-state"></span></h4>
+        <p class="ink2">Every buy and sell, the after-market summary, and anything urgent: loud enough to wake you for a
+           real-money emergency.</p>
+        <details class="how" id="how-push"><summary>How do I set up Pushover?</summary>
+          <p class="ink2"><strong>1.</strong> Install <a href="https://apps.apple.com/app/id506088175">Pushover</a> on your
+             iPhone (free for 30 days, then $4.99 once) and sign up at <a href="https://pushover.net/signup">pushover.net</a>.
+             <strong>2.</strong> Copy <em>Your User Key</em> from your <a href="https://pushover.net/">Pushover dashboard</a>.
+             <strong>3.</strong> <a href="https://pushover.net/apps/build">Create an application</a> named Kestrel and copy
+             its <em>API Token</em>. <strong>4.</strong> Paste both here and press Save: a test alert comes right away.</p></details>
+        <div class="setup-grid">
+          <label>User Key<input id="push-user" type="password" autocomplete="off" spellcheck="false" placeholder="30 letters and digits"></label>
+          <label>API Token<input id="push-token" type="password" autocomplete="off" spellcheck="false" placeholder="30 letters and digits"></label>
+        </div>
+        <div class="setup-row"><button class="primary" id="save-push">Save</button><button id="push-test">Send a test alert</button></div>
+      </div>
+      <div class="setup-card">
+        <h4>Telegram: alerts and commands <span class="tag" id="phone-state"></span></h4>
+        <p class="ink2">A message for every trade and the after-market report, and control from your phone:
+           /status, /trades, /report, /pause, /resume, /kill SELL EVERYTHING, /help. Only your phone is ever answered.</p>
+        <details class="how" id="how-tg"><summary>How do I set up Telegram?</summary>
+          <p class="ink2"><strong>1.</strong> In Telegram, open <a href="https://t.me/BotFather">@BotFather</a>, send
+             <code>/newbot</code> and pick any name; it gives you a token. <strong>2.</strong> Paste the token here and
+             press Save. <strong>3.</strong> Open your new bot and send the pairing message shown below.</p></details>
+        <label>Bot token<input id="phone-token" type="password" autocomplete="off" spellcheck="false" placeholder="1234567890:AA…"></label>
+        <div class="setup-row"><button class="primary" id="save-phone">Save</button><button id="phone-test">Send a test message</button></div>
+        <p class="ink2" id="phone-pair" hidden></p>
+      </div>
+      <div class="setup-card">
+        <h4>Kestrel screen on your iPhone <span class="tag" id="screen-state"></span></h4>
+        <p class="ink2">This screen on your iPhone from anywhere, with Pause and Emergency stop. It goes over
+           <a href="https://tailscale.com/download">Tailscale</a> (free), a private network between your own devices.</p>
+        <details class="how" id="how-screen"><summary>How do I set it up?</summary>
+          <p class="ink2"><strong>1.</strong> Install Tailscale on this Mac and your iPhone and log in to the same account on
+             both. <strong>2.</strong> Turn this on. <strong>3.</strong> Open the link on your phone, then Share → Add to
+             Home Screen. Keys and settings stay on the Mac.</p></details>
+        <div class="setup-row"><button class="primary" id="screen-toggle">Turn on</button><button id="screen-send">Send the link to my phone</button></div>
+        <p class="ink2" id="screen-link" hidden></p>
+      </div>
+    </section>
+
+    <!-- AI & NEWS -->
+    <section class="setup-pane" data-pane="ai" hidden>
+      <h2 class="pane-title">AI &amp; news</h2>
+      <p class="pane-lead">The local AI that writes the plain-English parts, and the news Kestrel reads. None of these decide trades.</p>
+      <div class="setup-card">
+        <h4>Local AI (Gemma) <span class="tag" id="ai-state"></span></h4>
+        <p class="ink2">Runs on this Mac and writes the plan, the after-market summary and the team's notes. Nothing is
+           sent anywhere. Needs <a href="https://ollama.com/download">Ollama</a> (free), opened once; Kestrel downloads
+           the model by itself.</p>
+        <div class="setup-row"><button id="ai-download">Download the model now</button></div>
+        <p class="ink2" id="ai-line"></p>
+      </div>
+      <div class="setup-card">
+        <h4>Economic news and SEC filings <span class="tag" id="data-state"></span></h4>
+        <p class="ink2"><strong>FRED:</strong> the dates of CPI, the jobs report and Fed decisions, with a countdown.
+           <strong>SEC:</strong> official company filings for what it owns or considers; serious ones stop it buying.</p>
+        <details class="how" id="how-data"><summary>Where do I get these?</summary>
+          <p class="ink2">A free FRED key: <a href="https://fredaccount.stlouisfed.org/apikeys">fredaccount.stlouisfed.org</a>
+             (sign up, then API Keys → Request API Key). The SEC needs no key, but asks every program for a contact email,
+             sent with each request and nowhere else.</p></details>
+        <div class="setup-grid">
+          <label>FRED API key<input id="fred-key" type="password" autocomplete="off" spellcheck="false" placeholder="32 letters and digits"></label>
+          <label>Your email (for the SEC)<input id="sec-email" type="email" autocomplete="off" spellcheck="false" placeholder="you@example.com"></label>
+        </div>
+        <div class="setup-row"><button class="primary" id="save-data">Save</button></div>
+        <p class="ink2" id="data-line"></p>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="setup-pane" data-pane="settings" id="setup-later" hidden>
+      <h2 class="pane-title">Settings</h2>
+      <p class="pane-lead">Kept when the app updates. Press Save settings after changing anything.</p>
+      <div class="setup-card">
+        <h4>Money and brokers</h4>
+        <div class="setup-grid">
+          <label>Broker for real money<select id="set-broker"><option value="alpaca">Alpaca</option>
+            <option value="schwab">Charles Schwab</option><option value="webull">Webull</option></select></label>
+          <label>Paper trading happens at<select id="set-paperat"><option value="auto">Automatic (Alpaca paper if its keys are saved)</option>
+            <option value="alpaca">Alpaca paper account</option><option value="webull">Webull paper account</option>
+            <option value="local">Simulated on this Mac</option></select></label>
+          <label>Most real money the bot may use ($)<input id="set-cap" inputmode="decimal"></label>
+          <label>Paper (practice) money ($)<input id="set-paper" inputmode="decimal"></label>
+          <label>Account type<select id="set-acct"><option value="auto">Automatic (Schwab, Webull = cash rules)</option>
+            <option value="cash">Cash: settled money only</option><option value="margin">Margin</option></select></label>
+          <label>Fractional shares (Alpaca and the simulation)<select id="set-frac"><option value="on">On: parts of a share</option>
+            <option value="off">Off: whole shares only</option></select></label>
+        </div>
+      </div>
+      <div class="setup-card">
+        <h4>What it looks at</h4>
+        <div class="setup-grid">
+          <label>Scan all US stocks every day<select id="set-scan"><option value="on">On</option>
+            <option value="off">Off (only the watchlist)</option></select></label>
+          <label>Let Kestrel read the news<select id="set-news"><option value="on">On (Alpaca/Yahoo headlines)</option>
+            <option value="off">Off</option></select></label>
+          <label>Don't buy right before earnings (swing desk)<select id="set-earn"><option value="on">On: skip the last 3 trading days</option>
+            <option value="off">Off</option></select></label>
+        </div>
+      </div>
+      <div class="setup-card">
+        <h4>Weekend practice</h4>
+        <div class="setup-grid">
+          <label>Replay real past days<select id="set-wk-replay"><option value="on">On (a day every 30 minutes)</option>
+            <option value="off">Off</option></select></label>
+          <label>Crypto, pretend money<select id="set-wk-crypto"><option value="on">On (live crypto prices)</option>
+            <option value="off">Off</option></select></label>
+        </div>
+      </div>
+      <div class="setup-row sticky-save"><button class="primary" id="save-settings">Save settings</button></div>
+      <div class="setup-card">
+        <h4>Good faith violation protection <span class="tag" id="gfv-state"></span></h4>
+        <p class="ink2" id="gfv-text"></p>
+      </div>
+    </section>
+
+    <!-- MORE -->
+    <section class="setup-pane" data-pane="more" hidden>
+      <h2 class="pane-title">More</h2>
+      <div class="setup-card">
+        <h4>Updates</h4>
+        <p class="ink2">Kestrel updates itself. Check now to get the newest version right away.</p>
+        <div class="setup-row"><button id="check-updates">Check for updates</button></div>
+      </div>
+      <div class="setup-card">
+        <h4>Connect Claude</h4>
+        <p class="ink2">Lets Claude see the bot (and your Schwab account, read-only) and pause it. It can't trade.</p>
+        <div class="setup-row"><button id="claude-code">Claude Code</button><button id="claude-desktop">Claude Desktop</button></div>
+      </div>
+      <div class="setup-card">
+        <h4>Full Setup menu</h4>
+        <p class="ink2">Approving a study plan and moving a desk to real money happen here (in Terminal), where each big
+           step needs a typed confirmation.</p>
+        <div class="setup-row"><button id="open-menu">Open the full Setup menu…</button></div>
+      </div>
+    </section>
+
     </div>
-  </section>
-  <section class="setup-step">
-    <h4><span class="num">3</span> What happens next <span class="tag" id="stage-state" hidden></span></h4>
-    <div id="next-steps" class="ink2"></div>
-    <p class="ink2" id="tjr-line" hidden></p>
-    <div class="setup-row"><button class="primary" id="stage1" hidden>Start Stage 1 paper trading</button>
-      <button class="primary" id="stage2" hidden>Start Stage 2 (TJR) paper trading</button>
-      <button id="tjr-test" hidden>Test TJR's model now</button>
-      <button id="resume" hidden>Resume trading</button></div>
-  </section>
-  <section class="setup-step">
-    <h4><span class="num">4</span> Good faith violation protection <span class="tag" id="gfv-state"></span></h4>
-    <p class="ink2" id="gfv-text"></p>
-  </section>
-  <section class="setup-step">
-    <h4><span class="num">5</span> Your phone: alerts <span class="tag" id="push-state"></span></h4>
-    <p class="ink2"><strong>Pushover</strong> (push notifications): every buy and sell, the after-market summary,
-       and anything urgent, loud enough to wake you for a real-money emergency. <strong>1.</strong> Install
-       <a href="https://apps.apple.com/app/id506088175">Pushover</a> on your iPhone (free for 30 days, then $4.99 once)
-       and sign up at <a href="https://pushover.net/signup">pushover.net</a>. <strong>2.</strong> Copy
-       <em>Your User Key</em> from your <a href="https://pushover.net/">Pushover dashboard</a>. <strong>3.</strong>
-       <a href="https://pushover.net/apps/build">Create an application</a> named Kestrel and copy its
-       <em>API Token</em>. <strong>4.</strong> Paste both here and press Save: a test alert comes right away.</p>
-    <div class="setup-grid">
-      <label>User Key<input id="push-user" type="password" autocomplete="off" spellcheck="false" placeholder="30 letters and digits"></label>
-      <label>API Token<input id="push-token" type="password" autocomplete="off" spellcheck="false" placeholder="30 letters and digits"></label>
-    </div>
-    <div class="setup-row"><button class="primary" id="save-push">Save</button><button id="push-test">Send a test alert</button></div>
-    <h4 style="margin-top:14px">Telegram (alerts and commands) <span class="tag" id="phone-state"></span></h4>
-    <p class="ink2">Get a message for every trade, the after-close results and the after-market report, and
-       control Kestrel from your phone (/status, /trades, /report, /pause, /resume, /kill SELL EVERYTHING, /help). <strong>1.</strong> In Telegram, open
-       <a href="https://t.me/BotFather">@BotFather</a>, send <code>/newbot</code> and pick any name; it gives you a
-       token. <strong>2.</strong> Paste the token here. <strong>3.</strong> Open your new bot and send the pairing
-       message shown below. Only your phone is ever answered.</p>
-    <label>Bot token<input id="phone-token" type="password" autocomplete="off" spellcheck="false" placeholder="1234567890:AA…"></label>
-    <div class="setup-row"><button class="primary" id="save-phone">Save</button><button id="phone-test">Send a test message</button></div>
-    <p class="ink2" id="phone-pair" hidden></p>
-  </section>
-  <section class="setup-step">
-    <h4><span class="num">6</span> Kestrel screen on your phone (Tailscale) <span class="tag" id="screen-state"></span></h4>
-    <p class="ink2">See this screen on your iPhone from anywhere, with the Pause and Emergency stop buttons. It goes over
-       <a href="https://tailscale.com/download">Tailscale</a> (free): a private network between your own devices,
-       never the open internet. <strong>1.</strong> Install Tailscale on this Mac and your iPhone and log in to the same
-       account on both. <strong>2.</strong> Turn this on. <strong>3.</strong> Open the link on your phone, then
-       Share → Add to Home Screen. Keys and settings stay on the Mac.</p>
-    <div class="setup-row"><button class="primary" id="screen-toggle">Turn on</button><button id="screen-send">Send the link to my phone</button></div>
-    <p class="ink2" id="screen-link" hidden></p>
-  </section>
-  <section class="setup-step">
-    <h4><span class="num">7</span> Local AI: the plain-English write-ups <span class="tag" id="ai-state"></span></h4>
-    <p class="ink2">A free AI that runs on this Mac and writes the plain-English parts: the plan, the after-market
-       summary and the team's notes. It never decides trades, and nothing is sent anywhere. <strong>1.</strong>
-       Install <a href="https://ollama.com/download">Ollama</a> (free) and open it once. <strong>2.</strong> Kestrel
-       downloads its model by itself; or press the button.</p>
-    <div class="setup-row"><button id="ai-download">Download the model now</button></div>
-    <p class="ink2" id="ai-line"></p>
-  </section>
-  <section class="setup-step">
-    <h4><span class="num">8</span> News and data sources <span class="tag" id="data-state"></span></h4>
-    <p class="ink2"><strong>Big economic news:</strong> the dates of CPI, the jobs report and the Fed's decisions, with a
-       countdown; buys on those days are tagged so Kestrel learns whether they lose. Get a free key at
-       <a href="https://fredaccount.stlouisfed.org/apikeys">fredaccount.stlouisfed.org</a> (sign up, then API Keys →
-       Request API Key). <strong>SEC filings:</strong> official company filings for what it owns or considers, with
-       links; serious ones (bankruptcy, delisting, restated financials) stop it buying. The SEC asks every program
-       for a contact email, sent with each request and nowhere else.</p>
-    <div class="setup-grid">
-      <label>FRED API key<input id="fred-key" type="password" autocomplete="off" spellcheck="false" placeholder="32 letters and digits"></label>
-      <label>Your email (for the SEC)<input id="sec-email" type="email" autocomplete="off" spellcheck="false" placeholder="you@example.com"></label>
-    </div>
-    <div class="setup-row"><button class="primary" id="save-data">Save</button></div>
-    <p class="ink2" id="data-line"></p>
-  </section>
-  <details class="setup-more" id="setup-later">
-    <summary>Real money, Schwab, Webull and Claude (for later)</summary>
-    <section class="setup-step">
-      <h4>Settings <span class="muted">(kept when the app updates)</span></h4>
-      <div class="setup-grid">
-        <label>Broker for real money<select id="set-broker"><option value="alpaca">Alpaca</option>
-          <option value="schwab">Charles Schwab</option><option value="webull">Webull</option></select></label>
-        <label>Paper trading happens at<select id="set-paperat"><option value="auto">Automatic (Alpaca paper if its keys are saved)</option>
-          <option value="alpaca">Alpaca paper account</option><option value="webull">Webull paper account</option>
-          <option value="local">Simulated on this Mac</option></select></label>
-        <label>Most real money the bot may use ($)<input id="set-cap" inputmode="decimal"></label>
-        <label>Account type<select id="set-acct"><option value="auto">Automatic (Schwab, Webull = cash rules)</option>
-          <option value="cash">Cash: settled money only</option><option value="margin">Margin</option></select></label>
-        <label>Paper (practice) money ($)<input id="set-paper" inputmode="decimal"></label>
-        <label>Fractional shares (Alpaca and the simulation)<select id="set-frac"><option value="on">On: parts of a share</option>
-          <option value="off">Off: whole shares only</option></select></label>
-        <label>Don't buy right before earnings (swing desk)<select id="set-earn"><option value="on">On: skip the last 3 trading days</option>
-          <option value="off">Off</option></select></label>
-        <label>Scan all US stocks every day<select id="set-scan"><option value="on">On</option>
-          <option value="off">Off (only the watchlist)</option></select></label>
-        <label>Let Kestrel read the news<select id="set-news"><option value="on">On (Alpaca/Yahoo headlines)</option>
-          <option value="off">Off</option></select></label>
-        <label>Weekend practice: replay real past days<select id="set-wk-replay"><option value="on">On (a day every 30 minutes)</option>
-          <option value="off">Off</option></select></label>
-        <label>Weekend practice: crypto, pretend money<select id="set-wk-crypto"><option value="on">On (live crypto prices)</option>
-          <option value="off">Off</option></select></label>
-      </div>
-      <div class="setup-row"><button id="save-settings">Save settings</button></div>
-    </section>
-    <section class="setup-step">
-      <h4>Charles Schwab <span class="tag" id="schwab-state"></span></h4>
-      <p class="ink2">From <a href="https://developer.schwab.com">developer.schwab.com</a> → your app: the App Key,
-         the Secret, and the callback address exactly as you registered it.</p>
-      <div class="setup-grid">
-        <label>App Key<input id="sw-key" autocomplete="off" spellcheck="false"></label>
-        <label>Secret<input id="sw-secret" type="password" autocomplete="off"></label>
-        <label>Callback address<input id="sw-callback" spellcheck="false" placeholder="https://127.0.0.1:8182"></label>
-        <label>Account number (only if you have several)<input id="sw-acct" inputmode="numeric"></label>
-      </div>
-      <div class="setup-row"><button id="save-schwab">Save Schwab keys</button></div>
-      <p class="ink2">Log in about once a week (Schwab's limit is 7 days): <strong>1.</strong> Open Schwab login, sign in
-         and approve. <strong>2.</strong> Your browser ends on a page that won't load; that's expected. Copy that page's
-         whole address and paste it here.</p>
-      <div class="setup-row"><button class="primary" id="schwab-login">Open Schwab login</button></div>
-      <label>The address you landed on<input id="sw-landed" spellcheck="false" placeholder="https://127.0.0.1:8182/?code=…"></label>
-      <div class="setup-row"><button id="schwab-finish">Finish login</button><button id="schwab-test">Test Schwab</button></div>
-      <ul class="checks" id="schwab-results" aria-live="polite"></ul>
-    </section>
-    <section class="setup-step">
-      <h4>Webull <span class="tag" id="webull-state"></span></h4>
-      <p class="ink2"><strong>1.</strong> On the Webull website: API Management → My Application → apply (Webull reviews it
-         in about 1–2 business days). <strong>2.</strong> Once approved: Generate Key (Webull texts you a code) and paste
-         the App Key and App Secret here. <strong>3.</strong> Test Webull, then approve Kestrel in the Webull app within
-         5 minutes. Pick <strong>Paper</strong> for Webull test-environment keys (if you pick wrong, Test Webull
-         switches it). To paper trade at Webull: Settings above → <strong>Paper trading happens at: Webull</strong>.
-         Real money at Webull needs its real-money keys, Broker for real money: Webull, and the usual typed OK.</p>
-      <div class="setup-grid">
-        <label>Which keys<select id="wb-env"><option value="paper">Paper (test)</option>
-          <option value="live">Real money</option></select></label>
-        <label>App Key<input id="wb-key" autocomplete="off" spellcheck="false"></label>
-        <label>App Secret<input id="wb-secret" type="password" autocomplete="off"></label>
-        <label>Account ID (only if you have several)<input id="wb-acct" autocomplete="off" spellcheck="false"></label>
-      </div>
-      <div class="setup-row"><button id="save-webull">Save Webull keys</button><button id="webull-test">Test Webull</button></div>
-      <ul class="checks" id="webull-results" aria-live="polite"></ul>
-    </section>
-    <section class="setup-step">
-      <h4>Alpaca real-money keys <span class="tag" id="live-state"></span></h4>
-      <p class="ink2">Only needed once a desk earns real money. Saving them turns nothing on: real money still needs
-         a typed confirmation in the full Setup menu.</p>
-      <div class="setup-grid">
-        <label>Live Key ID<input id="live-key" autocomplete="off" spellcheck="false" placeholder="AK…"></label>
-        <label>Live Secret<input id="live-secret" type="password" autocomplete="off"></label>
-      </div>
-      <div class="setup-row"><button id="save-live">Save real-money keys</button></div>
-    </section>
-    <section class="setup-step">
-      <h4>Connect Claude</h4>
-      <p class="ink2">Lets Claude see the bot (and your Schwab account, read-only) and pause it. It can't trade.</p>
-      <div class="setup-row"><button id="claude-code">Claude Code</button><button id="claude-desktop">Claude Desktop</button></div>
-    </section>
-  </details>
-  <p class="muted" style="font-size:12px">Approving a study plan and moving a desk to real money stay in the full Setup menu
-     (Terminal), where each big step needs a typed confirmation.</p>
-  <div class="dlg-actions">
-    <button id="open-menu">Full Setup menu…</button><button id="check-updates">Check for updates</button>
-    <button class="primary blue" data-close>Done</button>
   </div>
 </dialog>
 
@@ -1456,7 +1578,7 @@ function deskThinking(d) {
   const replayed = d.mode && d.mode.startsWith("weekend-") && d.desk !== "crypto";
   const kids = [el("div", { class: "card-head" }, el("h2", { text: `${name} · ${d.account}` }), el("div", { class: "spacer" }),
     el("span", { class: "tag", text: !d.today ? "no check yet today" : replayed ? `replaying ${d.time}` : `last check ${d.time.slice(-5)}` }))];
-  if (d.halted) kids.push(el("p", { class: "ink2", text: "Paused: no new trades (stop-losses still work). Resume in Setup." }));
+  if (d.halted) kids.push(el("p", { class: "ink2", text: "Paused: no new trades (stop-losses still work). Resume in Setup → Start here." }));
   if (!d.today) {
     kids.push(el("p", { class: "ink2", text: d.desk === "swing"
       ? "It decides once a day at 3:45pm, and checks its stop-losses every 5 minutes while the market is open."
@@ -1675,10 +1797,69 @@ async function refreshSetup() {
     if (wb.keys && !$("#wb-key").value) $("#wb-env").value = wb.environment || "paper";
     $("#webull-test").disabled = !wb.keys;
     $("#live-state").textContent = s.live_keys ? (s.live_enabled ? "saved · real money switched ON" : "saved") : "none";
+    renderSetupOverview(s);
     return s;
   } catch (e) { $("#next-steps").textContent = e.message; return null; }
 }
-async function openSetup() {
+/* Start here: one row per part that matters, with its state; and a dot per section in the sidebar */
+function renderSetupOverview(s) {
+  const lid = s.lid || {}, ph = s.phone || {}, po = ph.pushover || {}, sc = ph.screen || {}, ai = s.local_ai || {};
+  const ds = s.data_sources || {}, fr = ds.fred || {}, sec = ds.sec || {}, wb = s.webull || {};
+  const running = s.autopilot_on && s.autopilot_alive !== false;
+  const rows = [
+    ["Alpaca paper account", s.paper_keys ? "connected" : "not connected (optional: it can simulate on this Mac)",
+      s.paper_keys ? "ok" : "todo", "brokers"],
+    ["Autopilot", !s.autopilot_on ? "off: nothing is being tested" : running ? "on and running" : "on, but not running",
+      running ? "ok" : "todo", "autopilot"],
+    lid.can ? ["Trading with the lid closed", lid.on ? (lid.allowed ? "on" : "on · needs your Mac password again") : "off",
+      lid.on && lid.allowed ? "ok" : "off", "autopilot"] : null,
+    ["Phone alerts", [po.keys ? "Pushover" : "", ph.paired ? "Telegram" : ""].filter(Boolean).join(" + ") || "not set up",
+      po.keys || ph.paired ? "ok" : "off", "phone"],
+    ["Kestrel screen on your phone", sc.on ? (sc.tailscale ? "on" : "on · Tailscale isn't running") : "off",
+      sc.on && sc.tailscale ? "ok" : "off", "phone"],
+    ["Local AI", !ai.enabled ? "off" : !ai.ollama ? "Ollama isn't running" : ai.ready ? `ready (${ai.model})`
+      : ai.downloading ? `downloading${ai.percent != null ? ` · ${ai.percent}%` : ""}` : "model not downloaded yet",
+      ai.ready ? "ok" : ai.enabled && ai.ollama ? "todo" : "off", "ai"],
+    ["Economic news and SEC filings", [fr.has_key ? "FRED" : "", sec.on ? "SEC" : ""].filter(Boolean).join(" + ") || "not set up",
+      fr.has_key && sec.on ? "ok" : fr.has_key || sec.on ? "todo" : "off", "ai"],
+    ["Webull", !wb.keys ? "not set up" : wb.approval === "NORMAL" ? "connected" : "keys saved · needs approval",
+      !wb.keys ? "off" : wb.approval === "NORMAL" ? "ok" : "todo", "brokers"],
+  ].filter(Boolean);
+  const icon = { ok: "✓", todo: "!", off: "–" };
+  $("#ov-list").replaceChildren(...rows.map(([what, state, kind, pane]) => el("li", {},
+    el("button", { "data-go-pane": pane, title: `Open ${what}` },
+      el("span", { class: `icon ${kind}`, text: icon[kind], "aria-label": kind === "ok" ? "set up" : kind === "todo" ? "needs attention" : "not set up" }),
+      el("span", { class: "what", text: what }), el("span", { class: "state", text: state }), el("span", { class: "go", text: "›" })))));
+  const worst = (kinds) => kinds.includes("todo") ? "todo" : kinds.every(k => k === "ok") ? "ok" : "";
+  const byPane = {};
+  rows.forEach(([, , kind, pane]) => (byPane[pane] = byPane[pane] || []).push(kind));
+  document.querySelectorAll("#setup-nav [data-dot]").forEach(d => {
+    const kinds = byPane[d.dataset.dot];
+    d.className = "sdot " + (kinds ? worst(kinds) : "none");     // Settings and More have no status
+  });
+  const essentials = rows.filter(r => r[3] === "autopilot" || r[0] === "Alpaca paper account").some(r => r[2] === "todo");
+  $("#setup").querySelector(".attention")?.remove();
+  if (essentials) $("#setup").append(el("span", { class: "attention", title: "Something in Setup needs you" }));
+  const auto = (id, open) => { const d = $(id); if (d && !d.dataset.user) d.open = open; };
+  auto("#how-alpaca", !s.paper_keys); auto("#how-push", !po.keys); auto("#how-tg", !ph.token);
+  auto("#how-screen", !sc.on); auto("#how-data", !fr.has_key && !sec.on); auto("#how-webull", !wb.keys);
+}
+function showSetupPane(name) {
+  document.querySelectorAll("#dlg-setup [data-pane]").forEach(p => p.hidden = p.dataset.pane !== name);
+  document.querySelectorAll("#setup-nav [data-go-pane]").forEach(b => {
+    b.setAttribute("aria-current", b.dataset.goPane === name ? "page" : "false");
+    if (b.dataset.goPane === name && $("#dlg-setup").open) b.scrollIntoView({ block: "nearest", inline: "nearest" });
+  });
+  $("#setup-body").scrollTop = 0;
+}
+$("#dlg-setup").addEventListener("click", (e) => {             // the sidebar, and the rows of Start here
+  const b = e.target.closest && e.target.closest("[data-go-pane]");
+  if (b) showSetupPane(b.dataset.goPane);
+});
+document.querySelectorAll("#dlg-setup details.how").forEach(d =>   // once you open or close one, it stays that way
+  d.querySelector("summary").addEventListener("click", () => { d.dataset.user = "1"; }));
+async function openSetup(pane) {
+  showSetupPane(typeof pane === "string" ? pane : "overview");
   if (!$("#dlg-setup").open) $("#dlg-setup").showModal();
   setupCall("app-version").then(v => $("#setup-version").textContent = "Version " + v.version).catch(() => {});
   await refreshSetup();
@@ -1705,7 +1886,7 @@ $("#do-stage1").onclick = async () => {
   await refreshSetup(); load();
 };
 $("#setup").onclick = openSetup;
-$("#autopilot").onclick = openSetup;
+$("#autopilot").onclick = () => openSetup("autopilot");
 $("#save-keys").onclick = async () => {
   const key_id = $("#key-id").value.trim(), secret = $("#key-secret").value.trim();
   if (!key_id || !secret) { showChecks([{ ok: false, text: "Paste both the Key ID and the Secret key." }]); return; }

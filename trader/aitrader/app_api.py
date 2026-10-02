@@ -418,7 +418,7 @@ def data_sources_status(cfg) -> dict:
 
 
 def save_data_sources(cfg, payload: dict) -> dict:
-    """Setup step 8: the free FRED key (economic news dates) and the contact email the SEC asks for.
+    """Setup → AI & news: the free FRED key (economic news dates) and the contact email the SEC asks for.
     Each is tried before it's saved; only what you fill in changes."""
     from datetime import datetime
     from . import macro, sec_filings
@@ -459,7 +459,7 @@ def save_data_sources(cfg, payload: dict) -> dict:
 
 
 def llm_download(cfg) -> dict:
-    """Setup step 7: download the local AI's model now (normally it starts by itself the first time it's needed)."""
+    """Setup → AI & news: download the local AI's model now (normally it starts by itself the first time it's needed)."""
     from . import llm
     if not cfg["llm"].get("enabled"):
         raise RuntimeError("The local AI is turned off in config.yaml (llm.enabled).")
@@ -664,7 +664,7 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
             from datetime import date
             from .market_data import MarketData
             run.run_tjr_test(cfg, store, MarketData(cfg), date.today().isoformat(), force=True)
-            return {"message": "TJR's history test is done: see Setup (What happens next) and the Research tab.",
+            return {"message": "TJR's history test is done: see Setup → Start here (What happens next) and the Research tab.",
                     "test": tjr_status(store)}
         if action == "kill":
             if confirm != KILL_PHRASE:

@@ -157,17 +157,17 @@ class WebullGateway:
 
 def connect(cfg: dict, want: str):
     """(account id, approved token) for trading at Webull in `want` ('paper' or 'live'), or a clear error.
-    Never asks Webull for a new approval (that needs you: Setup -> Test Webull)."""
+    Never asks Webull for a new approval (that needs you: Setup -> Brokers & keys -> Test Webull)."""
     from .. import webull_api
     if not webull_api.has_keys(cfg):
-        raise RuntimeError("Webull: no keys yet (Setup -> Webull).")
+        raise RuntimeError("Webull: no keys yet (Setup -> Brokers & keys -> Webull).")
     env = webull_api.environment(cfg)
     if env != want:
         raise RuntimeError(f"Webull: the saved keys are {webull_api.NAMES[env]} keys, but this needs "
-                           f"{webull_api.NAMES[want]} keys (Setup -> Webull).")
+                           f"{webull_api.NAMES[want]} keys (Setup -> Brokers & keys -> Webull).")
     state = webull_api.token_state(cfg, create=False)
     if state.get("status") != "NORMAL":
-        raise RuntimeError("Webull: Kestrel isn't approved in the Webull app right now. Setup -> Test Webull, "
+        raise RuntimeError("Webull: Kestrel isn't approved in the Webull app right now. Setup -> Brokers & keys -> Test Webull, "
                            "then approve it in the Webull app.")
     account = webull_api.pick_account(cfg, webull_api.accounts(cfg, state["token"]))
     return str(account["account_id"]), state["token"]
