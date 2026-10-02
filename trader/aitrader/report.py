@@ -322,13 +322,23 @@ def scan_lines(cfg, store, today: str) -> list:
     from .scanner import is_on, load_list, settings
     if not is_on(settings(cfg)["enabled"]):
         return ["## Its stock list (the daily scan)", "", "- The scan of all US stocks is off (Setup -> Settings).", ""]
+    from .scanner import read_progress
     state, status = load_list(cfg), store.get("scan_status") or {}
     out = ["## Its stock list (the daily scan)", ""]
     if status.get("error"):
         out.append(f"- The last scan ({status.get('day')}, try {status.get('tries')}) FAILED: {status['error']}")
     elif status.get("started") and not status.get("finished"):
-        out.append(f"- A scan started at {status['started'][11:16]} and is still running (or was cut short: it "
-                   "tries again).")
+        p = read_progress(cfg)
+        where = (f" (at {p['step']}: {p['done']:,} of {p['total']:,})" if p.get("total") and p.get("step") != "finished"
+                 else "")
+        out.append(f"- A scan started at {status['started'][11:16]} and is still running{where}. Each piece it "
+                   "finishes is saved, so a restart or an update picks up where it stopped.")
+    tries = store.get("scan_tries") or {}
+    if tries.get("day") == today and len(tries.get("items") or []) > 1:
+        out.append("- Scan tries today: " + "; ".join(
+            f"{t['kind']} #{t['try']} at {(t.get('started') or '')[11:16] or '?'}: "
+            + ("finished" if t.get("finished") else f"failed ({t['error']})" if t.get("error") else "cut short or running")
+            for t in tries["items"]))
     if not state.get("updated"):
         out += ["- No stock list yet: the scan hasn't finished on this Mac, so the swing desk only picks from its "
                 "watchlist. It scans after each close (and in the morning if the evening scan didn't finish).", ""]
@@ -417,17 +427,37 @@ def in_play_lines(cfg, store, today: str) -> list:
     return out
 
 
+def trim_words(text: str, limit: int) -> str:
+    """The local AI sometimes runs long: keep whole lines up to about `limit` words."""
+    kept, words = [], 0
+    for line in text.strip().splitlines():
+        n = len(line.split())
+        if words + n > limit and kept:
+            break
+        kept.append(line)
+        words += n
+    return "\n".join(kept)
+
+
 def write_after_market(cfg, store, today: str) -> str:
     """Writes data/reports/after-market-<day>.md (plus a plain-English summary from the local AI when
     it's on) and notes it in the journal. Returns the report."""
     from .config import data_path
     from .llm import ask_local_llm
     text = after_market(cfg, store, today)
-    summary = ask_local_llm(cfg, "You are Kestrel, the owner's trading bot. In under 120 words, using ONLY the "
-                                 "facts in this report (never invent numbers), tell the owner what you traded "
-                                 "today and why (follow the team's notes: Scout, Analyst, Trader, Risk, "
-                                 "Reviewer), how it went, and what you'll watch tomorrow.\n\n" + text)
+    from datetime import datetime, timedelta
+    nxt = datetime.strptime(today, "%Y-%m-%d") + timedelta(days=1)
+    while nxt.weekday() >= 5:
+        nxt += timedelta(days=1)
+    summary = ask_local_llm(cfg, (
+        "You are Kestrel, the owner's trading bot. Write at most 5 short bullet points (under 120 words in all), "
+        "using ONLY facts stated in this report: what you traded today and why (follow the team's notes), how it "
+        f"went, and what you'll watch on the next trading day, {nxt:%A %B} {nxt.day}. Rules: never invent numbers, "
+        "dates or events; never guess why the market or a stock moved (the report doesn't say); the options-gap "
+        "watcher is a test that never trades, so don't treat it as a signal; the challengers and the study don't "
+        "trade either.\n\n") + text)
     if summary:
+        summary = trim_words(summary, 160)
         title, rest = text.split("\n", 1)
         text = f"{title}\n\n## In plain English\n\n{summary.strip()}\n{rest}"
     path = data_path(cfg, f"reports/after-market-{today}.md")

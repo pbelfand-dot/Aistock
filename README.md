@@ -133,7 +133,8 @@ code changes.
   play today, what each account holds, its trades, its latest score, news and danger headlines, and
   any mistake it won't repeat with it. It works on the phone screen too.
 - **Scanning the market.** Every evening it checks all US stocks (a quick look at every one, then a
-  full year of prices for the actively traded ones). The swing desk considers the 30 strongest it can
+  full year of prices for the actively traded ones, reused from the day before where it can). It saves
+  its work as it goes, so a restart or an update doesn't make it start over. The swing desk considers the 30 strongest it can
   afford. At 9:35am the day desk adds today's **stocks in play**: the busiest stocks whose first 5
   minutes traded far more than usual (relative volume), minus any with danger news. The after-market
   report says whether the scan worked, and whether day trades in stocks in play did better than the
