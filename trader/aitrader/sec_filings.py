@@ -47,6 +47,7 @@ FORMS = {"8-K": "news (8-K)", "8-K/A": "news, corrected (8-K/A)", "10-Q": "quart
          "NT 10-K": "LATE annual report (NT 10-K)", "NT 10-Q": "LATE quarterly report (NT 10-Q)"}
 _get = requests.get             # tests don't go online
 _last_call = [0.0]
+_lock = threading.Lock()
 _checking = None
 
 
@@ -59,19 +60,28 @@ def is_on(cfg) -> bool:
     return s not in ("off", "false", "no", "0") and bool(contact(cfg))
 
 
-def _fetch(cfg, url: str) -> dict:
-    wait = MIN_GAP - (time.monotonic() - _last_call[0])
-    if wait > 0:
-        time.sleep(wait)
-    _last_call[0] = time.monotonic()
+def _request(cfg, url: str):
+    with _lock:                                          # one request at a time across threads, spaced out
+        wait = MIN_GAP - (time.monotonic() - _last_call[0])
+        if wait > 0:
+            time.sleep(wait)
+        _last_call[0] = time.monotonic()
     r = _get(url, headers={"User-Agent": f"Kestrel personal trading app {contact(cfg)}",
-                           "Accept-Encoding": "gzip, deflate"}, timeout=20)
-    if r.status_code == 404:
-        return {}
-    if r.status_code != 200:
+                           "Accept-Encoding": "gzip, deflate"}, timeout=30)
+    if r.status_code not in (200, 404):
         raise RuntimeError(f"the SEC said {r.status_code}" + (" (too many requests: slowing down)"
                                                                if r.status_code in (403, 429) else ""))
-    return r.json()
+    return r
+
+
+def _fetch(cfg, url: str) -> dict:
+    r = _request(cfg, url)
+    return {} if r.status_code == 404 else r.json()
+
+
+def _fetch_text(cfg, url: str) -> str:
+    r = _request(cfg, url)
+    return "" if r.status_code == 404 else r.text
 
 
 def cik_map(cfg, today: str) -> dict:
@@ -180,13 +190,20 @@ def check(cfg, store, now: datetime) -> str:
         if not cik:
             continue                                         # funds, ETFs and foreign stocks may have none
         try:
-            filings = parse(cik, _fetch(cfg, SUBMISSIONS_URL.format(cik=cik)), now)
+            data = _fetch(cfg, SUBMISSIONS_URL.format(cik=cik))
+            filings = parse(cik, data, now)
         except Exception:
             failed += 1
             if t in before:
                 stocks[t] = before[t]                        # keep what it knew
             continue
         stocks[t] = {"cik": cik, "checked": now.isoformat(timespec="minutes"), "filings": filings[:15]}
+        try:                                                 # insider buys in its Form 4s (fundamentals.py)
+            from .fundamentals import update_insiders
+            for b in update_insiders(cfg, t, cik, data, now):
+                store.log(f"[sec] insider buy: {b['who']} bought ${b['value']:,.0f} of {t} on {b['date']}", echo=False)
+        except Exception:
+            pass                                             # never let one filing stop the check
         seen = {f["url"] for f in (before.get(t) or {}).get("filings") or []}
         for f in filings:
             if f["danger"] and f["url"] not in seen:

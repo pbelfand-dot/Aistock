@@ -114,7 +114,7 @@ def studying(cfg, tmp_path, monkeypatch):
 
 def test_challengers_shadow_trade_next_to_the_desk_without_touching_it(studying):
     cfg, store, data, today = studying
-    for name in ("momentum", "momentum_plus", "momentum_calm", "momentum_plus_calm"):
+    for name in ("momentum", "momentum_plus", "momentum_calm", "momentum_plus_calm", "momentum_quality"):
         assert len(store.equity_curve(f"shadow-swing-{name}")) == 6
         assert store.get(f"shadow-swing-{name}_since")
     assert len(store.equity_curve("study-swing")) == 6                   # the desk's own record is its own
@@ -125,10 +125,11 @@ def test_challengers_shadow_trade_next_to_the_desk_without_touching_it(studying)
     assert compared and compared[0].startswith("swing: momentum_plus ")
     report = store.get("challengers:swing")
     assert report["current"] == "momentum" and [r["name"] for r in report["rows"]] == \
-        ["momentum_plus", "momentum_calm", "momentum_plus_calm"]
+        ["momentum_plus", "momentum_calm", "momentum_plus_calm", "momentum_quality"]
     row = report["rows"][0]
     assert row["history"]["days"] > 250 and row["forward"]["days"] == 5 and row["verdict"] in ("not better", "promising")
-    assert [t["name"] for t in store.trials("swing")] == ["momentum_calm", "momentum_plus", "momentum_plus_calm"]
+    assert [t["name"] for t in store.trials("swing")] == ["momentum_calm", "momentum_plus", "momentum_plus_calm",
+                                                          "momentum_quality"]
     assert all(t["deflated_sharpe"] is not None for t in store.trials("swing"))
     assert run.desk_strategy_name(cfg, store, "swing") == "momentum"      # nothing proven: nothing changes
 

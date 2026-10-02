@@ -71,6 +71,8 @@ def analyst(facts: dict, strategy) -> list:
         rvol = (facts.get("in_play") or {}).get(ticker)
         if rvol:
             view += f"; in play ({rvol}x its usual opening volume)"
+        for fact in (facts.get("beyond") or {}).get(ticker) or []:
+            view += f"; {fact}"
         views.append(f"{ticker} {score:.2f}: {view}")
     for ticker, gap in facts["options_gaps"].items():
         if ticker in facts["holding"] and gap == "bearish":
@@ -106,7 +108,7 @@ def correlations(bars: dict, ticker: str, others, lookback: int) -> dict:
 
 def risk(orders: list, positions: dict, bars: dict, gaps: dict, equity: float, cfg_agents: dict,
          lessons: list = None, in_play: dict = None, style: str = "swing", tags_out: dict = None,
-         events: list = None) -> tuple:
+         events: list = None, facts_by_ticker: dict = None) -> tuple:
     """(orders it lets through, its notes). Sells always go through (getting out is never riskier).
     tags_out: filled with the situation of each buy that goes through (mistakes.py)."""
     from .mistakes import matching, tags_for
@@ -128,7 +130,8 @@ def risk(orders: list, positions: dict, bars: dict, gaps: dict, equity: float, c
             checks.append("puts are piling up against it")
             if "options_gap" in cfg_agents["risk_vetoes"] and not veto:
                 veto = "option bets lean against it"
-        tags = tags_for(o, bars, gaps, together, in_play, style, events)
+        tags = tags_for(o, bars, gaps, together, in_play, style,
+                        list(events or []) + list((facts_by_ticker or {}).get(o.ticker) or []))
         repeat = matching(tags, lessons) if cfg_agents.get("learn_from_mistakes", True) else None
         if repeat and not veto:
             veto = f"that would repeat a mistake: {repeat['tag']} ({repeat['why']})"
@@ -156,11 +159,21 @@ def review_orders(cfg: dict, orders: list, scores: pd.Series, prices: pd.Series,
     from . import macro
     day = max(df.index[-1] for df in bars.values()).strftime("%Y-%m-%d") if bars else ""
     facts["events"] = [macro.EVENTS[k]["name"] for k in macro.events_on(cfg, day)] if day else []
+    beyond = {}
+    if strategy.style == "swing":                        # quality, insider buys, short interest (fundamentals.py)
+        try:
+            from .fundamentals import tags as fundamental_tags
+            wanted = list(dict.fromkeys([t for t, _ in facts["top"][:5]] + [o.ticker for o in orders if o.side == "BUY"]))
+            beyond = fundamental_tags(cfg, wanted, day)
+        except Exception:
+            beyond = {}
+    facts["beyond"] = beyond
     views = analyst(facts, strategy)
     plan = trader(orders)
     tags = {}
     keep, checks = risk(orders, positions, bars, gaps, equity, s, lessons=lessons, in_play=in_play,
-                        style=strategy.style, tags_out=tags, events=macro.tags(cfg, day) if day else [])
+                        style=strategy.style, tags_out=tags, events=macro.tags(cfg, day) if day else [],
+                        facts_by_ticker=beyond)
     if len(keep) != len(orders):
         plan = trader(keep) if keep else ["no orders (Risk skipped the buys)"]
     return keep, {"scout": facts, "analyst": views, "trader": plan, "risk": checks, "tags": tags}

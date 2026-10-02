@@ -61,3 +61,5 @@ def no_yahoo_earnings(monkeypatch):
     """Earnings dates come from Yahoo on the Mac; in tests nobody goes online (a test can fake its own)."""
     from aitrader import earnings
     monkeypatch.setattr(earnings, "_from_yahoo", lambda ticker, today: None)
+    from aitrader import fundamentals
+    monkeypatch.setattr(fundamentals, "_from_yahoo", lambda ticker: {})       # short interest: nobody goes online

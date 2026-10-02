@@ -141,7 +141,7 @@ plan:
 # paper) switches by itself and tells you; a real-money desk waits for you to press Use it (Thinking tab).
 challengers:
   enabled: true
-  swing: [momentum, momentum_plus, momentum_calm, momentum_plus_calm]
+  swing: [momentum, momentum_plus, momentum_calm, momentum_plus_calm, momentum_quality]
   day: []
   min_forward_days: {swing: 20, day: 10}
   min_history_days: 250

@@ -108,6 +108,10 @@ class Momentum(Strategy):
     sell_below = 0.5
     months, skip = 252, 21                   # trading days in 12 months and in the skipped latest month
 
+    def adjust(self, score: pd.DataFrame, bars: dict, market: pd.DataFrame) -> pd.DataFrame:
+        """A challenger's changes to the scores before the S&P 500 filter (plain momentum: none)."""
+        return score
+
     def ranking(self, bars: dict, market: pd.DataFrame) -> pd.DataFrame:
         """What it ranks the stocks by (higher = stronger): the 12-1 month return."""
         return pd.DataFrame({t: df["close"].shift(self.skip) / df["close"].shift(self.months) - 1
@@ -119,6 +123,7 @@ class Momentum(Strategy):
         momentum = self.ranking(bars, market).reindex(index=uptrend.index, columns=uptrend.columns)
         score = momentum.rank(axis=1, pct=True)
         score = score.where(uptrend.astype("boolean").fillna(False).astype(bool), 0.0).where(momentum.notna())
+        score = self.adjust(score, bars, market)
         benchmark = market["close"]
         market_up = (benchmark > sma(benchmark, 200)).reindex(score.index, method="ffill").fillna(False)
         capped = score.clip(upper=self.buy_above - 0.01)       # keep what it owns, buy nothing new
@@ -178,6 +183,36 @@ class MomentumPlusCalm(MomentumPlus):
     calm = True
     description = ("momentum_plus's sharper ranking with momentum_calm's volatility scaling: smaller new buys "
                    "when its stocks have been much jumpier than usual.")
+
+
+class MomentumQuality(Momentum):
+    """Challenger: momentum plus three facts beyond the price (fundamentals.py). It never buys a stock whose
+    gross profits / assets are in the bottom 30% of US companies, or that's heavily shorted (8+ days to cover
+    or 20%+ of the float); a stock an officer or director bought on the open market in the last 30 days
+    scores 0.1 higher (still never above 1, and only if momentum likes it at all). Stocks without these
+    facts (funds, banks, or before the facts were collected) are judged on momentum alone. Holding and
+    selling follow momentum's rules, so a fact never forces a sale."""
+    name = "momentum_quality"
+    description = ("Momentum with three checks beyond the price: no buying companies in the bottom 30% of US "
+                   "companies by gross profits / assets, no buying heavily shorted stocks (8+ days to cover or "
+                   "20%+ of the float), and a small boost for stocks an officer or director just bought on the "
+                   "open market. Selling follows momentum's rules.")
+    boost = 0.1
+
+    def __init__(self, cfg: dict = None):
+        self.cfg = cfg
+
+    def adjust(self, score, bars, market):
+        if not self.cfg:
+            return score
+        from .fundamentals import insider_table, quality_table, short_table
+        tickers, index = list(score.columns), score.index
+        weak = quality_table(self.cfg, tickers, index) <= 0.3
+        shorted = short_table(self.cfg, tickers, index)
+        bought = insider_table(self.cfg, tickers, index)
+        boosted = score.where(~(bought & (score > 0)), (score + self.boost).clip(upper=1.0))
+        blocked = (weak | shorted).reindex_like(score).fillna(False).astype(bool)
+        return boosted.where(~blocked, boosted.clip(upper=self.buy_above - 0.01))
 
 
 # ---------------------------------------------------------------- day desk
@@ -286,7 +321,8 @@ def all_strategies(cfg: dict, style: str) -> list:
                       min_train=ai["min_train"])
         return [TrendFollowing(), MeanReversion(), Momentum(),
                 AIModel("swing", brain, ai["buy_above"], ai["sell_below"]),
-                MomentumPlus(), MomentumCalm(), MomentumPlusCalm()]           # challengers (challengers.py)
+                MomentumPlus(), MomentumCalm(), MomentumPlusCalm(),          # challengers (challengers.py)
+                MomentumQuality(cfg)]
     brain = Brain(horizon=ai["horizon"], retrain_every=ai["retrain_every"], min_train=ai["min_train"],
                   intraday=True)
     from .tjr import TJRModel                            # Stage 2: TJR's model (tjr.py)

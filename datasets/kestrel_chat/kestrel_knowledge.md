@@ -40,12 +40,18 @@ code changes.
   Trader, Risk), how far each holding is from its stop-loss, and every check so far today. It refreshes
   every 5 seconds, also on the phone screen.
 - **Challengers** (Thinking tab): new versions of a desk's method race the current one. The swing desk's
-  `momentum` has three: `momentum_plus` (residual momentum, smooth climbs, near 52-week highs), `momentum_calm`
-  (smaller buys when its stocks get stormy) and both together. Each is replayed on all 8 years of saved
-  prices and shadow trades with pretend money next to the desk. It takes over only when tests built to
-  catch luck say it's really better (a bootstrap test, and a deflated Sharpe ratio whose bar rises with every
-  idea ever tried), its worst drop isn't much deeper, and it isn't behind after 20 days of shadow trading.
-  Pretend-money desks switch by themselves and tell you; a real-money desk waits for you to press **Use it**.
+  `momentum` has four: `momentum_plus` (residual momentum, smooth climbs, near 52-week highs),
+  `momentum_calm` (smaller buys when its stocks get stormy), both together, and `momentum_quality` (see
+  below). Each is replayed on all 8 years of saved prices and shadow trades with pretend money next to
+  the desk. It takes over only when tests built to catch luck say it's really better (a bootstrap test,
+  and a deflated Sharpe ratio whose bar rises with every idea ever tried), its worst drop isn't much
+  deeper, and it isn't behind after 20 days of shadow trading. Pretend-money desks switch by themselves
+  and tell you; a real-money desk waits for you to press **Use it**.
+- **Beyond the price** (each stock card, and the team's notes): company quality (gross profits / assets
+  from the SEC, ranked against every US company), recent open-market buys by its officers and directors
+  (Form 4s), and short interest (% of the float sold short, days to cover). The `momentum_quality`
+  challenger skips low-quality and heavily shorted stocks and favors fresh insider buys; the mistake
+  memory tags buys with these facts so it learns whether they lose.
 - **News and data sources** (Setup → AI & news): SEC filings for what it owns or considers (free; the SEC asks for
   your email), with links on each stock card; serious ones (bankruptcy, delisting, restated financials) stop
   it buying. The dates of CPI, the jobs report and Fed decisions (a free FRED key), with a countdown; buys on
@@ -632,6 +638,8 @@ starts fresh; Monday's journal gets one summary line. The Thinking tab shows it 
     (down to 30%) when its stocks have been much jumpier than usual over 6 months; below half size,
     holdings over twice the smaller limit are trimmed. Momentum's worst crashes came in stormy markets.
   - `momentum_plus_calm`: both.
+  - `momentum_quality`: momentum that won't buy low-quality or heavily shorted companies and favors fresh
+    insider buys (see 44-beyond-the-price.md). Only quality has history; the rest is judged going forward.
 - **Evidence, two kinds, always against the current method on the same stocks, money, rules and costs:**
   - history: all 8 years of daily prices replayed after every close. The stock list is today's (survivors),
     which flatters momentum; comparing two methods on the same list cancels much of that, not all.
@@ -649,6 +657,31 @@ starts fresh; Monday's journal gets one summary line. The Thinking tab shows it 
   research effects shrink once published (McLean & Pontiff 2016: on average 26% lower out of sample and
   58% lower after publication).
 - Where to see it: Thinking tab → Challengers, the after-market report, Research tab (the plan notes a switch).
+
+
+---
+
+<!-- from trader/aitrader/knowledge/44-beyond-the-price.md -->
+
+# Beyond the price: quality, insider buys, short interest
+
+- **Where** (fundamentals.py): three free facts per company, shown on each stock card ("Beyond the price"),
+  in the team's Analyst notes, and used by the `momentum_quality` challenger. Momentum alone decides trades
+  until that challenger is proven better (challengers.py).
+- **Quality**: gross profits / total assets (Novy-Marx 2013, "The other side of value": more profitable
+  companies earned higher returns). From the SEC's XBRL frames, every US company, 2017 on; a year counts
+  from 90 days after it ended. Ranked against all US companies. Banks and funds: no number, no opinion.
+- **Insider buys**: an officer or director buying on the open market (Form 4, code P), not under a 10b5-1
+  plan (Lakonishok & Lee 2001; Cohen, Malloy & Pomorski 2012). Read from the Form 4s in the SEC filings
+  check every 30 minutes; collected from the day this was added, so the history test can't judge it yet.
+- **Short interest**: % of the float sold short and days to cover, from Yahoo Finance (FINRA's twice-monthly
+  numbers), saved daily from now on. Heavily shorted = 8+ days to cover or 20%+ of the float (Kestrel's own
+  line). Heavily shorted stocks did worse on average (Boehmer, Huszar & Jordan 2010).
+- **momentum_quality**: never BUYS the bottom 30% by quality or a heavily shorted stock (holdings are not
+  forced out), and adds 0.1 to the score of a stock an insider bought in the last 30 days.
+- **The mistake memory** tags buys with these facts ("heavily shorted", "weak quality ..."), so the desk
+  learns from its own results whether such buys lose.
+- **Needs**: the SEC contact email (Setup → AI & news) for quality and insider buys; short interest needs nothing.
 
 
 ---
@@ -1155,7 +1188,7 @@ plan:
 # paper) switches by itself and tells you; a real-money desk waits for you to press Use it (Thinking tab).
 challengers:
   enabled: true
-  swing: [momentum, momentum_plus, momentum_calm, momentum_plus_calm]
+  swing: [momentum, momentum_plus, momentum_calm, momentum_plus_calm, momentum_quality]
   day: []
   min_forward_days: {swing: 20, day: 10}
   min_history_days: 250

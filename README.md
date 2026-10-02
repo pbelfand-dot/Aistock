@@ -31,12 +31,18 @@ code changes.
   Trader, Risk), how far each holding is from its stop-loss, and every check so far today. It refreshes
   every 5 seconds, also on the phone screen.
 - **Challengers** (Thinking tab): new versions of a desk's method race the current one. The swing desk's
-  `momentum` has three: `momentum_plus` (residual momentum, smooth climbs, near 52-week highs), `momentum_calm`
-  (smaller buys when its stocks get stormy) and both together. Each is replayed on all 8 years of saved
-  prices and shadow trades with pretend money next to the desk. It takes over only when tests built to
-  catch luck say it's really better (a bootstrap test, and a deflated Sharpe ratio whose bar rises with every
-  idea ever tried), its worst drop isn't much deeper, and it isn't behind after 20 days of shadow trading.
-  Pretend-money desks switch by themselves and tell you; a real-money desk waits for you to press **Use it**.
+  `momentum` has four: `momentum_plus` (residual momentum, smooth climbs, near 52-week highs),
+  `momentum_calm` (smaller buys when its stocks get stormy), both together, and `momentum_quality` (see
+  below). Each is replayed on all 8 years of saved prices and shadow trades with pretend money next to
+  the desk. It takes over only when tests built to catch luck say it's really better (a bootstrap test,
+  and a deflated Sharpe ratio whose bar rises with every idea ever tried), its worst drop isn't much
+  deeper, and it isn't behind after 20 days of shadow trading. Pretend-money desks switch by themselves
+  and tell you; a real-money desk waits for you to press **Use it**.
+- **Beyond the price** (each stock card, and the team's notes): company quality (gross profits / assets
+  from the SEC, ranked against every US company), recent open-market buys by its officers and directors
+  (Form 4s), and short interest (% of the float sold short, days to cover). The `momentum_quality`
+  challenger skips low-quality and heavily shorted stocks and favors fresh insider buys; the mistake
+  memory tags buys with these facts so it learns whether they lose.
 - **News and data sources** (Setup → AI & news): SEC filings for what it owns or considers (free; the SEC asks for
   your email), with links on each stock card; serious ones (bankruptcy, delisting, restated financials) stop
   it buying. The dates of CPI, the jobs report and Fed decisions (a free FRED key), with a countdown; buys on
