@@ -16,7 +16,7 @@ import pandas as pd
 
 from . import challengers
 from .brokers import Ledger, PaperBroker
-from .config import active_desks, desk_capital, is_cash_account
+from .config import active_desks, cents_per_share, desk_capital, is_cash_account
 from .engine import run_cycle
 from .market_hours import now_ny
 from .phases import Phase, set_phase
@@ -107,7 +107,7 @@ def _paper(cfg, store, desk, bars, strategy_name, upto):
     risk = RiskManager.for_desk(cfg, desk)
     ledger = Ledger(desk_capital(cfg, desk, live=False))
     broker = PaperBroker(ledger, cfg["paper"]["slippage_pct"], mode=mode,
-                         cash_account=is_cash_account(cfg))
+                         cash_account=is_cash_account(cfg), cents_per_share=cents_per_share(cfg, desk))
 
     def record(f):
         store.record_fill(mode, f)

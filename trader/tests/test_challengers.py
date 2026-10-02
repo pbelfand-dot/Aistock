@@ -176,8 +176,9 @@ def test_a_real_money_desk_switches_only_when_you_press_use_it(cfg, tmp_path, mo
     assert store.get("strategy_switch:swing")["by"] == "you"
 
 
-def test_the_day_desk_has_no_challengers_until_some_are_listed(cfg):
-    assert challengers.ring(cfg, "day", "tjr_model") == []
+def test_which_challengers_each_desk_has(cfg):
+    assert challengers.ring(cfg, "day", "tjr_model") == ["tjr_model_mim", "orb_5min", "orb_5min_mim"]
+    assert challengers.ring(cfg, "day", "vwap_reversion") == []         # not on the list: nothing to compare
     cfg["challengers"] = {"swing": ["momentum", "nonsense"]}
     assert challengers.ring(cfg, "swing", "momentum") == []             # unknown names are skipped
     cfg["challengers"] = {"enabled": "off"}

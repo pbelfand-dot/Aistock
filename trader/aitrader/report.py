@@ -399,6 +399,13 @@ def in_play_lines(cfg, store, today: str) -> list:
             out.append(f"- Skipped for danger news: {', '.join(state['skipped'])}")
     else:
         out.append("- No list today (it needs the evening scan's pool and Alpaca data); the day desk used its watchlist.")
+    early = in_play.load_premarket(cfg)
+    if early.get("day") == today:
+        names = ", ".join(f"{p['symbol']} {p['gap_pct']:+.1f}% on {p['volume_pct']:.0f}% of a day's volume"
+                          for p in early.get("picks") or [])
+        out.append(f"- Pre-market movers (about 9:20): {names or 'none moving on heavy volume'}"
+                   + ("; on the day desk's list" if early.get("trade") else
+                      "; shadow traded only, until they prove they help (Challengers)" if names else ""))
     history = store.get("in_play_history") or {}
     for kind in ("study", "paper", "live"):
         split = in_play.results(store.fills(f"{kind}-day"), history)

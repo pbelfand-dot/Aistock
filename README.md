@@ -38,6 +38,11 @@ code changes.
   and a deflated Sharpe ratio whose bar rises with every idea ever tried), its worst drop isn't much
   deeper, and it isn't behind after 20 days of shadow trading. Pretend-money desks switch by themselves
   and tell you; a real-money desk waits for you to press **Use it**.
+- **Day desk upgrades**: simulated day trades now pay realistic costs (2 cents a share each way, about the
+  slippage plus half the spread), so its tests stop flattering it. Its challengers: the 5-minute breakout,
+  and both methods with a 3:30pm market check (sell when the S&P 500 was down at 10am: market intraday
+  momentum). About 9:20am it lists the **pre-market movers** (a 3%+ gap on heavy early volume); they're
+  shadow traded and join the day desk's list only once that proves better.
 - **Beyond the price** (each stock card, and the team's notes): company quality (gross profits / assets
   from the SEC, ranked against every US company), recent open-market buys by its officers and directors
   (Form 4s), and short interest (% of the float sold short, days to cover). The `momentum_quality`

@@ -498,5 +498,20 @@
     "q": "what schedule do i give the healthchecks check",
     "a": "In healthchecks.io set the check's schedule to Cron with the expression */5 9-15 * * 1-5, the time zone America/New_York, and a grace time of 15 minutes. That way it only expects Kestrel while the market is open on weekdays, so a Mac that sleeps at night or on weekends doesn't set off an alert. Then copy the check's Ping URL into Setup and press Save; Kestrel pings it once right away to make sure it works.",
     "source": "trader/aitrader/uptime.py; README.md (Your phone)"
+  },
+  {
+    "q": "why did the day desk results get worse after the update",
+    "a": "Simulated day trades now pay realistic costs: every fill is 2 cents a share worse, about the slippage plus half the bid-ask spread a real day trade pays. That applies to trading in its head, the shadow accounts, the study and TJR's history test. It makes the numbers more honest, and methods that trade many cheap shares look worse than before. Real paper and real-money fills at Alpaca were always real.",
+    "source": "trader/config.yaml (desks.day.cents_per_share); trader/aitrader/brokers/paper.py"
+  },
+  {
+    "q": "what are the pre-market movers",
+    "a": "About 9:20am Kestrel checks the busy stocks from the evening scan for ones gapping 3% or more from yesterday's close on heavy early trading (3% or more of a normal day's volume), using Alpaca's all-exchange data, which the free plan can read 15 minutes late. They show in the Thinking tab and the report. The day desk doesn't trade them at first: a shadow account trades its method with them added, and they join its list only once that's proven better.",
+    "source": "trader/aitrader/in_play.py (premarket); trader/aitrader/challengers.py (lists)"
+  },
+  {
+    "q": "what does mim mean on a day desk challenger",
+    "a": "Market intraday momentum. Research by Gao, Han, Li and Zhou (2018) found the S&P 500's return from the previous close to 10am predicted its last half hour. A method ending in _mim sells everything at 3:30pm when SPY was down at 10am, instead of holding until the usual 3:50 exit. Nothing else changes. Like every challenger it has to prove itself against the current method before it trades.",
+    "source": "trader/aitrader/strategies.py (CloseWithTheMarket)"
   }
 ]

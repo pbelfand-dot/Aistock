@@ -14,9 +14,11 @@ from .base import Broker, Fill, Ledger, Order
 
 class PaperBroker(Broker):
     def __init__(self, ledger: Ledger, slippage_pct: float = 0.05,
-                 commission: float = 0.0, mode: str = "paper", cash_account: bool = False):
+                 commission: float = 0.0, mode: str = "paper", cash_account: bool = False,
+                 cents_per_share: float = 0.0):
         super().__init__(ledger)
         self.slippage = slippage_pct / 100
+        self.cents = cents_per_share / 100              # day trades: a few cents a share worse (spread + slippage)
         self.commission = commission
         self.mode = mode
         self.cash_account = cash_account
@@ -27,7 +29,7 @@ class PaperBroker(Broker):
             self.note(hold)
             return None
         if order.side == "BUY":
-            price = order.price * (1 + self.slippage)
+            price = order.price * (1 + self.slippage) + self.cents
             fractional = is_fraction(order.qty)       # the sizing already decided parts of a share are allowed
             affordable = floor_shares((self.buying_power(date) - self.commission) / price, fractional)
             qty = min(order.qty, affordable)
@@ -35,7 +37,7 @@ class PaperBroker(Broker):
                 return None
         else:
             held = self.ledger.positions.get(order.ticker)
-            price = order.price * (1 - self.slippage)
+            price = max(0.01, order.price * (1 - self.slippage) - self.cents)
             qty = min(order.qty, held.qty if held else 0)
             if qty <= 0:                              # a part of a share can always be sold
                 return None

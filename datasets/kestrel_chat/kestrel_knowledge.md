@@ -47,6 +47,11 @@ code changes.
   and a deflated Sharpe ratio whose bar rises with every idea ever tried), its worst drop isn't much
   deeper, and it isn't behind after 20 days of shadow trading. Pretend-money desks switch by themselves
   and tell you; a real-money desk waits for you to press **Use it**.
+- **Day desk upgrades**: simulated day trades now pay realistic costs (2 cents a share each way, about the
+  slippage plus half the spread), so its tests stop flattering it. Its challengers: the 5-minute breakout,
+  and both methods with a 3:30pm market check (sell when the S&P 500 was down at 10am: market intraday
+  momentum). About 9:20am it lists the **pre-market movers** (a 3%+ gap on heavy early volume); they're
+  shadow traded and join the day desk's list only once that proves better.
 - **Beyond the price** (each stock card, and the team's notes): company quality (gross profits / assets
   from the SEC, ranked against every US company), recent open-market buys by its officers and directors
   (Form 4s), and short interest (% of the float sold short, days to cover). The `momentum_quality`
@@ -646,6 +651,8 @@ starts fresh; Monday's journal gets one summary line. The Thinking tab shows it 
   - `momentum_plus_calm`: both.
   - `momentum_quality`: momentum that won't buy low-quality or heavily shorted companies and favors fresh
     insider buys (see 44-beyond-the-price.md). Only quality has history; the rest is judged going forward.
+- The day desk's challengers of TJR's model: `tjr_model_mim`, `orb_5min`, `orb_5min_mim`, and the pre-market
+  movers list (judged going forward only). See 46-day-desk-upgrades.md.
 - **Evidence, two kinds, always against the current method on the same stocks, money, rules and costs:**
   - history: all 8 years of daily prices replayed after every close. The stock list is today's (survivors),
     which flatters momentum; comparing two methods on the same list cancels much of that, not all.
@@ -708,6 +715,34 @@ starts fresh; Monday's journal gets one summary line. The Thinking tab shows it 
   `*/5 9-15 * * 1-5`, time zone America/New_York, grace time 15 minutes, so it only expects Kestrel while the
   market is open.
 - Pings go out in the background with a 10-second timeout: they never slow down or block trading.
+
+
+---
+
+<!-- from trader/aitrader/knowledge/46-day-desk-upgrades.md -->
+
+# Day desk upgrades: realistic costs, the 3:30 market check, pre-market movers
+
+- **Realistic costs** (config.yaml desks.day.cents_per_share: 2): every simulated day-desk fill (in its head,
+  shadow accounts, the study, TJR's history test, the challengers' history) is also 2 cents a share worse,
+  about 1-2 cents of slippage plus half the bid-ask spread. The opening-range research (Zarattini, Barbon &
+  Aziz 2024) reported results before such costs; a method trading many cheap shares can look good without them
+  and lose with them. Real paper and real-money fills at Alpaca are real, so they need no extra cost.
+- **Day-desk challengers** (challengers.py, compared with the desk's method, TJR's model): `tjr_model_mim`,
+  `orb_5min` (the 5-minute breakout, long only, now with costs) and `orb_5min_mim`.
+- **The 3:30 market check (`_mim`)**: market intraday momentum (Gao, Han, Li & Zhou 2018, Journal of Financial
+  Economics): the S&P 500's return from the previous close to 10:00am predicted its last half hour. A `_mim`
+  method sells everything at 3:30pm when SPY was down at 10am, instead of holding until the 3:50 exit.
+  Nothing changes before 3:30. It must prove itself like any challenger.
+- **Pre-market movers** (in_play.py, about 9:20am): from the evening scan's pool of busy stocks, the ones gapping
+  3%+ from yesterday's close (either way) on 3%+ of a normal day's volume, from Alpaca's SIP feed (all
+  exchanges; the free plan reads it 15 minutes late, so the data runs to about 9:05). Shown in the Thinking tab,
+  the journal and the report. They're NOT traded at first: a shadow account trades the day desk's method with
+  them added, and they join the desk's list only when that account is proven better (20+ days ahead,
+  bootstrap p 0.05 or less, deflated Sharpe 0.95+). No history exists for these lists, so it's judged going
+  forward only. A real-money desk adds them only when the owner presses Use it.
+- **Honest expectations**: with $500 and realistic costs, a day method needs a real edge just to break even.
+  These changes make the numbers more truthful, which may make some results look worse.
 
 
 ---
@@ -1140,6 +1175,9 @@ desks:
     # (Tickers that are also yes/no words, like "ON", must be in quotes, or they're read as true/false.)
     watchlist: [SOFI, F, INTC, AAL, SNAP, RIVN, NIO, T,
                 HPE, ORCL, SHOP, "ON", RBLX, HPQ, PCG, FCX]
+    # Realistic costs for simulated day trades (in its head, shadow accounts, history tests): each fill is
+    # also this many cents a share worse (about 1-2 cents of slippage plus half the bid-ask spread).
+    cents_per_share: 2
     last_entry_minutes_before_close: 30    # no new trades in the last 30 minutes
     flatten_minutes_before_close: 10       # sell everything 10 minutes before the close
     risk:
@@ -1215,9 +1253,12 @@ plan:
 challengers:
   enabled: true
   swing: [momentum, momentum_plus, momentum_calm, momentum_plus_calm, momentum_quality]
-  day: []
-  min_forward_days: {swing: 20, day: 10}
-  min_history_days: 250
+  # Day desk: TJR's model and the 5-minute breakout, each also with the market-intraday-momentum exit (_mim:
+  # at 3:30pm it sells unless SPY was up from yesterday's close to 10am), with realistic costs (cents_per_share).
+  day: [tjr_model, tjr_model_mim, orb_5min, orb_5min_mim]
+  lists: {day: [premarket]}    # the pre-market movers: shadow traded, judged going forward only
+  min_forward_days: {swing: 20, day: 20}
+  min_history_days: {swing: 250, day: 100}
   max_p_value: 0.05
   min_deflated_sharpe: 0.95
   max_extra_drawdown_pct: 5
