@@ -434,3 +434,14 @@ def test_the_local_ais_summary_is_kept_short():
     long = "\n".join(f"* point {i} " + "word " * 40 for i in range(10))
     short = trim_words(long, 160)
     assert short.count("\n") == 2 and short.startswith("* point 0")                # whole lines, about 160 words
+
+
+def test_a_stock_listed_60_to_63_days_ago_no_longer_breaks_the_scan(cfg, monkeypatch):
+    """The bug behind 'the scan never finishes': a stock with 60-63 days of prices crashed the 3-month
+    return (IndexError), and with new listings every week there's nearly always one."""
+    market = {**fake_market(), "IPO": series(10, 14, days=61, seed=7)}
+    summary = run_scan(cfg, Store(":memory:"), market=market)
+    assert summary.startswith("scan: 7 stocks checked")
+    assert scanner.load_list(cfg)["liked"][0]["symbol"] == "ROCKET"
+    odd = {**fake_market(), "BROKEN": series(10, 14, seed=8).assign(close=float("nan"))}
+    assert run_scan(cfg, Store(":memory:"), day="2026-09-30", market=odd).startswith("scan: 7 stocks checked")

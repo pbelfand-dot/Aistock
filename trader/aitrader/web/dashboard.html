@@ -345,7 +345,7 @@
   .chal-list .chal-nums { color: var(--ink); margin-top: 4px; font-variant-numeric: tabular-nums; }
   .chal-list .chal-why { color: var(--ink-2); margin-top: 2px; }
   .tag.proven { border-color: var(--good); color: var(--up); font-weight: 600; }
-  .tag.promising { border-color: var(--warning); }
+  .tag.promising, .tag.not-proven { border-color: var(--warning); }
   .weekend-card .tiles { justify-content: flex-start; flex: none; }
   .weekend-cards { margin-bottom: 16px; }
   .weekend-note { font-size: 13px; color: var(--ink-2); margin: 0 0 12px; }
@@ -1692,7 +1692,7 @@ function renderWeekend(w) {
   }
 }
 const VERDICT = { proven: "proven better", promising: "promising", "not better": "not better", "too early": "too early",
-                  "no different": "no different" };
+                  "no different": "no different", "not proven": "ahead, not proven" };
 function challengerRow(desk, rep, c) {
   const h = c.history || {}, f = c.forward || {};
   const pct = (v) => v == null ? "–" : `${v > 0 ? "+" : ""}${Number(v).toFixed(1)}%`;

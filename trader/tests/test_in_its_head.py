@@ -155,3 +155,28 @@ def test_right_now_says_whether_it_is_testing_and_what_each_desk_is_doing(cfg, t
     store.set("autopilot_busy", {"job": "day", "since": at(12, 0).isoformat()})
     busy = dashboard._right_now(cfg, store, at(12, 20))["headline"]
     assert "busy with a day-desk check (since 12:00, 20 min)" in busy and "restarts itself" in busy
+
+
+def test_when_the_autopilot_was_asleep_the_report_and_phone_say_so(cfg, tmp_path):
+    from datetime import datetime
+    store = Store(tmp_path / "aitrader.sqlite")
+    gap = run.note_gap(cfg, store, "2026-10-05T15:31:00", datetime(2026, 10, 5, 16, 30))
+    assert gap == {"from": "15:31", "to": "16:00",
+                   "missed": ["the swing desk's daily decision", "5 of the day desk's 5-minute checks"]}
+    line = store.journal(1)[0][1]
+    assert line.startswith("WARNING: the autopilot wasn't running from 15:31 to 16:00") and "lid-closed" in line
+    assert run.note_gap(cfg, store, "2026-10-05T16:30:00", datetime(2026, 10, 5, 17, 30)) == {}   # after the close
+    assert run.note_gap(cfg, store, "2026-10-05T10:00:00", datetime(2026, 10, 5, 10, 6)) == {}    # a normal 5 minutes
+    assert run.note_gap(cfg, store, "2026-10-02T17:00:00", datetime(2026, 10, 5, 9, 25)) == {}    # the weekend
+    store.set("study-swing_thinking", {"time": "2026-10-02 15:49", "strategy": "momentum", "buy_above": 0.8,
+                                       "sell_below": 0.5, "top": [{"ticker": "VZ", "score": 0.58, "price": 40.0,
+                                                                   "owned": False}],
+                                       "holding": 4, "max_positions": 8, "cash": 280.46, "why_no_buys": "",
+                                       "team": {"scout": "big news today: jobs report"}})
+    text = "\n".join(report._desk_section(cfg, store, "swing", "study", "2026-10-05"))
+    assert "**It made no decision today.** Its last check was Fri Oct 2, 15:49" in text
+    assert "(Fri Oct 2, 15:49, not today)" in text and "jobs report" not in text
+    assert "Not running from 15:31 to 16:00" in "\n".join(report.gap_lines(store, "2026-10-05"))
+    facts = report.summary_facts(cfg, store, "2026-10-05")
+    assert "SWING DESK" in facts and "It made NO decision today" in facts and "AUTOPILOT: not running 15:31-16:00" in facts
+    assert report.trim_words("- a\n- b\n### Strategy Status", 160) == "- a\n- b"           # no dangling heading
