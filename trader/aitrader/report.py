@@ -8,6 +8,8 @@ report.py: what the bot traded and how it did, the same way for all three accoun
 For each account: every trade (what it bought, what it spent, what it got back, the gain or loss in
 dollars and percent, win or lose), each day's value and change, and the overall totals.
 """
+from datetime import datetime
+
 import pandas as pd
 
 from .risk import shares
@@ -168,6 +170,30 @@ def why_not_buying(thinking: dict) -> str:
     return why
 
 
+def _when(stamp) -> str:
+    """'Fri Oct 2, 15:49' from '2026-10-02 15:49'."""
+    try:
+        t = datetime.strptime(stamp, "%Y-%m-%d %H:%M")
+    except (TypeError, ValueError):
+        return ""
+    return f"{t:%a %b} {t.day}, {t:%H:%M}"
+
+
+def gap_lines(store, today: str) -> list:
+    """When the autopilot wasn't running during market hours today (run.note_gap)."""
+    gaps = store.get("autopilot_gaps") or {}
+    items = gaps.get("items") if gaps.get("day") == today else []
+    if not items:
+        return []
+    out = ["## The autopilot today", ""]
+    for g in items:
+        out.append(f"- **Not running from {g['from']} to {g['to']}** (the Mac asleep, off, unplugged or frozen)"
+                   + (f": it missed {' and '.join(g['missed'])}." if g.get("missed") else "."))
+    out += ["- To keep it running: leave the Mac plugged in with lid-closed mode on (Setup → Autopilot), and turn on "
+            "Alert me if Kestrel stops (Setup → Your phone) so your phone tells you when it happens.", ""]
+    return out
+
+
 def _desk_section(cfg, store, desk, kind, today) -> list:
     from .config import desk_capital
     from .dashboard import quote
@@ -189,9 +215,14 @@ def _desk_section(cfg, store, desk, kind, today) -> list:
         prev = float(before.iloc[-1]) if len(before) else start
         out += [f"**Result:** value {_money(value)}; today {(value / prev - 1) * 100:+.2f}% ({signed(value - prev)}); "
                 f"since the start {(value / start - 1) * 100:+.2f}% ({signed(value - start)}).", ""]
+    fresh = thinking.get("time", "").startswith(today)
+    when = thinking["time"][-5:] if fresh else _when(thinking.get("time"))
     out.append("**What it did today:**")
     if len(todays):
         out += [_fill_line(f, {}) for f in todays.itertuples(index=False)]
+    elif not fresh:
+        out.append(f"- **It made no decision today.** Its last check was {when or 'never'}: the autopilot wasn't "
+                   "running when it was due (see \"The autopilot today\" below).")
     else:
         why = why_not_buying(thinking)
         out.append(f"- No trades. {why[:1].upper() + why[1:] if why else ''}".rstrip())
@@ -199,7 +230,7 @@ def _desk_section(cfg, store, desk, kind, today) -> list:
     if thinking.get("top"):
         picks = ", ".join(f"{t['ticker']} {t['score']:.2f}" + (" (owns it)" if t["owned"] else "")
                           for t in thinking["top"][:8])
-        out += [f"**Its thinking at the last check ({thinking['time'][-5:]}):** top scores: {picks}. "
+        out += [f"**Its thinking at the last check ({when}{'' if fresh else ', not today'}):** top scores: {picks}. "
                 f"It held {thinking['holding']} of {thinking['max_positions']} positions with "
                 f"{_money(thinking.get('cash'))} cash."
                 + (f" Not buying more because: {thinking['why_no_buys']}." if thinking.get("why_no_buys") else ""), ""]
@@ -261,6 +292,7 @@ def after_market(cfg, store, today: str) -> str:
                 + (f" ({q['change_pct']:+.2f}% today)" if q["change_pct"] is not None else "")
                 + (f"; {mood}." if mood else "."), ""]
 
+    out += gap_lines(store, today)
     for desk in active_desks(cfg):
         current = mode_of(current_phase(store, desk), desk).split("-")[0]
         for kind in MODES:
@@ -428,7 +460,7 @@ def in_play_lines(cfg, store, today: str) -> list:
 
 
 def trim_words(text: str, limit: int) -> str:
-    """The local AI sometimes runs long: keep whole lines up to about `limit` words."""
+    """The local AI sometimes runs long: keep whole lines up to about `limit` words, never ending on a heading."""
     kept, words = [], 0
     for line in text.strip().splitlines():
         n = len(line.split())
@@ -436,7 +468,50 @@ def trim_words(text: str, limit: int) -> str:
             break
         kept.append(line)
         words += n
+    while kept and (kept[-1].lstrip().startswith("#") or not kept[-1].strip() or kept[-1].rstrip().endswith(":")):
+        kept.pop()
     return "\n".join(kept)
+
+
+def summary_facts(cfg, store, today: str) -> str:
+    """The few facts the local AI may use for the plain-English summary, desk by desk (given the whole report,
+    a small model mixed up the two desks)."""
+    from .config import active_desks, desk_capital
+    from .phases import current_phase, mode_of
+    lines = []
+    for desk in active_desks(cfg):
+        kind = mode_of(current_phase(store, desk), desk).split("-")[0]
+        mode = f"{kind}-{desk}"
+        curve, fills = store.equity_curve(mode), store.fills(mode)
+        start = desk_capital(cfg, desk, kind == "live")
+        head = f"{desk.upper()} DESK ({ACCOUNT_NAMES[kind]})"
+        if len(curve):
+            value = float(curve.iloc[-1])
+            before = curve[curve.index < pd.Timestamp(today)]
+            prev = float(before.iloc[-1]) if len(before) else start
+            head += f": value {_money(value)}, today {(value / prev - 1) * 100:+.2f}%, since the start {(value / start - 1) * 100:+.2f}%"
+        lines.append(head)
+        todays = fills[fills["date"].astype(str).str[:10] == today] if len(fills) else fills
+        for f in todays.itertuples(index=False):
+            lines.append(f"- {f.side} {f.qty:g} {f.ticker} at {_money(f.price)}: {f.reason}")
+        thinking = store.get(f"{mode}_thinking") or {}
+        if not thinking.get("time", "").startswith(today):
+            lines.append("- It made NO decision today (the autopilot wasn't running when it was due).")
+        else:
+            if not len(todays):
+                lines.append(f"- No trades. {why_not_buying(thinking)}")
+            owned = [t["ticker"] for t in thinking.get("top") or [] if t["owned"]]
+            lines.append(f"- Holding {thinking.get('holding', 0)} of {thinking.get('max_positions')} positions"
+                         + (f" ({', '.join(owned)})" if owned else "") + f", cash {_money(thinking.get('cash'))}")
+    for g in ((store.get("autopilot_gaps") or {}).get("items") or []) \
+            if (store.get("autopilot_gaps") or {}).get("day") == today else []:
+        lines.append(f"AUTOPILOT: not running {g['from']}-{g['to']}" + (f"; missed {' and '.join(g['missed'])}" if g.get("missed") else ""))
+    from .macro import has_key, upcoming
+    if has_key(cfg):
+        soon = upcoming(cfg, datetime.strptime(today, "%Y-%m-%d").replace(hour=16, minute=30))
+        if soon:
+            lines.append(f"NEXT BIG NEWS: {soon[0]['name']} {soon[0]['label']}")
+    return "\n".join(lines)
 
 
 def write_after_market(cfg, store, today: str) -> str:
@@ -445,17 +520,16 @@ def write_after_market(cfg, store, today: str) -> str:
     from .config import data_path
     from .llm import ask_local_llm
     text = after_market(cfg, store, today)
-    from datetime import datetime, timedelta
+    from datetime import timedelta
     nxt = datetime.strptime(today, "%Y-%m-%d") + timedelta(days=1)
     while nxt.weekday() >= 5:
         nxt += timedelta(days=1)
     summary = ask_local_llm(cfg, (
         "You are Kestrel, the owner's trading bot. Write at most 5 short bullet points (under 120 words in all), "
-        "using ONLY facts stated in this report: what you traded today and why (follow the team's notes), how it "
-        f"went, and what you'll watch on the next trading day, {nxt:%A %B} {nxt.day}. Rules: never invent numbers, "
-        "dates or events; never guess why the market or a stock moved (the report doesn't say); the options-gap "
-        "watcher is a test that never trades, so don't treat it as a signal; the challengers and the study don't "
-        "trade either.\n\n") + text)
+        "using ONLY the facts below: what each desk did today and why, how it went, and what you'll watch on the "
+        f"next trading day, {nxt:%A %B} {nxt.day}. The swing desk and the day desk are separate accounts: never mix "
+        "their numbers. Never invent numbers, dates or events, and never guess why the market or a stock moved.\n\n")
+        + summary_facts(cfg, store, today))
     if summary:
         summary = trim_words(summary, 160)
         title, rest = text.split("\n", 1)

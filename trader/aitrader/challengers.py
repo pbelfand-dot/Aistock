@@ -261,7 +261,8 @@ def judge(s: dict, desk: str, history: dict, fwd: dict) -> tuple:
     if history["extra_drawdown_pct"] > s["max_extra_drawdown_pct"]:
         problems.append(f"its worst drop was {history['extra_drawdown_pct']:.1f} points deeper")
     if problems:
-        return "not better", "; ".join(problems)
+        worse = history["extra_per_year_pct"] <= 0 or history["extra_drawdown_pct"] > s["max_extra_drawdown_pct"]
+        return ("not better" if worse else "not proven"), "; ".join(problems)
     if fwd["days"] < need_days:
         return "promising", (f"the history says better ({history['extra_per_year_pct']:+.1f}% a year); shadow "
                              f"trading {fwd['days']} of {need_days} days before it can take over")

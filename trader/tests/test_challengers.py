@@ -93,8 +93,8 @@ def test_only_a_proven_challenger_takes_over(cfg):
     assert challengers.judge(s, "swing", history(), {"days": 5, "ahead_pct": 2.0})[0] == "promising"     # too soon
     assert challengers.judge(s, "swing", history(), {"days": 25, "ahead_pct": -0.3})[0] == "promising"   # behind
     verdict, why = challengers.judge(s, "swing", history(p_value=0.2), ahead)
-    assert verdict == "not better" and "could be luck" in why
-    assert challengers.judge(s, "swing", history(deflated_sharpe=0.7), ahead)[0] == "not better"
+    assert verdict == "not proven" and "could be luck" in why                  # ahead, but maybe luck
+    assert challengers.judge(s, "swing", history(deflated_sharpe=0.7), ahead)[0] == "not proven"
     verdict, why = challengers.judge(s, "swing", history(extra_drawdown_pct=9.0), ahead)
     assert verdict == "not better" and "worst drop" in why
     assert challengers.judge(s, "swing", history(extra_per_year_pct=-1.0), ahead)[0] == "not better"
@@ -127,7 +127,7 @@ def test_challengers_shadow_trade_next_to_the_desk_without_touching_it(studying)
     assert report["current"] == "momentum" and [r["name"] for r in report["rows"]] == \
         ["momentum_plus", "momentum_calm", "momentum_plus_calm", "momentum_quality"]
     row = report["rows"][0]
-    assert row["history"]["days"] > 250 and row["forward"]["days"] == 5 and row["verdict"] in ("not better", "promising", "no different")
+    assert row["history"]["days"] > 250 and row["forward"]["days"] == 5 and row["verdict"] in ("not better", "not proven", "promising", "no different")
     assert [t["name"] for t in store.trials("swing")] == ["momentum_calm", "momentum_plus", "momentum_plus_calm",
                                                           "momentum_quality"]
     assert all(t["deflated_sharpe"] is not None for t in store.trials("swing"))

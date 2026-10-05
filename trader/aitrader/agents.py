@@ -223,12 +223,13 @@ def team_parts(team: dict) -> dict:
 def notes_lines(cfg: dict, store, desk: str, mode: str, today: str, narrate: bool = False) -> list:
     """The report's 'team' section for one desk: each agent's note from the last decision, and the
     Reviewer's day. narrate: the local AI rewrites each note in plain English (facts only)."""
-    team = (store.get(f"{mode}_thinking") or {}).get("team")
+    thinking = store.get(f"{mode}_thinking") or {}
+    team = thinking.get("team") if thinking.get("time", "").startswith(today) else None   # not an old day's notes
     review = reviewer(cfg, store, desk, mode, today)
     if team and team.get("error"):
         return [f"**The team:** {team['error']}.", "- Reviewer: " + " ".join(review), ""]
     if not team:
-        return ["**The team:** no decision notes yet today.", "- Reviewer: " + " ".join(review), ""]
+        return ["**The team:** no decision notes today (it made no decision today).", "- Reviewer: " + " ".join(review), ""]
     parts = {**team_parts(team), "reviewer": " ".join(review)}
     if narrate:                                          # the reasoning roles only: two short questions per desk
         from .llm import ask_local_llm

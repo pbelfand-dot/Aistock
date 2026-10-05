@@ -162,27 +162,38 @@ def score(bars: dict, cfg: dict) -> pd.DataFrame:
     """One row per stock: its numbers and whether it qualifies for the list."""
     s, rows = settings(cfg), []
     for sym, df in bars.items():
-        close = df["close"].dropna()
-        if len(close) < 60:
-            continue
-        price = float(close.iloc[-1])
-        dollar_volume = float((df["close"] * df["volume"]).iloc[-20:].mean())
-        prev = close.shift(1)
-        true_range = pd.concat([df["high"] - df["low"], (df["high"] - prev).abs(), (df["low"] - prev).abs()],
-                               axis=1).max(axis=1)
-        row = {"symbol": sym, "price": round(price, 2), "dollar_volume": round(dollar_volume),
-               "avg_volume": round(float(df["volume"].iloc[-14:].mean())), "atr": round(float(true_range.iloc[-14:].mean()), 2),
-               "return_1m_pct": round((price / float(close.iloc[-22]) - 1) * 100, 1),
-               "return_3m_pct": round((price / float(close.iloc[-64]) - 1) * 100, 1),
-               "history_days": len(close), "new_listing": len(close) < 253}
-        if len(close) >= 253:
-            row["momentum_pct"] = round((float(close.iloc[-22]) / float(close.iloc[-253]) - 1) * 100, 1)
-        if len(close) >= 200:
-            sma50, sma200 = close.iloc[-50:].mean(), close.iloc[-200:].mean()
-            row["uptrend"] = bool(price > sma200 and sma50 > sma200)
-        row["tradeable"] = price >= s["min_price"] and dollar_volume >= s["min_dollar_volume"]
-        rows.append(row)
+        try:
+            row = _score_one(sym, df, s)
+        except Exception:                            # one odd stock never stops the scan of all the others
+            row = None
+        if row:
+            rows.append(row)
     return pd.DataFrame(rows)
+
+
+def _score_one(sym: str, df: pd.DataFrame, s: dict):
+    """One stock's numbers, or None with too little history (a stock listed 60-63 days ago used to crash
+    the whole scan here: its 3-month return looked back 64 days)."""
+    close = df["close"].dropna()
+    if len(close) < 64:
+        return None
+    price = float(close.iloc[-1])
+    dollar_volume = float((df["close"] * df["volume"]).iloc[-20:].mean())
+    prev = close.shift(1)
+    true_range = pd.concat([df["high"] - df["low"], (df["high"] - prev).abs(), (df["low"] - prev).abs()],
+                           axis=1).max(axis=1)
+    row = {"symbol": sym, "price": round(price, 2), "dollar_volume": round(dollar_volume),
+           "avg_volume": round(float(df["volume"].iloc[-14:].mean())), "atr": round(float(true_range.iloc[-14:].mean()), 2),
+           "return_1m_pct": round((price / float(close.iloc[-22]) - 1) * 100, 1),
+           "return_3m_pct": round((price / float(close.iloc[-64]) - 1) * 100, 1),
+           "history_days": len(close), "new_listing": len(close) < 253}
+    if len(close) >= 253:
+        row["momentum_pct"] = round((float(close.iloc[-22]) / float(close.iloc[-253]) - 1) * 100, 1)
+    if len(close) >= 200:
+        sma50, sma200 = close.iloc[-50:].mean(), close.iloc[-200:].mean()
+        row["uptrend"] = bool(price > sma200 and sma50 > sma200)
+    row["tradeable"] = price >= s["min_price"] and dollar_volume >= s["min_dollar_volume"]
+    return row
 
 
 def _ranked(table: pd.DataFrame) -> pd.DataFrame:

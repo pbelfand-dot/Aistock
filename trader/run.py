@@ -883,6 +883,37 @@ def take_over(store) -> str:
     return f"Stopped an older autopilot (process {other}) that was still running; this one takes over."
 
 
+GAP_MINUTES = 11                                        # longer than this between check-ins: it wasn't running
+
+
+def note_gap(cfg, store, before: str, now: datetime) -> dict:
+    """The autopilot checks in every 5 minutes. A longer silence during market hours means the Mac slept, was
+    off or Kestrel froze: one WARNING (it reaches the phone) saying when, and which decisions it missed, kept
+    for the after-market report."""
+    if not before or now.weekday() >= 5:
+        return {}
+    prev = datetime.fromisoformat(before)
+    day = now.date()
+    start = max(prev, datetime.combine(day, dtime(9, 30)))
+    end = min(now, datetime.combine(day, session_close(day)))
+    if (now - prev).total_seconds() < GAP_MINUTES * 60 or (end - start).total_seconds() < GAP_MINUTES * 60:
+        return {}
+    missed = []
+    swing_at = datetime.combine(day, session_close(day)) - timedelta(minutes=15)
+    if "swing" in active_desks(cfg) and start <= swing_at < end:
+        missed.append("the swing desk's daily decision")
+    if "day" in active_desks(cfg) and end - start >= timedelta(minutes=10):
+        missed.append(f"{int((end - start).total_seconds() // 300)} of the day desk's 5-minute checks")
+    gap = {"from": start.strftime("%H:%M"), "to": end.strftime("%H:%M"), "missed": missed}
+    saved = store.get("autopilot_gaps") or {}
+    items = saved.get("items", []) if saved.get("day") == now.strftime("%Y-%m-%d") else []
+    store.set("autopilot_gaps", {"day": now.strftime("%Y-%m-%d"), "items": (items + [gap])[-20:]})
+    store.log(f"WARNING: the autopilot wasn't running from {gap['from']} to {gap['to']} (was the Mac asleep, off or "
+              "unplugged?)" + (f"; it missed {' and '.join(missed)}" if missed else "")
+              + ". Setup → Autopilot → lid-closed mode keeps a plugged-in Mac awake.")
+    return gap
+
+
 def cmd_autopilot(cfg, store, args):
     note = take_over(store)
     store.set("autopilot_pid", os.getpid())
@@ -901,6 +932,10 @@ def cmd_autopilot(cfg, store, args):
     while True:
         now = now_ny()
         today = now.strftime("%Y-%m-%d")
+        try:                                                 # asleep or stopped during market hours? say so
+            note_gap(cfg, store, store.get("autopilot_heartbeat"), now)
+        except Exception:
+            pass
         store.set("autopilot_heartbeat", now.isoformat(timespec="seconds"))
         done = set(store.get("autopilot_done", []))
         failed = {}
