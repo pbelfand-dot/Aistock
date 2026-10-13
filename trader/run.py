@@ -447,8 +447,9 @@ def learned(cfg, store, desk, mode, strategy_name, market, today=None):
         data_path(cfg, learning.NOTE).write_text(learning.note(
             {d: {**(store.get(f"lessons:{d}") or {"trades": 0, "strategies": {}, "conditions": {}, "avoid": []}),
                  "mistakes": store.get(f"mistakes:{d}") or []} for d in active_desks(cfg)}))
-    if change["size"] < 1:
-        risk = dataclasses.replace(risk, max_position_pct=risk.max_position_pct * change["size"])
+    if change["size"] < 1:                                   # smaller NEW buys; what it owns keeps the desk's limit
+        risk = dataclasses.replace(risk, max_position_pct=risk.max_position_pct * change["size"],
+                                   trim_limit_pct=risk.trim_limit())
     return risk, change
 
 

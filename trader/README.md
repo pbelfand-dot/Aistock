@@ -134,7 +134,8 @@ Only deleting the AITrader folder removes them.
 bought it, how it ended, and what the market was like when it bought (the S&P 500 above or below its
 200-day average; calm or wild). From those reviews:
 - **Under 12 finished trades:** nothing changes. That's too few to tell skill from luck.
-- **A strategy losing so far:** it trades at **half size**.
+- **A strategy losing so far:** its new buys are **half size**. What it already owns is left alone (it
+  doesn't sell winners just because the size was halved).
 - **A strategy clearly losing over 30+ trades:** it's **paused**, and the journal says so.
 - **A market condition where its trades clearly lost (20+ trades):** no new buys while that
   condition holds.

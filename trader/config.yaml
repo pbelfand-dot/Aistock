@@ -213,12 +213,16 @@ in_play:
 # Every decision goes through five agents that each write a short note: Scout (facts), Analyst (views),
 # Trader (the tested strategy's orders), Risk (checks every buy), Reviewer (after the close).
 # Rules still decide the trades. Risk only warns, unless you list checks it may act on (skip a buy):
-#   correlation  = the stock moves with one we already own (return correlation >= correlation_limit)
+#   same_bet     = it would be one more stock in a bet the desk already holds max_same_bet of (stocks whose
+#                  returns move together, correlation >= correlation_limit, are ONE bet: Oct 8 it held MU, MUU,
+#                  MULL and SNDK, and on Oct 12 three of them hit their stops on the same day). On by default.
+#   correlation  = stricter: no buy that moves with ANY stock we already own
 #   options_gap  = option bets lean against it (only once the options-gap watcher shows an edge!)
 agents:
   enabled: true
   learn_from_mistakes: true   # skip a buy that repeats a mistake the desk already made (mistakes.py)
-  risk_vetoes: []
+  risk_vetoes: [same_bet]
+  max_same_bet: 2          # at most 2 stocks that move together (e.g. MU and SNDK, not a 3rd memory-chip stock)
   correlation_limit: 0.85
   correlation_bars: 60     # swing: 60 days; day desk: 60 five-minute bars
 

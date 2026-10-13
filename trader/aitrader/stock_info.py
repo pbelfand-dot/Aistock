@@ -184,16 +184,17 @@ def _beyond_price(cfg, ticker: str) -> dict:
         return {}
 
 
-def why_moved(cfg, ticker: str, news: list = None) -> dict:
+def why_moved(cfg, ticker: str, news: list = None, now=None) -> dict:
     """The move and what came out about it: the latest headlines (the news Kestrel already reads) and
-    SEC filings, with their times. A hint, not a proof: news can follow a move as well as cause it."""
+    SEC filings, with their times. A hint, not a proof: news can follow a move as well as cause it.
+    now: the moment it's for (a report for an earlier day looks at that day's filings, not today's)."""
     from . import scanner, sec_filings
     if news is None:
         scan = scanner.load_list(cfg)
         rows = (scan.get("liked") or []) + (scan.get("new_listings") or []) + (scan.get("swing_picks") or [])
         row = next((r for r in rows if r["symbol"] == ticker and r.get("news")), None)
         news = (row or {}).get("news") or ((scan.get("held_news") or {}).get(ticker) or {}).get("news") or []
-    return {**move(cfg, ticker), "headlines": news[:3], "filings": sec_filings.recent(cfg, ticker, days=3)[:3]}
+    return {**move(cfg, ticker), "headlines": news[:3], "filings": sec_filings.recent(cfg, ticker, now=now, days=3)[:3]}
 
 
 def info(cfg, store, ticker) -> dict:

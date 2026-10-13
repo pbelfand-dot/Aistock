@@ -9,6 +9,9 @@ the notes, and so does your phone):
   4. Risk      checks every buy before it goes: its size, danger news, stocks that move together, and
                option bets against it. It can only make things SAFER (skip a buy), never bolder, and only
                for the checks you switch on (config.yaml: agents.risk_vetoes). Otherwise it just says so.
+               It counts BETS, not tickers: stocks that move together are one bet (Oct 8: MU, MUU, MULL and
+               SNDK were one memory-chip bet, and on Oct 12 three of them hit their stops on the same day).
+               With the same_bet check on (the default) it holds at most agents.max_same_bet stocks in one bet.
                It also writes down the situation of every buy, and skips a buy that would repeat a
                mistake the desk has already made (mistakes.py; agents.learn_from_mistakes).
   5. Reviewer  after the close: grades the day and the options watcher, and passes on the lessons.
@@ -28,12 +31,12 @@ ROLES = {
     "risk": "You are the Risk officer on Kestrel's trading team. Say what you checked and anything you warned about.",
     "reviewer": "You are the Reviewer on Kestrel's trading team. Say how today went and the one lesson to keep.",
 }
-VETO_CHECKS = ("correlation", "options_gap")
+VETO_CHECKS = ("correlation", "same_bet", "options_gap")
 
 
 def settings(cfg: dict) -> dict:
     s = {"enabled": True, "risk_vetoes": [], "correlation_limit": 0.85, "correlation_bars": 60,
-         "learn_from_mistakes": True}
+         "learn_from_mistakes": True, "max_same_bet": 2}
     s.update(cfg.get("agents") or {})
     s["risk_vetoes"] = [v for v in (s.get("risk_vetoes") or []) if v in VETO_CHECKS]
     return s
@@ -106,6 +109,35 @@ def correlations(bars: dict, ticker: str, others, lookback: int) -> dict:
     return out
 
 
+def bets(bars: dict, tickers, lookback: int, limit: float) -> list:
+    """The holdings grouped into bets: stocks whose returns moved together (correlation >= limit, directly or
+    through another holding) are one bet. Biggest bet first; a stock that moves on its own is a bet of one."""
+    tickers, groups = sorted(tickers), []
+    links = {t: set() for t in tickers}
+    for i, t in enumerate(tickers):
+        for other, c in correlations(bars, t, tickers[i + 1:], lookback).items():
+            if c >= limit:
+                links[t].add(other)
+                links[other].add(t)
+    seen = set()
+    for t in tickers:
+        if t in seen:
+            continue
+        group, todo = [], [t]
+        while todo:
+            x = todo.pop()
+            if x not in seen:
+                seen.add(x)
+                group.append(x)
+                todo += sorted(links[x] - seen)
+        groups.append(sorted(group))
+    return sorted(groups, key=lambda g: (-len(g), g))
+
+
+def _nth(n: int) -> str:
+    return f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+
+
 def risk(orders: list, positions: dict, bars: dict, gaps: dict, equity: float, cfg_agents: dict,
          lessons: list = None, in_play: dict = None, style: str = "swing", tags_out: dict = None,
          events: list = None, facts_by_ticker: dict = None) -> tuple:
@@ -114,6 +146,10 @@ def risk(orders: list, positions: dict, bars: dict, gaps: dict, equity: float, c
     from .mistakes import matching, tags_for
     notes, keep = [], []
     held = set(positions)
+    # what it still owns after this decision's sales (a stock sold now isn't part of a bet any more)
+    staying = held - {o.ticker for o in orders if o.side == "SELL"
+                      and o.qty >= getattr(positions.get(o.ticker), "qty", float("inf"))}
+    max_bet = int(cfg_agents.get("max_same_bet") or 2)
     for o in orders:
         if o.side != "BUY":
             keep.append(o)
@@ -126,6 +162,10 @@ def risk(orders: list, positions: dict, bars: dict, gaps: dict, equity: float, c
             checks.append("moves with " + ", ".join(f"{t} ({c:.2f})" for t, c in together.items()))
             if "correlation" in cfg_agents["risk_vetoes"]:
                 veto = "it moves with what we already own"
+        same = sorted(t for t in together if t in staying)
+        if len(same) >= max_bet and "same_bet" in cfg_agents["risk_vetoes"] and not veto:
+            veto = (f"it would be the {_nth(len(same) + 1)} stock in one bet (at most {max_bet}: "
+                    f"{', '.join(same)} already move with it)")
         if gaps.get(o.ticker) == "bearish":
             checks.append("puts are piling up against it")
             if "options_gap" in cfg_agents["risk_vetoes"] and not veto:
@@ -144,6 +184,7 @@ def risk(orders: list, positions: dict, bars: dict, gaps: dict, equity: float, c
         if tags_out is not None:
             tags_out[o.ticker] = tags
         held.add(o.ticker)                              # the next buy is checked against this one too
+        staying.add(o.ticker)
     return keep, notes or ["nothing to check (no buys)"]
 
 
@@ -168,6 +209,11 @@ def review_orders(cfg: dict, orders: list, scores: pd.Series, prices: pd.Series,
         except Exception:
             beyond = {}
     facts["beyond"] = beyond
+    try:
+        groups = bets(bars, positions, s["correlation_bars"], s["correlation_limit"])
+        facts["bets"] = {"count": len(groups), "together": [g for g in groups if len(g) > 1]}
+    except Exception:
+        facts["bets"] = None
     views = analyst(facts, strategy)
     plan = trader(orders)
     tags = {}
@@ -209,8 +255,11 @@ def reviewer(cfg: dict, store, desk: str, mode: str, today: str) -> list:
 def team_parts(team: dict) -> dict:
     """Each agent's note on one decision, as one line of plain text: {scout, analyst, trader, risk}."""
     f = team["scout"]
+    b = f.get("bets") or {}
+    split = (f" = {b['count']} separate bet{'s' if b['count'] != 1 else ''} ("
+             + "; ".join(f"{', '.join(g)} move together" for g in b["together"]) + ")") if b.get("together") else ""
     facts = (f"top scores {', '.join(f'{t} {v:.2f}' for t, v in f['top']) or 'none'}; holding "
-             f"{', '.join(f['holding']) or 'nothing'} ({f['slots']} slots), cash ${f['cash']:,.2f}; "
+             f"{', '.join(f['holding']) or 'nothing'} ({f['slots']} slots){split}, cash ${f['cash']:,.2f}; "
              f"danger news: {', '.join(f['danger']) or 'none'}; option gaps: "
              f"{', '.join(f'{t} {d}' for t, d in f['options_gaps'].items()) or 'none'}; rule: {f['rule']}"
              + (f"; in play: {', '.join(f'{t} {r}x' for t, r in f['in_play'].items())}" if f.get("in_play") else "")

@@ -46,6 +46,9 @@ class RiskManager:
     stop_max_pct: float = 5.0          # ... and at most this far
     risk_per_trade_pct: float = 0.0    # a wider stop means a smaller position: at most this % of the desk lost at
                                        # the stop (0 = off). Never bigger than max_position_pct either.
+    trim_limit_pct: float = 0.0        # what trims measure against (0 = max_position_pct). A "half size" lesson
+                                       # (learning.py) shrinks NEW buys only: it keeps the desk's own limit here, so
+                                       # it never sells a winner just because the lesson halved the size.
 
     @classmethod
     def for_desk(cls, cfg: dict, desk: str, live: bool = False) -> "RiskManager":
@@ -89,11 +92,14 @@ class RiskManager:
         from 34% to 12.5%): back down to the limit, whole shares. 0 = leave it alone."""
         if not price or math.isnan(price) or price <= 0 or equity <= 0:
             return 0
-        limit = equity * self.max_position_pct / 100
+        limit = equity * self.trim_limit() / 100
         if qty * price <= limit * self.TRIM_AT:
             return 0
         keep = floor_shares(limit / price, self.fractional)
         return max(0, shares(qty - keep))
+
+    def trim_limit(self) -> float:
+        return self.trim_limit_pct or self.max_position_pct
 
     def stop_loss_hit(self, avg_cost: float, price: float, stop_pct: float = None) -> bool:
         return price <= avg_cost * (1 - (stop_pct or self.stop_loss_pct) / 100)

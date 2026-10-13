@@ -123,6 +123,27 @@ def test_a_stock_far_over_its_limit_is_trimmed_back_and_keeps_its_slot():
     assert risk.trim_qty(3, 17.0, 500.0) == 0 and risk.trim_qty(7, 17.0, 500.0) == 0   # under 2x: left alone
 
 
+def test_a_half_size_lesson_shrinks_new_buys_but_never_sells_a_winner(cfg, monkeypatch):
+    """Oct 12: momentum went to "half size" and the desk sold winners (MRNA +13.8%, BWET +10.2%) down to the
+    halved limit. A lesson makes new buys smaller; what it owns is measured against the desk's own limit."""
+    import run
+    from aitrader import learning
+    from aitrader.brokers.base import Position
+    from aitrader.engine import decide_orders
+    from aitrader.storage import Store
+    monkeypatch.setattr(learning, "adjust", lambda lessons, name, today: {"size": 0.5, "no_buys": ""})
+    risk, change = run.learned(cfg, Store(":memory:"), "swing", "study-swing", "momentum", None)
+    assert risk.max_position_pct == 6.25 and risk.trim_limit() == 12.5 and change["size"] == 0.5
+    # MRNA grew to 15% of a $500 desk: over the halved limit (6.25%) twice over, but under 2x the desk's 12.5%
+    positions = {"MRNA": Position("MRNA", 0.3376, 188.24, "2026-10-06")}
+    prices = pd.Series({"MRNA": 222.0, "NEW": 20.0})
+    orders = decide_orders(pd.Series({"MRNA": 0.95, "NEW": 0.99}), prices, positions, buying_power=400.0,
+                           equity=500.0, strategy=Fixed(), risk=risk)
+    assert not [o for o in orders if o.side == "SELL"]
+    buy = [o for o in orders if o.side == "BUY"]
+    assert buy and buy[0].qty * 20.0 <= 500 * 0.0625 + 0.01                      # the new buy IS half size
+
+
 def test_every_watchlist_entry_in_the_real_config_is_a_ticker():
     from aitrader.config import check_config, load_config
     cfg = load_config()
