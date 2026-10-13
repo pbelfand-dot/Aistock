@@ -29,7 +29,8 @@ PORT = 8765
 TAILNET = ipaddress.ip_network("100.64.0.0/10")        # Tailscale gives every device an address in here
 ALLOWED = {"snapshot", "setup-status", "pause", "resume", "kill", "start-stage1", "start-stage2", "phone-test",
            "stock-info", "thinking", "today",           # stock-info, thinking and today only read
-           "school-add", "school-done", "school-remove"}  # your homework list (never trading or settings)
+           "school-add", "school-done", "school-remove",  # your homework list (never trading or settings)
+           "school-refresh"}                               # reads Google Classroom again (the sign-in is on the Mac)
 WITH_INPUT = {"stock-info", "school-add", "school-done", "school-remove"}
 WEB = ROOT / "aitrader" / "web"
 SHIM = """<script>

@@ -38,6 +38,10 @@ directly, like any Mac app runs a helper program.
   school-add < {"text", "due", "course", "ap"}   adds homework (school.py; "APUSH progress check, Friday" works)
   school-done < {"id", "done"} / school-remove < {"id"}   ticks it off (or back on) / deletes it
   login-open-on / login-open-off             open Kestrel each time you log in (mac_service.py)
+  google-keys < {"client_id", "client_secret"}   your Google Cloud Desktop client (google_school.py)
+  google-login                               starts the Google sign-in: the page to open in your browser
+  google-status / google-signout             the sign-in and the last Classroom read / forget it and cancel the key
+  school-refresh                             reads Google Classroom and today's calendar now
 
 --demo works on the demo folder (data/demo) instead of your real data.
 """
@@ -85,7 +89,7 @@ def real_money_status(cfg, store) -> dict:
 
 # ---------------------------------------------------------------- the Setup screen
 PAPER_KEYS = ("ALPACA_PAPER_API_KEY", "ALPACA_PAPER_SECRET_KEY")
-STDIN_ACTIONS = {"school-add", "school-done", "school-remove", "use-challenger", "save-healthcheck", "save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
+STDIN_ACTIONS = {"google-keys", "school-add", "school-done", "school-remove", "use-challenger", "save-healthcheck", "save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
                  "connect-claude", "save-phone", "save-webull-keys", "save-pushover", "stock-info",
                  "check-webull", "save-data-sources"}               # these read their details from stdin (never argv)
 
@@ -585,6 +589,27 @@ def phone_screen_send(cfg) -> dict:
     return {"ok": ok, "text": "Sent to Telegram. Open it on your phone." if ok else "Couldn't reach Telegram."}
 
 
+def google_action(cfg, action: str, payload: dict) -> dict:
+    """Setup → School and the Today screen: your Google Classroom sign-in (google_school.py)."""
+    from . import google_school
+    if action == "google-keys":
+        client_id, secret = google_school.valid_keys(payload.get("client_id"), payload.get("client_secret"))
+        write_env(env_file(), {"GOOGLE_CLIENT_ID": client_id, "GOOGLE_CLIENT_SECRET": secret})
+        return {"message": "Saved on this Mac only. Next: Sign in with Google, with your school account."}
+    if action == "google-login":
+        return {"url": google_school.start_login(cfg)}
+    if action == "google-signout":
+        return {"message": google_school.sign_out(cfg)}
+    if action == "school-refresh":
+        try:
+            cache = google_school.refresh(cfg)
+        except google_school.GoogleError as e:
+            return {"ok": False, "message": str(e), "status": google_school.status(cfg)}
+        return {"ok": True, "message": f"Google Classroom: {len(cache['courses'])} classes read.",
+                "status": google_school.status(cfg)}
+    return google_school.status(cfg)
+
+
 def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payload: dict = None) -> dict:
     from . import dashboard
     from .config import data_path
@@ -653,6 +678,8 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
             return {"message": ("Done: " if item["done"] else "Back on the list: ") + item["title"], "item": item}
         item = school.remove(cfg, p.get("id"))
         return {"message": f"Removed: {item['title']}", "item": item}
+    if action in ("google-keys", "google-login", "google-status", "google-signout", "school-refresh"):
+        return google_action(cfg, action, payload or {})                    # your account, never the demo's
     if action in ("login-open-on", "login-open-off"):
         from . import mac_service
         if sys.platform != "darwin":
@@ -694,7 +721,8 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
             from .stock_info import info
             return info(cfg, store, (payload or {}).get("ticker"))
         if action == "setup-status":
-            return setup_status(cfg, store)
+            from . import google_school
+            return {**setup_status(cfg, store), "google": google_school.status(own_cfg)}
         if action == "thinking":
             return dashboard.thinking(cfg, store)
         if action == "today":
@@ -755,7 +783,8 @@ ACTIONS = [
         "save-phone", "phone-test", "phone-screen-send", "save-webull-keys", "check-webull", "lid-mode-on",
         "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test", "stock-info", "llm-download", "thinking", "save-data-sources",
         "use-challenger", "save-healthcheck", "today", "school-add", "school-done", "school-remove",
-        "login-open-on", "login-open-off"]
+        "login-open-on", "login-open-off", "google-keys", "google-login", "google-status", "google-signout",
+        "school-refresh"]
 
 
 def main(argv=None) -> int:
