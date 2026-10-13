@@ -909,6 +909,9 @@ def note_gap(cfg, store, before: str, now: datetime) -> dict:
     saved = store.get("autopilot_gaps") or {}
     items = saved.get("items", []) if saved.get("day") == now.strftime("%Y-%m-%d") else []
     store.set("autopilot_gaps", {"day": now.strftime("%Y-%m-%d"), "items": (items + [gap])[-20:]})
+    days = store.get("autopilot_gaps_by_day") or {}             # the last two weeks, for the Today screen
+    days[now.strftime("%Y-%m-%d")] = (items + [gap])[-20:]
+    store.set("autopilot_gaps_by_day", {d: days[d] for d in sorted(days)[-14:]})
     store.log(f"WARNING: the autopilot wasn't running from {gap['from']} to {gap['to']} (was the Mac asleep, off or "
               "unplugged?)" + (f"; it missed {' and '.join(missed)}" if missed else "")
               + ". Setup → Autopilot → lid-closed mode keeps a plugged-in Mac awake.")

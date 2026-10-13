@@ -34,6 +34,10 @@ directly, like any Mac app runs a helper program.
   phone-screen-send                          sends your phone the link to the Kestrel screen (Tailscale)
   lid-mode-on / lid-mode-off                 keep trading with the lid closed while plugged in (asks for the
                                              Mac password once; see lid_mode.py)
+  today                                      the Today screen: school work, the autopilot, news, the last report
+  school-add < {"text", "due", "course", "ap"}   adds homework (school.py; "APUSH progress check, Friday" works)
+  school-done < {"id", "done"} / school-remove < {"id"}   ticks it off (or back on) / deletes it
+  login-open-on / login-open-off             open Kestrel each time you log in (mac_service.py)
 
 --demo works on the demo folder (data/demo) instead of your real data.
 """
@@ -81,7 +85,7 @@ def real_money_status(cfg, store) -> dict:
 
 # ---------------------------------------------------------------- the Setup screen
 PAPER_KEYS = ("ALPACA_PAPER_API_KEY", "ALPACA_PAPER_SECRET_KEY")
-STDIN_ACTIONS = {"use-challenger", "save-healthcheck", "save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
+STDIN_ACTIONS = {"school-add", "school-done", "school-remove", "use-challenger", "save-healthcheck", "save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
                  "connect-claude", "save-phone", "save-webull-keys", "save-pushover", "stock-info",
                  "check-webull", "save-data-sources"}               # these read their details from stdin (never argv)
 
@@ -636,6 +640,28 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         return save_data_sources(cfg, payload or {})
     if action == "save-healthcheck":
         return save_healthcheck(cfg, payload or {})
+    if action in ("school-add", "school-done", "school-remove"):     # your own list, never the demo's
+        from . import school
+        p = payload or {}
+        if action == "school-add":
+            item = school.add(cfg, p.get("text", ""), p.get("due") or None, p.get("course", ""),
+                              p.get("ap") if p.get("ap") is not None else None)
+            return {"message": f"Added: {item['title']}" + (f" (due {school.due_label(item['due'])})" if item["due"] else ""),
+                    "item": item}
+        if action == "school-done":
+            item = school.set_done(cfg, p.get("id"), bool(p.get("done", True)))
+            return {"message": ("Done: " if item["done"] else "Back on the list: ") + item["title"], "item": item}
+        item = school.remove(cfg, p.get("id"))
+        return {"message": f"Removed: {item['title']}", "item": item}
+    if action in ("login-open-on", "login-open-off"):
+        from . import mac_service
+        if sys.platform != "darwin":
+            raise RuntimeError("Opening at login is for Macs.")
+        if action == "login-open-on":
+            mac_service.open_at_login_on()
+            return {"message": "Kestrel will open on its Today screen each time you log in."}
+        mac_service.open_at_login_off()
+        return {"message": "Kestrel won't open by itself at login any more (the autopilot still runs)."}
     if action in ("lid-mode-on", "lid-mode-off"):
         from . import lid_mode
         return lid_mode.turn_on() if action == "lid-mode-on" else lid_mode.turn_off()
@@ -653,6 +679,7 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         from . import lid_mode
         lid_mode.release_if_on()                         # nothing manages the lid-closed lock without it
         return {"message": "Autopilot is OFF. Nothing new happens until you turn it back on."}
+    own_cfg = cfg                                        # your school list is yours, also while the demo shows
     if demo:
         cfg = demo_config(cfg)
         if not data_path(cfg, "aitrader.sqlite").exists():
@@ -670,6 +697,9 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
             return setup_status(cfg, store)
         if action == "thinking":
             return dashboard.thinking(cfg, store)
+        if action == "today":
+            from . import today
+            return today.overview(cfg, store, school_cfg=own_cfg)
         if action == "use-challenger":                  # you pressed Use it (a proven challenger, real-money desk)
             from . import challengers
             p = payload or {}
@@ -726,7 +756,8 @@ def main(argv=None) -> int:
         "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude", "start-stage1",
         "save-phone", "phone-test", "phone-screen-send", "save-webull-keys", "check-webull", "lid-mode-on",
         "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test", "stock-info", "llm-download", "thinking", "save-data-sources",
-        "use-challenger", "save-healthcheck"])
+        "use-challenger", "save-healthcheck", "today", "school-add", "school-done", "school-remove",
+        "login-open-on", "login-open-off"])
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)

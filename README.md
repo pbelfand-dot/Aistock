@@ -22,6 +22,12 @@ code changes.
 
 ### The app
 **Kestrel** is a normal Mac app: its own window, Dock icon and menus (no browser, no web server).
+- **Today** (the first tab): your homework and the bot at a glance. Quick-add homework ("APUSH progress check,
+  Friday" sets the due date; AP work is tagged), tick it off when it's done, and open AP Classroom or Google
+  Classroom with one click. Next to it: the bot's value, what each desk is doing, whether the autopilot ran all
+  through the last trading day, the next big economic news, and the last report's summary. Press **Open Kestrel
+  when I log in** once and it opens on Today every time you log in. Your list stays on your Mac (also on the phone
+  screen). Google Classroom filling it in by itself is next ([the plan](docs/DASHBOARD-PLAN.md)).
 - **Its window** is a brokerage-style dashboard: your account value vs. the S&P 500, positions,
   every trade and why, each desk's progress, the watchlist, and **Pause** / **Emergency stop**
   buttons.

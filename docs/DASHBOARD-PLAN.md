@@ -1,7 +1,12 @@
 # Plan: Kestrel becomes your daily dashboard
 
-Written Oct 13, 2026. Status: **planning**. Nothing in this file is built yet, except where it says
-"done". Facts that came from the web have their source linked; where sources disagreed, it says so.
+Written Oct 13, 2026. Status: **step 1 is built** (the Today tab, homework quick add, AP Classroom button,
+open at login); the rest is planned. Facts that came from the web have their source linked; where sources
+disagreed, it says so.
+
+**Your answers (Oct 13):** Classroom is on a school account, so the sign-in test comes before building the
+Google part. AP work comes both ways (in Google Classroom and only in AP Classroom), so both paths stay. The
+Mac goes to school, and a desktop at home is coming: that's where the autopilot should run.
 
 ## The goal
 
@@ -46,7 +51,8 @@ others.
 ([Google Classroom Help](https://support.google.com/edu/classroom/answer/6272985)). The same sign-in
 can read your calendar for today's events. As a backup, it can also read class due dates from there.
 
-**AP Classroom.** College Board doesn't publish an API, a calendar feed, or a sync with Google Classroom.
+**AP Classroom.** Students sign in through My AP at myap.collegeboard.org
+([College Board](https://apstudents.collegeboard.org/join-your-class-online)). College Board doesn't publish an API, a calendar feed, or a sync with Google Classroom.
 I searched and found none
 ([AP Classroom student guide](https://leonapecongov.weebly.com/uploads/1/2/1/3/121328859/ap_student_guide_to_ap_classroom.pdf):
 assignments live on its own Assignments page). So AP work reaches the dashboard three ways:
@@ -54,7 +60,7 @@ assignments live on its own Assignments page). So AP work reaches the dashboard 
    it shows up automatically, tagged "AP" when the title or class says AP.
 2. **Quick add:** type "APUSH Unit 3 progress check, Friday" on the Today screen. It shows next to the
    rest and drops off when you tick it.
-3. **An "Open AP Classroom" button** next to the AP items, so checking it is one click.
+3. **An "AP Classroom" button** on the School card (it opens My AP), so checking it is one click.
 
 **The trading part** reuses what Kestrel already computes (`dashboard.snapshot`, the report, the uptime
 check), so it needs no new data.
@@ -68,8 +74,8 @@ check), so it needs no new data.
 - The autopilot refreshes school data every 30 minutes (school data never touches trading).
 
 **Build order (each step is useful on its own):**
-1. Open at login + a Today tab with the trading summary, quick-add homework, and an AP Classroom button.
-   No Google needed. About one session.
+1. **Done:** open at login + a Today tab with the trading summary, quick-add homework, and an AP Classroom
+   button. No Google needed. (`aitrader/today.py`, `aitrader/school.py`, `mac_service.open_at_login_on`.)
 2. Google Calendar + Classroom sign-in, if your school allows it (see Pass 2). About one session.
 3. Polish: the phone screen, a morning push alert ("3 things due today, the autopilot ran all day
    yesterday"), and colors for overdue work.
