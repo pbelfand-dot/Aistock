@@ -398,6 +398,23 @@
   .today-report h3 { font-size: 14px; margin: 0; font-weight: 600; }
   .today-report .card-head { margin-bottom: 6px; }
   .today-report ul { margin: 0; padding-left: 18px; } .today-report li { margin: 3px 0; color: var(--ink-2); }
+  /* Google Classroom on Today (google_school.py) */
+  .gc-line { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); margin: 0 0 10px; }
+  .gc-line.bad { color: var(--down); }
+  .gc-line button { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; cursor: pointer; }
+  .gc-line button:hover { text-decoration: underline; }
+  .hw-title-row { flex: 1; min-width: 0; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .hw-gc { width: 18px; height: 18px; flex: none; border-radius: 4px; background: var(--accent-wash); color: var(--accent);
+           font-size: 10px; font-weight: 700; display: inline-grid; place-items: center; }
+  .hw-link { background: none; border: 0; padding: 0; color: var(--ink); text-align: left; font: inherit; cursor: pointer; }
+  .hw-link:hover { color: var(--accent); text-decoration: underline; }
+  .hw-item.done .hw-link { text-decoration: line-through; color: var(--muted); }
+  .tag.missing { border-color: var(--down); color: var(--down); font-weight: 600; }
+  .tag.turned { border-color: var(--good); color: var(--up); }
+  .today-events { list-style: none; margin: 0 0 4px; padding: 0; font-size: 13px; }
+  .today-events li { display: flex; gap: 10px; padding: 4px 0; }
+  .today-events .when { color: var(--ink-2); min-width: 64px; font-variant-numeric: tabular-nums; }
+  .gc-steps { padding-left: 20px; margin: 6px 0; } .gc-steps li { margin: 4px 0; }
 
   /* phones (kept last so it wins over the rules above) */
   @media (max-width: 640px) {
@@ -640,6 +657,7 @@
       <button data-go-pane="autopilot"><span class="sdot" data-dot="autopilot"></span>Autopilot</button>
       <button data-go-pane="brokers"><span class="sdot" data-dot="brokers"></span>Brokers &amp; keys</button>
       <button data-go-pane="phone"><span class="sdot" data-dot="phone"></span>Your phone</button>
+      <button data-go-pane="school"><span class="sdot" data-dot="school"></span>School</button>
       <button data-go-pane="ai"><span class="sdot" data-dot="ai"></span>AI &amp; news</button>
       <button data-go-pane="settings"><span class="sdot" data-dot="settings"></span>Settings</button>
       <button data-go-pane="more"><span class="sdot" data-dot="more"></span>More</button>
@@ -812,6 +830,49 @@
     </section>
 
     <!-- AI & NEWS -->
+    <!-- SCHOOL: Google Classroom on the Today screen (google_school.py) -->
+    <section class="setup-pane" data-pane="school" hidden>
+      <h2 class="pane-title">School</h2>
+      <p class="pane-lead">Your Google Classroom assignments, due dates and missing work, and today's calendar, on the Today
+         screen. Kestrel can only read them: it can't post, turn in or change anything.</p>
+      <div class="setup-card">
+        <h4>Google Classroom <span class="tag" id="gc-state"></span></h4>
+        <p class="ink2" id="gc-line"></p>
+        <details class="how" id="how-gc"><summary>One-time setup: your own free Google Cloud key (about 10 minutes)</summary>
+          <ol class="ink2 gc-steps">
+            <li>Open <a href="https://console.cloud.google.com/">console.cloud.google.com</a> and sign in with your
+                <strong>personal</strong> Gmail (school accounts usually can't make projects). Create a project named
+                <em>Kestrel</em>.</li>
+            <li>APIs &amp; Services → Library: turn on the <strong>Google Classroom API</strong> and the
+                <strong>Google Calendar API</strong>.</li>
+            <li>Google Auth Platform (older screens: OAuth consent screen) → Get started: app name <em>Kestrel</em>,
+                your email, audience <strong>External</strong>.</li>
+            <li>Audience: add your <strong>school email</strong> as a test user. A test sign-in lasts 7 days; to stay
+                signed in, press <em>Publish app</em> instead. Google then warns "Google hasn't verified this app": it's
+                your own app, so choose Advanced → Go to Kestrel.</li>
+            <li>Clients → Create client → application type <strong>Desktop app</strong>, name <em>Kestrel</em> → Create.
+                Copy its <strong>Client ID</strong> and <strong>Client secret</strong> into the boxes below.</li>
+          </ol></details>
+        <div class="setup-grid">
+          <label>Client ID<input id="gc-id" autocomplete="off" spellcheck="false" placeholder="….apps.googleusercontent.com"></label>
+          <label>Client secret<input id="gc-secret" type="password" autocomplete="off" spellcheck="false" placeholder="GOCSPX-…"></label>
+        </div>
+        <div class="setup-row"><button id="gc-save">Save</button>
+          <button class="primary" id="gc-login">Sign in with Google</button>
+          <button id="gc-refresh" hidden>Read Classroom now</button><button id="gc-signout" hidden>Sign out</button></div>
+        <ul class="checks" id="gc-results"></ul>
+        <p class="ink2">Sign in with your <strong>school</strong> account, in the browser page that opens. If Google says
+           <em>Access blocked</em> or <em>admin_policy_enforced</em>, your school doesn't allow outside apps for your
+           account: use <em>Request access</em> there if it's offered, or ask your school's IT. Quick add on Today keeps
+           working either way.</p>
+      </div>
+      <div class="setup-card">
+        <h4>AP Classroom</h4>
+        <p class="ink2">College Board offers no way for other apps to read AP Classroom. AP work your teacher also posts in
+           Google Classroom shows up by itself, tagged AP; for the rest, use quick add on Today and its AP Classroom button.</p>
+      </div>
+    </section>
+
     <section class="setup-pane" data-pane="ai" hidden>
       <h2 class="pane-title">AI &amp; news</h2>
       <p class="pane-lead">The local AI that writes the plain-English parts, and the news Kestrel reads. None of these decide trades.</p>
@@ -1696,7 +1757,8 @@ function renderToday() {
     $("#today-hello").textContent = t.greeting;
     $("#today-date").textContent = t.date;
     renderLoginSwitch(t.open_at_login);
-    renderHomework(t.school);
+    renderHomework(t.school, t.google || {});
+    autoReadClassroom(t.google || {});
   }
   renderTodayBot();
 }
@@ -1711,6 +1773,7 @@ function renderLoginSwitch(o) {
                  : "Open Kestrel on this Today screen each time you log in to your Mac";
 }
 function hwRow(i, late) {
+  if (i.source === "classroom") return classroomRow(i, late);
   const id = "hw-" + i.id;
   const box = el("input", { type: "checkbox", id, checked: i.done ? "" : null, "aria-label": `Done: ${i.title}` });
   box.onchange = () => homework("school-done", { id: i.id, done: box.checked });
@@ -1722,16 +1785,62 @@ function hwRow(i, late) {
        i.course ? el("span", { class: "muted hw-course", text: i.course }) : null),
     i.label ? el("span", { class: "hw-due" + (late ? " late" : ""), text: i.label }) : null, del);
 }
-function renderHomework(sc) {
-  const g = sc.groups, kids = [];
-  $("#hw-count").textContent = sc.open ? `${sc.open} to do` + (sc.ap_open ? ` · ${sc.ap_open} AP` : "") : "";
+function classroomRow(i, late) {                          // from Google Classroom: turned in there, not here
+  const open = el("button", { class: "hw-link", type: "button", title: "Open it in Google Classroom", text: i.title });
+  open.onclick = () => i.link && openLink(i.link);
+  const chip = i.status ? el("span", { class: "tag " + (i.status === "missing" ? "missing" : "turned"), text: cap(i.status) }) : null;
+  return el("li", { class: "hw-item" + (i.done ? " done" : "") },
+    el("span", { class: "hw-gc", title: "From Google Classroom", "aria-label": "Google Classroom", text: "GC" }),
+    el("span", { class: "hw-title-row" }, open, i.ap ? el("span", { class: "tag ap", text: "AP" }) : null,
+       i.course ? el("span", { class: "muted hw-course", text: i.course }) : null),
+    chip, i.label ? el("span", { class: "hw-due" + (late ? " late" : ""), text: i.label + (i.due_time && !late ? " " + i.due_time : "") }) : null);
+}
+function classroomLine(gc) {                               // connected? when was it read? anything wrong?
+  if (!gc.signed_in) {
+    const go = el("button", { type: "button", text: "Connect Google Classroom" });
+    go.onclick = () => openSetup("school");
+    return el("p", { class: "gc-line" }, go, "· your assignments, due dates and missing work fill in by themselves");
+  }
+  const again = el("button", { type: "button", text: "Refresh" });
+  again.onclick = () => readClassroom(true);
+  if (gc.error) {
+    const fix = el("button", { type: "button", text: "Setup → School" });
+    fix.onclick = () => openSetup("school");
+    return el("p", { class: "gc-line bad" }, `Google Classroom: ${gc.error}`, fix, again);
+  }
+  return el("p", { class: "gc-line" }, `Google Classroom · ${gc.classes} classes · ` +
+    (gc.minutes_ago == null ? "reading…" : gc.minutes_ago < 1 ? "read just now" : `read ${agoText(gc.minutes_ago)}`), again);
+}
+const agoText = (m) => m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} days ago`;
+let classroomBusy = false, classroomAutoAt = 0;
+async function readClassroom(manual) {
+  if (classroomBusy) return;
+  classroomBusy = true;
+  try { const r = await call("school-refresh"); if (manual || !r.ok) notify(r.message, !r.ok); }
+  catch (e) { if (manual) notify(e.message, true); }
+  finally { classroomBusy = false; }
+  await loadToday(true);
+}
+function autoReadClassroom(gc) {                           // fresh Classroom data when Today opens (at most every 10 min)
+  if (!gc.stale || classroomBusy || document.hidden || Date.now() - classroomAutoAt < 600000) return;
+  classroomAutoAt = Date.now();
+  readClassroom(false);
+}
+function renderHomework(sc, gc) {
+  const g = sc.groups, kids = [classroomLine(gc || {})];
+  $("#hw-count").textContent = sc.open ? `${sc.open} to do` + (sc.missing ? ` · ${sc.missing} missing` : "")
+                                         + (sc.ap_open ? ` · ${sc.ap_open} AP` : "") : "";
+  if ((sc.events || []).length) kids.push(el("h3", { class: "hw-group", text: "Today's calendar" }),
+    el("ul", { class: "today-events" }, ...sc.events.map(e => el("li", {}, el("span", { class: "when", text: e.time }),
+      el("span", {}, e.title, e.location ? el("span", { class: "muted", text: ` · ${e.location}` }) : null)))));
   for (const [key, title] of HW_GROUPS) {
     if (!g[key].length) continue;
     kids.push(el("h3", { class: "hw-group" + (key === "overdue" ? " late" : ""), text: title }),
               el("ul", { class: "hw-list" }, ...g[key].map(i => hwRow(i, key === "overdue"))));
   }
   if (!sc.open) kids.push(el("p", { class: "muted hw-empty", text: "Nothing on your list. Add homework above, AP Classroom " +
-    "work too (\"AP\" in the name tags it). Next: Google Classroom fills this in by itself, if your school allows the sign-in." }));
+    "work too (\"AP\" in the name tags it)." + (gc && gc.signed_in ? "" : " Google Classroom can fill it in by itself: " +
+    "Connect Google Classroom above.") }));
   if (g.done.length) kids.push(el("details", { class: "hw-done" }, el("summary", { text: `Done lately (${g.done.length})` }),
                                   el("ul", { class: "hw-list" }, ...g.done.map(i => hwRow(i, false)))));
   $("#today-school").replaceChildren(...kids);
@@ -2125,8 +2234,9 @@ async function refreshSetup() {
 /* Start here: one row per part that matters, with its state; and a dot per section in the sidebar */
 function renderSetupOverview(s) {
   const lid = s.lid || {}, ph = s.phone || {}, po = ph.pushover || {}, sc = ph.screen || {}, ai = s.local_ai || {};
-  const ds = s.data_sources || {}, fr = ds.fred || {}, sec = ds.sec || {}, wb = s.webull || {};
+  const ds = s.data_sources || {}, fr = ds.fred || {}, sec = ds.sec || {}, wb = s.webull || {}, gc = s.google || {};
   const running = s.autopilot_on && s.autopilot_alive !== false;
+  renderGoogle(gc);
   const rows = [
     ["Alpaca paper account", s.paper_keys ? "connected" : "not connected (optional: it can simulate on this Mac)",
       s.paper_keys ? "ok" : "todo", "brokers"],
@@ -2148,6 +2258,9 @@ function renderSetupOverview(s) {
       fr.has_key && sec.on ? "ok" : fr.has_key || sec.on ? "todo" : "off", "ai"],
     ["Webull", !wb.keys ? "not set up" : wb.approval === "NORMAL" ? "connected" : "keys saved · needs approval",
       !wb.keys ? "off" : wb.approval === "NORMAL" ? "ok" : "todo", "brokers"],
+    ["Google Classroom", gc.signed_in ? (gc.error ? "signed in · " + gc.error : `connected (${gc.email || "signed in"})`)
+      : gc.keys ? "key saved · sign in" : "not set up", gc.signed_in ? (gc.error ? "todo" : "ok") : gc.keys ? "todo" : "off",
+      "school"],
   ].filter(Boolean);
   const icon = { ok: "✓", todo: "!", off: "–" };
   $("#ov-list").replaceChildren(...rows.map(([what, state, kind, pane]) => el("li", {},
@@ -2167,7 +2280,7 @@ function renderSetupOverview(s) {
   const auto = (id, open) => { const d = $(id); if (d && !d.dataset.user) d.open = open; };
   auto("#how-alpaca", !s.paper_keys); auto("#how-push", !po.keys); auto("#how-tg", !ph.token);
   auto("#how-screen", !sc.on); auto("#how-data", !fr.has_key && !sec.on); auto("#how-webull", !wb.keys);
-  auto("#how-hc", !(s.uptime || {}).on);
+  auto("#how-hc", !(s.uptime || {}).on); auto("#how-gc", !gc.keys);
 }
 function showSetupPane(name) {
   document.querySelectorAll("#dlg-setup [data-pane]").forEach(p => p.hidden = p.dataset.pane !== name);
@@ -2236,6 +2349,60 @@ $("#resume").onclick = async () => {
   await refreshSetup(); load();
 };
 $("#open-menu").onclick = () => call("open-menu").catch(e => notify(e.message, true));
+/* ---------------- Setup → School: Google Classroom (google_school.py) ---------------- */
+const gcChecks = (items) => $("#gc-results").replaceChildren(...items.map(c => el("li", {},
+  el("span", { class: c.ok == null ? "muted" : c.ok ? "ok" : "bad", text: c.ok == null ? "…" : c.ok ? "✓" : "✗" }), c.text)));
+function renderGoogle(g) {
+  if (!g) return;
+  $("#gc-state").textContent = g.signed_in ? (g.error ? "needs you" : "connected") : g.keys ? "key saved" : "not set up";
+  $("#gc-login").textContent = g.signed_in ? "Sign in again" : "Sign in with Google";
+  $("#gc-login").disabled = !g.keys;
+  $("#gc-refresh").hidden = $("#gc-signout").hidden = !g.signed_in;
+  $("#gc-line").textContent = g.signed_in
+    ? `Signed in as ${g.email || "your Google account"}` + (g.updated ? ` · ${g.classes} classes · read ${g.minutes_ago < 1 ? "just now" : agoText(g.minutes_ago)}` : "")
+      + (g.error ? `. Problem: ${g.error}` : ".") + (g.calendar_error ? ` Calendar: ${g.calendar_error}` : "")
+    : g.keys ? "Your Google Cloud key is saved. Next: Sign in with Google, with your school account."
+    : "Not set up yet: make your free Google Cloud key (the steps below), paste it, then sign in.";
+}
+let gcWait = null;
+function pollGoogle(started) {
+  clearTimeout(gcWait);
+  gcWait = setTimeout(async () => {
+    let g = null;
+    try { g = await setupCall("google-status"); } catch (e) { g = null; }
+    const login = (g && g.login) || {};
+    if (login.status === "waiting") {
+      const secs = Math.round((Date.now() - started) / 1000);
+      gcChecks([{ ok: null, text: "Waiting for Google: sign in with your school account in the browser page that opened, " +
+        "and allow Kestrel to see your classes and assignments." },
+        ...(secs > 45 ? [{ ok: null, text: "Taking a while? If Google said \"Access blocked\" or admin_policy_enforced, your " +
+          "school doesn't allow outside apps for your account (Request access there, or ask IT). Otherwise finish on " +
+          "Google's page." }] : [])]);
+      pollGoogle(started);
+      return;
+    }
+    renderGoogle(g);
+    if (login.status === "connected") {
+      gcChecks([{ ok: true, text: login.message + " Your assignments are on the Today screen." }]);
+      refreshSetup(); loadToday(true);
+    } else gcChecks([{ ok: false, text: login.message || "Kestrel couldn't tell if the sign-in worked. Press Sign in with Google again." }]);
+  }, 3000);
+}
+$("#gc-save").onclick = (e) => {
+  const client_id = $("#gc-id").value.trim(), client_secret = $("#gc-secret").value.trim();
+  if (!client_id || !client_secret) { gcChecks([{ ok: false, text: "Paste both the Client ID and the Client secret." }]); return; }
+  setupAction(e.target, "google-keys", { client_id, client_secret }, async (r) => {
+    $("#gc-id").value = ""; $("#gc-secret").value = ""; gcChecks([{ ok: true, text: r.message }]); });
+};
+$("#gc-login").onclick = (e) => setupAction(e.target, "google-login", undefined, async (r) => {
+  openLink(r.url);
+  gcChecks([{ ok: null, text: "Google's sign-in page opened in your browser. Sign in with your school account there." }]);
+  pollGoogle(Date.now());
+});
+$("#gc-refresh").onclick = (e) => setupAction(e.target, "school-refresh", undefined, async (r) => {
+  gcChecks([{ ok: r.ok, text: r.message }]); renderGoogle(r.status); loadToday(true); });
+$("#gc-signout").onclick = (e) => setupAction(e.target, "google-signout", undefined, async (r) => {
+  gcChecks([{ ok: true, text: r.message }]); loadToday(true); });
 const schwabChecks = (items) => $("#schwab-results").replaceChildren(...items.map(c => el("li", {},
   el("span", { class: c.ok == null ? "muted" : c.ok ? "ok" : "bad", text: c.ok == null ? "…" : c.ok ? "✓" : "✗" }), c.text)));
 async function setupAction(button, action, payload, after) {

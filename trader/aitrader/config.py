@@ -42,6 +42,8 @@ def load_config(path=None) -> dict:
         "fred_key": os.environ.get("FRED_API_KEY", ""),                 # big economic news dates (macro.py)
         "sec_email": os.environ.get("SEC_CONTACT_EMAIL", ""),           # SEC filings: who's asking (sec_filings.py)
         "healthcheck_url": os.environ.get("HEALTHCHECK_URL", ""),       # the dead-man's switch (uptime.py)
+        "google_client_id": os.environ.get("GOOGLE_CLIENT_ID", ""),     # Google Classroom (google_school.py)
+        "google_client_secret": os.environ.get("GOOGLE_CLIENT_SECRET", ""),
     }
     cfg["live_trading_enabled"] = os.environ.get("LIVE_TRADING_ENABLED", "").strip().lower() == "true"
     cfg.setdefault("data_dir", str(DATA_DIR))

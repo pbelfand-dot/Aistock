@@ -27,7 +27,14 @@ code changes.
   Classroom with one click. Next to it: the bot's value, what each desk is doing, whether the autopilot ran all
   through the last trading day, the next big economic news, and the last report's summary. Press **Open Kestrel
   when I log in** once and it opens on Today every time you log in. Your list stays on your Mac (also on the phone
-  screen). Google Classroom filling it in by itself is next ([the plan](docs/DASHBOARD-PLAN.md)).
+  screen).
+- **Google Classroom** (Setup → School): sign in once with Google, in your own browser, and your assignments, due
+  dates and missing work fill in Today by themselves, with today's calendar. Kestrel gets a read-only key (never your
+  password) and can't post or turn in anything; Sign out cancels the key at Google. It needs a free Google Cloud key
+  of your own first (the steps are in Setup → School, about 10 minutes). If your school doesn't allow outside apps for
+  your account, Google says "Access blocked" and Kestrel says what to do. College Board has no way for apps to read AP
+  Classroom: AP work posted in Google Classroom shows up tagged AP; the rest is quick add and the AP Classroom button.
+  ([The plan](docs/DASHBOARD-PLAN.md).)
 - **Its window** is a brokerage-style dashboard: your account value vs. the S&P 500, positions,
   every trade and why, each desk's progress, the watchlist, and **Pause** / **Emergency stop**
   buttons.

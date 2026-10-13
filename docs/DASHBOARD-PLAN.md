@@ -4,6 +4,11 @@ Written Oct 13, 2026. Status: **step 1 is built** (the Today tab, homework quick
 open at login); the rest is planned. Facts that came from the web have their source linked; where sources
 disagreed, it says so.
 
+**Step 2 (Google Classroom) is built too.** Your idea of "log in inside the app and it saves it" can't work for
+Google: Google blocks sign-ins in apps' built-in browsers. The sign-in Kestrel uses does the same job: you sign in
+once in your own browser, and Kestrel keeps a read-only key. For AP Classroom, an in-app login is the only way to
+automate it (College Board has no API); see the question at the end.
+
 **Your answers (Oct 13):** Classroom is on a school account, so the sign-in test comes before building the
 Google part. AP work comes both ways (in Google Classroom and only in AP Classroom), so both paths stay. The
 Mac goes to school, and a desktop at home is coming: that's where the autopilot should run.
@@ -76,7 +81,12 @@ check), so it needs no new data.
 **Build order (each step is useful on its own):**
 1. **Done:** open at login + a Today tab with the trading summary, quick-add homework, and an AP Classroom
    button. No Google needed. (`aitrader/today.py`, `aitrader/school.py`, `mac_service.open_at_login_on`.)
-2. Google Calendar + Classroom sign-in, if your school allows it (see Pass 2). About one session.
+2. **Built (Oct 13):** Google Classroom + today's calendar, with one sign-in in your own browser
+   (`aitrader/google_school.py`, Setup → School). Read-only permissions: classroom.courses.readonly,
+   classroom.coursework.me.readonly and calendar.events.owned.readonly. Checked against Google's own API description
+   (the discovery documents, revision 20261011 for Classroom). Whether your school allows it is the first real test.
+   Not possible: signing in to Google inside Kestrel's own window. Google has blocked sign-ins in apps' built-in
+   browsers since 2019, and OAuth in embedded webviews since 2021.
 3. Polish: the phone screen, a morning push alert ("3 things due today, the autopilot ran all day
    yesterday"), and colors for overdue work.
 
@@ -186,6 +196,10 @@ blocks. And treat the uptime problem as more important than the dashboard: a bot
 3. Does your Mac go to school with you? Is there a computer at home that stays on?
 4. What's your budget for this (including $0)?
 5. What else should Today show: weather, sports or club schedules, a to-do list, grades?
+6. **AP Classroom in-app login** (open): you'd sign in to College Board once in a Kestrel window, it remembers you, and
+   reads your AP Classroom assignments page. Technically possible, and the only way to automate AP Classroom. But I
+   couldn't load College Board's terms to check whether they allow automated reading, and it breaks whenever they
+   change the page. Build it, or keep quick add for AP work?
 
 ---
 

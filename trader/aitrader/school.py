@@ -1,13 +1,13 @@
 """
 school.py: your school work on the Today screen (docs/DASHBOARD-PLAN.md).
 
-Now: homework you add yourself (quick add), AP Classroom work included, ticked off when it's done.
+Homework you add yourself (quick add), AP Classroom work included, ticked off when it's done; and, once you sign
+in with Google (google_school.py), your Google Classroom assignments with their own turned-in or missing state.
   - "APUSH Unit 3 progress check, Friday" works: a due day after the last comma (today, tomorrow, a weekday,
     "Oct 17", "10/17" or "in 3 days") becomes the due date. A date picked in the form wins.
   - AP work is spotted from the words (AP, APUSH, APES, "progress check"...) or the AP box, and gets the
     Open AP Classroom button: College Board has no API or calendar feed, so the dashboard can't read
     AP Classroom by itself.
-Next: Google Classroom fills the list in by itself, if your school allows the sign-in.
 
 Saved on this Mac only (data/school.json). It never touches trading.
 """
@@ -183,10 +183,13 @@ def due_label(due: str, today: date = None) -> str:
 
 def summary(cfg, today: date = None) -> dict:
     """The list in groups, soonest first: overdue, today, tomorrow, this week (the next 7 days), later, no date,
-    and what was finished in the last 3 days."""
+    and what was finished in the last 3 days. Your own items and, once you've signed in, Google Classroom's
+    (google_school.py: its own turned-in state, and a link to each one); plus today's calendar events."""
+    from .google_school import load_cache
     today = today or date.today()
+    cache = load_cache(cfg)
     groups = {k: [] for k in ("overdue", "today", "tomorrow", "week", "later", "no_date", "done")}
-    for item in load(cfg)["items"]:
+    for item in load(cfg)["items"] + list(cache.get("items") or []):
         due = date.fromisoformat(item["due"]) if item.get("due") else None
         row = {**item, "label": _label(due, today) if due else ""}
         if item.get("done"):
@@ -207,6 +210,9 @@ def summary(cfg, today: date = None) -> dict:
     for name, rows in groups.items():
         rows.sort(key=lambda r: (r.get("due") or "9999", r["added"]), reverse=name == "done")
     open_items = sum(len(groups[k]) for k in ("overdue", "today", "tomorrow", "week", "later", "no_date"))
+    events = cache.get("events") or {}
     return {"groups": groups, "open": open_items, "ap_open": sum(r["ap"] for k in ("overdue", "today", "tomorrow", "week",
                                                                                   "later", "no_date") for r in groups[k]),
+            "missing": sum(1 for r in groups["overdue"] if r.get("source") == "classroom"),
+            "events": events.get("items") or [] if events.get("date") == today.isoformat() else [],
             "links": {"ap_classroom": AP_CLASSROOM, "classroom": CLASSROOM}}
