@@ -16,6 +16,7 @@ cp -R aitrader run.py mcp_server.py config.yaml requirements.txt README.md .env.
 find "$APP" -name "__pycache__" -type d -prune -exec rm -rf {} +
 
 cp "$ROOT/mac/install.sh" "$ROOT/mac/Kestrel Menu.command" "$ROOT/mac/AppIcon.icns" "$APP/Contents/Resources/"
+cp "$ROOT/mac/app/browser.js" "$ROOT/mac/app/browser-page.js" "$APP/Contents/Resources/"   # the browser's page helpers
 sed "s/__VERSION__/$VERSION/g" "$ROOT/mac/Info.plist" > "$APP/Contents/Info.plist"
 echo "$VERSION" > "$APP/Contents/Resources/VERSION"
 

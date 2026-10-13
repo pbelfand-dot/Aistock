@@ -42,9 +42,14 @@ directly, like any Mac app runs a helper program.
   google-login                               starts the Google sign-in: the page to open in your browser
   google-status / google-signout             the sign-in and the last Classroom read / forget it and cancel the key
   school-refresh                             reads Google Classroom and today's calendar now
-  ap-save < {"url", "title", "text", "auto"}   an AP Classroom page's text from the AP window (ap_classroom.py)
-  ap-pages / ap-forget                       the AP pages chosen for Today (the window re-reads them) / forget them
-  (ap-open and ap-read are the Mac window's own: it opens AP Classroom, or re-reads the chosen pages)
+  web-save < {"url", "page", "title", "text", "rows", "data", "account", "login", "auto"}
+                                             a page Kestrel's browser read: its assignments go on Today (school_web.py)
+  web-pages                                  the pages chosen for Today (the browser re-reads them by itself)
+  web-forget < {"url"}                       stop reading one page (no url: all of them)
+  web-report < {"url"} or a page's snapshot  "Copy what Kestrel saw": a page as Kestrel read it, as text for Claude
+  ap-save / ap-pages / ap-forget             the same, for the AP Classroom window of version 1.0.122
+  (browser-open, web-read, logins-list and logins-forget are the Mac window's own: its browser, re-reading the
+   chosen pages, and the passwords it saved, which the bot never sees)
 
 --demo works on the demo folder (data/demo) instead of your real data.
 """
@@ -92,7 +97,7 @@ def real_money_status(cfg, store) -> dict:
 
 # ---------------------------------------------------------------- the Setup screen
 PAPER_KEYS = ("ALPACA_PAPER_API_KEY", "ALPACA_PAPER_SECRET_KEY")
-STDIN_ACTIONS = {"ap-save", "google-keys", "school-add", "school-done", "school-remove", "use-challenger", "save-healthcheck", "save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
+STDIN_ACTIONS = {"ap-save", "web-save", "web-forget", "web-report", "google-keys", "school-add", "school-done", "school-remove", "use-challenger", "save-healthcheck", "save-keys", "save-settings", "save-live-keys", "save-schwab-keys", "schwab-login-finish",
                  "connect-claude", "save-phone", "save-webull-keys", "save-pushover", "stock-info",
                  "check-webull", "save-data-sources"}               # these read their details from stdin (never argv)
 
@@ -683,14 +688,18 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
         return {"message": f"Removed: {item['title']}", "item": item}
     if action in ("google-keys", "google-login", "google-status", "google-signout", "school-refresh"):
         return google_action(cfg, action, payload or {})                    # your account, never the demo's
-    if action in ("ap-save", "ap-pages", "ap-forget"):
-        from . import ap_classroom
+    if action in ("web-save", "web-pages", "web-forget", "web-report", "ap-save", "ap-pages", "ap-forget"):
+        from . import school_web                                             # your pages, never the demo's
         p = payload or {}
-        if action == "ap-save":
-            return ap_classroom.save(cfg, p.get("url"), p.get("title", ""), p.get("text", ""), bool(p.get("auto")))
-        if action == "ap-forget":
-            return {"message": ap_classroom.forget(cfg)}
-        return {"pages": ap_classroom.pages(cfg)}
+        if action in ("web-save", "ap-save"):
+            return school_web.save(cfg, p)
+        if action in ("web-forget", "ap-forget"):
+            return {"message": school_web.forget(cfg, p.get("url") or None)}
+        if action == "web-report":
+            return {"text": school_web.report(cfg, p.get("url"), p)}
+        if action == "ap-pages":                                             # the 1.0.122 window: addresses only
+            return {"pages": [page["url"] for page in school_web.pages(cfg)]}
+        return {"pages": school_web.pages(cfg)}
     if action in ("login-open-on", "login-open-off"):
         from . import mac_service
         if sys.platform != "darwin":
@@ -732,9 +741,9 @@ def handle(action: str, cfg: dict, demo: bool = False, confirm: str = None, payl
             from .stock_info import info
             return info(cfg, store, (payload or {}).get("ticker"))
         if action == "setup-status":
-            from . import ap_classroom, google_school
+            from . import google_school, school_web
             return {**setup_status(cfg, store), "google": google_school.status(own_cfg),
-                    "ap": ap_classroom.status(own_cfg)}
+                    "web": school_web.status(own_cfg)}
         if action == "thinking":
             return dashboard.thinking(cfg, store)
         if action == "today":
@@ -796,7 +805,7 @@ ACTIONS = [
         "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test", "stock-info", "llm-download", "thinking", "save-data-sources",
         "use-challenger", "save-healthcheck", "today", "school-add", "school-done", "school-remove",
         "login-open-on", "login-open-off", "google-keys", "google-login", "google-status", "google-signout",
-        "school-refresh", "ap-save", "ap-pages", "ap-forget"]
+        "school-refresh", "ap-save", "ap-pages", "ap-forget", "web-save", "web-pages", "web-forget", "web-report"]
 
 
 def main(argv=None) -> int:
