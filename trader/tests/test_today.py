@@ -79,7 +79,10 @@ def test_the_app_adds_and_ticks_homework_through_its_helper(cfg):
     assert out["school"]["groups"]["done"][0]["title"] == "AP Bio lab"
     assert set(out) >= {"date", "greeting", "school", "uptime", "news", "report", "open_at_login"}
     for action in ("today", "school-add", "school-done", "school-remove", "login-open-on", "login-open-off"):
-        assert f'"{action}"' in (REPO / "mac/app/main.swift").read_text(), action          # the window may ask for it
+        assert action in app_api.ACTIONS, action
+    # the window passes any action name on (the helper decides), so a page newer than the window still works
+    swift = (REPO / "mac/app/main.swift").read_text()
+    assert "guard isActionName(action)" in swift and "bridgeActions" not in swift
     assert {"school-add", "school-done", "school-remove"} <= app_api.STDIN_ACTIONS
     assert {"today", "school-add", "school-done"} <= phone_screen.ALLOWED and "login-open-on" not in phone_screen.ALLOWED
 
@@ -148,3 +151,11 @@ def test_today_shows_the_reports_plain_english_points(cfg):
     assert r["points"] == ["Swing desk sold MUU at a stop-loss.", "Bought LAZR on momentum scores ≥ 0.8."]
     data_path(cfg, "reports/after-market-2026-10-13.md").write_text("# After-market report\n\n## The market\n")
     assert today.report_summary(cfg) == {"date": "2026-10-13", "label": "Tuesday Oct 13", "points": []}
+
+
+def test_an_action_the_helper_doesnt_know_is_a_plain_answer(capsys):
+    """A newer window asking an older bot (or a typo) gets {"error": "unknown action"}, which the page shows, not
+    a crash that reads "the bot stopped unexpectedly"."""
+    import json
+    assert app_api.main(["made-up-action"]) == 0
+    assert json.loads(capsys.readouterr().out) == {"error": "unknown action"}

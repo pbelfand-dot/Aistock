@@ -748,20 +748,27 @@ def plain_json(value):
     return value
 
 
-def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(prog="python -m aitrader.app_api")
-    parser.add_argument("action", choices=[
+ACTIONS = [
         "snapshot", "pause", "kill", "demo-build", "update-policy", "setup-status", "save-keys", "check-keys",
         "autopilot-on", "autopilot-off", "resume", "save-settings", "save-live-keys", "save-schwab-keys",
         "schwab-login-start", "schwab-login-finish", "check-schwab", "connect-claude", "start-stage1",
         "save-phone", "phone-test", "phone-screen-send", "save-webull-keys", "check-webull", "lid-mode-on",
         "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test", "stock-info", "llm-download", "thinking", "save-data-sources",
         "use-challenger", "save-healthcheck", "today", "school-add", "school-done", "school-remove",
-        "login-open-on", "login-open-off"])
+        "login-open-on", "login-open-off"]
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(prog="python -m aitrader.app_api")
+    parser.add_argument("action")
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--confirm")
     args = parser.parse_args(argv)
     out = sys.stdout
+    if args.action not in ACTIONS:                      # e.g. a newer window asking an older bot: say so plainly
+        out.write(json.dumps({"error": "unknown action"}))
+        out.flush()
+        return 0
     try:
         with contextlib.redirect_stdout(sys.stderr):    # the bot's own messages must not mix into the JSON
             payload = json.loads(sys.stdin.read() or "{}") if args.action in STDIN_ACTIONS else None

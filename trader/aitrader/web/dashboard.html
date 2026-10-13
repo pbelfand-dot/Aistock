@@ -1665,10 +1665,30 @@ function loadToday(force) {                                // one question at a 
   const demo = state.demo;
   todayFlight = call("today")
     .then(t => { if (demo === state.demo) { state.today = t; todayAt = Date.now(); } })
-    .catch(e => { if (!state.today) $("#today-school").replaceChildren(
-      el("p", { class: "bad-text", text: e.message || "The bot didn't answer." })); })
+    .catch(e => { if (!state.today) todayProblem(e); })
     .finally(() => { todayFlight = null; renderToday(); });
   return todayFlight;
+}
+function todayProblem(e) {
+  // An older Kestrel window with this newer page: macOS didn't let the app replace itself on an update (no
+  // paid Apple developer ID), so only the bot and its page were updated. The bot card still works.
+  if ((e && e.message) !== "unknown action") {
+    $("#today-school").replaceChildren(el("p", { class: "bad-text", text: (e && e.message) || "The bot didn't answer." }));
+    return;
+  }
+  $("#hw-add").hidden = true; $("#open-login").hidden = true;
+  const now = new Date();
+  $("#today-hello").textContent = now.getHours() < 12 ? "Good morning" : now.getHours() < 17 ? "Good afternoon" : "Good evening";
+  $("#today-date").textContent = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  const get = el("button", { class: "today-btn primary", type: "button", text: "Download the new Kestrel" });
+  get.onclick = () => openLink("https://github.com/pbelfand-dot/Aistock/releases/latest");
+  $("#today-school").replaceChildren(
+    el("p", { text: "This Kestrel window is older than the bot. When it last updated, macOS didn't let the app " +
+      "replace itself, so only the bot and this page were updated. Trading is up to date; the homework list " +
+      "needs the new window." }),
+    el("p", { class: "ink2", text: "To fix it once: Kestrel menu → Check for Updates…, or turn Kestrel on in System " +
+      "Settings → Privacy & Security → App Management, or download the new app and drag it into Applications." }),
+    get);
 }
 function renderToday() {
   const t = state.today;

@@ -15,15 +15,18 @@ let env = ProcessInfo.processInfo.environment
 let appHome = URL(fileURLWithPath: env["AITRADER_HOME"] ?? NSHomeDirectory() + "/AITrader")
 let python = URL(fileURLWithPath: env["AITRADER_PYTHON"] ?? appHome.path + "/.venv/bin/python")
 let selfTest = CommandLine.arguments.contains("--self-test")      // the build machine's check
-let bridgeActions: Set<String> = ["snapshot", "pause", "kill", "demo-build", "setup-status", "save-keys",
-                                   "check-keys", "autopilot-on", "autopilot-off", "resume", "save-settings",
-                                   "save-live-keys", "save-schwab-keys", "schwab-login-start", "schwab-login-finish",
-                                   "check-schwab", "connect-claude", "start-stage1", "save-phone", "phone-test",
-                                   "phone-screen-send", "save-webull-keys", "check-webull", "lid-mode-on",
-                                   "lid-mode-off", "start-stage2", "tjr-test", "save-pushover", "pushover-test",
-                                   "stock-info", "llm-download", "thinking", "save-data-sources",
-                                   "use-challenger", "save-healthcheck", "today", "school-add", "school-done",
-                                   "school-remove", "login-open-on", "login-open-off"]
+/// Which page requests go to the bot's helper: any action name (a-z, 0-9 and "-"); the helper itself knows
+/// which actions exist (app_api.py) and answers "unknown action" for the rest. No fixed list here, so a newer
+/// dashboard page works in this window too: when macOS doesn't let the app replace itself on an update, the
+/// bot and its page still update, and this window must not refuse the page's new actions.
+func isActionName(_ action: String) -> Bool {
+    guard !action.isEmpty, action.count <= 40 else { return false }
+    for scalar in action.unicodeScalars {
+        let code = scalar.value                                  // a-z, 0-9 or "-"
+        if !((97...122).contains(code) || (48...57).contains(code) || code == 45) { return false }
+    }
+    return true
+}
 
 /// Python and the bot's libraries are installed, and match this version of the app.
 func botIsReady() -> Bool {
@@ -170,7 +173,7 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
             replyHandler("{}", nil)
             return
         }
-        guard bridgeActions.contains(action) else { replyHandler(nil, "unknown action"); return }
+        guard isActionName(action) else { replyHandler(nil, "unknown action"); return }
         var args = [action]
         if body["demo"] as? Bool == true { args.append("--demo") }
         if let confirm = body["confirm"] as? String { args += ["--confirm", confirm] }
