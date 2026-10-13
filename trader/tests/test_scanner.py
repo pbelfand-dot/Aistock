@@ -445,3 +445,21 @@ def test_a_stock_listed_60_to_63_days_ago_no_longer_breaks_the_scan(cfg, monkeyp
     assert scanner.load_list(cfg)["liked"][0]["symbol"] == "ROCKET"
     odd = {**fake_market(), "BROKEN": series(10, 14, seed=8).assign(close=float("nan"))}
     assert run_scan(cfg, Store(":memory:"), day="2026-09-30", market=odd).startswith("scan: 7 stocks checked")
+
+
+def test_leveraged_and_inverse_funds_never_make_the_lists(cfg, monkeypatch):
+    """Oct 8: the swing desk owned MU and bought MUU and MULL (2x Micron funds): one bet three times, and a 2x fund's
+    12-month rise tops a momentum ranking by construction. The scan leaves 2x/3x and inverse funds out; a company
+    whose name only has a number and an x (10x Genomics) stays."""
+    from types import SimpleNamespace
+
+    from aitrader import alpaca_api
+    names = {"MU": "Micron Technology, Inc. Common Stock", "MUU": "Direxion Daily MU Bull 2X Shares",
+             "MULL": "GraniteShares 2x Long MU Daily ETF", "SOXS": "Direxion Daily Semiconductor Bear 3X Shares",
+             "SQQQ": "ProShares UltraPro Short QQQ", "SH": "ProShares Short S&P500", "TXG": "10x Genomics, Inc. Class A",
+             "SHV": "iShares Short Treasury Bond ETF", "BWET": "Breakwave Tanker Shipping ETF"}
+    assets = [SimpleNamespace(symbol=s, name=n, tradable=True, exchange="NASDAQ") for s, n in names.items()]
+    client = SimpleNamespace(get_all_assets=lambda request: assets)
+    monkeypatch.setattr(alpaca_api, "has_keys", lambda cfg, paper: True)
+    monkeypatch.setattr(alpaca_api, "trading_client", lambda cfg, paper: client)
+    assert scanner.alpaca_universe(cfg) == ["BWET", "MU", "SHV", "TXG"]

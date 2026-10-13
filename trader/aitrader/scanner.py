@@ -1,7 +1,8 @@
 """
 scanner.py: once a day, look at ALL US stocks, keep a list of the ones worth trading, and read their news.
 
-1. Every tradable US stock and ETF (from Alpaca; without Alpaca keys, the ~400 names in universe.txt).
+1. Every tradable US stock and ETF (from Alpaca; without Alpaca keys, the ~400 names in universe.txt), minus
+   2x/3x and inverse funds (is_leveraged_fund).
 2. Skip what's hard to trade well: under $3 a share, or too little trading per day.
 3. Rank by 12-month momentum (the past year's rise, skipping the latest month): the one stock-picking
    method the research supported (see knowledge/30-research-findings.md). Only stocks in an uptrend
@@ -17,6 +18,7 @@ The swing desk also considers the top of the list (it still buys only what fits 
 import hashlib
 import json
 import math
+import re
 import shutil
 import time
 from datetime import datetime, timedelta, timezone
@@ -80,7 +82,24 @@ def alpaca_universe(cfg: dict) -> list:
     assets = client.get_all_assets(GetAssetsRequest(status=AssetStatus.ACTIVE, asset_class=AssetClass.US_EQUITY))
     return sorted(a.symbol for a in assets
                   if a.tradable and str(getattr(a.exchange, "value", a.exchange)).upper() in EXCHANGES
-                  and a.symbol.isalpha())
+                  and a.symbol.isalpha() and not is_leveraged_fund(getattr(a, "name", "")))
+
+
+# A fund's name says when it's leveraged or inverse: "Direxion Daily MU Bull 2X Shares", "GraniteShares 2x Long
+# MU Daily ETF", "ProShares UltraPro QQQ", "ProShares Short S&P500", "-1x Short VIX Futures ETF".
+_FUND_WORDS = re.compile(r"\b(ETFs?|ETNs?|Shares|Fund|Trust|ProShares|Direxion)\b", re.I)
+_LEVERAGE_WORDS = re.compile(r"(?<![\w.])-?\d+(\.\d+)?\s?x\b|\bUltra(Pro)?(Short)?\b|\bBull\b|\bBear\b|\bInverse\b"
+                             r"|\bLeveraged?\b|\bProShares Short\b|\bDaily Target\b", re.I)
+
+
+def is_leveraged_fund(name: str) -> bool:
+    """A 2x/3x or inverse fund (a daily-reset ETF or ETN). They're kept off the lists: one on Micron is just Micron
+    twice over (MU, MUU and MULL are one bet), its 12-month rise is about double the stock's so it tops a
+    momentum ranking by construction, and the issuers themselves say not to expect the multiple over more than
+    a day (the daily reset). The momentum research Kestrel follows is on ordinary stocks. A company whose name
+    has a number and an x (10x Genomics, Inc.) isn't a fund, so it stays."""
+    name = str(name or "")
+    return bool(_FUND_WORDS.search(name) and _LEVERAGE_WORDS.search(name))
 
 
 def fetch_bars(cfg: dict, symbols: list, days: int) -> dict:

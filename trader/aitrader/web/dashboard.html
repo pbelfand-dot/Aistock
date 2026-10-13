@@ -351,6 +351,54 @@
   .weekend-note { font-size: 13px; color: var(--ink-2); margin: 0 0 12px; }
   @media (max-width: 640px) { .scores { gap: 4px 8px; } .score-tip { font-size: 11px; } }
 
+  /* ---- Today: school and the bot at a glance; the first screen (today.py, school.py) ---- */
+  .today-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .today-head h1 { font-size: 24px; margin: 0; font-weight: 600; }
+  .today-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 1000px) { .today-grid { grid-template-columns: minmax(0, 1fr); } }
+  .today-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface);
+               color: var(--ink); font-size: 13px; }
+  .today-btn:hover { border-color: var(--axis); }
+  .today-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .today-btn:disabled { opacity: .55; }
+  #hw-count:empty { display: none; }
+  .today-links { display: flex; gap: 8px; flex-wrap: wrap; }
+  .hw-add { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+  .hw-add input[type="text"], .hw-add input[type="date"] { padding: 8px 10px; border-radius: 6px; border: 1px solid var(--axis);
+    background: var(--surface); color: var(--ink); font: inherit; }
+  .hw-add input[type="text"] { flex: 1 1 260px; min-width: 0; }
+  .hw-add .hw-ap { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--ink-2); }
+  .hw-add button { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent);
+                   color: #fff; font: inherit; }
+  .hw-add button:disabled { opacity: .55; }
+  .hw-group { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 14px 0 2px; }
+  .hw-group.late { color: var(--down); }
+  .hw-list { list-style: none; margin: 0; padding: 0; }
+  .hw-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--grid); }
+  .hw-item:last-child { border-bottom: 0; }
+  .hw-item input { width: 18px; height: 18px; flex: none; accent-color: var(--accent); margin: 0; }
+  .hw-item label { flex: 1; min-width: 0; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; cursor: pointer; }
+  .hw-item.done .hw-title { text-decoration: line-through; color: var(--muted); }
+  .hw-course { font-size: 12px; }
+  .tag.ap { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .hw-due { font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+  .hw-due.late { color: var(--down); font-weight: 600; }
+  .hw-del { background: none; border: 0; color: var(--muted); font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+  .hw-del:hover { color: var(--down); background: var(--danger-bg); }
+  .hw-done { margin-top: 12px; font-size: 13px; } .hw-done summary { cursor: pointer; color: var(--ink-2); }
+  .hw-empty { margin: 12px 0 0; font-size: 13px; }
+  .today-value { font-size: 32px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.15; margin: 2px 0; }
+  .today-now { border-top: 1px solid var(--grid); margin-top: 14px; padding-top: 12px; font-size: 13px; }
+  .today-now .now-head { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .today-now .dot, .today-facts .dot { width: 8px; height: 8px; flex: none; transform: translateY(-1px); }
+  .today-now .now-line { color: var(--ink-2); margin-top: 4px; padding-left: 14px; }
+  .today-facts { list-style: none; padding: 0; margin: 12px 0 0; font-size: 13px; }
+  .today-facts li { padding: 3px 0; }
+  .today-report { border-top: 1px solid var(--grid); margin-top: 12px; padding-top: 10px; font-size: 13px; }
+  .today-report h3 { font-size: 14px; margin: 0; font-weight: 600; }
+  .today-report .card-head { margin-bottom: 6px; }
+  .today-report ul { margin: 0; padding-left: 18px; } .today-report li { margin: 3px 0; color: var(--ink-2); }
+
   /* phones (kept last so it wins over the rules above) */
   @media (max-width: 640px) {
     .topbar { padding: 0 12px; gap: 8px; } main { padding: 16px 12px 32px; }
@@ -379,6 +427,7 @@
   <button id="kill" class="btn btn-danger" aria-label="Emergency stop"><span class="hide-sm">Emergency stop</span><span class="sm-only">Stop</span></button>
 </header>
 <nav class="tabs" role="tablist">
+  <button class="tab" role="tab" data-tab="today">Today</button>
   <button class="tab" role="tab" data-tab="summary">Summary</button>
   <button class="tab" role="tab" data-tab="thinking">Thinking <span class="live-dot" id="think-tab-dot" aria-hidden="true"></span></button>
   <button class="tab" role="tab" data-tab="positions">Positions</button>
@@ -390,8 +439,38 @@
 <div id="banner" class="banner" hidden></div>
 
 <main id="main">
+  <!-- TODAY: the first screen: school work and the bot at a glance -->
+  <section data-panel="today" hidden>
+    <div class="today-head">
+      <div><h1 id="today-hello">Today</h1><div class="ink2" id="today-date"></div></div>
+      <div class="spacer"></div>
+      <button id="open-login" class="today-btn" hidden></button>
+    </div>
+    <div class="today-grid">
+      <div class="card">
+        <div class="card-head"><h2>School</h2><span class="tag" id="hw-count"></span><div class="spacer"></div>
+          <div class="today-links">
+            <button class="today-btn" id="open-ap" title="AP Classroom, through College Board's My AP sign-in">AP Classroom</button>
+            <button class="today-btn" id="open-gc" title="Google Classroom (its To-do page lists assigned, missing and done work)">Google Classroom</button>
+          </div></div>
+        <form class="hw-add" id="hw-add" autocomplete="off">
+          <input id="hw-text" type="text" maxlength="200" aria-label="What's due"
+                 placeholder="What's due? e.g. APUSH quiz, Friday">
+          <input id="hw-due" type="date" aria-label="Due date (optional)" title="Due date (optional)">
+          <label class="hw-ap"><input id="hw-ap" type="checkbox"> AP</label>
+          <button type="submit">Add</button>
+        </form>
+        <div id="today-school"><p class="muted">Loading your list…</p></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Your bot</h2><div class="spacer"></div><button class="tag" data-go="summary">Details</button></div>
+        <div id="today-bot"><p class="muted">Asking the bot…</p></div>
+      </div>
+    </div>
+  </section>
+
   <!-- SUMMARY -->
-  <section data-panel="summary">
+  <section data-panel="summary" hidden>
     <div class="right-now" id="right-now" aria-live="polite"></div>
     <div class="overview">
       <div>
@@ -841,7 +920,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, v); } catch {} },
 };
 
-const state = { snap: null, account: null, tab: "summary", range: "3M", side: "all", desk: "all", result: "all", table: false,
+const state = { snap: null, today: null, account: null, tab: "today", range: "3M", side: "all", desk: "all", result: "all", table: false,
                 demo: false, building: false, notice: null, calMonth: null, calMode: "realized", calDay: null };
 const theme = store.get("aitrader-theme");
 if (theme) document.documentElement.dataset.theme = theme;
@@ -923,6 +1002,7 @@ function render() {
   $("#autopilot").title = running ? "The autopilot is running" : "The autopilot isn't running: turn it on in Setup";
 
   renderSummary(s, a); renderPositions(a); renderTrades(a); renderActivity(a); renderResearch(s); renderJournal(s);
+  renderTodayBot();
   $("#footer").textContent = `Updated ${new Date(s.generated_at).toLocaleTimeString()} · refreshes every 30 seconds · ` +
     `broker: ${cap(s.broker)} · prices: ${s.prices} · Not financial advice.`;
 }
@@ -1570,8 +1650,165 @@ function setTab(t) {
   document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
   document.querySelectorAll("[data-panel]").forEach(p => p.hidden = p.dataset.panel !== t);
   if (t === "summary" && state.snap) render();
+  if (t === "today") loadToday();
   if (t === "thinking") thinkLoop(); else $("#think-tab-dot").classList.remove("on");
 }
+
+/* ---------------- Today: school work and the bot at a glance (today.py, school.py) ---------------- */
+const ACCOUNT_NAMES = { study: "In its head (pretend money)", paper: "Paper account (practice money)", live: "Real money" };
+const HW_GROUPS = [["overdue", "Overdue"], ["today", "Due today"], ["tomorrow", "Due tomorrow"], ["week", "This week"],
+                   ["later", "Later"], ["no_date", "No due date"]];
+let todayFlight = null, todayAt = 0;
+function loadToday(force) {                                // one question at a time; force = ask again now
+  if (todayFlight) return force ? todayFlight.then(() => loadToday(true)) : todayFlight;
+  if (!force && state.today && Date.now() - todayAt < 120000) { renderToday(); return Promise.resolve(); }
+  const demo = state.demo;
+  todayFlight = call("today")
+    .then(t => { if (demo === state.demo) { state.today = t; todayAt = Date.now(); } })
+    .catch(e => { if (!state.today) todayProblem(e); })
+    .finally(() => { todayFlight = null; renderToday(); });
+  return todayFlight;
+}
+function todayProblem(e) {
+  // An older Kestrel window with this newer page: macOS didn't let the app replace itself on an update (no
+  // paid Apple developer ID), so only the bot and its page were updated. The bot card still works.
+  if ((e && e.message) !== "unknown action") {
+    $("#today-school").replaceChildren(el("p", { class: "bad-text", text: (e && e.message) || "The bot didn't answer." }));
+    return;
+  }
+  $("#hw-add").hidden = true; $("#open-login").hidden = true;
+  const now = new Date();
+  $("#today-hello").textContent = now.getHours() < 12 ? "Good morning" : now.getHours() < 17 ? "Good afternoon" : "Good evening";
+  $("#today-date").textContent = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  const get = el("button", { class: "today-btn primary", type: "button", text: "Download the new Kestrel" });
+  get.onclick = () => openLink("https://github.com/pbelfand-dot/Aistock/releases/latest");
+  $("#today-school").replaceChildren(
+    el("p", { text: "This Kestrel window is older than the bot. When it last updated, macOS didn't let the app " +
+      "replace itself, so only the bot and this page were updated. Trading is up to date; the homework list " +
+      "needs the new window." }),
+    el("p", { class: "ink2", text: "To fix it once: Kestrel menu → Check for Updates…, or turn Kestrel on in System " +
+      "Settings → Privacy & Security → App Management, or download the new app and drag it into Applications." }),
+    get);
+}
+function renderToday() {
+  const t = state.today;
+  if (t) {
+    $("#today-hello").textContent = t.greeting;
+    $("#today-date").textContent = t.date;
+    renderLoginSwitch(t.open_at_login);
+    renderHomework(t.school);
+  }
+  renderTodayBot();
+}
+function renderLoginSwitch(o) {
+  const b = $("#open-login");
+  b.hidden = !o || !o.can || !!window.kestrelPhone;
+  if (b.hidden) return;
+  b.dataset.on = o.on ? "1" : "";
+  b.textContent = o.on ? "✓ Opens when you log in" : "Open Kestrel when I log in";
+  b.classList.toggle("primary", !o.on);
+  b.title = o.on ? "Kestrel opens on this screen each time you log in. Click to stop."
+                 : "Open Kestrel on this Today screen each time you log in to your Mac";
+}
+function hwRow(i, late) {
+  const id = "hw-" + i.id;
+  const box = el("input", { type: "checkbox", id, checked: i.done ? "" : null, "aria-label": `Done: ${i.title}` });
+  box.onchange = () => homework("school-done", { id: i.id, done: box.checked });
+  const del = el("button", { class: "hw-del", type: "button", title: "Remove", "aria-label": `Remove ${i.title}`, text: "×" });
+  del.onclick = () => homework("school-remove", { id: i.id });
+  return el("li", { class: "hw-item" + (i.done ? " done" : "") }, box,
+    el("label", { for: id }, el("span", { class: "hw-title", text: i.title }),
+       i.ap ? el("span", { class: "tag ap", text: "AP" }) : null,
+       i.course ? el("span", { class: "muted hw-course", text: i.course }) : null),
+    i.label ? el("span", { class: "hw-due" + (late ? " late" : ""), text: i.label }) : null, del);
+}
+function renderHomework(sc) {
+  const g = sc.groups, kids = [];
+  $("#hw-count").textContent = sc.open ? `${sc.open} to do` + (sc.ap_open ? ` · ${sc.ap_open} AP` : "") : "";
+  for (const [key, title] of HW_GROUPS) {
+    if (!g[key].length) continue;
+    kids.push(el("h3", { class: "hw-group" + (key === "overdue" ? " late" : ""), text: title }),
+              el("ul", { class: "hw-list" }, ...g[key].map(i => hwRow(i, key === "overdue"))));
+  }
+  if (!sc.open) kids.push(el("p", { class: "muted hw-empty", text: "Nothing on your list. Add homework above, AP Classroom " +
+    "work too (\"AP\" in the name tags it). Next: Google Classroom fills this in by itself, if your school allows the sign-in." }));
+  if (g.done.length) kids.push(el("details", { class: "hw-done" }, el("summary", { text: `Done lately (${g.done.length})` }),
+                                  el("ul", { class: "hw-list" }, ...g.done.map(i => hwRow(i, false)))));
+  $("#today-school").replaceChildren(...kids);
+}
+async function homework(action, payload) {
+  try {
+    const r = await call(action, { input: JSON.stringify(payload) });
+    if (action !== "school-done") notify(r.message);
+  } catch (e) { notify(e.message, true); }
+  await loadToday(true);
+}
+function renderTodayBot() {
+  const s = state.snap, t = state.today, box = $("#today-bot");
+  if (!s) return;
+  const kind = s.accounts.live.active ? "live" : s.accounts.paper.active ? "paper" : s.accounts.study.active ? "study" : "paper";
+  const a = s.accounts[kind], kids = [];
+  kids.push(el("div", {}, el("div", { class: "overview-label", text: ACCOUNT_NAMES[kind] }),
+    el("div", { class: "today-value", text: money(a.value) }),
+    a.day_change == null ? el("div", { class: "ink2", text: a.active ? "" : "Not trading in this account yet." })
+      : el("div", { class: "ink2" }, el("span", { class: dir(a.day_change),
+            text: `${arrow(a.day_change)}${signedMoney(a.day_change)} (${pct(a.day_change_pct)})` }), " today",
+            a.total_return_pct == null ? "" : ` · ${pct(a.total_return_pct)} since the start`)));
+  const r = s.right_now;
+  if (r) kids.push(el("div", { class: "today-now" },
+    el("div", { class: "now-head" }, el("span", { class: "dot", style: `background:${r.ok ? "var(--good)" : "var(--warning)"}` }),
+       el("strong", { text: "Right now: " }), r.headline),
+    ...r.lines.map(line => el("div", { class: "now-line", text: line }))));
+  if (t) {
+    const facts = el("ul", { class: "today-facts" }), up = t.uptime || {};
+    const upLine = (d, when) => el("li", {}, el("span", { class: "dot", style: `background:${d.ok ? "var(--good)" : "var(--warning)"}` }),
+                                   ` Autopilot ${when}: ${d.text}.`);
+    if (up.last) facts.append(upLine(up.last, `on ${up.last.label}`));
+    if (up.today && !up.today.ok) facts.append(upLine(up.today, "today"));
+    for (const n of t.news || []) facts.append(el("li", {}, el("strong", { text: n.today ? "Today: " : "Coming up: " }),
+                                                  `${n.name}, ${n.label} (${n.countdown})`));
+    kids.push(facts);
+    if (t.report && t.report.date) {
+      const read = el("button", { class: "tag", type: "button", text: "Read it" });
+      read.onclick = () => setTab("journal");
+      kids.push(el("div", { class: "today-report" },
+        el("div", { class: "card-head" }, el("h3", { text: `After-market report, ${t.report.label}` }), el("div", { class: "spacer" }), read),
+        t.report.points.length ? el("ul", {}, ...t.report.points.map(p => el("li", { text: p })))
+          : el("p", { class: "muted", text: "No plain-English summary that day (the local AI writes it when it's on)." })));
+    }
+  }
+  box.replaceChildren(...kids);
+}
+function openLink(url) {                                   // in your browser (the app window only shows Kestrel)
+  if (window.kestrelPhone || !bridge) { window.open(url, "_blank", "noopener"); return; }
+  call("open-url", { url }).catch(e => notify(e.message, true));
+}
+const schoolLink = (key, fallback) => ((state.today && state.today.school.links) || {})[key] || fallback;
+$("#open-ap").onclick = () => openLink(schoolLink("ap_classroom", "https://myap.collegeboard.org/"));
+$("#open-gc").onclick = () => openLink(schoolLink("classroom", "https://classroom.google.com/"));
+$("#hw-add").onsubmit = async (e) => {
+  e.preventDefault();
+  const text = $("#hw-text").value.trim(), add = $("#hw-add button");
+  if (!text) { $("#hw-text").focus(); return; }
+  add.disabled = true;
+  try {
+    const r = await call("school-add", { input: JSON.stringify({ text, due: $("#hw-due").value || null,
+                                                                 ap: $("#hw-ap").checked || null }) });
+    $("#hw-text").value = ""; $("#hw-due").value = ""; $("#hw-ap").checked = false;
+    notify(r.message);
+  } catch (err) { notify(err.message, true); }
+  finally { add.disabled = false; }
+  await loadToday(true);
+};
+$("#open-login").onclick = async (e) => {
+  const b = e.currentTarget; b.disabled = true;
+  try { notify((await call(b.dataset.on ? "login-open-off" : "login-open-on")).message); }
+  catch (err) { notify(err.message, true); }
+  finally { b.disabled = false; }
+  await loadToday(true);
+};
+document.addEventListener("visibilitychange", () => { if (!document.hidden && state.tab === "today") loadToday(); });
+setInterval(() => { if (state.tab === "today" && !document.hidden) loadToday(); }, 120000);
 
 /* ---------------- Thinking: the live decision feed (asks the bot every few seconds while it's open) ---------------- */
 let thinkTimer = null, thinkBusy = false;
@@ -2111,7 +2348,7 @@ window.addEventListener("resize", () => {
 /* ---------------- called by the app's menus ---------------- */
 window.aitraderRefresh = () => load();
 window.aitraderSetDemo = async (on) => {
-  state.demo = !!on; state.snap = null; state.account = null;
+  state.demo = !!on; state.snap = null; state.account = null; state.today = null; todayAt = 0;
   if (on) {
     showBanner("Building the demo: made-up prices run through the bot's real code (about a minute)...");
     state.building = true;
@@ -2121,6 +2358,7 @@ window.aitraderSetDemo = async (on) => {
   }
   if (inFlight) await inFlight;                             // a real-data answer still on its way
   await load();
+  if (state.tab === "today") await loadToday(true);
 };
 window.aitraderSelfTest = async () => {                  // used by the build machine to check the app works
   const problems = [];
@@ -2135,15 +2373,18 @@ window.aitraderSelfTest = async () => {                  // used by the build ma
     if (!r.message) problems.push("setup: resume didn't answer");
     $("#dlg-setup").close();
   } catch (e) { problems.push("setup: " + e.message); }
+  await loadToday(true);                                 // the Today screen: your list and the bot
+  if (!state.today || !$("#today-date").textContent) problems.push("today: no answer");
+  else if (!$("#today-bot").textContent.includes("$")) problems.push("today: no account value");
   await window.aitraderSetDemo(true);
   if (!state.snap || !state.snap.demo) problems.push("demo didn't load");
-  for (const t of ["positions", "activity", "research", "journal", "summary"]) setTab(t);
+  for (const t of ["positions", "activity", "research", "journal", "today", "summary"]) setTab(t);
   if (!document.querySelectorAll("#activity tr").length) problems.push("no demo trades shown");
   return problems.length ? "FAILED: " + problems.join("; ") : "OK: " + $("#hero").textContent;
 };
 
 if (window.kestrelPhone) document.body.classList.add("on-phone");   // opened on the phone (phone_screen.py)
-setTab("summary");
+setTab("today");
 load().then(async () => {                               // first time here and nothing set up: show Setup
   if (window.aitraderTesting || window.kestrelPhone || store.get("aitrader-setup-shown")) return;
   const s = await setupCall("setup-status").catch(() => null);

@@ -397,9 +397,13 @@ def why_lines(cfg, store, today: str) -> list:
     held = list(dict.fromkeys(t for kind in MODES for d in cfg["desks"]
                               for t in ((store.get(f"{kind}-{d}_ledger") or {}).get("positions") or {})))
     picks = [r["symbol"] for r in (load_list(cfg).get("swing_picks") or [])[:10]]
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    if now.strftime("%Y-%m-%d") != today:                    # a report for an earlier day: that evening's filings
+        now = datetime.strptime(today, "%Y-%m-%d") + timedelta(hours=20)
     out = []
     for t in list(dict.fromkeys(held + picks))[:20]:
-        w = why_moved(cfg, t)
+        w = why_moved(cfg, t, now=now)
         if w["today_pct"] is None or (t not in held and abs(w["today_pct"]) < 3):
             continue
         said = [f"{h['headline']} ({h.get('source') or 'news'}, {str(h.get('time') or '')[11:16] or h.get('time', '')})"

@@ -187,7 +187,7 @@ def test_why_it_moved_shows_the_move_the_headline_and_the_filing(cfg, sec, tmp_p
     store.set("paper-swing_ledger", {"cash": 400.0, "positions": {"AAA": {"ticker": "AAA", "qty": 1, "avg_cost": 50.0,
                                                                            "opened_on": "2026-09-30"}}})
     sec_filings.check(cfg, store, NOW)
-    w = stock_info.why_moved(cfg, "AAA")
+    w = stock_info.why_moved(cfg, "AAA", now=NOW)
     assert w["today_pct"] == 5.0 and w["week_pct"] == pytest.approx(9.2, abs=0.01)
     assert w["headlines"][0]["headline"] == "AAA wins a big contract" and w["filings"]
     text = "\n".join(report.why_lines(cfg, store, "2026-10-02"))

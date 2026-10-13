@@ -6,7 +6,7 @@ everything between them. This serves the same Kestrel screen to your phone:
   - only on the Mac's Tailscale address (100.x.y.z): never on your Wi-Fi or the internet;
   - only with Kestrel's access key (in the link from Setup, then remembered by the phone);
   - only watching and the safety buttons: pause, resume, emergency stop (typed confirmation) and
-    Stage 1. Keys and settings are changed on the Mac only.
+    Stage 1, plus your homework list on the Today screen. Keys and settings are changed on the Mac only.
 
 Add it to the Home Screen (Share -> Add to Home Screen) and it opens like an app.
 """
@@ -28,7 +28,9 @@ from .config import ROOT, data_path
 PORT = 8765
 TAILNET = ipaddress.ip_network("100.64.0.0/10")        # Tailscale gives every device an address in here
 ALLOWED = {"snapshot", "setup-status", "pause", "resume", "kill", "start-stage1", "start-stage2", "phone-test",
-           "stock-info", "thinking"}                     # stock-info and thinking only read
+           "stock-info", "thinking", "today",           # stock-info, thinking and today only read
+           "school-add", "school-done", "school-remove"}  # your homework list (never trading or settings)
+WITH_INPUT = {"stock-info", "school-add", "school-done", "school-remove"}
 WEB = ROOT / "aitrader" / "web"
 SHIM = """<script>
 window.kestrelPhone = true;
@@ -90,7 +92,7 @@ def answer(cfg, raw: bytes, key: str) -> tuple:
         if action not in ALLOWED:
             return 200, json.dumps({"error": "That's done on the Mac (Kestrel's Setup screen)."})
         with contextlib.redirect_stdout(io.StringIO()):        # the bot's own messages stay out of the answer
-            payload = json.loads(msg.get("input") or "{}") if action == "stock-info" else None
+            payload = json.loads(msg.get("input") or "{}") if action in WITH_INPUT else None
             result = handle(action, load_config(), bool(msg.get("demo")), msg.get("confirm"), payload)
     except Exception as e:
         result = {"error": str(e) or type(e).__name__}

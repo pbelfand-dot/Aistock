@@ -74,4 +74,6 @@ def test_it_says_what_the_autopilot_is_doing_right_now(cfg, tmp_path):
 def test_the_phone_and_the_app_may_ask_for_it():
     from aitrader import phone_screen
     assert "thinking" in phone_screen.ALLOWED                    # read-only, like the snapshot
-    assert '"thinking"' in (REPO / "mac/app/main.swift").read_text()
+    from aitrader import app_api
+    assert "thinking" in app_api.ACTIONS                         # the window passes any action name to the helper
+    assert "guard isActionName(action)" in (REPO / "mac/app/main.swift").read_text()

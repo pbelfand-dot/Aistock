@@ -53,7 +53,7 @@ def decide_orders(scores: pd.Series, prices: pd.Series, positions: dict, buying_
         elif not stops_only and risk.trim_qty(pos.qty, price, equity):
             share = pos.qty * price / equity * 100
             orders.append(Order(ticker, "SELL", risk.trim_qty(pos.qty, price, equity), price,
-                                f"trim: {share:.0f}% of the desk is in {ticker} (limit {risk.max_position_pct:g}%)"))
+                                f"trim: {share:.0f}% of the desk is in {ticker} (limit {risk.trim_limit():g}%)"))
 
     if stops_only or not allow_new_buys:
         return orders
@@ -86,7 +86,8 @@ def scaled_risk(risk: RiskManager, size: float) -> RiskManager:
         return risk
     import dataclasses
     return dataclasses.replace(risk, max_position_pct=risk.max_position_pct * size,
-                               risk_per_trade_pct=risk.risk_per_trade_pct * size)
+                               risk_per_trade_pct=risk.risk_per_trade_pct * size,
+                               trim_limit_pct=risk.trim_limit_pct * size)
 
 
 def sell_all(positions: dict, prices: pd.Series, reason: str, tickers=None) -> list:

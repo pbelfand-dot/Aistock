@@ -7,6 +7,9 @@ Uses launchd, the Mac's built-in service manager:
   * the autopilot holds a `caffeinate -i` while it runs, so the Mac doesn't idle-sleep while it
     works (closing the LID still sleeps a MacBook, unless lid-closed mode is on: lid_mode.py)
 Its output goes to data/autopilot.log.
+
+Open at login (a second, smaller LaunchAgent): opens the Kestrel app on its Today screen each time you log in.
+It only opens the window; the autopilot above runs either way.
 """
 import os
 import plistlib
@@ -16,6 +19,9 @@ from pathlib import Path
 
 LABEL = "com.aitrader.autopilot"
 PLIST = Path.home() / "Library" / "LaunchAgents" / f"{LABEL}.plist"
+APP_ID = "com.aitrader.app"                     # Kestrel.app's bundle identifier (mac/Info.plist)
+LOGIN_LABEL = "com.aitrader.open-at-login"
+LOGIN_PLIST = Path.home() / "Library" / "LaunchAgents" / f"{LOGIN_LABEL}.plist"
 
 
 def _domain() -> str:
@@ -76,3 +82,27 @@ def keep_awake():
     if sys.platform == "darwin":
         subprocess.Popen(["/usr/bin/caffeinate", "-i", "-w", str(os.getpid())],
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+# ------------------------------------------------------------------ open the app when you log in
+def open_at_login_on():
+    """launchd reads ~/Library/LaunchAgents at each login and runs `open -b com.aitrader.app`: the app opens
+    wherever it lives. Written, not started now (the app is already open). Not Apple's login-item API: that
+    needs macOS 13+ and a notarized app, and Kestrel supports macOS 12 with an ad-hoc signature."""
+    LOGIN_PLIST.parent.mkdir(parents=True, exist_ok=True)
+    LOGIN_PLIST.write_bytes(plistlib.dumps({
+        "Label": LOGIN_LABEL,
+        "ProgramArguments": ["/usr/bin/open", "-b", APP_ID],
+        "RunAtLoad": True,                       # at login; it runs once and is done (no KeepAlive)
+        "LimitLoadToSessionType": "Aqua",        # only when you log in to the desktop, never over SSH
+    }))
+
+
+def open_at_login_off():
+    subprocess.run(["launchctl", "bootout", f"{_domain()}/{LOGIN_LABEL}"], capture_output=True)
+    LOGIN_PLIST.unlink(missing_ok=True)
+
+
+def open_at_login() -> dict:
+    """can = a Mac (the switch shows); on = it opens at the next login."""
+    return {"can": sys.platform == "darwin", "on": sys.platform == "darwin" and LOGIN_PLIST.exists()}

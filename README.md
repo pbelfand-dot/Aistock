@@ -22,6 +22,12 @@ code changes.
 
 ### The app
 **Kestrel** is a normal Mac app: its own window, Dock icon and menus (no browser, no web server).
+- **Today** (the first tab): your homework and the bot at a glance. Quick-add homework ("APUSH progress check,
+  Friday" sets the due date; AP work is tagged), tick it off when it's done, and open AP Classroom or Google
+  Classroom with one click. Next to it: the bot's value, what each desk is doing, whether the autopilot ran all
+  through the last trading day, the next big economic news, and the last report's summary. Press **Open Kestrel
+  when I log in** once and it opens on Today every time you log in. Your list stays on your Mac (also on the phone
+  screen). Google Classroom filling it in by itself is next ([the plan](docs/DASHBOARD-PLAN.md)).
 - **Its window** is a brokerage-style dashboard: your account value vs. the S&P 500, positions,
   every trade and why, each desk's progress, the watchlist, and **Pause** / **Emergency stop**
   buttons.
@@ -106,6 +112,9 @@ code changes.
   facts), **Analyst** (what agrees and what conflicts), **Trader** (the tested strategy's orders),
   **Risk** (checks each buy) and **Reviewer** (after the close). The notes are in the after-market
   report. The rules still decide the trades. The Scout and Analyst also note today's stocks in play.
+  **Bets, not tickers:** stocks that move together (60-day correlation 0.85+) count as one bet. The Scout
+  says how many separate bets a desk holds, and Risk holds at most 2 stocks in one bet (Oct 8 it owned
+  MU, SNDK and two 2x Micron funds; three of them hit their stops on Oct 12).
 - **Stops sized to each stock (day desk).** Each stock's stop is half its usual daily range (14-day
   ATR), between 1% and 5%, so a jumpy stock in play gets room and a calm one a tight stop. A wider
   stop means a smaller position: no trade can lose more than 0.66% of the desk at its stop (the old
@@ -132,7 +141,7 @@ code changes.
   looked up once a month), and what Kestrel knows about it: which lists it's on and why, if it's in
   play today, what each account holds, its trades, its latest score, news and danger headlines, and
   any mistake it won't repeat with it. It works on the phone screen too.
-- **Scanning the market.** Every evening it checks all US stocks (a quick look at every one, then a
+- **Scanning the market.** Every evening it checks all US stocks except 2x/3x and inverse funds (a quick look at every one, then a
   full year of prices for the actively traded ones, reused from the day before where it can). It saves
   its work as it goes, so a restart or an update doesn't make it start over. The swing desk considers the 30 strongest it can
   afford. At 9:35am the day desk adds today's **stocks in play**: the busiest stocks whose first 5
@@ -171,6 +180,10 @@ only: it updates by itself. Real money involved: it asks first. Your keys and da
 ### Connect Claude
 Menu → **Connect Claude Code** (or **Connect Claude Desktop**). Claude can then see the bot
 (status, trades, plans) and pause it, and read your Schwab account once you add Schwab. It can't trade.
+
+### What's next: your daily dashboard
+The plan for turning Kestrel into the dashboard that opens when you log in (school work from Google
+Classroom and AP Classroom, your calendar, and the bot) is in [`docs/DASHBOARD-PLAN.md`](docs/DASHBOARD-PLAN.md).
 
 ### What's in this repo
 - [`trader/`](trader/): the bot. [Full guide →](trader/README.md)

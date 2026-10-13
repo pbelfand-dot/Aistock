@@ -447,8 +447,9 @@ def learned(cfg, store, desk, mode, strategy_name, market, today=None):
         data_path(cfg, learning.NOTE).write_text(learning.note(
             {d: {**(store.get(f"lessons:{d}") or {"trades": 0, "strategies": {}, "conditions": {}, "avoid": []}),
                  "mistakes": store.get(f"mistakes:{d}") or []} for d in active_desks(cfg)}))
-    if change["size"] < 1:
-        risk = dataclasses.replace(risk, max_position_pct=risk.max_position_pct * change["size"])
+    if change["size"] < 1:                                   # smaller NEW buys; what it owns keeps the desk's limit
+        risk = dataclasses.replace(risk, max_position_pct=risk.max_position_pct * change["size"],
+                                   trim_limit_pct=risk.trim_limit())
     return risk, change
 
 
@@ -908,6 +909,9 @@ def note_gap(cfg, store, before: str, now: datetime) -> dict:
     saved = store.get("autopilot_gaps") or {}
     items = saved.get("items", []) if saved.get("day") == now.strftime("%Y-%m-%d") else []
     store.set("autopilot_gaps", {"day": now.strftime("%Y-%m-%d"), "items": (items + [gap])[-20:]})
+    days = store.get("autopilot_gaps_by_day") or {}             # the last two weeks, for the Today screen
+    days[now.strftime("%Y-%m-%d")] = (items + [gap])[-20:]
+    store.set("autopilot_gaps_by_day", {d: days[d] for d in sorted(days)[-14:]})
     store.log(f"WARNING: the autopilot wasn't running from {gap['from']} to {gap['to']} (was the Mac asleep, off or "
               "unplugged?)" + (f"; it missed {' and '.join(missed)}" if missed else "")
               + ". Setup → Autopilot → lid-closed mode keeps a plugged-in Mac awake.")

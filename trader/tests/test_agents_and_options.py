@@ -6,7 +6,7 @@ import pandas as pd
 
 import run
 from aitrader import agents, options_flow, report
-from aitrader.brokers.base import Ledger, Order
+from aitrader.brokers.base import Fill, Ledger, Order
 from aitrader.brokers.paper import PaperBroker
 from aitrader.storage import Store
 from aitrader.strategies import Momentum
@@ -186,3 +186,46 @@ def test_a_team_problem_never_blocks_a_trade(cfg, tmp_path, monkeypatch):
               cfg["desks"]["swing"], cfg=cfg)
     assert broker.positions()                                              # the orders went ahead
     assert "couldn't write its notes" in store.get("paper-swing_thinking")["team"]["error"]
+
+
+def test_risk_counts_bets_not_tickers_and_holds_at_most_two_stocks_in_one_bet():
+    """Oct 8, 2026: the swing desk held MU and SNDK, then bought MUU and MULL (2x Micron funds). Four tickers, one
+    bet: on Oct 12 MUU, MULL and SNDK hit their stops on the same day. With same_bet on (the default), a third
+    stock in one bet is skipped; a stock that moves on its own still goes through, and so do sells."""
+    rng = np.random.default_rng(8)
+    memory = 100 + np.cumsum(rng.normal(0, 1, 80))
+    noise = lambda s: memory * s + rng.normal(0, 0.05, 80)
+    bars = _bars({"MU": noise(1.0), "SNDK": noise(1.6), "MUU": noise(0.4), "MULL": noise(0.3),
+                  "BWET": 100 + np.cumsum(rng.normal(0, 1, 80)), "CSCO": 100 + np.cumsum(rng.normal(0, 1, 80))})
+    from aitrader.brokers.base import Position
+    positions = {"MU": Position("MU", 1, 100.0, "2026-10-06"), "SNDK": Position("SNDK", 1, 160.0, "2026-10-07")}
+    buys = [Order("MUU", "BUY", 1, 40.0, "momentum score 0.93"), Order("MULL", "BUY", 1, 30.0, "momentum score 0.9"),
+            Order("BWET", "BUY", 1, 100.0, "momentum score 1.00")]
+    default = agents.settings({"agents": {"risk_vetoes": ["same_bet"]}})
+    assert default["max_same_bet"] == 2
+    keep, notes = agents.risk(buys, positions, bars, {}, 1000.0, default)
+    assert [o.ticker for o in keep] == ["BWET"]
+    assert notes[0].startswith("SKIPPED BUY MUU: it would be the 3rd stock in one bet (at most 2: MU, SNDK already")
+    assert notes[1].startswith("SKIPPED BUY MULL: it would be the 3rd stock in one bet")
+    assert notes[2].startswith("OK BUY BWET")
+
+    # selling one of the two first makes room: a stock sold in this decision isn't part of the bet any more
+    selling = [Order("SNDK", "SELL", 1, 150.0, "momentum says exit")] + buys
+    keep, notes = agents.risk(selling, positions, bars, {}, 1000.0, default)
+    assert [o.ticker for o in keep] == ["SNDK", "MUU", "BWET"]                 # MUU makes 2 (MU, MUU); MULL a 3rd
+    assert agents.bets(bars, ["MU", "SNDK", "MUU", "BWET", "CSCO"], 60, 0.85) == [["MU", "MUU", "SNDK"], ["BWET"], ["CSCO"]]
+
+
+def test_the_scout_says_how_many_separate_bets_the_desk_holds(cfg, tmp_path):
+    rng = np.random.default_rng(9)
+    memory = 100 + np.cumsum(rng.normal(0, 1, 80))
+    bars = _bars({"MU": memory, "SNDK": memory * 1.5 + rng.normal(0, 0.05, 80),
+                  "BWET": 100 + np.cumsum(rng.normal(0, 1, 80))})
+    broker = PaperBroker(Ledger(1000.0), 0.0, mode="paper-swing")
+    for t in bars:
+        broker.ledger.apply(Fill("2026-10-06", t, "BUY", 1, 50.0, "momentum score 0.9"))
+    prices = pd.Series({t: float(df["close"].iloc[-1]) for t, df in bars.items()})
+    keep, team = agents.review_orders(cfg, [], pd.Series({"MU": 0.9, "SNDK": 0.9, "BWET": 1.0}), prices, broker,
+                                      bars, {}, Momentum(), 8)
+    assert team["scout"]["bets"] == {"count": 2, "together": [["MU", "SNDK"]]}
+    assert "(3 of 8 slots) = 2 separate bets (MU, SNDK move together)" in agents.team_parts(team)["scout"]
