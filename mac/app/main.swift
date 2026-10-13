@@ -99,6 +99,7 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
     var autoUpdateItem: NSMenuItem!
     var updateTimer: Timer?
     var updating = false
+    lazy var ap: APClassroom = APClassroom(onSaved: { [weak self] in self?.refreshToday() })   // apclassroom.swift
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         buildMenus()
@@ -165,6 +166,8 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
         if action == "open-menu" { openSetupMenu(); replyHandler("{}", nil); return }
         if action == "app-version" { replyHandler("{\"version\": \"\(currentVersion())\"}", nil); return }
         if action == "check-updates" { checkForUpdates(userAsked: true); replyHandler("{}", nil); return }
+        if action == "ap-open" { ap.open(); replyHandler("{}", nil); return }          // AP Classroom's window
+        if action == "ap-read" { ap.readSaved(); replyHandler("{}", nil); return }     // re-read the chosen pages
         if action == "open-url" {                        // e.g. the Schwab login page, in your browser
             guard let text = body["url"] as? String, let url = URL(string: text), url.scheme == "https" else {
                 replyHandler(nil, "not a web address"); return
@@ -234,6 +237,13 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
         web.evaluateJavaScript("window.aitraderRefresh && window.aitraderRefresh(); 0", completionHandler: nil)
     }
 
+    /// The Today screen shows what the AP Classroom window just read.
+    func refreshToday() {
+        web.evaluateJavaScript("window.aitraderTodayRefresh && window.aitraderTodayRefresh(); 0", completionHandler: nil)
+    }
+
+    @objc func openAPClassroom() { ap.open() }
+
     @objc func toggleDemo() {
         demo.toggle()
         demoItem.state = demo ? .on : .off
@@ -283,6 +293,8 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
         let windowMenu = NSMenu(title: "Window")
         windowMenu.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
         windowMenu.addItem(withTitle: "Zoom", action: #selector(NSWindow.performZoom(_:)), keyEquivalent: "")
+        windowMenu.addItem(.separator())
+        windowMenu.addItem(withTitle: "AP Classroom", action: #selector(openAPClassroom), keyEquivalent: "").target = self
         main.addItem(withTitle: "Window", action: nil, keyEquivalent: "").submenu = windowMenu
 
         NSApp.mainMenu = main

@@ -196,10 +196,12 @@ blocks. And treat the uptime problem as more important than the dashboard: a bot
 3. Does your Mac go to school with you? Is there a computer at home that stays on?
 4. What's your budget for this (including $0)?
 5. What else should Today show: weather, sports or club schedules, a to-do list, grades?
-6. **AP Classroom in-app login** (open): you'd sign in to College Board once in a Kestrel window, it remembers you, and
+6. **AP Classroom in-app login** (you said build it: built Oct 13, `mac/app/apclassroom.swift` and
+   `aitrader/ap_classroom.py`): you'd sign in to College Board once in a Kestrel window, it remembers you, and
    reads your AP Classroom assignments page. Technically possible, and the only way to automate AP Classroom. But I
    couldn't load College Board's terms to check whether they allow automated reading, and it breaks whenever they
-   change the page. Build it, or keep quick add for AP work?
+   change the page. The reader knows two layouts: a table with a Due column, and cards with "Due <date>" lines.
+   Your real page is the test; if it finds nothing, a screenshot of the page lets it learn the layout.
 
 ---
 

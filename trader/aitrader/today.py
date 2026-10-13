@@ -125,10 +125,11 @@ def overview(cfg, store, now: datetime = None, school_cfg: dict = None) -> dict:
     from .market_hours import now_ny
     now = now or datetime.now()
     today = now.date()
-    from . import google_school
+    from . import ap_classroom, google_school
     return {"date": f"{now:%A, %B} {now.day}", "greeting": greeting(now.hour),
             "school": school.summary(school_cfg or cfg, today),
             "google": google_school.status(school_cfg or cfg, now),
+            "ap": ap_classroom.status(school_cfg or cfg, now),
             "uptime": uptime(cfg, store, today),
             "news": next_news(cfg, now_ny()),
             "report": report_summary(cfg),
