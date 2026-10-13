@@ -32,9 +32,13 @@ code changes.
   dates and missing work fill in Today by themselves, with today's calendar. Kestrel gets a read-only key (never your
   password) and can't post or turn in anything; Sign out cancels the key at Google. It needs a free Google Cloud key
   of your own first (the steps are in Setup → School, about 10 minutes). If your school doesn't allow outside apps for
-  your account, Google says "Access blocked" and Kestrel says what to do. College Board has no way for apps to read AP
-  Classroom: AP work posted in Google Classroom shows up tagged AP; the rest is quick add and the AP Classroom button.
-  ([The plan](docs/DASHBOARD-PLAN.md).)
+  your account, Google says "Access blocked" and Kestrel says what to do. ([The plan](docs/DASHBOARD-PLAN.md).)
+- **AP Classroom** (Setup → School, or Window → AP Classroom): College Board has no way for apps to read it, so
+  Kestrel opens it in a window of its own. Sign in to College Board once (the window remembers you), open a page that
+  lists your AP assignments, and press **Use this page for Today**. Kestrel reads that page (each assignment, its due
+  date and status) and re-reads it by itself, out of sight, at most every 2 hours. It only reads; it never starts or
+  submits anything. If it finds nothing on your assignments page, send a screenshot of the page so it can learn its
+  layout. A College Board account you sign in to with Google won't work there (Google blocks sign-ins in apps).
 - **Its window** is a brokerage-style dashboard: your account value vs. the S&P 500, positions,
   every trade and why, each desk's progress, the watchlist, and **Pause** / **Emergency stop**
   buttons.

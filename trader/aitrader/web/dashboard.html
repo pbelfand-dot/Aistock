@@ -406,6 +406,7 @@
   .hw-title-row { flex: 1; min-width: 0; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
   .hw-gc { width: 18px; height: 18px; flex: none; border-radius: 4px; background: var(--accent-wash); color: var(--accent);
            font-size: 10px; font-weight: 700; display: inline-grid; place-items: center; }
+  .hw-gc.ap { background: rgba(250,178,25,.18); color: #8a5a00; }
   .hw-link { background: none; border: 0; padding: 0; color: var(--ink); text-align: left; font: inherit; cursor: pointer; }
   .hw-link:hover { color: var(--accent); text-decoration: underline; }
   .hw-item.done .hw-link { text-decoration: line-through; color: var(--muted); }
@@ -867,9 +868,21 @@
            working either way.</p>
       </div>
       <div class="setup-card">
-        <h4>AP Classroom</h4>
-        <p class="ink2">College Board offers no way for other apps to read AP Classroom. AP work your teacher also posts in
-           Google Classroom shows up by itself, tagged AP; for the rest, use quick add on Today and its AP Classroom button.</p>
+        <h4>AP Classroom <span class="tag" id="ap-state"></span></h4>
+        <p class="ink2">College Board offers no way for other apps to read AP Classroom, so Kestrel opens it in a window of
+           its own and reads the pages you choose:</p>
+        <ol class="ink2 gc-steps">
+          <li>Press <strong>Open AP Classroom</strong> and sign in with your College Board username and password (the
+              window remembers you; an account you sign in to with Google won't work there, Google blocks that).</li>
+          <li>Open a page that lists your AP assignments with their due dates (one per AP class).</li>
+          <li>Press <strong>Use this page for Today</strong> at the top of that window. Kestrel re-reads those pages by
+              itself, out of sight, at most every 2 hours.</li>
+        </ol>
+        <div class="setup-row"><button class="primary" id="ap-open">Open AP Classroom</button>
+          <button id="ap-read" hidden>Read AP pages now</button><button id="ap-forget" hidden>Forget AP pages</button></div>
+        <p class="ink2" id="ap-line"></p>
+        <p class="ink2">It only reads what's on those pages; it never starts or submits anything. AP work your teacher also
+           posts in Google Classroom shows up from there too.</p>
       </div>
     </section>
 
@@ -1757,8 +1770,9 @@ function renderToday() {
     $("#today-hello").textContent = t.greeting;
     $("#today-date").textContent = t.date;
     renderLoginSwitch(t.open_at_login);
-    renderHomework(t.school, t.google || {});
+    renderHomework(t.school, t.google || {}, t.ap);
     autoReadClassroom(t.google || {});
+    autoReadAP(t.ap);
   }
   renderTodayBot();
 }
@@ -1773,7 +1787,7 @@ function renderLoginSwitch(o) {
                  : "Open Kestrel on this Today screen each time you log in to your Mac";
 }
 function hwRow(i, late) {
-  if (i.source === "classroom") return classroomRow(i, late);
+  if (i.source === "classroom" || i.source === "ap") return classroomRow(i, late);
   const id = "hw-" + i.id;
   const box = el("input", { type: "checkbox", id, checked: i.done ? "" : null, "aria-label": `Done: ${i.title}` });
   box.onchange = () => homework("school-done", { id: i.id, done: box.checked });
@@ -1785,13 +1799,15 @@ function hwRow(i, late) {
        i.course ? el("span", { class: "muted hw-course", text: i.course }) : null),
     i.label ? el("span", { class: "hw-due" + (late ? " late" : ""), text: i.label }) : null, del);
 }
-function classroomRow(i, late) {                          // from Google Classroom: turned in there, not here
-  const open = el("button", { class: "hw-link", type: "button", title: "Open it in Google Classroom", text: i.title });
-  open.onclick = () => i.link && openLink(i.link);
-  const chip = i.status ? el("span", { class: "tag " + (i.status === "missing" ? "missing" : "turned"), text: cap(i.status) }) : null;
+function classroomRow(i, late) {                          // from Google or AP Classroom: done there, not here
+  const ap = i.source === "ap", where = ap ? "AP Classroom" : "Google Classroom";
+  const open = el("button", { class: "hw-link", type: "button", title: `Open it in ${where}`, text: i.title });
+  open.onclick = () => i.link && (ap ? openAPClassroom() : openLink(i.link));
+  const chip = i.status ? el("span", { class: "tag " + (/missing|past due/.test(i.status) ? "missing"
+    : i.done ? "turned" : ""), text: cap(i.status) }) : null;
   return el("li", { class: "hw-item" + (i.done ? " done" : "") },
-    el("span", { class: "hw-gc", title: "From Google Classroom", "aria-label": "Google Classroom", text: "GC" }),
-    el("span", { class: "hw-title-row" }, open, i.ap ? el("span", { class: "tag ap", text: "AP" }) : null,
+    el("span", { class: "hw-gc" + (ap ? " ap" : ""), title: `From ${where}`, "aria-label": where, text: ap ? "AP" : "GC" }),
+    el("span", { class: "hw-title-row" }, open, i.ap && !ap ? el("span", { class: "tag ap", text: "AP" }) : null,
        i.course ? el("span", { class: "muted hw-course", text: i.course }) : null),
     chip, i.label ? el("span", { class: "hw-due" + (late ? " late" : ""), text: i.label + (i.due_time && !late ? " " + i.due_time : "") }) : null);
 }
@@ -1811,6 +1827,36 @@ function classroomLine(gc) {                               // connected? when wa
   return el("p", { class: "gc-line" }, `Google Classroom · ${gc.classes} classes · ` +
     (gc.minutes_ago == null ? "reading…" : gc.minutes_ago < 1 ? "read just now" : `read ${agoText(gc.minutes_ago)}`), again);
 }
+function apLine(ap) {                                     // AP Classroom pages chosen in Kestrel's AP window
+  if (!ap || !ap.pages) return null;
+  const again = el("button", { type: "button", text: "Refresh" });
+  again.onclick = () => readAPPages(true);
+  if (ap.signed_out) {
+    const go = el("button", { type: "button", text: "Sign in again" });
+    go.onclick = openAPClassroom;
+    return el("p", { class: "gc-line bad" }, "AP Classroom signed you out:", go);
+  }
+  return el("p", { class: "gc-line" }, `AP Classroom · ${ap.courses.join(", ")} · ` +
+    (ap.minutes_ago == null ? "reading…" : ap.minutes_ago < 1 ? "read just now" : `read ${agoText(ap.minutes_ago)}`), again);
+}
+async function openAPClassroom() {                         // Kestrel's AP window; an older window: the browser
+  try { await call("ap-open"); }
+  catch (e) { openLink(schoolLink("ap_classroom", "https://myap.collegeboard.org/")); }
+}
+let apAutoAt = 0;
+async function readAPPages(manual) {
+  try { await call("ap-read"); if (manual) notify("Re-reading your AP Classroom pages (Today updates when it's done)."); }
+  catch (e) {
+    if (manual) notify(window.kestrelPhone ? "AP Classroom is re-read on the Mac (its AP window), not from the phone."
+                                           : "Update Kestrel to re-read AP Classroom by itself (Kestrel menu → Check for Updates).", true);
+  }
+}
+function autoReadAP(ap) {                                  // at most every 30 minutes; the window decides the rest
+  if (!ap || !ap.stale || document.hidden || Date.now() - apAutoAt < 1800000) return;
+  apAutoAt = Date.now();
+  readAPPages(false);
+}
+window.aitraderTodayRefresh = () => loadToday(true);       // the AP window finished reading
 const agoText = (m) => m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} days ago`;
 let classroomBusy = false, classroomAutoAt = 0;
 async function readClassroom(manual) {
@@ -1826,8 +1872,8 @@ function autoReadClassroom(gc) {                           // fresh Classroom da
   classroomAutoAt = Date.now();
   readClassroom(false);
 }
-function renderHomework(sc, gc) {
-  const g = sc.groups, kids = [classroomLine(gc || {})];
+function renderHomework(sc, gc, ap) {
+  const g = sc.groups, kids = [classroomLine(gc || {}), apLine(ap)].filter(Boolean);
   $("#hw-count").textContent = sc.open ? `${sc.open} to do` + (sc.missing ? ` · ${sc.missing} missing` : "")
                                          + (sc.ap_open ? ` · ${sc.ap_open} AP` : "") : "";
   if ((sc.events || []).length) kids.push(el("h3", { class: "hw-group", text: "Today's calendar" }),
@@ -1893,7 +1939,7 @@ function openLink(url) {                                   // in your browser (t
   call("open-url", { url }).catch(e => notify(e.message, true));
 }
 const schoolLink = (key, fallback) => ((state.today && state.today.school.links) || {})[key] || fallback;
-$("#open-ap").onclick = () => openLink(schoolLink("ap_classroom", "https://myap.collegeboard.org/"));
+$("#open-ap").onclick = openAPClassroom;
 $("#open-gc").onclick = () => openLink(schoolLink("classroom", "https://classroom.google.com/"));
 $("#hw-add").onsubmit = async (e) => {
   e.preventDefault();
@@ -2236,7 +2282,7 @@ function renderSetupOverview(s) {
   const lid = s.lid || {}, ph = s.phone || {}, po = ph.pushover || {}, sc = ph.screen || {}, ai = s.local_ai || {};
   const ds = s.data_sources || {}, fr = ds.fred || {}, sec = ds.sec || {}, wb = s.webull || {}, gc = s.google || {};
   const running = s.autopilot_on && s.autopilot_alive !== false;
-  renderGoogle(gc);
+  renderGoogle(gc); renderAP(s.ap);
   const rows = [
     ["Alpaca paper account", s.paper_keys ? "connected" : "not connected (optional: it can simulate on this Mac)",
       s.paper_keys ? "ok" : "todo", "brokers"],
@@ -2388,6 +2434,18 @@ function pollGoogle(started) {
     } else gcChecks([{ ok: false, text: login.message || "Kestrel couldn't tell if the sign-in worked. Press Sign in with Google again." }]);
   }, 3000);
 }
+function renderAP(ap) {
+  if (!ap) return;
+  $("#ap-state").textContent = !ap.pages ? "not set up" : ap.signed_out ? "sign in again" : "reading";
+  $("#ap-read").hidden = $("#ap-forget").hidden = !ap.pages;
+  $("#ap-line").textContent = !ap.pages ? "No AP pages chosen yet."
+    : `${ap.pages} page${ap.pages === 1 ? "" : "s"} (${ap.courses.join(", ")}): ${ap.found} assignment${ap.found === 1 ? "" : "s"} ` +
+      `found, read ${ap.minutes_ago == null ? "—" : ap.minutes_ago < 1 ? "just now" : agoText(ap.minutes_ago)}.` +
+      (ap.signed_out ? " College Board signed Kestrel's window out: Open AP Classroom and sign in again." : "");
+}
+$("#ap-open").onclick = openAPClassroom;
+$("#ap-read").onclick = () => readAPPages(true);
+$("#ap-forget").onclick = (e) => setupAction(e.target, "ap-forget", undefined, async (r) => { notify(r.message); loadToday(true); });
 $("#gc-save").onclick = (e) => {
   const client_id = $("#gc-id").value.trim(), client_secret = $("#gc-secret").value.trim();
   if (!client_id || !client_secret) { gcChecks([{ ok: false, text: "Paste both the Client ID and the Client secret." }]); return; }
