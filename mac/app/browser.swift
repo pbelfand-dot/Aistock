@@ -77,6 +77,9 @@ final class Browser: NSObject, WKScriptMessageHandlerWithReply, WKNavigationDele
     var reading = false
     var generation = 0                         // which page the reader is on (late answers about an earlier one are ignored)
     var signIns = 0
+    var signedInHere = false                   // this page needed a sign-in (afterwards: back to the chosen page once)
+    var passwordsTried: Set<String> = []       // this round: a saved password is submitted once per site and account
+    var failed: [String: Date] = [:]           // a saved password a site refused: not tried again for 12 hours
     var lastLength = -1
     var lastRead: Date?
     var timer: Timer?
@@ -217,6 +220,7 @@ final class Browser: NSObject, WKScriptMessageHandlerWithReply, WKNavigationDele
             self.asking = false
             if answer == .alertFirstButtonReturn {
                 logins.save(host: host, username: username, password: password)
+                self.failed[host + "|" + username.lowercased()] = nil
             } else if answer == .alertThirdButtonReturn {
                 logins.never(host)
             }
@@ -282,6 +286,7 @@ final class Browser: NSObject, WKScriptMessageHandlerWithReply, WKNavigationDele
         if reading { return }
         if !force, let last = lastRead, Date().timeIntervalSince(last) < 600 { return }
         reading = true
+        passwordsTried = []
         DispatchQueue.global(qos: .utility).async {
             let answer = jsonObject(askBot(["web-pages"]))
             var pages: [ChosenPage] = []
@@ -312,6 +317,7 @@ final class Browser: NSObject, WKScriptMessageHandlerWithReply, WKNavigationDele
         let page = queue.removeFirst()
         current = page
         signIns = 0
+        signedInHere = false
         lastLength = -1
         generation += 1
         let mine = generation
@@ -331,8 +337,9 @@ final class Browser: NSObject, WKScriptMessageHandlerWithReply, WKNavigationDele
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in self?.check(mine, started: started) }
     }
 
-    /// Every 2 seconds: a sign-in page? sign in (at most 3 tries). Settled (it shows due dates, or its text stopped
-    /// changing)? read it. Never more than about a minute and a half per page.
+    /// Every 2 seconds, once the page has loaded: a sign-in page? sign in (a saved password goes in once; a site that
+    /// refuses it isn't asked again for 12 hours). Settled (it shows due dates, or its text stopped changing)? read it.
+    /// Never more than about a minute and a half per page.
     func check(_ mine: Int, started: Date) {
         guard reading, mine == generation, let web = reader, let page = current else { return }
         web.evaluateJavaScript("JSON.stringify(window.kestrel ? kestrel.state() : null)", in: nil,
@@ -341,11 +348,22 @@ final class Browser: NSObject, WKScriptMessageHandlerWithReply, WKNavigationDele
             var state: [String: Any] = [:]
             if case .success(let value) = result, let text = value as? String { state = jsonObject(text) }
             let waited = Date().timeIntervalSince(started)
+            if web.isLoading && waited < 45 {                  // still loading: nothing to judge yet
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in self?.check(mine, started: started) }
+                return
+            }
             let step = state["step"] as? String ?? ""
-            if !step.isEmpty, self.signIns < 3, waited < 75, self.signIn(web, step: step, state: state, page: page) {
+            if !step.isEmpty, self.signIns < 4, waited < 75, self.signIn(web, step: step, state: state, page: page) {
                 self.signIns += 1
+                self.signedInHere = true
                 self.lastLength = -1
-                DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in self?.check(mine, started: started) }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in self?.check(mine, started: started) }
+                return
+            }
+            if step.isEmpty, self.signedInHere, web.url?.host != page.url.host, waited < 60 {
+                self.signedInHere = false                      // signed in, but the site went elsewhere: the chosen page
+                web.load(URLRequest(url: page.url))
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in self?.check(mine, started: started) }
                 return
             }
             let length = state["text"] as? Int ?? 0
@@ -376,6 +394,15 @@ final class Browser: NSObject, WKScriptMessageHandlerWithReply, WKNavigationDele
         }
         let hint = !page.account.isEmpty ? page.account : (state["shown"] as? String ?? "")
         guard let login = Logins.shared.pick(host: host, hint: hint) else { return false }
+        let key = host + "|" + login.username.lowercased()
+        if let when = failed[key], Date().timeIntervalSince(when) < 12 * 3600 { return false }
+        if step == "password" {
+            if passwordsTried.contains(key) {                  // the site asked again: the saved password is wrong
+                failed[key] = Date()                           // (never retried over and over: that locks accounts)
+                return false
+            }
+            passwordsTried.insert(key)
+        }
         web.callAsyncJavaScript("return kestrel.fill(user, password, true)",
                                 arguments: ["user": login.username, "password": login.password], in: nil,
                                 in: .defaultClient, completionHandler: nil)

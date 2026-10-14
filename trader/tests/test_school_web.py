@@ -271,3 +271,4 @@ def test_the_mac_browser_reads_pages_signs_in_and_keeps_passwords_away_from_the_
     helper = (mac / "browser.js").read_text()
     assert "kestrelLogin" in helper and "window.kestrel = {" in helper
     assert "browserSelfTest" in main                                          # the build machine opens a tab
+    assert "passwordsTried.contains(key)" in browser and "12 * 3600" in browser  # a refused password isn't retried
