@@ -4,10 +4,35 @@ Written Oct 13, 2026. Status: **step 1 is built** (the Today tab, homework quick
 open at login); the rest is planned. Facts that came from the web have their source linked; where sources
 disagreed, it says so.
 
-**Step 2 (Google Classroom) is built too.** Your idea of "log in inside the app and it saves it" can't work for
-Google: Google blocks sign-ins in apps' built-in browsers. The sign-in Kestrel uses does the same job: you sign in
-once in your own browser, and Kestrel keeps a read-only key. For AP Classroom, an in-app login is the only way to
-automate it (College Board has no API); see the question at the end.
+**Step 2 (Google Classroom) is built too**, through Google's own sign-in (one account, needs a Google Cloud key).
+
+**Update, Oct 13 evening: Kestrel's own browser.** The AP Classroom window signed in fine but found no assignments:
+its reader only knew AP Classroom's older layouts. You asked for a browser like Claude's that keeps several accounts
+signed in, saves passwords and signs in daily. Built (`mac/app/browser.swift`, `logins.swift`, `browser.js`,
+`aitrader/school_web.py`):
+- tabs, bookmarks, downloads and uploads; it tells pages it's Safari (it is Safari's engine), which is how
+  WebKit-based browsers like Orion and DuckDuckGo's Mac browser sign in to Google;
+- any number of accounts (Google's own "Add another account"), and saved passwords: sealed with AES-GCM in
+  ~/Library/Application Support/Kestrel, with the key in the keychain. The bot (and Claude) never sees them;
+- "Add to Today" on any page that lists your work; the chosen pages are re-read every 3 hours and after the Mac wakes,
+  signing back in with the saved password when a site signed Kestrel out;
+- a sturdier reader: the page's own data (JSON it downloaded), then its rows (tables, lists, cards), then its text,
+  then the local AI (only titles that really are on the page count). "Copy what Kestrel saw" turns a page it can't
+  read yet into text to paste to Claude, so the reader can learn it.
+
+What could still go wrong, honestly:
+- **Google may still refuse.** Its "This browser or app may not be secure" check looks at more than the browser's
+  name, and Google changes it without notice. If it refuses, Google Classroom still works through Google's own
+  sign-in (step 2), and AP Classroom doesn't need Google at all.
+- **Signing back in stops at a phone code or a "verify it's you" check**: then Today says "Sign in", and you do it
+  once in the browser. Google sessions usually last weeks; College Board's are shorter, which is what the saved
+  password is for.
+- **The keychain key has no question in front of it.** Kestrel has no paid Apple developer ID, so a normal keychain
+  item would make macOS ask for your Mac password after every update (and the out-of-sight sign-ins would wait on
+  it). The cost: another app running as you could read the key. Cookies in any browser have the same exposure.
+- **I couldn't see AP Classroom's or Google Classroom's current pages** (they need your sign-in), so the first real
+  read is the real test. That's what "Copy what Kestrel saw" is for.
+- **College Board's terms** (automated reading of your own pages) still couldn't be checked from here.
 
 **Your answers (Oct 13):** Classroom is on a school account, so the sign-in test comes before building the
 Google part. AP work comes both ways (in Google Classroom and only in AP Classroom), so both paths stay. The
@@ -85,8 +110,10 @@ check), so it needs no new data.
    (`aitrader/google_school.py`, Setup → School). Read-only permissions: classroom.courses.readonly,
    classroom.coursework.me.readonly and calendar.events.owned.readonly. Checked against Google's own API description
    (the discovery documents, revision 20261011 for Classroom). Whether your school allows it is the first real test.
-   Not possible: signing in to Google inside Kestrel's own window. Google has blocked sign-ins in apps' built-in
-   browsers since 2019, and OAuth in embedded webviews since 2021.
+   Google blocks its sign-in inside apps' embedded web views (since 2019, and OAuth in them since 2021), which is
+   why this step signs in through your own browser.
+   **Built (Oct 13, evening): Kestrel's own browser** (see the update at the top): every account, saved passwords,
+   signing back in by itself, and any school page on Today.
 3. Polish: the phone screen, a morning push alert ("3 things due today, the autopilot ran all day
    yesterday"), and colors for overdue work.
 

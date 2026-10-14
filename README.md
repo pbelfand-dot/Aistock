@@ -24,21 +24,25 @@ code changes.
 **Kestrel** is a normal Mac app: its own window, Dock icon and menus (no browser, no web server).
 - **Today** (the first tab): your homework and the bot at a glance. Quick-add homework ("APUSH progress check,
   Friday" sets the due date; AP work is tagged), tick it off when it's done, and open AP Classroom or Google
-  Classroom with one click. Next to it: the bot's value, what each desk is doing, whether the autopilot ran all
+  Classroom in Kestrel's browser with one click. Next to it: the bot's value, what each desk is doing, whether the autopilot ran all
   through the last trading day, the next big economic news, and the last report's summary. Press **Open Kestrel
   when I log in** once and it opens on Today every time you log in. Your list stays on your Mac (also on the phone
   screen).
-- **Google Classroom** (Setup → School): sign in once with Google, in your own browser, and your assignments, due
-  dates and missing work fill in Today by themselves, with today's calendar. Kestrel gets a read-only key (never your
-  password) and can't post or turn in anything; Sign out cancels the key at Google. It needs a free Google Cloud key
-  of your own first (the steps are in Setup → School, about 10 minutes). If your school doesn't allow outside apps for
-  your account, Google says "Access blocked" and Kestrel says what to do. ([The plan](docs/DASHBOARD-PLAN.md).)
-- **AP Classroom** (Setup → School, or Window → AP Classroom): College Board has no way for apps to read it, so
-  Kestrel opens it in a window of its own. Sign in to College Board once (the window remembers you), open a page that
-  lists your AP assignments, and press **Use this page for Today**. Kestrel reads that page (each assignment, its due
-  date and status) and re-reads it by itself, out of sight, at most every 2 hours. It only reads; it never starts or
-  submits anything. If it finds nothing on your assignments page, send a screenshot of the page so it can learn its
-  layout. A College Board account you sign in to with Google won't work there (Google blocks sign-ins in apps).
+- **Kestrel's browser** (Window → Browser, ⌘B, or Setup → School): a small Safari of its own (tabs, bookmarks,
+  downloads, uploads) that stays signed in to all your accounts: your school Google and your personal Gmail (Google's
+  "Add another account"), College Board, any school site. When you sign in it offers to **save the password**; they
+  stay on your Mac, sealed with a key in your Mac's keychain, and the bot never sees them. On a page that lists your
+  work (Google Classroom's To-do for each account, AP Classroom's Assignments, a teacher's site) press **Add to
+  Today**: Kestrel reads each assignment, its due date and status, and re-reads those pages by itself, out of sight:
+  soon after it opens, every 3 hours, and after the Mac wakes. When a site has signed it out, it **signs back in by
+  itself** with the saved password (not past a code sent to your phone, or a "verify it's you" check: then Today says
+  "Sign in"). It reads the page's own data, its rows and its text, and the local AI when those find nothing. If it
+  still finds nothing on a page that lists your work, **Copy what Kestrel saw** and paste it into a chat with Claude so
+  Kestrel can learn that page. It only reads: it never starts, turns in or changes anything.
+- **Google Classroom through Google's own sign-in** (optional, Setup → School): Google's official way, for one
+  account, plus today's Google Calendar. It needs a free Google Cloud key of your own (the steps are in Setup →
+  School, about 10 minutes), and schools often don't allow it for students ("Access blocked"). Kestrel gets a
+  read-only key, and Sign out cancels it at Google. ([The plan](docs/DASHBOARD-PLAN.md).)
 - **Its window** is a brokerage-style dashboard: your account value vs. the S&P 500, positions,
   every trade and why, each desk's progress, the watchlist, and **Pause** / **Emergency stop**
   buttons.

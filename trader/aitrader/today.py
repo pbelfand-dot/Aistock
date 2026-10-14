@@ -1,8 +1,8 @@
 """
 today.py: the Today screen, the first thing you see when Kestrel opens (docs/DASHBOARD-PLAN.md).
 
-  - school:  what's due (school.py: your quick-add list and Google Classroom, google_school.py), today's calendar
-             events, and the AP Classroom button
+  - school:  what's due (school.py: your quick-add list, Google Classroom through google_school.py, and the pages
+             read in Kestrel's browser, school_web.py), and today's calendar events
   - the bot: whether the autopilot ran through the last trading day, the next big economic news, and the
              last after-market report's summary (the account value and each desk come from the snapshot the
              page already has)
@@ -125,11 +125,11 @@ def overview(cfg, store, now: datetime = None, school_cfg: dict = None) -> dict:
     from .market_hours import now_ny
     now = now or datetime.now()
     today = now.date()
-    from . import ap_classroom, google_school
+    from . import google_school, school_web
     return {"date": f"{now:%A, %B} {now.day}", "greeting": greeting(now.hour),
             "school": school.summary(school_cfg or cfg, today),
             "google": google_school.status(school_cfg or cfg, now),
-            "ap": ap_classroom.status(school_cfg or cfg, now),
+            "web": school_web.status(school_cfg or cfg, now),
             "uptime": uptime(cfg, store, today),
             "news": next_news(cfg, now_ny()),
             "report": report_summary(cfg),

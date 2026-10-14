@@ -407,6 +407,17 @@
   .hw-gc { width: 18px; height: 18px; flex: none; border-radius: 4px; background: var(--accent-wash); color: var(--accent);
            font-size: 10px; font-weight: 700; display: inline-grid; place-items: center; }
   .hw-gc.ap { background: rgba(250,178,25,.18); color: #8a5a00; }
+  .hw-gc.web { background: var(--grid); color: var(--ink-2); }
+  /* Kestrel's browser in Setup → School (school_web.py, logins.swift) */
+  .web-list { list-style: none; padding: 0; margin: 8px 0; font-size: 13px; }
+  .web-list li { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; padding: 6px 0; border-top: 1px solid var(--grid); }
+  .web-list li:first-child { border-top: 0; }
+  .web-list .what { flex: 1; min-width: 200px; }
+  .web-list .bad { color: var(--down); }
+  .web-list button { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; cursor: pointer; }
+  .web-list button:hover { text-decoration: underline; }
+  dialog.report { max-width: 720px; width: calc(100vw - 48px); }
+  dialog.report textarea { width: 100%; height: 320px; font: 12px/1.4 ui-monospace, Menlo, monospace; box-sizing: border-box; }
   .hw-link { background: none; border: 0; padding: 0; color: var(--ink); text-align: left; font: inherit; cursor: pointer; }
   .hw-link:hover { color: var(--accent); text-decoration: underline; }
   .hw-item.done .hw-link { text-decoration: line-through; color: var(--muted); }
@@ -468,8 +479,8 @@
       <div class="card">
         <div class="card-head"><h2>School</h2><span class="tag" id="hw-count"></span><div class="spacer"></div>
           <div class="today-links">
-            <button class="today-btn" id="open-ap" title="AP Classroom, through College Board's My AP sign-in">AP Classroom</button>
-            <button class="today-btn" id="open-gc" title="Google Classroom (its To-do page lists assigned, missing and done work)">Google Classroom</button>
+            <button class="today-btn" id="open-ap" title="AP Classroom (College Board's My AP), in Kestrel's browser">AP Classroom</button>
+            <button class="today-btn" id="open-gc" title="Google Classroom (its To-do page lists assigned, missing and done work), in Kestrel's browser">Google Classroom</button>
           </div></div>
         <form class="hw-add" id="hw-add" autocomplete="off">
           <input id="hw-text" type="text" maxlength="200" aria-label="What's due"
@@ -645,6 +656,14 @@
   <h3 id="stock-title"></h3>
   <div id="stock-body"></div>
   <div class="dlg-actions"><button class="primary blue" data-close>Done</button></div>
+</dialog>
+
+<dialog id="dlg-report" class="report" aria-labelledby="report-title">
+  <h3 id="report-title">What Kestrel saw on this page</h3>
+  <p class="ink2">Copy this and paste it into your chat with Claude: it shows Claude how the page is laid out, so Kestrel
+     can learn to read it. It's the page's text as you'd see it.</p>
+  <textarea id="report-text" readonly spellcheck="false"></textarea>
+  <div class="dlg-actions"><button data-close>Close</button><button class="primary blue" id="report-copy">Copy</button></div>
 </dialog>
 
 <dialog id="dlg-setup" class="setup" aria-labelledby="setup-title">
@@ -834,10 +853,38 @@
     <!-- SCHOOL: Google Classroom on the Today screen (google_school.py) -->
     <section class="setup-pane" data-pane="school" hidden>
       <h2 class="pane-title">School</h2>
-      <p class="pane-lead">Your Google Classroom assignments, due dates and missing work, and today's calendar, on the Today
-         screen. Kestrel can only read them: it can't post, turn in or change anything.</p>
+      <p class="pane-lead">Your assignments, due dates and missing work from Google Classroom, AP Classroom and other school
+         sites, on the Today screen. Kestrel only reads them: it never starts, turns in or changes anything.</p>
       <div class="setup-card">
-        <h4>Google Classroom <span class="tag" id="gc-state"></span></h4>
+        <h4>School sites, in Kestrel's browser <span class="tag" id="web-state"></span></h4>
+        <p class="ink2">Kestrel has a browser of its own. It stays signed in to your accounts (as many as you like), saves
+           your passwords on this Mac, and reads the pages you choose onto Today. It re-reads them by itself every few
+           hours, and signs back in when a site has signed it out.</p>
+        <ol class="ink2 gc-steps">
+          <li>Press <strong>Open Kestrel's browser</strong> (or Window → Browser, ⌘B) and sign in to your school Google
+              account. When Kestrel asks, press <strong>Save Password</strong>.</li>
+          <li>Add your other accounts the same way: your personal Gmail (in Google, your picture at the top right →
+              <em>Add another account</em>) and College Board for AP Classroom (its own username and password; College
+              Board sign-ins that go through Google don't work in apps).</li>
+          <li>Open each page that lists your work and press <strong>Add to Today</strong> at the top: Google Classroom's
+              <em>To-do</em> page (once for each Google account: switch with your picture, top right), AP Classroom's
+              <em>Assignments</em> for each AP class, and any other school site.</li>
+          <li>If Kestrel finds nothing on a page that does list your work: <strong>Copy what Kestrel saw</strong> (here, or
+              the browser's Page menu) and paste it into your chat with Claude, so Kestrel can learn that page.</li>
+        </ol>
+        <div class="setup-row"><button class="primary" id="web-open">Open Kestrel's browser</button>
+          <button id="web-read" hidden>Read my pages now</button></div>
+        <ul class="web-list" id="web-pages"></ul>
+        <h4>Saved passwords</h4>
+        <ul class="web-list" id="web-logins"></ul>
+        <p class="ink2">They stay on this Mac, sealed with a key in your Mac's keychain. The bot (and Claude, if you
+           connected it) never sees them.</p>
+      </div>
+      <div class="setup-card">
+        <h4>Google Classroom, through Google's own sign-in (optional) <span class="tag" id="gc-state"></span></h4>
+        <p class="ink2">Another way to read Google Classroom, plus today's Google Calendar: Google's official one, for a
+           single account. It needs a free Google Cloud key, and school accounts are often not allowed to use it. Kestrel's
+           browser (above) is simpler.</p>
         <p class="ink2" id="gc-line"></p>
         <details class="how" id="how-gc"><summary>One-time setup: your own free Google Cloud key (about 10 minutes)</summary>
           <ol class="ink2 gc-steps">
@@ -866,23 +913,6 @@
            <em>Access blocked</em> or <em>admin_policy_enforced</em>, your school doesn't allow outside apps for your
            account: use <em>Request access</em> there if it's offered, or ask your school's IT. Quick add on Today keeps
            working either way.</p>
-      </div>
-      <div class="setup-card">
-        <h4>AP Classroom <span class="tag" id="ap-state"></span></h4>
-        <p class="ink2">College Board offers no way for other apps to read AP Classroom, so Kestrel opens it in a window of
-           its own and reads the pages you choose:</p>
-        <ol class="ink2 gc-steps">
-          <li>Press <strong>Open AP Classroom</strong> and sign in with your College Board username and password (the
-              window remembers you; an account you sign in to with Google won't work there, Google blocks that).</li>
-          <li>Open a page that lists your AP assignments with their due dates (one per AP class).</li>
-          <li>Press <strong>Use this page for Today</strong> at the top of that window. Kestrel re-reads those pages by
-              itself, out of sight, at most every 2 hours.</li>
-        </ol>
-        <div class="setup-row"><button class="primary" id="ap-open">Open AP Classroom</button>
-          <button id="ap-read" hidden>Read AP pages now</button><button id="ap-forget" hidden>Forget AP pages</button></div>
-        <p class="ink2" id="ap-line"></p>
-        <p class="ink2">It only reads what's on those pages; it never starts or submits anything. AP work your teacher also
-           posts in Google Classroom shows up from there too.</p>
       </div>
     </section>
 
@@ -1770,9 +1800,9 @@ function renderToday() {
     $("#today-hello").textContent = t.greeting;
     $("#today-date").textContent = t.date;
     renderLoginSwitch(t.open_at_login);
-    renderHomework(t.school, t.google || {}, t.ap);
+    renderHomework(t.school, t.google || {}, t.web);
     autoReadClassroom(t.google || {});
-    autoReadAP(t.ap);
+    autoReadWeb(t.web);
   }
   renderTodayBot();
 }
@@ -1787,7 +1817,7 @@ function renderLoginSwitch(o) {
                  : "Open Kestrel on this Today screen each time you log in to your Mac";
 }
 function hwRow(i, late) {
-  if (i.source === "classroom" || i.source === "ap") return classroomRow(i, late);
+  if (["classroom", "ap", "web"].includes(i.source)) return classroomRow(i, late);
   const id = "hw-" + i.id;
   const box = el("input", { type: "checkbox", id, checked: i.done ? "" : null, "aria-label": `Done: ${i.title}` });
   box.onchange = () => homework("school-done", { id: i.id, done: box.checked });
@@ -1799,23 +1829,28 @@ function hwRow(i, late) {
        i.course ? el("span", { class: "muted hw-course", text: i.course }) : null),
     i.label ? el("span", { class: "hw-due" + (late ? " late" : ""), text: i.label }) : null, del);
 }
-function classroomRow(i, late) {                          // from Google or AP Classroom: done there, not here
-  const ap = i.source === "ap", where = ap ? "AP Classroom" : "Google Classroom";
-  const open = el("button", { class: "hw-link", type: "button", title: `Open it in ${where}`, text: i.title });
-  open.onclick = () => i.link && (ap ? openAPClassroom() : openLink(i.link));
+function classroomRow(i, late) {                          // from a school site: done there, not here
+  const ap = i.source === "ap", web = i.source === "web";
+  const where = i.site || (ap ? "AP Classroom" : "Google Classroom");
+  const from = `From ${where}` + (i.account ? ` (${i.account})` : "");
+  const open = el("button", { class: "hw-link", type: "button", title: `Open it in Kestrel's browser (${where})`, text: i.title });
+  open.onclick = () => i.link && openInBrowser(i.link);
   const chip = i.status ? el("span", { class: "tag " + (/missing|past due/.test(i.status) ? "missing"
     : i.done ? "turned" : ""), text: cap(i.status) }) : null;
   return el("li", { class: "hw-item" + (i.done ? " done" : "") },
-    el("span", { class: "hw-gc" + (ap ? " ap" : ""), title: `From ${where}`, "aria-label": where, text: ap ? "AP" : "GC" }),
+    el("span", { class: "hw-gc" + (ap ? " ap" : web ? " web" : ""), title: from, "aria-label": from,
+                 text: ap ? "AP" : web ? "↗" : "GC" }),
     el("span", { class: "hw-title-row" }, open, i.ap && !ap ? el("span", { class: "tag ap", text: "AP" }) : null,
        i.course ? el("span", { class: "muted hw-course", text: i.course }) : null),
     chip, i.label ? el("span", { class: "hw-due" + (late ? " late" : ""), text: i.label + (i.due_time && !late ? " " + i.due_time : "") }) : null);
 }
-function classroomLine(gc) {                               // connected? when was it read? anything wrong?
+function classroomLine(gc, web) {                          // connected? when was it read? anything wrong?
   if (!gc.signed_in) {
-    const go = el("button", { type: "button", text: "Connect Google Classroom" });
+    if (web && web.count) return null;                      // Kestrel's browser reads your school sites instead
+    const go = el("button", { type: "button", text: "Set up your school sites" });
     go.onclick = () => openSetup("school");
-    return el("p", { class: "gc-line" }, go, "· your assignments, due dates and missing work fill in by themselves");
+    return el("p", { class: "gc-line" }, go, "· sign in once in Kestrel's browser, and your assignments, due dates and " +
+      "missing work fill in by themselves");
   }
   const again = el("button", { type: "button", text: "Refresh" });
   again.onclick = () => readClassroom(true);
@@ -1827,36 +1862,81 @@ function classroomLine(gc) {                               // connected? when wa
   return el("p", { class: "gc-line" }, `Google Classroom · ${gc.classes} classes · ` +
     (gc.minutes_ago == null ? "reading…" : gc.minutes_ago < 1 ? "read just now" : `read ${agoText(gc.minutes_ago)}`), again);
 }
-function apLine(ap) {                                     // AP Classroom pages chosen in Kestrel's AP window
-  if (!ap || !ap.pages) return null;
-  const again = el("button", { type: "button", text: "Refresh" });
-  again.onclick = () => readAPPages(true);
-  if (ap.signed_out) {
-    const go = el("button", { type: "button", text: "Sign in again" });
-    go.onclick = openAPClassroom;
-    return el("p", { class: "gc-line bad" }, "AP Classroom signed you out:", go);
+const pageName = (p) => p.label + (p.account ? ` (${p.account})` : "");
+const readAgo = (m) => m == null ? "reading…" : m < 1 ? "read just now" : `read ${agoText(m)}`;
+function webLines(web) {                                   // the pages Kestrel's browser reads for Today, by site
+  if (!web || !web.count) return [];
+  const sites = new Map(), lines = [];
+  for (const p of web.pages) {
+    const key = pageName(p);
+    if (!sites.has(key)) sites.set(key, []);
+    sites.get(key).push(p);
   }
-  return el("p", { class: "gc-line" }, `AP Classroom · ${ap.courses.join(", ")} · ` +
-    (ap.minutes_ago == null ? "reading…" : ap.minutes_ago < 1 ? "read just now" : `read ${agoText(ap.minutes_ago)}`), again);
+  for (const [name, pages] of sites) {
+    for (const p of pages.filter(p => p.signed_out)) {
+      const go = el("button", { type: "button", text: "Sign in" });
+      go.onclick = () => openInBrowser(p.url);
+      lines.push(el("p", { class: "gc-line bad" }, `${name} signed Kestrel out (no saved password worked):`, go));
+    }
+    for (const p of pages.filter(p => !p.signed_out && !p.found)) {
+      const open = el("button", { type: "button", text: "Open" });
+      open.onclick = () => openInBrowser(p.url);
+      const copy = el("button", { type: "button", text: "Copy what Kestrel saw" });
+      copy.onclick = () => showReport(p.url);
+      lines.push(el("p", { class: "gc-line bad" }, `${name}: no assignments found on “${p.title || p.url}”`, open, copy));
+    }
+    const ok = pages.filter(p => !p.signed_out && p.found);
+    if (!ok.length) continue;
+    const courses = [...new Set(ok.map(p => p.course).filter(Boolean))];
+    const found = ok.reduce((n, p) => n + p.found, 0);
+    const again = el("button", { type: "button", text: "Refresh" });
+    again.onclick = () => readWebPages(true);
+    lines.push(el("p", { class: "gc-line" }, `${name} · ` + (courses.length ? courses.join(", ") + " · " : "") +
+      `${found} assignment${found === 1 ? "" : "s"} · ${readAgo(Math.max(...ok.map(p => p.minutes_ago || 0)))}`, again));
+  }
+  return lines;
 }
-async function openAPClassroom() {                         // Kestrel's AP window; an older window: the browser
-  try { await call("ap-open"); }
-  catch (e) { openLink(schoolLink("ap_classroom", "https://myap.collegeboard.org/")); }
+async function openInBrowser(url) {                        // Kestrel's browser; an older window: your own browser
+  if (window.kestrelPhone || !bridge) { window.open(url, "_blank", "noopener"); return; }
+  try { await call("browser-open", { url }); return; } catch (e) {}
+  if (/collegeboard\.org/.test(url)) { try { await call("ap-open"); return; } catch (e) {} }
+  openLink(url);
 }
-let apAutoAt = 0;
-async function readAPPages(manual) {
-  try { await call("ap-read"); if (manual) notify("Re-reading your AP Classroom pages (Today updates when it's done)."); }
+let webAutoAt = 0;
+async function readWebPages(manual) {
+  try { await call("web-read", { force: !!manual }); }
   catch (e) {
-    if (manual) notify(window.kestrelPhone ? "AP Classroom is re-read on the Mac (its AP window), not from the phone."
-                                           : "Update Kestrel to re-read AP Classroom by itself (Kestrel menu → Check for Updates).", true);
+    try { await call("ap-read"); }
+    catch (e2) {
+      if (manual) notify(window.kestrelPhone ? "Your school sites are re-read on the Mac, in Kestrel's browser."
+                                             : "Update Kestrel to re-read your school sites by itself (Kestrel menu → Check for Updates).", true);
+      return;
+    }
   }
+  if (manual) notify("Re-reading your school sites in Kestrel's browser (Today updates when it's done).");
 }
-function autoReadAP(ap) {                                  // at most every 30 minutes; the window decides the rest
-  if (!ap || !ap.stale || document.hidden || Date.now() - apAutoAt < 1800000) return;
-  apAutoAt = Date.now();
-  readAPPages(false);
+function autoReadWeb(web) {                                // at most every 30 minutes; the browser decides the rest
+  if (!web || !web.stale || document.hidden || Date.now() - webAutoAt < 1800000) return;
+  webAutoAt = Date.now();
+  readWebPages(false);
 }
-window.aitraderTodayRefresh = () => loadToday(true);       // the AP window finished reading
+async function showReport(url) {                           // "Copy what Kestrel saw", to paste into a chat with Claude
+  try {
+    const r = await call("web-report", { input: JSON.stringify({ url }) });
+    $("#report-text").value = r.text;
+    $("#dlg-report").showModal();
+    $("#report-text").select();
+  } catch (e) { notify(e.message, true); }
+}
+$("#report-copy").onclick = () => {
+  $("#report-text").select();
+  let copied = false;
+  try { copied = document.execCommand("copy"); } catch (e) {}
+  notify(copied ? "Copied: paste it into your chat with Claude." : "Press ⌘C to copy it (it's selected).", !copied);
+  if (copied) $("#dlg-report").close();
+};
+window.aitraderTodayRefresh = () => loadToday(true);       // the browser finished reading
+window.aitraderOpenSetup = (pane) => openSetup(pane);      // the browser's Saved Passwords…
 const agoText = (m) => m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} days ago`;
 let classroomBusy = false, classroomAutoAt = 0;
 async function readClassroom(manual) {
@@ -1872,8 +1952,8 @@ function autoReadClassroom(gc) {                           // fresh Classroom da
   classroomAutoAt = Date.now();
   readClassroom(false);
 }
-function renderHomework(sc, gc, ap) {
-  const g = sc.groups, kids = [classroomLine(gc || {}), apLine(ap)].filter(Boolean);
+function renderHomework(sc, gc, web) {
+  const g = sc.groups, kids = [classroomLine(gc || {}, web), ...webLines(web)].filter(Boolean);
   $("#hw-count").textContent = sc.open ? `${sc.open} to do` + (sc.missing ? ` · ${sc.missing} missing` : "")
                                          + (sc.ap_open ? ` · ${sc.ap_open} AP` : "") : "";
   if ((sc.events || []).length) kids.push(el("h3", { class: "hw-group", text: "Today's calendar" }),
@@ -1884,9 +1964,9 @@ function renderHomework(sc, gc, ap) {
     kids.push(el("h3", { class: "hw-group" + (key === "overdue" ? " late" : ""), text: title }),
               el("ul", { class: "hw-list" }, ...g[key].map(i => hwRow(i, key === "overdue"))));
   }
-  if (!sc.open) kids.push(el("p", { class: "muted hw-empty", text: "Nothing on your list. Add homework above, AP Classroom " +
-    "work too (\"AP\" in the name tags it)." + (gc && gc.signed_in ? "" : " Google Classroom can fill it in by itself: " +
-    "Connect Google Classroom above.") }));
+  if (!sc.open) kids.push(el("p", { class: "muted hw-empty", text: "Nothing on your list. Add homework above (\"AP\" in " +
+    "the name tags it)." + ((gc && gc.signed_in) || (web && web.count) ? "" : " Your school sites can fill it in by " +
+    "themselves: Set up your school sites above.") }));
   if (g.done.length) kids.push(el("details", { class: "hw-done" }, el("summary", { text: `Done lately (${g.done.length})` }),
                                   el("ul", { class: "hw-list" }, ...g.done.map(i => hwRow(i, false)))));
   $("#today-school").replaceChildren(...kids);
@@ -1939,8 +2019,8 @@ function openLink(url) {                                   // in your browser (t
   call("open-url", { url }).catch(e => notify(e.message, true));
 }
 const schoolLink = (key, fallback) => ((state.today && state.today.school.links) || {})[key] || fallback;
-$("#open-ap").onclick = openAPClassroom;
-$("#open-gc").onclick = () => openLink(schoolLink("classroom", "https://classroom.google.com/"));
+$("#open-ap").onclick = () => openInBrowser(schoolLink("ap_classroom", "https://myap.collegeboard.org/"));
+$("#open-gc").onclick = () => openInBrowser(schoolLink("classroom", "https://classroom.google.com/"));
 $("#hw-add").onsubmit = async (e) => {
   e.preventDefault();
   const text = $("#hw-text").value.trim(), add = $("#hw-add button");
@@ -2281,8 +2361,9 @@ async function refreshSetup() {
 function renderSetupOverview(s) {
   const lid = s.lid || {}, ph = s.phone || {}, po = ph.pushover || {}, sc = ph.screen || {}, ai = s.local_ai || {};
   const ds = s.data_sources || {}, fr = ds.fred || {}, sec = ds.sec || {}, wb = s.webull || {}, gc = s.google || {};
+  const web = s.web || { count: 0, pages: [] };
   const running = s.autopilot_on && s.autopilot_alive !== false;
-  renderGoogle(gc); renderAP(s.ap);
+  renderGoogle(gc); renderWeb(s.web);
   const rows = [
     ["Alpaca paper account", s.paper_keys ? "connected" : "not connected (optional: it can simulate on this Mac)",
       s.paper_keys ? "ok" : "todo", "brokers"],
@@ -2304,9 +2385,12 @@ function renderSetupOverview(s) {
       fr.has_key && sec.on ? "ok" : fr.has_key || sec.on ? "todo" : "off", "ai"],
     ["Webull", !wb.keys ? "not set up" : wb.approval === "NORMAL" ? "connected" : "keys saved · needs approval",
       !wb.keys ? "off" : wb.approval === "NORMAL" ? "ok" : "todo", "brokers"],
-    ["Google Classroom", gc.signed_in ? (gc.error ? "signed in · " + gc.error : `connected (${gc.email || "signed in"})`)
-      : gc.keys ? "key saved · sign in" : "not set up", gc.signed_in ? (gc.error ? "todo" : "ok") : gc.keys ? "todo" : "off",
-      "school"],
+    ["School sites (Kestrel's browser)", !web.count ? "not set up" : web.signed_out ? "a site signed Kestrel out"
+      : `${web.count} page${web.count === 1 ? "" : "s"} · ${web.found} assignment${web.found === 1 ? "" : "s"}`,
+      !web.count ? "off" : web.signed_out || web.pages.some(p => !p.found) ? "todo" : "ok", "school"],
+    gc.signed_in || gc.keys ? ["Google Classroom (Google's sign-in)", gc.signed_in ? (gc.error ? "signed in · " + gc.error
+      : `connected (${gc.email || "signed in"})`) : "key saved · sign in", gc.signed_in && !gc.error ? "ok" : "todo",
+      "school"] : null,
   ].filter(Boolean);
   const icon = { ok: "✓", todo: "!", off: "–" };
   $("#ov-list").replaceChildren(...rows.map(([what, state, kind, pane]) => el("li", {},
@@ -2434,18 +2518,48 @@ function pollGoogle(started) {
     } else gcChecks([{ ok: false, text: login.message || "Kestrel couldn't tell if the sign-in worked. Press Sign in with Google again." }]);
   }, 3000);
 }
-function renderAP(ap) {
-  if (!ap) return;
-  $("#ap-state").textContent = !ap.pages ? "not set up" : ap.signed_out ? "sign in again" : "reading";
-  $("#ap-read").hidden = $("#ap-forget").hidden = !ap.pages;
-  $("#ap-line").textContent = !ap.pages ? "No AP pages chosen yet."
-    : `${ap.pages} page${ap.pages === 1 ? "" : "s"} (${ap.courses.join(", ")}): ${ap.found} assignment${ap.found === 1 ? "" : "s"} ` +
-      `found, read ${ap.minutes_ago == null ? "—" : ap.minutes_ago < 1 ? "just now" : agoText(ap.minutes_ago)}.` +
-      (ap.signed_out ? " College Board signed Kestrel's window out: Open AP Classroom and sign in again." : "");
+function renderWeb(web) {                                  // Setup → School: the pages Kestrel's browser reads
+  if (!web) return;
+  $("#web-state").textContent = !web.count ? "not set up" : web.signed_out ? "sign in again" : "reading";
+  $("#web-read").hidden = !web.count;
+  if (!web.count) {
+    $("#web-pages").replaceChildren(el("li", { class: "muted", text: "No pages yet: open one in Kestrel's browser and press Add to Today." }));
+  } else {
+    $("#web-pages").replaceChildren(...web.pages.map(p => {
+      const open = el("button", { type: "button", text: "Open" });
+      open.onclick = () => openInBrowser(p.url);
+      const copy = el("button", { type: "button", text: "Copy what Kestrel saw" });
+      copy.onclick = () => showReport(p.url);
+      const forget = el("button", { type: "button", text: "Stop reading it" });
+      forget.onclick = (e) => setupAction(e.target, "web-forget", { url: p.url }, async (r) => { notify(r.message); loadToday(true); });
+      const how = p.signed_out ? "signed Kestrel out" : `${p.found} assignment${p.found === 1 ? "" : "s"}` +
+        (p.how ? ` (from its ${p.how})` : "");
+      return el("li", {}, el("span", { class: "what" }, el("strong", { text: pageName(p) }), ` · ${p.course || p.title || p.url}`),
+        el("span", { class: p.signed_out || !p.found ? "bad" : "muted", text: `${how} · ${readAgo(p.minutes_ago)}` }), open, copy, forget);
+    }));
+  }
+  renderLogins();
 }
-$("#ap-open").onclick = openAPClassroom;
-$("#ap-read").onclick = () => readAPPages(true);
-$("#ap-forget").onclick = (e) => setupAction(e.target, "ap-forget", undefined, async (r) => { notify(r.message); loadToday(true); });
+async function renderLogins() {                            // the passwords the browser saved (never the passwords themselves)
+  const list = $("#web-logins");
+  if (window.kestrelPhone) { list.replaceChildren(el("li", { class: "muted", text: "Saved passwords are on the Mac." })); return; }
+  try {
+    const r = await call("logins-list");
+    list.replaceChildren(...(r.logins.length ? r.logins.map(l => {
+      const forget = el("button", { type: "button", text: "Forget" });
+      forget.onclick = async () => {
+        try { notify((await call("logins-forget", { host: l.host, username: l.username })).message); } catch (e) { notify(e.message, true); }
+        renderLogins();
+      };
+      return el("li", {}, el("span", { class: "what" }, el("strong", { text: l.username || "(no username)" }), ` · ${l.host}`),
+        el("span", { class: "muted", text: "saved " + niceDate(l.saved.slice(0, 10)) }), forget);
+    }) : [el("li", { class: "muted", text: "None yet: Kestrel asks to save a password when you sign in in its browser." })]));
+  } catch (e) {
+    list.replaceChildren(el("li", { class: "muted", text: "Update Kestrel to use its browser and saved passwords (Kestrel menu → Check for Updates…)." }));
+  }
+}
+$("#web-open").onclick = () => openInBrowser("https://classroom.google.com/");
+$("#web-read").onclick = () => readWebPages(true);
 $("#gc-save").onclick = (e) => {
   const client_id = $("#gc-id").value.trim(), client_secret = $("#gc-secret").value.trim();
   if (!client_id || !client_secret) { gcChecks([{ ok: false, text: "Paste both the Client ID and the Client secret." }]); return; }

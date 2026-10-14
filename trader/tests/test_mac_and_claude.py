@@ -98,7 +98,7 @@ def test_the_mac_app_builds(tmp_path):
         assert plist["CFBundleExecutable"] == "AITrader" and plist["CFBundleShortVersionString"] == "9.9.9"
         assert plist["LSRequiresNativeExecution"] is True                    # no Rosetta prompt
         assert plist["CFBundleIconFile"] == "AppIcon" and plist["CFBundleIdentifier"] == "com.aitrader.app"
-        for f in ("install.sh", "Kestrel Menu.command", "AppIcon.icns", "VERSION"):
+        for f in ("install.sh", "Kestrel Menu.command", "AppIcon.icns", "VERSION", "browser.js", "browser-page.js"):
             assert f"Kestrel.app/Contents/Resources/{f}" in names
         for f in ("run.py", "mcp_server.py", "config.yaml", "requirements.txt", ".env.example",
                   "aitrader/web/dashboard.html", "aitrader/app_api.py"):

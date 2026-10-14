@@ -99,7 +99,11 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
     var autoUpdateItem: NSMenuItem!
     var updateTimer: Timer?
     var updating = false
-    lazy var ap: APClassroom = APClassroom(onSaved: { [weak self] in self?.refreshToday() })   // apclassroom.swift
+    lazy var browser: Browser = {                         // browser.swift: Kestrel's own browser
+        let browser = Browser(onSaved: { [weak self] in self?.refreshToday() })
+        browser.showSetup = { [weak self] pane in self?.openSetupPane(pane) }
+        return browser
+    }()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         buildMenus()
@@ -116,6 +120,7 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
                           styleMask: [.titled, .closable, .miniaturizable, .resizable],
                           backing: .buffered, defer: false)
         window.title = "Kestrel"
+        window.isReleasedWhenClosed = false               // closed while a browser window stays open: Window → Dashboard
         window.minSize = NSSize(width: 420, height: 560)
         window.contentView = web
         window.center()
@@ -128,6 +133,7 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
         } else {
             installOrUpdate()
             startUpdateChecks()
+            browser.startSchedule()                       // re-reads your school pages for Today by itself
         }
         if botIsReady() {
             loadDashboard()
@@ -141,6 +147,16 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if !flag { showDashboard() }                      // the Dock icon brings the dashboard back
+        return true
+    }
+
+    @objc func showDashboard() {
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
 
     /// Copies this version of the bot into ~/AITrader (your keys and data stay). Quick.
     func installOrUpdate() {
@@ -166,8 +182,27 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
         if action == "open-menu" { openSetupMenu(); replyHandler("{}", nil); return }
         if action == "app-version" { replyHandler("{\"version\": \"\(currentVersion())\"}", nil); return }
         if action == "check-updates" { checkForUpdates(userAsked: true); replyHandler("{}", nil); return }
-        if action == "ap-open" { ap.open(); replyHandler("{}", nil); return }          // AP Classroom's window
-        if action == "ap-read" { ap.readSaved(); replyHandler("{}", nil); return }     // re-read the chosen pages
+        if action == "browser-open" || action == "ap-open" {             // Kestrel's browser (at that page)
+            let url = (body["url"] as? String).flatMap { URL(string: $0) }.flatMap { $0.scheme == "https" ? $0 : nil }
+            browser.open(url ?? (action == "ap-open" ? apHome : nil))
+            replyHandler("{}", nil)
+            return
+        }
+        if action == "web-read" || action == "ap-read" {                 // re-read the pages chosen for Today
+            browser.readSaved(force: body["force"] as? Bool ?? false)
+            replyHandler("{}", nil)
+            return
+        }
+        if action == "logins-list" {                                     // the saved passwords, without the passwords
+            replyHandler(jsonText(["logins": Logins.shared.list()]), nil)
+            return
+        }
+        if action == "logins-forget" {
+            let host = body["host"] as? String ?? "", user = body["username"] as? String ?? ""
+            Logins.shared.remove(host: host, username: user)
+            replyHandler(jsonText(["message": "Kestrel forgot the password for \(user.isEmpty ? host : "\(user) on \(host)")."]), nil)
+            return
+        }
         if action == "open-url" {                        // e.g. the Schwab login page, in your browser
             guard let text = body["url"] as? String, let url = URL(string: text), url.scheme == "https" else {
                 replyHandler(nil, "not a web address"); return
@@ -205,10 +240,33 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
             case .success(let value):
                 let summary = "\(value)"
                 print("SELF-TEST: \(summary)")
-                self.saveScreenshot { exit(summary.hasPrefix("OK") ? 0 : 1) }
+                self.browserSelfTest { browserSummary in
+                    print("SELF-TEST: \(browserSummary)")
+                    self.saveScreenshot { exit(summary.hasPrefix("OK") && browserSummary.hasPrefix("BROWSER OK") ? 0 : 1) }
+                }
             case .failure(let error):
                 print("SELF-TEST FAILED: \(error)")
                 exit(1)
+            }
+        }
+    }
+
+    /// The build machine's check of the browser: a tab opens, its helpers load into a page, and they read the page.
+    func browserSelfTest(then done: @escaping (String) -> Void) {
+        let tab = browser.newTab(nil)
+        let page = "<html><head><title>Assignments</title></head><body><table><tr><th>Assignment</th><th>Due</th>"
+            + "<th>Status</th></tr><tr><td>Unit 3 Progress Check: MCQ</td><td>Oct 17, 2026, 11:59 PM</td>"
+            + "<td>Not started</td></tr></table></body></html>"
+        tab.web.loadHTMLString(page, baseURL: URL(string: "https://kestrel-self-test.example/assignments"))
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+            tab.web.evaluateJavaScript("JSON.stringify(window.kestrel ? kestrel.snapshot().rows : null)", in: nil,
+                                       in: .defaultClient) { result in
+                var summary = "BROWSER FAILED: its page helper (browser.js) didn't load or didn't read the page"
+                if case .success(let value) = result, let text = value as? String, text.contains("Unit 3 Progress Check") {
+                    summary = "BROWSER OK: \(text.count) characters of rows"
+                }
+                tab.window?.close()
+                done(summary)
             }
         }
     }
@@ -237,12 +295,22 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
         web.evaluateJavaScript("window.aitraderRefresh && window.aitraderRefresh(); 0", completionHandler: nil)
     }
 
-    /// The Today screen shows what the AP Classroom window just read.
+    /// Setup on one of its panes (the browser's Saved Passwords… opens School).
+    func openSetupPane(_ pane: String) {
+        showDashboard()
+        web.evaluateJavaScript("window.aitraderOpenSetup && window.aitraderOpenSetup(\(jsonText([pane]))[0]); 0",
+                               completionHandler: nil)
+    }
+
+    /// The Today screen shows what the browser just read.
     func refreshToday() {
         web.evaluateJavaScript("window.aitraderTodayRefresh && window.aitraderTodayRefresh(); 0", completionHandler: nil)
     }
 
-    @objc func openAPClassroom() { ap.open() }
+    @objc func openAPClassroom() { browser.open(apHome) }
+    @objc func openBrowser() { browser.open() }
+    @objc func newBrowserTab() { browser.newTab(nil) }
+    @objc func newBrowserWindow() { browser.newTab(nil, newWindow: true) }
 
     @objc func toggleDemo() {
         demo.toggle()
@@ -269,6 +337,16 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
         app.addItem(withTitle: "Quit Kestrel", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         main.addItem(withTitle: "Kestrel", action: nil, keyEquivalent: "").submenu = app
 
+        // The browser's menus reach its front tab through the responder chain (browser.swift); with the dashboard
+        // in front they're greyed out.
+        let file = NSMenu(title: "File")
+        file.addItem(withTitle: "New Tab", action: #selector(newBrowserTab), keyEquivalent: "t").target = self
+        file.addItem(withTitle: "New Browser Window", action: #selector(newBrowserWindow), keyEquivalent: "n").target = self
+        file.addItem(withTitle: "Open Location…", action: #selector(BrowserTab.openLocation), keyEquivalent: "l")
+        file.addItem(.separator())
+        file.addItem(withTitle: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        main.addItem(withTitle: "File", action: nil, keyEquivalent: "").submenu = file
+
         let edit = NSMenu(title: "Edit")                     // so copy and paste work in the window
         edit.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
         edit.addItem(withTitle: "Redo", action: Selector(("redo:")), keyEquivalent: "Z")
@@ -280,20 +358,40 @@ final class AppController: NSObject, NSApplicationDelegate, WKNavigationDelegate
         main.addItem(withTitle: "Edit", action: nil, keyEquivalent: "").submenu = edit
 
         let view = NSMenu(title: "View")
-        view.addItem(withTitle: "Refresh", action: #selector(refresh), keyEquivalent: "r").target = self
+        view.addItem(withTitle: "Refresh", action: #selector(refresh), keyEquivalent: "r")    // the front window's
         demoItem = view.addItem(withTitle: "Show Demo Data (made-up prices)", action: #selector(toggleDemo),
                                 keyEquivalent: "d")
         demoItem.target = self
+        view.addItem(.separator())
+        view.addItem(withTitle: "Zoom In", action: #selector(BrowserTab.zoomIn), keyEquivalent: "+")
+        view.addItem(withTitle: "Zoom Out", action: #selector(BrowserTab.zoomOut), keyEquivalent: "-")
+        view.addItem(withTitle: "Actual Size", action: #selector(BrowserTab.actualSize), keyEquivalent: "0")
         view.addItem(.separator())
         let fullScreen = view.addItem(withTitle: "Enter Full Screen",
                                       action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f")
         fullScreen.keyEquivalentModifierMask = [.command, .control]
         main.addItem(withTitle: "View", action: nil, keyEquivalent: "").submenu = view
 
+        let history = NSMenu(title: "History")
+        history.addItem(withTitle: "Back", action: #selector(BrowserTab.goBack), keyEquivalent: "[")
+        history.addItem(withTitle: "Forward", action: #selector(BrowserTab.goForward), keyEquivalent: "]")
+        main.addItem(withTitle: "History", action: nil, keyEquivalent: "").submenu = history
+
+        let page = NSMenu(title: "Page")
+        page.addItem(withTitle: "Add to Today", action: #selector(BrowserTab.addToToday), keyEquivalent: "")
+        page.addItem(withTitle: "Copy What Kestrel Saw on This Page", action: #selector(BrowserTab.copyWhatKestrelSaw),
+                     keyEquivalent: "")
+        page.addItem(.separator())
+        page.addItem(withTitle: "Bookmark This Page", action: #selector(BrowserTab.bookmarkPage), keyEquivalent: "D")
+        page.addItem(withTitle: "Saved Passwords…", action: #selector(BrowserTab.savedPasswords), keyEquivalent: "")
+        main.addItem(withTitle: "Page", action: nil, keyEquivalent: "").submenu = page
+
         let windowMenu = NSMenu(title: "Window")
         windowMenu.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
         windowMenu.addItem(withTitle: "Zoom", action: #selector(NSWindow.performZoom(_:)), keyEquivalent: "")
         windowMenu.addItem(.separator())
+        windowMenu.addItem(withTitle: "Dashboard", action: #selector(showDashboard), keyEquivalent: "1").target = self
+        windowMenu.addItem(withTitle: "Browser", action: #selector(openBrowser), keyEquivalent: "b").target = self
         windowMenu.addItem(withTitle: "AP Classroom", action: #selector(openAPClassroom), keyEquivalent: "").target = self
         main.addItem(withTitle: "Window", action: nil, keyEquivalent: "").submenu = windowMenu
 
